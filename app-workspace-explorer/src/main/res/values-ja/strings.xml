@@ -147,6 +147,15 @@
     <string name="explorer_info_sftp_credential_session">Butler を閉じるまで保持</string>
     <string name="explorer_info_sftp_host_key_type_label">ホスト鍵の種類</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">ホスト鍵のフィンガープリント</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">匿名</string>
+    <string name="explorer_info_webdav_credential_stored">この端末に保存済み</string>
+    <string name="explorer_info_webdav_credential_session">Butler を閉じるまで保持</string>
+    <string name="explorer_info_webdav_certificate_label">証明書</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">信頼済みの証明書（SHA-256）</string>
+    <string name="explorer_info_webdav_certificate_system">システムで信頼されています</string>
+    <string name="explorer_info_webdav_certificate_cleartext">暗号化されていません（HTTP）</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">選択中</string>
@@ -326,6 +335,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows 共有とほとんどの NAS フォルダ</string>
     <string name="explorer_network_protocol_sftp_label">SFTP サーバー</string>
     <string name="explorer_network_protocol_sftp_caption">SSH で接続できるあらゆるサーバー</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud、ownCloud などの WebDAV サーバー</string>
     <string name="explorer_sftp_form_add_title">SFTP サーバーを追加</string>
     <string name="explorer_sftp_form_edit_title">SFTP サーバーを編集</string>
     <string name="explorer_sftp_form_sign_in_title">%1$s にサインイン</string>
@@ -376,6 +387,52 @@
     <string name="explorer_sftp_host_key_retrust_title">サーバーの鍵を置き換えますか？</string>
     <string name="explorer_sftp_host_key_retrust_message">%1$s が鍵を変更した理由が分かっている場合にのみ、鍵を置き換えてください。以後、Butler は提示された鍵を信頼します。</string>
     <string name="explorer_sftp_host_key_retrust_action">鍵を置き換え</string>
+    <string name="explorer_webdav_form_add_title">WebDAV サーバーを追加</string>
+    <string name="explorer_webdav_form_edit_title">WebDAV サーバーを編集</string>
+    <string name="explorer_webdav_form_sign_in_title">%1$s にサインイン</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">このサーバーを開くには、パスワードをもう一度入力してください。</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">このサーバーではユーザー名とパスワードが必要です。</string>
+    <string name="explorer_webdav_form_url_label">サーバー URL</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">暗号化されていない接続です。パスワードとファイルは平文で送信されます。</string>
+    <string name="explorer_webdav_form_auth_anonymous">匿名</string>
+    <string name="explorer_webdav_form_error_url_blank">サーバー URL を入力してください</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL は https:// または http:// で始まる必要があります</string>
+    <string name="explorer_webdav_form_error_url_user_info">ユーザー名とパスワードは URL ではなく、それぞれの入力欄に入力してください</string>
+    <string name="explorer_webdav_form_error_url_query">URL にクエリ（?…）を含めることはできません</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL にフラグメント（#…）を含めることはできません</string>
+    <string name="explorer_webdav_form_error_username_malformed">ユーザー名にコロン（:）や制御文字を含めることはできません</string>
+    <string name="explorer_webdav_form_error_password_required">ユーザー名、サインイン方法、保存設定を変更するには、パスワードを再入力してください</string>
+    <string name="explorer_webdav_form_error_auth">%1$s がユーザー名またはパスワードを拒否しました</string>
+    <string name="explorer_webdav_form_error_access_denied">このアカウントにはこのフォルダを開く権限がありません</string>
+    <string name="explorer_webdav_form_error_not_collection">この URL は WebDAV フォルダではありません。Nextcloud の場合、末尾は /remote.php/dav/files/USERNAME/ です</string>
+    <string name="explorer_webdav_form_error_missing">このフォルダはサーバー上に存在しません</string>
+    <string name="explorer_webdav_form_error_unreachable">%1$s に到達できません</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">サーバーが、信頼済みの証明書とは異なる証明書を提示しました。何も保存されていません。\n\n信頼済み: %1$s\n提示された証明書: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">サーバーの証明書は信頼されませんでした。何も保存されていません。</string>
+    <string name="explorer_webdav_form_error_certificate_stale">接続テストの開始後にサーバーの詳細が変更されました。何も保存されていません。もう一度テストして、サーバーの証明書を確認してください。</string>
+    <string name="explorer_webdav_form_error_unconfirmed">サーバーの識別情報を確認できませんでした。何も保存されていません。</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">その証明書が提示された後に、このサーバーの URL または証明書が変更されました。何も変更されていません。サーバーをもう一度開いて、現在提示されている証明書を確認してください。</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">この WebDAV サーバーは削除されました。何も変更されていません。</string>
+    <string name="explorer_webdav_certificate_untrusted_title">この証明書を信頼しますか？</string>
+    <string name="explorer_webdav_certificate_untrusted_message">この端末では、%1$s が提示した証明書は信頼されていません。自己署名証明書、非公開の認証局が発行した証明書、または別の名前に対して発行された証明書の可能性があります。フィンガープリントがサーバーに表示されているものと一致する場合にのみ続行してください。</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">この端末では、%1$s が提示する証明書は信頼されなくなりました。フィンガープリントがサーバーに表示されているものと一致する場合にのみ続行してください。以後、Butler はこのサーバーの証明書としてこの証明書を信頼します。</string>
+    <string name="explorer_webdav_certificate_subject_label">発行先</string>
+    <string name="explorer_webdav_certificate_issuer_label">発行者</string>
+    <string name="explorer_webdav_certificate_validity_label">有効期間</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s から %2$s まで</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256 フィンガープリント</string>
+    <string name="explorer_webdav_certificate_stored_label">信頼済みの証明書</string>
+    <string name="explorer_webdav_certificate_presented_label">提示された証明書</string>
+    <string name="explorer_webdav_certificate_accept_action">証明書を信頼</string>
+    <string name="explorer_webdav_certificate_retrust_title">信頼済みの証明書を置き換えますか？</string>
+    <string name="explorer_webdav_certificate_retrust_message">更新された場合など、%1$s が証明書を変更した理由が分かっている場合にのみ、証明書を置き換えてください。以後、Butler は提示された証明書を信頼します。</string>
+    <string name="explorer_webdav_certificate_retrust_action">証明書を置き換え</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">証明書が信頼されていません</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s が、この端末で信頼されていない証明書を提示しました。サーバーには何も送信されていません。</string>
+    <string name="explorer_webdav_certificate_card_changed_title">サーバーの証明書が変わりました</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s が、信頼済みの証明書とは異なる証明書を提示しました。証明書が更新された場合に起こりますが、第三者が通信を傍受している場合にも起こります。サーバーには何も送信されていません。</string>
+    <string name="explorer_webdav_certificate_review_action">確認</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">場所に名前を付ける</string>

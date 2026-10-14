@@ -150,6 +150,15 @@
     <string name="explorer_info_sftp_credential_session">Itinatago hanggang magsara ang Butler</string>
     <string name="explorer_info_sftp_host_key_type_label">Uri ng host key</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Fingerprint ng host key</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Anonymous</string>
+    <string name="explorer_info_webdav_credential_stored">Nakaimbak sa device na ito</string>
+    <string name="explorer_info_webdav_credential_session">Itinatago hanggang magsara ang Butler</string>
+    <string name="explorer_info_webdav_certificate_label">Sertipiko</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Pinagkakatiwalaang sertipiko (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Pinagkakatiwalaan ng system</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Hindi naka-encrypt (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Napili</string>
@@ -339,6 +348,8 @@
     <string name="explorer_network_protocol_smb_caption">Mga Windows share at karamihan ng NAS folder</string>
     <string name="explorer_network_protocol_sftp_label">SFTP server</string>
     <string name="explorer_network_protocol_sftp_caption">Anumang server na maaabot gamit ang SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud at iba pang WebDAV server</string>
     <string name="explorer_sftp_form_add_title">Magdagdag ng SFTP server</string>
     <string name="explorer_sftp_form_edit_title">I-edit ang SFTP server</string>
     <string name="explorer_sftp_form_sign_in_title">Mag-sign in sa %1$s</string>
@@ -389,6 +400,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Palitan ang key ng server?</string>
     <string name="explorer_sftp_host_key_retrust_message">Palitan lang ang key kung alam mo kung bakit ito binago ng %1$s. Pagkakatiwalaan na ng Butler ang ipinakitang key mula ngayon.</string>
     <string name="explorer_sftp_host_key_retrust_action">Palitan ang key</string>
+    <string name="explorer_webdav_form_add_title">Magdagdag ng WebDAV server</string>
+    <string name="explorer_webdav_form_edit_title">I-edit ang WebDAV server</string>
+    <string name="explorer_webdav_form_sign_in_title">Mag-sign in sa %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Ilagay muli ang password para mabuksan ang server na ito.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Humihingi ang server na ito ng username at password.</string>
+    <string name="explorer_webdav_form_url_label">URL ng server</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Hindi naka-encrypt ang koneksyon: ipinapadala ang password at mga file mo bilang plain text.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Anonymous</string>
+    <string name="explorer_webdav_form_error_url_blank">Ilagay ang URL ng server</string>
+    <string name="explorer_webdav_form_error_url_scheme">Dapat magsimula ang URL sa https:// o http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Ilagay ang username at password sa kani-kanilang field, hindi sa URL</string>
+    <string name="explorer_webdav_form_error_url_query">Hindi maaaring maglaman ng query (?…) ang URL</string>
+    <string name="explorer_webdav_form_error_url_fragment">Hindi maaaring maglaman ng fragment (#…) ang URL</string>
+    <string name="explorer_webdav_form_error_username_malformed">Hindi maaaring maglaman ng tutuldok (:) o mga control character ang username</string>
+    <string name="explorer_webdav_form_error_password_required">Ilagay muli ang password para palitan ang username, paraan ng pag-sign in, o setting ng pagtanda</string>
+    <string name="explorer_webdav_form_error_auth">Tinanggihan ng %1$s ang username o password</string>
+    <string name="explorer_webdav_form_error_access_denied">Hindi pinapayagan ang account na ito na buksan ang folder na ito</string>
+    <string name="explorer_webdav_form_error_not_collection">Hindi WebDAV folder ang URL na ito. Para sa Nextcloud, nagtatapos ito sa /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Wala ang folder na ito sa server</string>
+    <string name="explorer_webdav_form_error_unreachable">Hindi makontak ang %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Ibang sertipiko ang ipinakita ng server kaysa sa pinagkakatiwalaan para rito. Walang na-save.\n\nPinagkakatiwalaan: %1$s\nIpinakita: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Hindi pinagkatiwalaan ang sertipiko ng server. Walang na-save.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Nagbago ang mga detalye ng server pagkatapos magsimula ang pagsubok ng koneksyon. Walang na-save, subukan muli para suriin ang sertipiko ng server.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Hindi makumpirma ang pagkakakilanlan ng server. Walang na-save.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">Nagbago ang URL o sertipiko ng server na ito mula nang ipakita ang sertipikong iyon. Walang binago, buksan muli ang server para suriin ang sertipikong ipinapakita nito ngayon.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Inalis na ang WebDAV server na ito. Walang binago.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Pagkatiwalaan ang sertipikong ito?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Hindi pinagkakatiwalaan ng device na ito ang sertipikong ipinakita ng %1$s. Maaaring self-signed ito, inisyu ng pribadong awtoridad, o inisyu para sa ibang pangalan. Magpatuloy lang kung tumutugma ang fingerprint nito sa ipinapakita ng server mo.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Hindi na pinagkakatiwalaan ng device na ito ang sertipikong ipinapakita ng %1$s. Magpatuloy lang kung tumutugma ang fingerprint nito sa ipinapakita ng server mo. Pagkakatiwalaan na ng Butler ang sertipikong ito para sa server na ito mula ngayon.</string>
+    <string name="explorer_webdav_certificate_subject_label">Inisyu para sa</string>
+    <string name="explorer_webdav_certificate_issuer_label">Inisyu ng</string>
+    <string name="explorer_webdav_certificate_validity_label">May bisa</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s hanggang %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">Fingerprint ng SHA-256</string>
+    <string name="explorer_webdav_certificate_stored_label">Pinagkakatiwalaang sertipiko</string>
+    <string name="explorer_webdav_certificate_presented_label">Ipinakitang sertipiko</string>
+    <string name="explorer_webdav_certificate_accept_action">Pagkatiwalaan ang sertipiko</string>
+    <string name="explorer_webdav_certificate_retrust_title">Palitan ang pinagkakatiwalaang sertipiko?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Palitan lang ang sertipiko kung alam mo kung bakit ito binago ng %1$s, hal. dahil ni-renew ito. Pagkakatiwalaan na ng Butler ang ipinakitang sertipiko mula ngayon.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Palitan ang sertipiko</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Hindi pinagkakatiwalaan ang sertipiko</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">Nagpakita ang %1$s ng sertipikong hindi pinagkakatiwalaan ng device na ito. Walang naipadala sa server.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Nagbago ang sertipiko ng server</string>
+    <string name="explorer_webdav_certificate_card_changed_message">Ibang sertipiko ang ipinakita ng %1$s kaysa sa pinagkakatiwalaan para rito. Nangyayari ito kapag ni-renew ang sertipiko, pero pati na rin kapag may humaharang sa koneksyon. Walang naipadala sa server.</string>
+    <string name="explorer_webdav_certificate_review_action">Suriin</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Pangalanan ang lokasyon</string>

@@ -158,6 +158,15 @@
     <string name="explorer_info_sftp_credential_session">Uchované do zatvorenia aplikácie Butler</string>
     <string name="explorer_info_sftp_host_key_type_label">Typ kľúča hostiteľa</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Odtlačok kľúča hostiteľa</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Anonymné</string>
+    <string name="explorer_info_webdav_credential_stored">Uložené v tomto zariadení</string>
+    <string name="explorer_info_webdav_credential_session">Uchované do zatvorenia aplikácie Butler</string>
+    <string name="explorer_info_webdav_certificate_label">Certifikát</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Dôveryhodný certifikát (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Dôveryhodný pre systém</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Nezašifrované (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Vybrané</string>
@@ -358,6 +367,8 @@
     <string name="explorer_network_protocol_smb_caption">Zdieľané priečinky systému Windows a väčšina priečinkov NAS</string>
     <string name="explorer_network_protocol_sftp_label">Server SFTP</string>
     <string name="explorer_network_protocol_sftp_caption">Ľubovoľný server dostupný cez SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud a ďalšie servery WebDAV</string>
     <string name="explorer_sftp_form_add_title">Pridať server SFTP</string>
     <string name="explorer_sftp_form_edit_title">Upraviť server SFTP</string>
     <string name="explorer_sftp_form_sign_in_title">Prihlásenie na server %1$s</string>
@@ -408,6 +419,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Nahradiť kľúč servera?</string>
     <string name="explorer_sftp_host_key_retrust_message">Kľúč nahraď, len ak vieš, prečo ho server %1$s zmenil. Butler bude odteraz dôverovať predloženému kľúču.</string>
     <string name="explorer_sftp_host_key_retrust_action">Nahradiť kľúč</string>
+    <string name="explorer_webdav_form_add_title">Pridať server WebDAV</string>
+    <string name="explorer_webdav_form_edit_title">Upraviť server WebDAV</string>
+    <string name="explorer_webdav_form_sign_in_title">Prihlásenie na server %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Zadaj heslo znova a otvor tento server.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Tento server vyžaduje používateľské meno a heslo.</string>
+    <string name="explorer_webdav_form_url_label">URL servera</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Nezašifrované pripojenie: tvoje heslo a súbory sa odosielajú ako otvorený text.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Anonymné</string>
+    <string name="explorer_webdav_form_error_url_blank">Zadaj URL servera</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL sa musí začínať na https:// alebo http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Používateľské meno a heslo zadaj do príslušných polí, nie do URL</string>
+    <string name="explorer_webdav_form_error_url_query">URL nesmie obsahovať dopyt (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL nesmie obsahovať fragment (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">Používateľské meno nesmie obsahovať dvojbodku (:) ani riadiace znaky</string>
+    <string name="explorer_webdav_form_error_password_required">Ak chceš zmeniť používateľské meno, spôsob prihlásenia alebo nastavenie zapamätania, zadaj heslo znova</string>
+    <string name="explorer_webdav_form_error_auth">Server %1$s odmietol používateľské meno alebo heslo</string>
+    <string name="explorer_webdav_form_error_access_denied">Tento účet nemá povolené otvoriť tento priečinok</string>
+    <string name="explorer_webdav_form_error_not_collection">Táto URL neodkazuje na priečinok WebDAV. V prípade Nextcloud sa končí na /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Tento priečinok na serveri neexistuje</string>
+    <string name="explorer_webdav_form_error_unreachable">K serveru %1$s sa nedá pripojiť</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Server predložil iný certifikát než ten, ktorému bola pre tento server udelená dôvera. Nič sa neuložilo.\n\nDôveryhodný: %1$s\nPredložený: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Certifikátu servera nebola udelená dôvera. Nič sa neuložilo.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Podrobnosti servera sa zmenili po spustení testu pripojenia. Nič sa neuložilo, otestuj pripojenie znova a skontroluj certifikát servera.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Identitu servera sa nepodarilo potvrdiť. Nič sa neuložilo.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">URL alebo certifikát tohto servera sa od predloženia daného certifikátu zmenili. Nič sa nezmenilo, otvor server znova a skontroluj certifikát, ktorý teraz predkladá.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Tento server WebDAV bol odstránený. Nič sa nezmenilo.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Dôverovať tomuto certifikátu?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Toto zariadenie nedôveruje certifikátu, ktorý predložil server %1$s. Môže byť podpísaný sám sebou, vydaný súkromnou certifikačnou autoritou alebo vydaný pre iný názov. Pokračuj, len ak sa jeho odtlačok zhoduje s tým, ktorý zobrazuje tvoj server.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Toto zariadenie už nedôveruje certifikátu, ktorý predkladá server %1$s. Pokračuj, len ak sa jeho odtlačok zhoduje s tým, ktorý zobrazuje tvoj server. Butler bude odteraz dôverovať tomuto certifikátu pre tento server.</string>
+    <string name="explorer_webdav_certificate_subject_label">Vydané pre</string>
+    <string name="explorer_webdav_certificate_issuer_label">Vydal</string>
+    <string name="explorer_webdav_certificate_validity_label">Platnosť</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s až %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">Odtlačok SHA-256</string>
+    <string name="explorer_webdav_certificate_stored_label">Dôveryhodný certifikát</string>
+    <string name="explorer_webdav_certificate_presented_label">Predložený certifikát</string>
+    <string name="explorer_webdav_certificate_accept_action">Dôverovať certifikátu</string>
+    <string name="explorer_webdav_certificate_retrust_title">Nahradiť dôveryhodný certifikát?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Certifikát nahraď, len ak vieš, prečo ho server %1$s zmenil, napríklad preto, že bol obnovený. Butler bude odteraz dôverovať predloženému certifikátu.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Nahradiť certifikát</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Certifikát nie je dôveryhodný</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">Server %1$s predložil certifikát, ktorému toto zariadenie nedôveruje. Na server sa nič neodoslalo.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Certifikát servera sa zmenil</string>
+    <string name="explorer_webdav_certificate_card_changed_message">Server %1$s predložil iný certifikát než ten, ktorému bola pre tento server udelená dôvera. Stáva sa to pri obnovení certifikátu, ale aj vtedy, keď niekto zachytáva spojenie. Na server sa nič neodoslalo.</string>
+    <string name="explorer_webdav_certificate_review_action">Skontrolovať</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Pomenovať umiestnenie</string>

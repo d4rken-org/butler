@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">Dit account mag de map die voor \"%1$s\" is ingesteld niet openen. Controleer de machtigingen van de map op de server.</string>
     <string name="sftp_error_pro_required_title">SFTP-servers vereisen Butler Pro</string>
     <string name="sftp_error_pro_required_description">SFTP-servers doorbladeren maakt deel uit van Butler Pro. Servers toevoegen, testen en verwijderen is gratis.</string>
+    <string name="webdav_error_credential_unavailable_title">Aanmelding vereist</string>
+    <string name="webdav_error_credential_unavailable_description">Het opgeslagen wachtwoord voor deze WebDAV-server kan niet meer worden gelezen. Voer het opnieuw in om opnieuw verbinding te maken.</string>
+    <string name="webdav_error_unreachable_title">Server onbereikbaar</string>
+    <string name="webdav_error_unreachable_description">Butler kon \"%1$s\" niet bereiken. Controleer het adres en of de server draait.</string>
+    <string name="webdav_error_auth_title">Aanmelding mislukt</string>
+    <string name="webdav_error_auth_description">\"%1$s\" heeft de gebruikersnaam of het wachtwoord afgewezen.</string>
+    <string name="webdav_error_certificate_untrusted_title">Niet-vertrouwd certificaat</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" presenteerde een certificaat dat dit apparaat niet vertrouwt. Butler heeft zich niet aangemeld.\n\nVingerafdruk: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">Servercertificaat gewijzigd</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" presenteerde een ander certificaat dan het certificaat dat je vertrouwde. Butler heeft zich niet aangemeld.\n\nVertrouwd: %2$s\nGepresenteerd: %3$s</string>
+    <string name="webdav_error_access_denied_title">Geen toegang tot deze map</string>
+    <string name="webdav_error_access_denied_description">Dit account mag de map die voor \"%1$s\" is ingesteld niet openen. Controleer de machtigingen van de map op de server.</string>
+    <string name="webdav_error_not_collection_title">Geen WebDAV-map</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" is geen WebDAV-map. Controleer het adres, het moet naar een map op de server verwijzen.</string>
+    <string name="webdav_error_pro_required_title">WebDAV-servers vereisen Butler Pro</string>
+    <string name="webdav_error_pro_required_description">WebDAV-servers doorbladeren maakt deel uit van Butler Pro. Servers toevoegen, testen en verwijderen is gratis.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Beveiligde app-bundel</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" is versleuteld en kan alleen worden geïnstalleerd door de app die deze heeft gemaakt.</string>

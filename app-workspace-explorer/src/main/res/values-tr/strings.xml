@@ -148,6 +148,15 @@
     <string name="explorer_info_sftp_credential_session">Butler kapanana kadar tutulur</string>
     <string name="explorer_info_sftp_host_key_type_label">Sunucu anahtarı türü</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Sunucu anahtarı parmak izi</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Anonim</string>
+    <string name="explorer_info_webdav_credential_stored">Bu cihazda saklanıyor</string>
+    <string name="explorer_info_webdav_credential_session">Butler kapanana kadar tutulur</string>
+    <string name="explorer_info_webdav_certificate_label">Sertifika</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Güvenilen sertifika (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Sistem tarafından güveniliyor</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Şifrelenmemiş (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Seçili</string>
@@ -334,6 +343,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows paylaşımları ve çoğu NAS klasörü</string>
     <string name="explorer_network_protocol_sftp_label">SFTP sunucusu</string>
     <string name="explorer_network_protocol_sftp_caption">SSH üzerinden ulaşabildiğin her sunucu</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud ve diğer WebDAV sunucuları</string>
     <string name="explorer_sftp_form_add_title">SFTP sunucusu ekle</string>
     <string name="explorer_sftp_form_edit_title">SFTP sunucusunu düzenle</string>
     <string name="explorer_sftp_form_sign_in_title">%1$s için oturum aç</string>
@@ -384,6 +395,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Sunucu anahtarı değiştirilsin mi?</string>
     <string name="explorer_sftp_host_key_retrust_message">Anahtarı yalnızca %1$s sunucusunun neden değiştirdiğini biliyorsan değiştir. Butler bundan sonra sunulan anahtara güvenecek.</string>
     <string name="explorer_sftp_host_key_retrust_action">Anahtarı değiştir</string>
+    <string name="explorer_webdav_form_add_title">WebDAV sunucusu ekle</string>
+    <string name="explorer_webdav_form_edit_title">WebDAV sunucusunu düzenle</string>
+    <string name="explorer_webdav_form_sign_in_title">%1$s için oturum aç</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Bu sunucuyu açmak için şifreyi yeniden gir.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Bu sunucu kullanıcı adı ve şifre istiyor.</string>
+    <string name="explorer_webdav_form_url_label">Sunucu URL\'si</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Şifrelenmemiş bağlantı: şifren ve dosyaların düz metin olarak gönderilir.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Anonim</string>
+    <string name="explorer_webdav_form_error_url_blank">Sunucu URL\'sini gir</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL https:// veya http:// ile başlamalı</string>
+    <string name="explorer_webdav_form_error_url_user_info">Kullanıcı adını ve şifreyi URL\'ye değil, kendi alanlarına gir</string>
+    <string name="explorer_webdav_form_error_url_query">URL sorgu (?…) içeremez</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL parça tanımlayıcısı (#…) içeremez</string>
+    <string name="explorer_webdav_form_error_username_malformed">Kullanıcı adı iki nokta üst üste (:) veya denetim karakterleri içeremez</string>
+    <string name="explorer_webdav_form_error_password_required">Kullanıcı adını, oturum açma yöntemini veya hatırlama ayarını değiştirmek için şifreyi yeniden gir</string>
+    <string name="explorer_webdav_form_error_auth">%1$s kullanıcı adını veya şifreyi reddetti</string>
+    <string name="explorer_webdav_form_error_access_denied">Bu hesabın bu klasörü açma izni yok</string>
+    <string name="explorer_webdav_form_error_not_collection">Bu URL bir WebDAV klasörü değil. Nextcloud için /remote.php/dav/files/USERNAME/ ile biter</string>
+    <string name="explorer_webdav_form_error_missing">Bu klasör sunucuda yok</string>
+    <string name="explorer_webdav_form_error_unreachable">%1$s adresine ulaşılamıyor</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Sunucu, güvenilen sertifikadan farklı bir sertifika sundu. Hiçbir şey kaydedilmedi.\n\nGüvenilen: %1$s\nSunulan: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Sunucunun sertifikasına güvenilmedi. Hiçbir şey kaydedilmedi.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Sunucu bilgileri, bağlantı testi başladıktan sonra değişti. Hiçbir şey kaydedilmedi, sunucunun sertifikasını incelemek için yeniden test et.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Sunucunun kimliği doğrulanamadı. Hiçbir şey kaydedilmedi.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">Bu sunucunun URL\'si veya sertifikası, o sertifika sunulduktan sonra değişti. Hiçbir şey değiştirilmedi, şu an sunduğu sertifikayı incelemek için sunucuyu yeniden aç.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Bu WebDAV sunucusu kaldırıldı. Hiçbir şey değiştirilmedi.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Bu sertifikaya güvenilsin mi?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Bu cihaz, %1$s tarafından sunulan sertifikaya güvenmiyor. Sertifika kendinden imzalı olabilir, özel bir yetkili tarafından verilmiş olabilir veya başka bir ad için düzenlenmiş olabilir. Yalnızca parmak izi sunucunun gösterdiği parmak iziyle eşleşiyorsa devam et.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Bu cihaz, %1$s tarafından sunulan sertifikaya artık güvenmiyor. Yalnızca parmak izi sunucunun gösterdiği parmak iziyle eşleşiyorsa devam et. Butler bundan sonra bu sunucu için bu sertifikaya güvenecek.</string>
+    <string name="explorer_webdav_certificate_subject_label">Verilen taraf</string>
+    <string name="explorer_webdav_certificate_issuer_label">Veren taraf</string>
+    <string name="explorer_webdav_certificate_validity_label">Geçerlilik</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s ile %2$s arası</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256 parmak izi</string>
+    <string name="explorer_webdav_certificate_stored_label">Güvenilen sertifika</string>
+    <string name="explorer_webdav_certificate_presented_label">Sunulan sertifika</string>
+    <string name="explorer_webdav_certificate_accept_action">Sertifikaya güven</string>
+    <string name="explorer_webdav_certificate_retrust_title">Güvenilen sertifika değiştirilsin mi?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Sertifikayı yalnızca %1$s sunucusunun neden değiştirdiğini biliyorsan değiştir, örneğin yenilendiği için. Butler bundan sonra sunulan sertifikaya güvenecek.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Sertifikayı değiştir</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Sertifikaya güvenilmiyor</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s bu cihazın güvenmediği bir sertifika sundu. Sunucuya hiçbir şey gönderilmedi.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Sunucu sertifikası değişti</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s, güvenilen sertifikadan farklı bir sertifika sundu. Bu, sertifika yenilendiğinde olur, ama biri bağlantıyı araya girip dinlediğinde de olabilir. Sunucuya hiçbir şey gönderilmedi.</string>
+    <string name="explorer_webdav_certificate_review_action">İncele</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Konumu adlandır</string>

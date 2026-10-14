@@ -150,6 +150,15 @@
     <string name="explorer_info_sftp_credential_session">Butler மூடப்படும் வரை வைத்திருக்கப்படும்</string>
     <string name="explorer_info_sftp_host_key_type_label">ஹோஸ்ட் விசை வகை</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">ஹோஸ்ட் விசை கைரேகை</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">அடையாளமற்ற உள்நுழைவு</string>
+    <string name="explorer_info_webdav_credential_stored">இந்தச் சாதனத்தில் சேமிக்கப்பட்டுள்ளது</string>
+    <string name="explorer_info_webdav_credential_session">Butler மூடப்படும் வரை வைத்திருக்கப்படும்</string>
+    <string name="explorer_info_webdav_certificate_label">சான்றிதழ்</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">நம்பப்பட்ட சான்றிதழ் (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">அமைப்பால் நம்பப்படுகிறது</string>
+    <string name="explorer_info_webdav_certificate_cleartext">குறியாக்கம் செய்யப்படவில்லை (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">தேர்ந்தெடுத்தவை</string>
@@ -339,6 +348,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows பகிர்வுகள் மற்றும் பெரும்பாலான NAS கோப்புறைகள்</string>
     <string name="explorer_network_protocol_sftp_label">SFTP சேவையகம்</string>
     <string name="explorer_network_protocol_sftp_caption">SSH வழியாக நீங்கள் அணுகக்கூடிய எந்தச் சேவையகமும்</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud மற்றும் பிற WebDAV சேவையகங்கள்</string>
     <string name="explorer_sftp_form_add_title">SFTP சேவையகத்தைச் சேர்</string>
     <string name="explorer_sftp_form_edit_title">SFTP சேவையகத்தைத் திருத்து</string>
     <string name="explorer_sftp_form_sign_in_title">%1$s இல் உள்நுழையுங்கள்</string>
@@ -389,6 +400,52 @@
     <string name="explorer_sftp_host_key_retrust_title">சேவையக விசையை மாற்றவா?</string>
     <string name="explorer_sftp_host_key_retrust_message">%1$s ஏன் விசையை மாற்றியது என்று தெரிந்தால் மட்டுமே விசையை மாற்றுங்கள். இனி வழங்கப்பட்ட விசையை Butler நம்பும்.</string>
     <string name="explorer_sftp_host_key_retrust_action">விசையை மாற்று</string>
+    <string name="explorer_webdav_form_add_title">WebDAV சேவையகத்தைச் சேர்</string>
+    <string name="explorer_webdav_form_edit_title">WebDAV சேவையகத்தைத் திருத்து</string>
+    <string name="explorer_webdav_form_sign_in_title">%1$s இல் உள்நுழையுங்கள்</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">இந்தச் சேவையகத்தைத் திறக்கக் கடவுச்சொல்லை மீண்டும் உள்ளிடுங்கள்.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">இந்தச் சேவையகம் பயனர்பெயரையும் கடவுச்சொல்லையும் கேட்கிறது.</string>
+    <string name="explorer_webdav_form_url_label">சேவையக URL</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">குறியாக்கம் செய்யப்படாத இணைப்பு: உங்கள் கடவுச்சொல்லும் கோப்புகளும் சாதாரண உரையாக அனுப்பப்படுகின்றன.</string>
+    <string name="explorer_webdav_form_auth_anonymous">அடையாளமற்ற உள்நுழைவு</string>
+    <string name="explorer_webdav_form_error_url_blank">சேவையக URL ஐ உள்ளிடுங்கள்</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL https:// அல்லது http:// உடன் தொடங்க வேண்டும்</string>
+    <string name="explorer_webdav_form_error_url_user_info">பயனர்பெயரையும் கடவுச்சொல்லையும் அவற்றுக்கான புலங்களில் உள்ளிடுங்கள், URL இல் அல்ல</string>
+    <string name="explorer_webdav_form_error_url_query">URL இல் வினவல் (?…) இருக்கக்கூடாது</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL இல் துண்டுப் பகுதி (#…) இருக்கக்கூடாது</string>
+    <string name="explorer_webdav_form_error_username_malformed">பயனர்பெயரில் இரட்டைப்புள்ளி (:) அல்லது கட்டுப்பாட்டு எழுத்துகள் இருக்கக்கூடாது</string>
+    <string name="explorer_webdav_form_error_password_required">பயனர்பெயர், உள்நுழைவு முறை அல்லது நினைவில் கொள்ளும் அமைப்பை மாற்ற கடவுச்சொல்லை மீண்டும் உள்ளிடுங்கள்</string>
+    <string name="explorer_webdav_form_error_auth">%1$s பயனர்பெயர் அல்லது கடவுச்சொல்லை நிராகரித்துவிட்டது</string>
+    <string name="explorer_webdav_form_error_access_denied">இந்தக் கோப்புறையைத் திறக்க இந்தக் கணக்குக்கு அனுமதி இல்லை</string>
+    <string name="explorer_webdav_form_error_not_collection">இந்த URL ஒரு WebDAV கோப்புறை அல்ல. Nextcloud இல் அது /remote.php/dav/files/USERNAME/ என முடியும்</string>
+    <string name="explorer_webdav_form_error_missing">இந்தக் கோப்புறை சேவையகத்தில் இல்லை</string>
+    <string name="explorer_webdav_form_error_unreachable">%1$s ஐத் தொடர்புகொள்ள முடியவில்லை</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">நம்பப்பட்ட சான்றிதழிலிருந்து வேறுபட்ட சான்றிதழைச் சேவையகம் வழங்கியது. எதுவும் சேமிக்கப்படவில்லை.\n\nநம்பப்பட்டது: %1$s\nவழங்கப்பட்டது: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">சேவையகத்தின் சான்றிதழ் நம்பப்படவில்லை. எதுவும் சேமிக்கப்படவில்லை.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">இணைப்புச் சோதனை தொடங்கிய பிறகு சேவையக விவரங்கள் மாறின. எதுவும் சேமிக்கப்படவில்லை; சேவையகத்தின் சான்றிதழைச் சரிபார்க்க மீண்டும் சோதியுங்கள்.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">சேவையகத்தின் அடையாளத்தை உறுதிசெய்ய முடியவில்லை. எதுவும் சேமிக்கப்படவில்லை.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">அந்தச் சான்றிதழ் வழங்கப்பட்ட பிறகு இந்தச் சேவையகத்தின் URL அல்லது சான்றிதழ் மாறியுள்ளது. எதுவும் மாற்றப்படவில்லை; அது இப்போது வழங்கும் சான்றிதழைச் சரிபார்க்க சேவையகத்தை மீண்டும் திறவுங்கள்.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">இந்த WebDAV சேவையகம் அகற்றப்பட்டது. எதுவும் மாற்றப்படவில்லை.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">இந்தச் சான்றிதழை நம்பவா?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">%1$s வழங்கிய சான்றிதழை இந்தச் சாதனம் நம்பவில்லை. அது சுயமாகக் கையொப்பமிடப்பட்டதாகவோ, தனியார் சான்றிதழ் ஆணையத்தால் வழங்கப்பட்டதாகவோ அல்லது வேறொரு பெயருக்காக வழங்கப்பட்டதாகவோ இருக்கலாம். அதன் கைரேகை உங்கள் சேவையகம் காட்டும் கைரேகையுடன் பொருந்தினால் மட்டுமே தொடருங்கள்.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">%1$s வழங்கும் சான்றிதழை இந்தச் சாதனம் இனி நம்பவில்லை. அதன் கைரேகை உங்கள் சேவையகம் காட்டும் கைரேகையுடன் பொருந்தினால் மட்டுமே தொடருங்கள். இனி இந்தச் சேவையகத்திற்காக இந்தச் சான்றிதழை Butler நம்பும்.</string>
+    <string name="explorer_webdav_certificate_subject_label">வழங்கப்பட்ட பெறுநர்</string>
+    <string name="explorer_webdav_certificate_issuer_label">வழங்கியவர்</string>
+    <string name="explorer_webdav_certificate_validity_label">செல்லுபடியாகும் காலம்</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s முதல் %2$s வரை</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256 கைரேகை</string>
+    <string name="explorer_webdav_certificate_stored_label">நம்பப்பட்ட சான்றிதழ்</string>
+    <string name="explorer_webdav_certificate_presented_label">வழங்கப்பட்ட சான்றிதழ்</string>
+    <string name="explorer_webdav_certificate_accept_action">சான்றிதழை நம்பு</string>
+    <string name="explorer_webdav_certificate_retrust_title">நம்பப்பட்ட சான்றிதழை மாற்றவா?</string>
+    <string name="explorer_webdav_certificate_retrust_message">%1$s ஏன் சான்றிதழை மாற்றியது என்று தெரிந்தால் மட்டுமே சான்றிதழை மாற்றுங்கள், எ.கா. அது புதுப்பிக்கப்பட்டதால். இனி வழங்கப்பட்ட சான்றிதழை Butler நம்பும்.</string>
+    <string name="explorer_webdav_certificate_retrust_action">சான்றிதழை மாற்று</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">சான்றிதழ் நம்பப்படவில்லை</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">இந்தச் சாதனம் நம்பாத சான்றிதழை %1$s வழங்கியது. சேவையகத்திற்கு எதுவும் அனுப்பப்படவில்லை.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">சேவையகச் சான்றிதழ் மாறியுள்ளது</string>
+    <string name="explorer_webdav_certificate_card_changed_message">நம்பப்பட்ட சான்றிதழிலிருந்து வேறுபட்ட சான்றிதழை %1$s வழங்கியது. சான்றிதழ் புதுப்பிக்கப்படும்போது இது நிகழும்; ஆனால் யாரேனும் இணைப்பை இடைமறிக்கும்போதும் நிகழும். சேவையகத்திற்கு எதுவும் அனுப்பப்படவில்லை.</string>
+    <string name="explorer_webdav_certificate_review_action">சரிபார்</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">இருப்பிடத்திற்குப் பெயரிடு</string>

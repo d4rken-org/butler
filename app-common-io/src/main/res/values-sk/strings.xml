@@ -88,6 +88,22 @@
     <string name="sftp_error_access_denied_description">Tento účet nemusí mať povolené otvoriť priečinok nastavený pre server \"%1$s\". Skontroluj oprávnenia priečinka na serveri.</string>
     <string name="sftp_error_pro_required_title">Servery SFTP vyžadujú Butler Pro</string>
     <string name="sftp_error_pro_required_description">Prehliadanie serverov SFTP je súčasťou Butler Pro. Pridávanie, testovanie a odstraňovanie serverov je bezplatné.</string>
+    <string name="webdav_error_credential_unavailable_title">Vyžaduje sa prihlásenie</string>
+    <string name="webdav_error_credential_unavailable_description">Uložené heslo pre tento server WebDAV sa už nedá prečítať. Zadaj ho znova na obnovenie pripojenia.</string>
+    <string name="webdav_error_unreachable_title">Server je nedostupný</string>
+    <string name="webdav_error_unreachable_description">Butler sa nedokázal pripojiť k serveru \"%1$s\". Skontroluj adresu a či je server spustený.</string>
+    <string name="webdav_error_auth_title">Prihlásenie zlyhalo</string>
+    <string name="webdav_error_auth_description">Server \"%1$s\" odmietol používateľské meno alebo heslo.</string>
+    <string name="webdav_error_certificate_untrusted_title">Nedôveryhodný certifikát</string>
+    <string name="webdav_error_certificate_untrusted_description">Server \"%1$s\" predložil certifikát, ktorému toto zariadenie nedôveruje. Butler sa neprihlásil.\n\nOdtlačok: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">Certifikát servera sa zmenil</string>
+    <string name="webdav_error_certificate_changed_description">Server \"%1$s\" predložil iný certifikát než ten, ktorému bola udelená dôvera. Butler sa neprihlásil.\n\nDôveryhodný: %2$s\nPredložený: %3$s</string>
+    <string name="webdav_error_access_denied_title">Bez prístupu k tomuto priečinku</string>
+    <string name="webdav_error_access_denied_description">Tento účet nemá povolené otvoriť priečinok nastavený pre server \"%1$s\". Skontroluj oprávnenia priečinka na serveri.</string>
+    <string name="webdav_error_not_collection_title">Toto nie je priečinok WebDAV</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" nie je priečinok WebDAV. Skontroluj adresu, musí odkazovať na priečinok na serveri.</string>
+    <string name="webdav_error_pro_required_title">Servery WebDAV vyžadujú Butler Pro</string>
+    <string name="webdav_error_pro_required_description">Prehliadanie serverov WebDAV je súčasťou Butler Pro. Pridávanie, testovanie a odstraňovanie serverov je bezplatné.</string>
 
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Chránený balík aplikácie</string>

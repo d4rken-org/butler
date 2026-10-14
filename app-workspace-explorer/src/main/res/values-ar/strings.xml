@@ -164,6 +164,15 @@
     <string name="explorer_info_sftp_credential_session">يُحفظ حتى إغلاق Butler</string>
     <string name="explorer_info_sftp_host_key_type_label">نوع مفتاح المضيف</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">بصمة مفتاح المضيف</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">مجهول الهوية</string>
+    <string name="explorer_info_webdav_credential_stored">مخزَّن على هذا الجهاز</string>
+    <string name="explorer_info_webdav_credential_session">يُحفظ حتى إغلاق Butler</string>
+    <string name="explorer_info_webdav_certificate_label">الشهادة</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">الشهادة الموثوقة (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">موثوقة لدى النظام</string>
+    <string name="explorer_info_webdav_certificate_cleartext">غير مشفر (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">المحدد</string>
@@ -378,6 +387,8 @@
     <string name="explorer_network_protocol_smb_caption">مشاركات Windows ومعظم مجلدات NAS</string>
     <string name="explorer_network_protocol_sftp_label">خادم SFTP</string>
     <string name="explorer_network_protocol_sftp_caption">أي خادم يمكنك الوصول إليه عبر SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud وownCloud وخوادم WebDAV الأخرى</string>
     <string name="explorer_sftp_form_add_title">إضافة خادم SFTP</string>
     <string name="explorer_sftp_form_edit_title">تعديل خادم SFTP</string>
     <string name="explorer_sftp_form_sign_in_title">تسجيل الدخول إلى %1$s</string>
@@ -428,6 +439,52 @@
     <string name="explorer_sftp_host_key_retrust_title">استبدال مفتاح الخادم؟</string>
     <string name="explorer_sftp_host_key_retrust_message">استبدل المفتاح فقط إذا كنت تعرف سبب تغييره من قِبل %1$s. سيثق Butler بالمفتاح المقدَّم من الآن فصاعدًا.</string>
     <string name="explorer_sftp_host_key_retrust_action">استبدال المفتاح</string>
+    <string name="explorer_webdav_form_add_title">إضافة خادم WebDAV</string>
+    <string name="explorer_webdav_form_edit_title">تعديل خادم WebDAV</string>
+    <string name="explorer_webdav_form_sign_in_title">تسجيل الدخول إلى %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">يُرجى إدخال كلمة المرور مرة أخرى لفتح هذا الخادم.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">يطلب هذا الخادم اسم مستخدم وكلمة مرور.</string>
+    <string name="explorer_webdav_form_url_label">URL الخادم</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">اتصال غير مشفر: تُرسَل كلمة المرور والملفات بنص صريح.</string>
+    <string name="explorer_webdav_form_auth_anonymous">مجهول الهوية</string>
+    <string name="explorer_webdav_form_error_url_blank">يُرجى إدخال URL الخادم</string>
+    <string name="explorer_webdav_form_error_url_scheme">يجب أن يبدأ URL بـ https:// أو http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">يُرجى إدخال اسم المستخدم وكلمة المرور في الحقلين المخصصين لهما، وليس في URL</string>
+    <string name="explorer_webdav_form_error_url_query">لا يمكن أن يحتوي URL على استعلام (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">لا يمكن أن يحتوي URL على جزء (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">لا يمكن أن يحتوي اسم المستخدم على نقطتين رأسيتين (:) أو أحرف تحكم</string>
+    <string name="explorer_webdav_form_error_password_required">يُرجى إدخال كلمة المرور مرة أخرى لتغيير اسم المستخدم أو طريقة تسجيل الدخول أو إعداد التذكر</string>
+    <string name="explorer_webdav_form_error_auth">%1$s رفض اسم المستخدم أو كلمة المرور</string>
+    <string name="explorer_webdav_form_error_access_denied">لا يُسمح لهذا الحساب بفتح هذا المجلد</string>
+    <string name="explorer_webdav_form_error_not_collection">لا يشير URL هذا إلى مجلد WebDAV. في Nextcloud ينتهي بـ /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">هذا المجلد غير موجود على الخادم</string>
+    <string name="explorer_webdav_form_error_unreachable">تعذر الوصول إلى %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">قدّم الخادم شهادة مختلفة عن الشهادة الموثوقة له. لم يُحفظ شيء.\n\nالموثوقة: %1$s\nالمقدَّمة: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">لم يتم الوثوق بشهادة الخادم. لم يُحفظ شيء.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">تغيّرت تفاصيل الخادم بعد بدء اختبار الاتصال. لم يُحفظ شيء، يُرجى إعادة الاختبار لمراجعة شهادة الخادم.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">تعذر تأكيد هوية الخادم. لم يُحفظ شيء.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">تغيّر URL هذا الخادم أو شهادته منذ تقديم تلك الشهادة. لم يتغير شيء، يُرجى فتح الخادم مرة أخرى لمراجعة الشهادة التي يقدّمها الآن.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">تمت إزالة خادم WebDAV هذا. لم يتغير شيء.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">الوثوق بهذه الشهادة؟</string>
+    <string name="explorer_webdav_certificate_untrusted_message">لا يثق هذا الجهاز بالشهادة التي قدّمها %1$s. قد تكون موقَّعة ذاتيًا، أو صادرة عن جهة خاصة، أو صادرة لاسم آخر. يُرجى المتابعة فقط إذا كانت بصمتها تطابق البصمة التي يعرضها الخادم.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">لم يعد هذا الجهاز يثق بالشهادة التي يقدّمها %1$s. يُرجى المتابعة فقط إذا كانت بصمتها تطابق البصمة التي يعرضها الخادم. سيثق Butler بهذه الشهادة لهذا الخادم من الآن فصاعدًا.</string>
+    <string name="explorer_webdav_certificate_subject_label">صادرة لـ</string>
+    <string name="explorer_webdav_certificate_issuer_label">صادرة عن</string>
+    <string name="explorer_webdav_certificate_validity_label">مدة الصلاحية</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s إلى %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">بصمة SHA-256</string>
+    <string name="explorer_webdav_certificate_stored_label">الشهادة الموثوقة</string>
+    <string name="explorer_webdav_certificate_presented_label">الشهادة المقدَّمة</string>
+    <string name="explorer_webdav_certificate_accept_action">الوثوق بالشهادة</string>
+    <string name="explorer_webdav_certificate_retrust_title">استبدال الشهادة الموثوقة؟</string>
+    <string name="explorer_webdav_certificate_retrust_message">يُرجى استبدال الشهادة فقط إذا كان سبب تغييرها من قِبل %1$s معروفًا، مثل تجديدها. سيثق Butler بالشهادة المقدَّمة من الآن فصاعدًا.</string>
+    <string name="explorer_webdav_certificate_retrust_action">استبدال الشهادة</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">الشهادة غير موثوقة</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">قدّم %1$s شهادة لا يثق بها هذا الجهاز. لم يُرسَل شيء إلى الخادم.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">تغيّرت شهادة الخادم</string>
+    <string name="explorer_webdav_certificate_card_changed_message">قدّم %1$s شهادة مختلفة عن الشهادة الموثوقة له. يحدث هذا عند تجديد الشهادة، ولكن أيضًا عندما يعترض أحدهم الاتصال. لم يُرسَل شيء إلى الخادم.</string>
+    <string name="explorer_webdav_certificate_review_action">مراجعة</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">تسمية الموقع</string>

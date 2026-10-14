@@ -154,6 +154,15 @@
     <string name="explorer_info_sftp_credential_session">Zadržava se dok se Butler ne zatvori</string>
     <string name="explorer_info_sftp_host_key_type_label">Vrsta ključa poslužitelja</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Otisak ključa poslužitelja</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Anonimno</string>
+    <string name="explorer_info_webdav_credential_stored">Pohranjeno na ovom uređaju</string>
+    <string name="explorer_info_webdav_credential_session">Zadržava se dok se Butler ne zatvori</string>
+    <string name="explorer_info_webdav_certificate_label">Certifikat</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Pouzdani certifikat (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Sustav mu vjeruje</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Nije šifrirano (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Odabrano</string>
@@ -350,6 +359,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows dijeljene mape i većina NAS mapa</string>
     <string name="explorer_network_protocol_sftp_label">SFTP poslužitelj</string>
     <string name="explorer_network_protocol_sftp_caption">Bilo koji poslužitelj kojem možeš pristupiti putem SSH-a</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud i drugi WebDAV poslužitelji</string>
     <string name="explorer_sftp_form_add_title">Dodaj SFTP poslužitelj</string>
     <string name="explorer_sftp_form_edit_title">Uredi SFTP poslužitelj</string>
     <string name="explorer_sftp_form_sign_in_title">Prijava na %1$s</string>
@@ -400,6 +411,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Zamijeniti ključ poslužitelja?</string>
     <string name="explorer_sftp_host_key_retrust_message">Zamijeni ključ samo ako znaš zašto ga je poslužitelj %1$s promijenio. Butler će odsad vjerovati predstavljenom ključu.</string>
     <string name="explorer_sftp_host_key_retrust_action">Zamijeni ključ</string>
+    <string name="explorer_webdav_form_add_title">Dodaj WebDAV poslužitelj</string>
+    <string name="explorer_webdav_form_edit_title">Uredi WebDAV poslužitelj</string>
+    <string name="explorer_webdav_form_sign_in_title">Prijava na %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Ponovno unesi lozinku da otvoriš ovaj poslužitelj.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Ovaj poslužitelj traži korisničko ime i lozinku.</string>
+    <string name="explorer_webdav_form_url_label">URL poslužitelja</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Nešifrirana veza: tvoja lozinka i datoteke šalju se kao običan tekst.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Anonimno</string>
+    <string name="explorer_webdav_form_error_url_blank">Unesi URL poslužitelja</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL mora počinjati s https:// ili http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Unesi korisničko ime i lozinku u zasebna polja, a ne u URL</string>
+    <string name="explorer_webdav_form_error_url_query">URL ne smije sadržavati upit (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL ne smije sadržavati fragment (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">Korisničko ime ne smije sadržavati dvotočku (:) ni kontrolne znakove</string>
+    <string name="explorer_webdav_form_error_password_required">Ponovno unesi lozinku da promijeniš korisničko ime, način prijave ili postavku pamćenja</string>
+    <string name="explorer_webdav_form_error_auth">Poslužitelj %1$s odbio je korisničko ime ili lozinku</string>
+    <string name="explorer_webdav_form_error_access_denied">Ovom računu nije dopušteno otvoriti ovu mapu</string>
+    <string name="explorer_webdav_form_error_not_collection">Ovaj URL nije WebDAV mapa. Za Nextcloud završava s /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Ova mapa ne postoji na poslužitelju</string>
+    <string name="explorer_webdav_form_error_unreachable">Nije moguće pristupiti poslužitelju %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Poslužitelj je predstavio drugi certifikat od onoga kojem se vjeruje za taj poslužitelj. Ništa nije spremljeno.\n\nPouzdani certifikat: %1$s\nPredstavljeni certifikat: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Certifikat poslužitelja nije prihvaćen. Ništa nije spremljeno.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Podaci o poslužitelju promijenili su se nakon početka testiranja veze. Ništa nije spremljeno, testiraj ponovno da pregledaš certifikat poslužitelja.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Identitet poslužitelja nije bilo moguće potvrditi. Ništa nije spremljeno.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">URL ili certifikat ovog poslužitelja promijenio se otkad je taj certifikat predstavljen. Ništa nije promijenjeno, ponovno otvori poslužitelj da pregledaš certifikat koji sada predstavlja.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Ovaj WebDAV poslužitelj je uklonjen. Ništa nije promijenjeno.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Vjerovati ovom certifikatu?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Ovaj uređaj ne vjeruje certifikatu koji je predstavio poslužitelj %1$s. Možda je samopotpisan, izdan od privatnog certifikacijskog tijela ili izdan za drugo ime. Nastavi samo ako se njegov otisak podudara s onim koji prikazuje tvoj poslužitelj.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Ovaj uređaj više ne vjeruje certifikatu koji predstavlja poslužitelj %1$s. Nastavi samo ako se njegov otisak podudara s onim koji prikazuje tvoj poslužitelj. Butler će odsad vjerovati ovom certifikatu za ovaj poslužitelj.</string>
+    <string name="explorer_webdav_certificate_subject_label">Izdano za</string>
+    <string name="explorer_webdav_certificate_issuer_label">Izdavatelj</string>
+    <string name="explorer_webdav_certificate_validity_label">Vrijedi</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s do %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256 otisak</string>
+    <string name="explorer_webdav_certificate_stored_label">Pouzdani certifikat</string>
+    <string name="explorer_webdav_certificate_presented_label">Predstavljeni certifikat</string>
+    <string name="explorer_webdav_certificate_accept_action">Vjeruj certifikatu</string>
+    <string name="explorer_webdav_certificate_retrust_title">Zamijeniti pouzdani certifikat?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Zamijeni certifikat samo ako znaš zašto ga je poslužitelj %1$s promijenio, npr. zbog obnove. Butler će odsad vjerovati predstavljenom certifikatu.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Zamijeni certifikat</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Certifikatu se ne vjeruje</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">Poslužitelj %1$s predstavio je certifikat kojem ovaj uređaj ne vjeruje. Ništa nije poslano poslužitelju.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Certifikat poslužitelja je promijenjen</string>
+    <string name="explorer_webdav_certificate_card_changed_message">Poslužitelj %1$s predstavio je drugi certifikat od onoga kojem se vjeruje za taj poslužitelj. To se događa nakon obnove certifikata, ali i kad netko presreće vezu. Ništa nije poslano poslužitelju.</string>
+    <string name="explorer_webdav_certificate_review_action">Pregledaj</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Imenuj lokaciju</string>

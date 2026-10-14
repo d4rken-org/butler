@@ -144,6 +144,15 @@
     <string name="explorer_info_sftp_credential_session">Disimpan hingga Butler ditutup</string>
     <string name="explorer_info_sftp_host_key_type_label">Jenis kunci host</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Sidik jari kunci host</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Anonim</string>
+    <string name="explorer_info_webdav_credential_stored">Tersimpan di perangkat ini</string>
+    <string name="explorer_info_webdav_credential_session">Disimpan hingga Butler ditutup</string>
+    <string name="explorer_info_webdav_certificate_label">Sertifikat</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Sertifikat yang dipercaya (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Dipercayai oleh sistem</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Tidak dienkripsi (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Dipilih</string>
@@ -323,6 +332,8 @@
     <string name="explorer_network_protocol_smb_caption">Share Windows dan sebagian besar folder NAS</string>
     <string name="explorer_network_protocol_sftp_label">Server SFTP</string>
     <string name="explorer_network_protocol_sftp_caption">Server apa pun yang dapat dijangkau lewat SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud, dan server WebDAV lainnya</string>
     <string name="explorer_sftp_form_add_title">Tambahkan server SFTP</string>
     <string name="explorer_sftp_form_edit_title">Edit server SFTP</string>
     <string name="explorer_sftp_form_sign_in_title">Masuk ke %1$s</string>
@@ -373,6 +384,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Ganti kunci server?</string>
     <string name="explorer_sftp_host_key_retrust_message">Ganti kunci hanya jika Anda tahu mengapa %1$s mengubahnya. Butler akan memercayai kunci yang ditampilkan mulai sekarang.</string>
     <string name="explorer_sftp_host_key_retrust_action">Ganti kunci</string>
+    <string name="explorer_webdav_form_add_title">Tambahkan server WebDAV</string>
+    <string name="explorer_webdav_form_edit_title">Edit server WebDAV</string>
+    <string name="explorer_webdav_form_sign_in_title">Masuk ke %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Masukkan kembali kata sandi untuk membuka server ini.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Server ini meminta nama pengguna dan kata sandi.</string>
+    <string name="explorer_webdav_form_url_label">URL server</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Koneksi tidak terenkripsi: kata sandi dan berkasmu dikirim sebagai teks biasa.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Anonim</string>
+    <string name="explorer_webdav_form_error_url_blank">Masukkan URL server</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL harus diawali https:// atau http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Masukkan nama pengguna dan kata sandi di kolom masing-masing, bukan di URL</string>
+    <string name="explorer_webdav_form_error_url_query">URL tidak boleh berisi kueri (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL tidak boleh berisi fragmen (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">Nama pengguna tidak boleh berisi titik dua (:) atau karakter kontrol</string>
+    <string name="explorer_webdav_form_error_password_required">Masukkan kembali kata sandi untuk mengubah nama pengguna, metode masuk, atau pengaturan ingat</string>
+    <string name="explorer_webdav_form_error_auth">%1$s menolak nama pengguna atau kata sandi</string>
+    <string name="explorer_webdav_form_error_access_denied">Akun ini tidak diizinkan membuka folder ini</string>
+    <string name="explorer_webdav_form_error_not_collection">URL ini bukan folder WebDAV. Untuk Nextcloud, URL diakhiri /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Folder ini tidak ada di server</string>
+    <string name="explorer_webdav_form_error_unreachable">Tidak dapat menjangkau %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Server menampilkan sertifikat yang berbeda dari yang telah dipercaya untuknya. Tidak ada yang disimpan.\n\nDipercayai: %1$s\nDitampilkan: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Sertifikat server tidak dipercaya. Tidak ada yang disimpan.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Detail server berubah setelah uji koneksi dimulai. Tidak ada yang disimpan, uji lagi untuk meninjau sertifikat server.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Identitas server tidak dapat dikonfirmasi. Tidak ada yang disimpan.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">URL atau sertifikat server ini berubah sejak sertifikat itu ditampilkan. Tidak ada yang diubah, buka server lagi untuk meninjau sertifikat yang kini ditampilkannya.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Server WebDAV ini telah dihapus. Tidak ada yang diubah.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Percayai sertifikat ini?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Perangkat ini tidak memercayai sertifikat yang ditampilkan %1$s. Sertifikat tersebut mungkin ditandatangani sendiri, diterbitkan oleh otoritas privat, atau diterbitkan untuk nama lain. Lanjutkan hanya jika sidik jarinya cocok dengan yang ditampilkan servermu.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Perangkat ini tidak lagi memercayai sertifikat yang ditampilkan %1$s. Lanjutkan hanya jika sidik jarinya cocok dengan yang ditampilkan servermu. Mulai sekarang, Butler akan memercayai sertifikat ini untuk server ini.</string>
+    <string name="explorer_webdav_certificate_subject_label">Diterbitkan untuk</string>
+    <string name="explorer_webdav_certificate_issuer_label">Diterbitkan oleh</string>
+    <string name="explorer_webdav_certificate_validity_label">Berlaku</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s hingga %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">Sidik jari SHA-256</string>
+    <string name="explorer_webdav_certificate_stored_label">Sertifikat yang dipercaya</string>
+    <string name="explorer_webdav_certificate_presented_label">Sertifikat yang ditampilkan</string>
+    <string name="explorer_webdav_certificate_accept_action">Percayai sertifikat</string>
+    <string name="explorer_webdav_certificate_retrust_title">Ganti sertifikat yang dipercaya?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Ganti sertifikat hanya jika kamu tahu mengapa %1$s mengubahnya, misalnya karena diperpanjang. Butler akan memercayai sertifikat yang ditampilkan mulai sekarang.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Ganti sertifikat</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Sertifikat tidak dipercaya</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s menampilkan sertifikat yang tidak dipercaya perangkat ini. Tidak ada yang dikirim ke server.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Sertifikat server berubah</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s menampilkan sertifikat yang berbeda dari yang telah dipercaya untuknya. Ini terjadi saat sertifikat diperpanjang, tetapi juga saat seseorang mencegat koneksi. Tidak ada yang dikirim ke server.</string>
+    <string name="explorer_webdav_certificate_review_action">Tinjau</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Beri nama lokasi</string>

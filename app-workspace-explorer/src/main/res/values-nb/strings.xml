@@ -150,6 +150,15 @@
     <string name="explorer_info_sftp_credential_session">Beholdes til Butler lukkes</string>
     <string name="explorer_info_sftp_host_key_type_label">Type vertsnøkkel</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Fingeravtrykk for vertsnøkkel</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Anonym</string>
+    <string name="explorer_info_webdav_credential_stored">Lagret på denne enheten</string>
+    <string name="explorer_info_webdav_credential_session">Beholdes til Butler lukkes</string>
+    <string name="explorer_info_webdav_certificate_label">Sertifikat</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Godkjent sertifikat (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Godkjent av systemet</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Ikke kryptert (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Valgt</string>
@@ -339,6 +348,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows-ressurser og de fleste NAS-mapper</string>
     <string name="explorer_network_protocol_sftp_label">SFTP-server</string>
     <string name="explorer_network_protocol_sftp_caption">Alle servere du kan nå via SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud og andre WebDAV-servere</string>
     <string name="explorer_sftp_form_add_title">Legg til SFTP-server</string>
     <string name="explorer_sftp_form_edit_title">Rediger SFTP-server</string>
     <string name="explorer_sftp_form_sign_in_title">Logg inn på %1$s</string>
@@ -389,6 +400,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Erstatte servernøkkelen?</string>
     <string name="explorer_sftp_host_key_retrust_message">Erstatt nøkkelen bare hvis du vet hvorfor %1$s endret den. Butler vil stole på den presenterte nøkkelen fra nå av.</string>
     <string name="explorer_sftp_host_key_retrust_action">Erstatt nøkkel</string>
+    <string name="explorer_webdav_form_add_title">Legg til WebDAV-server</string>
+    <string name="explorer_webdav_form_edit_title">Rediger WebDAV-server</string>
+    <string name="explorer_webdav_form_sign_in_title">Logg inn på %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Skriv inn passordet på nytt for å åpne denne serveren.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Denne serveren ber om brukernavn og passord.</string>
+    <string name="explorer_webdav_form_url_label">Server-URL</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Ukryptert tilkobling: Passordet og filene dine sendes i klartekst.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Anonym</string>
+    <string name="explorer_webdav_form_error_url_blank">Skriv inn serverens URL</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL-en må begynne med https:// eller http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Skriv inn brukernavnet og passordet i egne felt, ikke i URL-en</string>
+    <string name="explorer_webdav_form_error_url_query">URL-en kan ikke inneholde en spørring (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL-en kan ikke inneholde et fragment (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">Brukernavnet kan ikke inneholde kolon (:) eller kontrolltegn</string>
+    <string name="explorer_webdav_form_error_password_required">Skriv inn passordet på nytt for å endre brukernavn, innloggingsmetode eller husk-innstillingen</string>
+    <string name="explorer_webdav_form_error_auth">%1$s avviste brukernavnet eller passordet</string>
+    <string name="explorer_webdav_form_error_access_denied">Denne kontoen har ikke tillatelse til å åpne denne mappen</string>
+    <string name="explorer_webdav_form_error_not_collection">Denne URL-en er ikke en WebDAV-mappe. For Nextcloud slutter den med /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Denne mappen finnes ikke på serveren</string>
+    <string name="explorer_webdav_form_error_unreachable">Kan ikke nå %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Serveren presenterte et annet sertifikat enn det som er godkjent for den. Ingenting ble lagret.\n\nGodkjent: %1$s\nPresentert: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Serverens sertifikat ble ikke godkjent. Ingenting ble lagret.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Serverdetaljene ble endret etter at tilkoblingstesten startet. Ingenting ble lagret. Test på nytt for å se gjennom serverens sertifikat.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Serverens identitet kunne ikke bekreftes. Ingenting ble lagret.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">URL-en eller sertifikatet til denne serveren ble endret etter at sertifikatet ble presentert. Ingenting ble endret. Åpne serveren på nytt for å se gjennom sertifikatet den presenterer nå.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Denne WebDAV-serveren ble fjernet. Ingenting ble endret.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Stole på dette sertifikatet?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Denne enheten stoler ikke på sertifikatet %1$s presenterte. Det kan være selvsignert, utstedt av en privat sertifikatutsteder eller utstedt for et annet navn. Fortsett bare hvis fingeravtrykket stemmer overens med det serveren din viser.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Denne enheten stoler ikke lenger på sertifikatet %1$s presenterer. Fortsett bare hvis fingeravtrykket stemmer overens med det serveren din viser. Butler vil stole på dette sertifikatet for denne serveren fra nå av.</string>
+    <string name="explorer_webdav_certificate_subject_label">Utstedt til</string>
+    <string name="explorer_webdav_certificate_issuer_label">Utstedt av</string>
+    <string name="explorer_webdav_certificate_validity_label">Gyldig</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s til %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256-fingeravtrykk</string>
+    <string name="explorer_webdav_certificate_stored_label">Godkjent sertifikat</string>
+    <string name="explorer_webdav_certificate_presented_label">Presentert sertifikat</string>
+    <string name="explorer_webdav_certificate_accept_action">Stol på sertifikatet</string>
+    <string name="explorer_webdav_certificate_retrust_title">Erstatte det godkjente sertifikatet?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Erstatt sertifikatet bare hvis du vet hvorfor %1$s endret det, f.eks. fordi det ble fornyet. Butler vil stole på det presenterte sertifikatet fra nå av.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Erstatt sertifikat</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Sertifikatet er ikke godkjent</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s presenterte et sertifikat denne enheten ikke stoler på. Ingenting ble sendt til serveren.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Serverens sertifikat er endret</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s presenterte et annet sertifikat enn det som er godkjent for den. Dette skjer når et sertifikat fornyes, men også når noen avskjærer tilkoblingen. Ingenting ble sendt til serveren.</string>
+    <string name="explorer_webdav_certificate_review_action">Se gjennom</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Gi plasseringen et navn</string>

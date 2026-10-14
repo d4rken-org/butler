@@ -150,6 +150,15 @@
     <string name="explorer_info_sftp_credential_session">Säilytetään, kunnes Butler suljetaan</string>
     <string name="explorer_info_sftp_host_key_type_label">Isäntäavaimen tyyppi</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Isäntäavaimen sormenjälki</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Anonyymi</string>
+    <string name="explorer_info_webdav_credential_stored">Tallennettu tälle laitteelle</string>
+    <string name="explorer_info_webdav_credential_session">Säilytetään, kunnes Butler suljetaan</string>
+    <string name="explorer_info_webdav_certificate_label">Varmenne</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Luotettu varmenne (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Järjestelmän luottama</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Salaamaton (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Valitut</string>
@@ -339,6 +348,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows-jaot ja useimmat NAS-kansiot</string>
     <string name="explorer_network_protocol_sftp_label">SFTP-palvelin</string>
     <string name="explorer_network_protocol_sftp_caption">Mikä tahansa palvelin, johon pääset SSH:n kautta</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud ja muut WebDAV-palvelimet</string>
     <string name="explorer_sftp_form_add_title">Lisää SFTP-palvelin</string>
     <string name="explorer_sftp_form_edit_title">Muokkaa SFTP-palvelinta</string>
     <string name="explorer_sftp_form_sign_in_title">Kirjaudu palvelimeen %1$s</string>
@@ -389,6 +400,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Korvataanko palvelimen avain?</string>
     <string name="explorer_sftp_host_key_retrust_message">Korvaa avain vain, jos tiedät, miksi %1$s muutti sen. Butler luottaa tästä lähtien esitettyyn avaimeen.</string>
     <string name="explorer_sftp_host_key_retrust_action">Korvaa avain</string>
+    <string name="explorer_webdav_form_add_title">Lisää WebDAV-palvelin</string>
+    <string name="explorer_webdav_form_edit_title">Muokkaa WebDAV-palvelinta</string>
+    <string name="explorer_webdav_form_sign_in_title">Kirjaudu palvelimeen %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Anna salasana uudelleen avataksesi tämän palvelimen.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Tämä palvelin pyytää käyttäjänimeä ja salasanaa.</string>
+    <string name="explorer_webdav_form_url_label">Palvelimen URL</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Salaamaton yhteys: salasanasi ja tiedostosi lähetetään selväkielisinä.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Anonyymi</string>
+    <string name="explorer_webdav_form_error_url_blank">Anna palvelimen URL</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL-osoitteen on alettava merkkijonolla https:// tai http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Anna käyttäjänimi ja salasana omiin kenttiinsä, älä URL-osoitteeseen</string>
+    <string name="explorer_webdav_form_error_url_query">URL ei saa sisältää kyselyä (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL ei saa sisältää fragmenttia (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">Käyttäjänimi ei saa sisältää kaksoispistettä (:) tai ohjausmerkkejä</string>
+    <string name="explorer_webdav_form_error_password_required">Anna salasana uudelleen, jos haluat muuttaa käyttäjänimeä, kirjautumistapaa tai muistiasetusta</string>
+    <string name="explorer_webdav_form_error_auth">%1$s hylkäsi käyttäjänimen tai salasanan</string>
+    <string name="explorer_webdav_form_error_access_denied">Tämä tili ei saa avata tätä kansiota</string>
+    <string name="explorer_webdav_form_error_not_collection">Tämä URL ei ole WebDAV-kansio. Nextcloudissa sen lopussa on /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Tätä kansiota ei ole palvelimella</string>
+    <string name="explorer_webdav_form_error_unreachable">Palvelinta %1$s ei tavoiteta</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Palvelin esitti eri varmenteen kuin se, johon sen kohdalla luotettiin. Mitään ei tallennettu.\n\nLuotettu: %1$s\nEsitetty: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Palvelimen varmenteeseen ei luotettu. Mitään ei tallennettu.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Palvelimen tiedot muuttuivat yhteystestin alettua. Mitään ei tallennettu, testaa uudelleen tarkistaaksesi palvelimen varmenteen.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Palvelimen identiteettiä ei voitu vahvistaa. Mitään ei tallennettu.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">Tämän palvelimen URL tai varmenne muuttui sen jälkeen, kun varmenne esitettiin. Mitään ei muutettu, avaa palvelin uudelleen tarkistaaksesi sen nyt esittämän varmenteen.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Tämä WebDAV-palvelin poistettiin. Mitään ei muutettu.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Luotetaanko tähän varmenteeseen?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Tämä laite ei luota palvelimen %1$s esittämään varmenteeseen. Se voi olla itse allekirjoitettu, yksityisen varmentajan myöntämä tai myönnetty toiselle nimelle. Jatka vain, jos sen sormenjälki vastaa palvelimesi näyttämää sormenjälkeä.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Tämä laite ei enää luota palvelimen %1$s esittämään varmenteeseen. Jatka vain, jos sen sormenjälki vastaa palvelimesi näyttämää sormenjälkeä. Butler luottaa tästä lähtien tähän varmenteeseen tällä palvelimella.</string>
+    <string name="explorer_webdav_certificate_subject_label">Myönnetty kohteelle</string>
+    <string name="explorer_webdav_certificate_issuer_label">Myöntäjä</string>
+    <string name="explorer_webdav_certificate_validity_label">Voimassa</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s – %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256-sormenjälki</string>
+    <string name="explorer_webdav_certificate_stored_label">Luotettu varmenne</string>
+    <string name="explorer_webdav_certificate_presented_label">Esitetty varmenne</string>
+    <string name="explorer_webdav_certificate_accept_action">Luota varmenteeseen</string>
+    <string name="explorer_webdav_certificate_retrust_title">Korvataanko luotettu varmenne?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Korvaa varmenne vain, jos tiedät, miksi %1$s muutti sen, esimerkiksi koska se uusittiin. Butler luottaa tästä lähtien esitettyyn varmenteeseen.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Korvaa varmenne</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Varmenteeseen ei luoteta</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s esitti varmenteen, johon tämä laite ei luota. Palvelimelle ei lähetetty mitään.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Palvelimen varmenne muuttui</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s esitti eri varmenteen kuin se, johon sen kohdalla luotettiin. Näin käy, kun varmenne uusitaan, mutta myös silloin, kun joku sieppaa yhteyden. Palvelimelle ei lähetetty mitään.</string>
+    <string name="explorer_webdav_certificate_review_action">Tarkista</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Nimeä sijainti</string>

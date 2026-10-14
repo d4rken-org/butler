@@ -147,6 +147,15 @@
     <string name="explorer_info_sftp_credential_session">เก็บไว้จนกว่า Butler จะปิด</string>
     <string name="explorer_info_sftp_host_key_type_label">ประเภทคีย์โฮสต์</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">ลายนิ้วมือคีย์โฮสต์</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">ไม่ระบุตัวตน</string>
+    <string name="explorer_info_webdav_credential_stored">จัดเก็บไว้บนอุปกรณ์นี้</string>
+    <string name="explorer_info_webdav_credential_session">เก็บไว้จนกว่า Butler จะปิด</string>
+    <string name="explorer_info_webdav_certificate_label">ใบรับรอง</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">ใบรับรองที่เชื่อถือ (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">ระบบเชื่อถือ</string>
+    <string name="explorer_info_webdav_certificate_cleartext">ไม่เข้ารหัส (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">เลือกไว้</string>
@@ -326,6 +335,8 @@
     <string name="explorer_network_protocol_smb_caption">แชร์ Windows และโฟลเดอร์ NAS ส่วนใหญ่</string>
     <string name="explorer_network_protocol_sftp_label">เซิร์ฟเวอร์ SFTP</string>
     <string name="explorer_network_protocol_sftp_caption">เซิร์ฟเวอร์ใดๆ ที่เข้าถึงได้ผ่าน SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud และเซิร์ฟเวอร์ WebDAV อื่นๆ</string>
     <string name="explorer_sftp_form_add_title">เพิ่มเซิร์ฟเวอร์ SFTP</string>
     <string name="explorer_sftp_form_edit_title">แก้ไขเซิร์ฟเวอร์ SFTP</string>
     <string name="explorer_sftp_form_sign_in_title">เข้าสู่ระบบ %1$s</string>
@@ -376,6 +387,52 @@
     <string name="explorer_sftp_host_key_retrust_title">แทนที่คีย์เซิร์ฟเวอร์ไหม</string>
     <string name="explorer_sftp_host_key_retrust_message">แทนที่คีย์เมื่อคุณรู้ว่าทำไม %1$s จึงเปลี่ยนคีย์เท่านั้น จากนี้ Butler จะเชื่อถือคีย์ที่แสดง</string>
     <string name="explorer_sftp_host_key_retrust_action">แทนที่คีย์</string>
+    <string name="explorer_webdav_form_add_title">เพิ่มเซิร์ฟเวอร์ WebDAV</string>
+    <string name="explorer_webdav_form_edit_title">แก้ไขเซิร์ฟเวอร์ WebDAV</string>
+    <string name="explorer_webdav_form_sign_in_title">เข้าสู่ระบบ %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">ป้อนรหัสผ่านอีกครั้งเพื่อเปิดเซิร์ฟเวอร์นี้</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">เซิร์ฟเวอร์นี้ต้องการชื่อผู้ใช้และรหัสผ่าน</string>
+    <string name="explorer_webdav_form_url_label">URL เซิร์ฟเวอร์</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">การเชื่อมต่อไม่เข้ารหัส: รหัสผ่านและไฟล์ของคุณจะถูกส่งเป็นข้อความธรรมดา</string>
+    <string name="explorer_webdav_form_auth_anonymous">ไม่ระบุตัวตน</string>
+    <string name="explorer_webdav_form_error_url_blank">ป้อน URL เซิร์ฟเวอร์</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL ต้องขึ้นต้นด้วย https:// หรือ http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">ป้อนชื่อผู้ใช้และรหัสผ่านในช่องของแต่ละรายการ ไม่ใช่ใน URL</string>
+    <string name="explorer_webdav_form_error_url_query">URL ต้องไม่มีส่วนคำค้น (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL ต้องไม่มีส่วนย่อย (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">ชื่อผู้ใช้ต้องไม่มีเครื่องหมายทวิภาค (:) หรืออักขระควบคุม</string>
+    <string name="explorer_webdav_form_error_password_required">ป้อนรหัสผ่านอีกครั้งเพื่อเปลี่ยนชื่อผู้ใช้ วิธีเข้าสู่ระบบ หรือการตั้งค่าการจดจำ</string>
+    <string name="explorer_webdav_form_error_auth">%1$s ปฏิเสธชื่อผู้ใช้หรือรหัสผ่าน</string>
+    <string name="explorer_webdav_form_error_access_denied">บัญชีนี้ไม่มีสิทธิ์เปิดโฟลเดอร์นี้</string>
+    <string name="explorer_webdav_form_error_not_collection">URL นี้ไม่ใช่โฟลเดอร์ WebDAV สำหรับ Nextcloud จะลงท้ายด้วย /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">ไม่มีโฟลเดอร์นี้บนเซิร์ฟเวอร์</string>
+    <string name="explorer_webdav_form_error_unreachable">เข้าถึง %1$s ไม่ได้</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">เซิร์ฟเวอร์แสดงใบรับรองที่ต่างจากใบรับรองที่เชื่อถือไว้ ไม่ได้บันทึกอะไร\n\nที่เชื่อถือ: %1$s\nที่แสดง: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">ไม่ยอมรับใบรับรองของเซิร์ฟเวอร์ ไม่ได้บันทึกอะไร</string>
+    <string name="explorer_webdav_form_error_certificate_stale">รายละเอียดเซิร์ฟเวอร์เปลี่ยนไปหลังจากเริ่มทดสอบการเชื่อมต่อ ไม่ได้บันทึกอะไร ทดสอบอีกครั้งเพื่อตรวจสอบใบรับรองของเซิร์ฟเวอร์</string>
+    <string name="explorer_webdav_form_error_unconfirmed">ยืนยันตัวตนของเซิร์ฟเวอร์ไม่ได้ ไม่ได้บันทึกอะไร</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">URL หรือใบรับรองของเซิร์ฟเวอร์นี้เปลี่ยนไปตั้งแต่ใบรับรองนั้นถูกแสดง ไม่ได้เปลี่ยนแปลงอะไร เปิดเซิร์ฟเวอร์อีกครั้งเพื่อตรวจสอบใบรับรองที่แสดงอยู่ตอนนี้</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">เซิร์ฟเวอร์ WebDAV นี้ถูกลบแล้ว ไม่ได้เปลี่ยนแปลงอะไร</string>
+    <string name="explorer_webdav_certificate_untrusted_title">เชื่อถือใบรับรองนี้ไหม</string>
+    <string name="explorer_webdav_certificate_untrusted_message">อุปกรณ์นี้ไม่เชื่อถือใบรับรองที่ %1$s แสดง ใบรับรองอาจลงนามด้วยตนเอง ออกโดยหน่วยงานรับรองส่วนตัว หรือออกให้กับชื่ออื่น ดำเนินการต่อเมื่อลายนิ้วมือตรงกับที่เซิร์ฟเวอร์ของคุณแสดงเท่านั้น</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">อุปกรณ์นี้ไม่เชื่อถือใบรับรองที่ %1$s แสดงอีกต่อไป ดำเนินการต่อเมื่อลายนิ้วมือตรงกับที่เซิร์ฟเวอร์ของคุณแสดงเท่านั้น จากนี้ Butler จะเชื่อถือใบรับรองนี้สำหรับเซิร์ฟเวอร์นี้</string>
+    <string name="explorer_webdav_certificate_subject_label">ออกให้</string>
+    <string name="explorer_webdav_certificate_issuer_label">ออกโดย</string>
+    <string name="explorer_webdav_certificate_validity_label">ระยะเวลาที่ใช้ได้</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s ถึง %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">ลายนิ้วมือ SHA-256</string>
+    <string name="explorer_webdav_certificate_stored_label">ใบรับรองที่เชื่อถือ</string>
+    <string name="explorer_webdav_certificate_presented_label">ใบรับรองที่แสดง</string>
+    <string name="explorer_webdav_certificate_accept_action">เชื่อถือใบรับรอง</string>
+    <string name="explorer_webdav_certificate_retrust_title">แทนที่ใบรับรองที่เชื่อถือไหม</string>
+    <string name="explorer_webdav_certificate_retrust_message">แทนที่ใบรับรองเมื่อคุณรู้ว่าทำไม %1$s จึงเปลี่ยนใบรับรองเท่านั้น เช่น เพราะมีการต่ออายุ จากนี้ Butler จะเชื่อถือใบรับรองที่แสดง</string>
+    <string name="explorer_webdav_certificate_retrust_action">แทนที่ใบรับรอง</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">ใบรับรองไม่เป็นที่เชื่อถือ</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s แสดงใบรับรองที่อุปกรณ์นี้ไม่เชื่อถือ ไม่มีข้อมูลถูกส่งไปยังเซิร์ฟเวอร์</string>
+    <string name="explorer_webdav_certificate_card_changed_title">ใบรับรองเซิร์ฟเวอร์เปลี่ยนไป</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s แสดงใบรับรองที่ต่างจากใบรับรองที่เชื่อถือไว้ เหตุการณ์นี้เกิดขึ้นได้เมื่อมีการต่ออายุใบรับรอง แต่ก็เกิดขึ้นได้เมื่อมีผู้ดักการเชื่อมต่อ ไม่มีข้อมูลถูกส่งไปยังเซิร์ฟเวอร์</string>
+    <string name="explorer_webdav_certificate_review_action">ตรวจสอบ</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">ตั้งชื่อตำแหน่ง</string>

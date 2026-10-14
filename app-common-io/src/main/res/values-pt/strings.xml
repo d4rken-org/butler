@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">Esta conta não pode abrir a pasta definida para \"%1$s\". Verifica as permissões da pasta no servidor.</string>
     <string name="sftp_error_pro_required_title">Os servidores SFTP requerem o Butler Pro</string>
     <string name="sftp_error_pro_required_description">Explorar servidores SFTP faz parte do Butler Pro. Adicionar, testar e remover servidores é gratuito.</string>
+    <string name="webdav_error_credential_unavailable_title">É necessário iniciar sessão</string>
+    <string name="webdav_error_credential_unavailable_description">Já não é possível ler a palavra-passe guardada para este servidor WebDAV. Introduz-a novamente para restabelecer a ligação.</string>
+    <string name="webdav_error_unreachable_title">Servidor inacessível</string>
+    <string name="webdav_error_unreachable_description">O Butler não conseguiu contactar \"%1$s\". Verifica o endereço e se o servidor está em execução.</string>
+    <string name="webdav_error_auth_title">Falha ao iniciar sessão</string>
+    <string name="webdav_error_auth_description">\"%1$s\" rejeitou o nome de utilizador ou a palavra-passe.</string>
+    <string name="webdav_error_certificate_untrusted_title">Certificado não fidedigno</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" apresentou um certificado em que este dispositivo não confia. O Butler não iniciou sessão.\n\nImpressão digital: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">O certificado do servidor mudou</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" apresentou um certificado diferente do que tinhas aceitado. O Butler não iniciou sessão.\n\nConfirmado: %2$s\nApresentado: %3$s</string>
+    <string name="webdav_error_access_denied_title">Sem acesso a esta pasta</string>
+    <string name="webdav_error_access_denied_description">Esta conta não pode abrir a pasta definida para \"%1$s\". Verifica as permissões da pasta no servidor.</string>
+    <string name="webdav_error_not_collection_title">Não é uma pasta WebDAV</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" não é uma pasta WebDAV. Verifica o endereço; tem de apontar para uma pasta no servidor.</string>
+    <string name="webdav_error_pro_required_title">Os servidores WebDAV requerem o Butler Pro</string>
+    <string name="webdav_error_pro_required_description">Explorar servidores WebDAV faz parte do Butler Pro. Adicionar, testar e remover servidores é gratuito.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Pacote de aplicação protegido</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" está cifrado e só pode ser instalado pela aplicação que o criou.</string>

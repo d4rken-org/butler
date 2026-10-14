@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">Цей обліковий запис, імовірно, не може відкрити теку, указану для \"%1$s\". Перевір дозволи теки на сервері.</string>
     <string name="sftp_error_pro_required_title">SFTP-сервери потребують Butler Pro</string>
     <string name="sftp_error_pro_required_description">Перегляд SFTP-серверів входить до Butler Pro. Додавання, перевірка й вилучення серверів безплатні.</string>
+    <string name="webdav_error_credential_unavailable_title">Потрібен вхід</string>
+    <string name="webdav_error_credential_unavailable_description">Збережений пароль для цього WebDAV-сервера більше не можна прочитати. Введи його знову, щоб підключитися повторно.</string>
+    <string name="webdav_error_unreachable_title">Сервер недоступний</string>
+    <string name="webdav_error_unreachable_description">Butler не мав змоги досягти \"%1$s\". Перевір адресу, а також чи запущено сервер.</string>
+    <string name="webdav_error_auth_title">Вхід не вдався</string>
+    <string name="webdav_error_auth_description">\"%1$s\" відхилив ім’я користувача або пароль.</string>
+    <string name="webdav_error_certificate_untrusted_title">Недовірений сертифікат</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" надіслав сертифікат, якому цей пристрій не довіряє. Butler не виконав вхід.\n\nВідбиток: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">Сертифікат сервера змінився</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" надіслав інший сертифікат, ніж довірений раніше. Butler не виконав вхід.\n\nДовірений: %2$s\nНадісланий: %3$s</string>
+    <string name="webdav_error_access_denied_title">Немає доступу до цієї теки</string>
+    <string name="webdav_error_access_denied_description">Цей обліковий запис не має права відкрити теку, указану для \"%1$s\". Перевір дозволи теки на сервері.</string>
+    <string name="webdav_error_not_collection_title">Це не тека WebDAV</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" не є текою WebDAV. Перевір адресу, вона має вказувати на теку на сервері.</string>
+    <string name="webdav_error_pro_required_title">WebDAV-сервери потребують Butler Pro</string>
+    <string name="webdav_error_pro_required_description">Перегляд WebDAV-серверів входить до Butler Pro. Додавання, перевірка й вилучення серверів безплатні.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Захищений пакунок програми</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" зашифрований і може бути встановлений тільки програмою, яка його створила.</string>

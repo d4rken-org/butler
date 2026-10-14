@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">此帳戶可能無法開啟為\"%1$s\"設定的資料夾。請檢查伺服器上該資料夾的權限。</string>
     <string name="sftp_error_pro_required_title">SFTP 伺服器需要Butler Pro</string>
     <string name="sftp_error_pro_required_description">瀏覽 SFTP 伺服器是Butler Pro的功能。新增、測試與移除伺服器皆可免費使用。</string>
+    <string name="webdav_error_credential_unavailable_title">需要登入</string>
+    <string name="webdav_error_credential_unavailable_description">此 WebDAV 伺服器的已儲存密碼無法再讀取。請重新輸入以重新連接。</string>
+    <string name="webdav_error_unreachable_title">無法連接伺服器</string>
+    <string name="webdav_error_unreachable_description">Butler無法連接\"%1$s\"。請檢查位址，以及伺服器是否已執行。</string>
+    <string name="webdav_error_auth_title">登入失敗</string>
+    <string name="webdav_error_auth_description">\"%1$s\"拒絕了使用者名稱或密碼。</string>
+    <string name="webdav_error_certificate_untrusted_title">不受信任的憑證</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\"提供了此裝置不信任的憑證。Butler未進行登入。\n\n指紋：%2$s</string>
+    <string name="webdav_error_certificate_changed_title">伺服器憑證已變更</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\"提供的憑證與你信任的憑證不同。Butler未進行登入。\n\n已信任：%2$s\n目前提供：%3$s</string>
+    <string name="webdav_error_access_denied_title">無法存取此資料夾</string>
+    <string name="webdav_error_access_denied_description">此帳戶無權開啟為\"%1$s\"設定的資料夾。請檢查伺服器上該資料夾的權限。</string>
+    <string name="webdav_error_not_collection_title">不是 WebDAV 資料夾</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\"不是 WebDAV 資料夾。請檢查位址，它必須指向伺服器上的資料夾。</string>
+    <string name="webdav_error_pro_required_title">WebDAV 伺服器需要Butler Pro</string>
+    <string name="webdav_error_pro_required_description">瀏覽 WebDAV 伺服器是Butler Pro的功能。新增、測試與移除伺服器皆可免費使用。</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">受保護的應用程式套件</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\"已加密，只能由建立它的應用程式安裝。</string>

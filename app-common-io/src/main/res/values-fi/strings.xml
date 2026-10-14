@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">Tämä tili ei saa avata kansiota, joka on asetettu palvelimelle \"%1$s\". Tarkista kansion käyttöoikeudet palvelimelta.</string>
     <string name="sftp_error_pro_required_title">SFTP-palvelimet vaativat Butler Pron</string>
     <string name="sftp_error_pro_required_description">SFTP-palvelinten selaaminen kuuluu Butler Prohon. Palvelinten lisääminen, testaaminen ja poistaminen on ilmaista.</string>
+    <string name="webdav_error_credential_unavailable_title">Kirjautuminen vaaditaan</string>
+    <string name="webdav_error_credential_unavailable_description">Tämän WebDAV-palvelimen tallennettua salasanaa ei voi enää lukea. Anna se uudelleen muodostaaksesi yhteyden.</string>
+    <string name="webdav_error_unreachable_title">Palvelinta ei tavoiteta</string>
+    <string name="webdav_error_unreachable_description">Butler ei tavoittanut palvelinta \"%1$s\". Tarkista osoite ja että palvelin on käynnissä.</string>
+    <string name="webdav_error_auth_title">Kirjautuminen epäonnistui</string>
+    <string name="webdav_error_auth_description">\"%1$s\" hylkäsi käyttäjänimen tai salasanan.</string>
+    <string name="webdav_error_certificate_untrusted_title">Varmenteeseen ei luoteta</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" esitti varmenteen, johon tämä laite ei luota. Butler ei kirjautunut sisään.\n\nSormenjälki: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">Palvelimen varmenne muuttui</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" esitti eri varmenteen kuin se, johon luotit. Butler ei kirjautunut sisään.\n\nLuotettu: %2$s\nEsitetty: %3$s</string>
+    <string name="webdav_error_access_denied_title">Ei käyttöoikeutta tähän kansioon</string>
+    <string name="webdav_error_access_denied_description">Tämä tili ei saa avata kansiota, joka on asetettu palvelimelle \"%1$s\". Tarkista kansion käyttöoikeudet palvelimelta.</string>
+    <string name="webdav_error_not_collection_title">Ei WebDAV-kansio</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" ei ole WebDAV-kansio. Tarkista osoite, sen on osoitettava palvelimella olevaan kansioon.</string>
+    <string name="webdav_error_pro_required_title">WebDAV-palvelimet vaativat Butler Pron</string>
+    <string name="webdav_error_pro_required_description">WebDAV-palvelinten selaaminen kuuluu Butler Prohon. Palvelinten lisääminen, testaaminen ja poistaminen on ilmaista.</string>
 
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Suojattu sovelluspaketti</string>

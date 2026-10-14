@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">Denne kontoen har kanskje ikke tillatelse til å åpne mappen som er angitt for \"%1$s\". Sjekk tillatelsene for mappen på serveren.</string>
     <string name="sftp_error_pro_required_title">SFTP-servere krever Butler Pro</string>
     <string name="sftp_error_pro_required_description">Å bla gjennom SFTP-servere er en del av Butler Pro. Det er gratis å legge til, teste og fjerne servere.</string>
+    <string name="webdav_error_credential_unavailable_title">Innlogging kreves</string>
+    <string name="webdav_error_credential_unavailable_description">Det lagrede passordet for denne WebDAV-serveren kan ikke lenger leses. Skriv det inn igjen for å koble til på nytt.</string>
+    <string name="webdav_error_unreachable_title">Serveren kan ikke nås</string>
+    <string name="webdav_error_unreachable_description">Butler kunne ikke nå \"%1$s\". Sjekk adressen og at serveren kjører.</string>
+    <string name="webdav_error_auth_title">Innlogging mislyktes</string>
+    <string name="webdav_error_auth_description">\"%1$s\" avviste brukernavnet eller passordet.</string>
+    <string name="webdav_error_certificate_untrusted_title">Sertifikatet er ikke godkjent</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" presenterte et sertifikat denne enheten ikke stoler på. Butler logget ikke inn.\n\nFingeravtrykk: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">Serverens sertifikat er endret</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" presenterte et annet sertifikat enn det du godkjente. Butler logget ikke inn.\n\nGodkjent: %2$s\nPresentert: %3$s</string>
+    <string name="webdav_error_access_denied_title">Ingen tilgang til denne mappen</string>
+    <string name="webdav_error_access_denied_description">Denne kontoen har ikke tillatelse til å åpne mappen som er angitt for \"%1$s\". Sjekk tillatelsene for mappen på serveren.</string>
+    <string name="webdav_error_not_collection_title">Ikke en WebDAV-mappe</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" er ikke en WebDAV-mappe. Sjekk adressen, den må peke til en mappe på serveren.</string>
+    <string name="webdav_error_pro_required_title">WebDAV-servere krever Butler Pro</string>
+    <string name="webdav_error_pro_required_description">Å bla gjennom WebDAV-servere er en del av Butler Pro. Det er gratis å legge til, teste og fjerne servere.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Beskyttet app-pakke</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" er kryptert og kan bare installeres av appen som opprettet den.</string>
