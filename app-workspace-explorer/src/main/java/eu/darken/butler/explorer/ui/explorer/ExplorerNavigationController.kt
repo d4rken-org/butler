@@ -33,10 +33,12 @@ import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isProForUi
+import eu.darken.butler.workspace.contracts.viewer.ViewerSupport
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.returnResult
+import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import java.io.File
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -65,6 +67,9 @@ class ExplorerNavigationController(
     private val toggleSelection: (ExplorerItem) -> Unit,
     private val clearSelection: () -> Unit,
     private val getState: suspend () -> ExplorerWorkspaceViewModel.State,
+    private val isOpenOnTapEnabled: suspend () -> Boolean,
+    private val openInViewer: suspend (ExplorerItem.File) -> Unit,
+    private val openExternally: (ExplorerItem.File) -> Boolean,
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
     private val tag: String,
 ) {
@@ -138,14 +143,11 @@ class ExplorerNavigationController(
                                 selectedPaths = listOf(item.lookup.lookedUp),
                             )
                         )
+                    } else if (config == null && isOpenOnTapEnabled()) {
+                        openDirectly(item)
                     } else {
                         // Normal mode or other picker modes: show file options dialog
-                        dialogs.show(
-                            ExplorerDialogState.FileOptions(
-                                item = item,
-                                showInFolder = getState().currentLocation is ExplorerLocation.Recent,
-                            )
-                        )
+                        showFileOptions(item)
                     }
                 }
                 is ExplorerItem.Peek -> {
@@ -204,6 +206,32 @@ class ExplorerNavigationController(
                 }
             }
         }
+    }
+
+    private suspend fun openDirectly(item: ExplorerItem.File) {
+        val isBundle = AppInstallFormat.fromFileName(item.lookup.name)?.isBundle == true
+        when {
+            isBundle || ViewerSupport.canDisplay(item.mimeType) -> {
+                log(tag, INFO) { "Open on tap: ${item.lookup.name} in the viewer" }
+                openInViewer(item)
+            }
+            FileActionCapabilities.canHandOffToOtherApps(item.lookup.lookedUp) && openExternally(item) -> {
+                log(tag, INFO) { "Open on tap: ${item.lookup.name} handed to another app" }
+            }
+            else -> {
+                log(tag, INFO) { "Open on tap: no route for ${item.lookup.name}, showing the options sheet" }
+                showFileOptions(item)
+            }
+        }
+    }
+
+    private suspend fun showFileOptions(item: ExplorerItem.File) {
+        dialogs.show(
+            ExplorerDialogState.FileOptions(
+                item = item,
+                showInFolder = getState().currentLocation is ExplorerLocation.Recent,
+            )
+        )
     }
 
     fun navigateToPath(path: APath<*>) = doLaunch {

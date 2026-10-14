@@ -367,6 +367,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         toggleSelection = { selection.toggle(it) },
         clearSelection = ::clearSelection,
         getState = ::getState,
+        isOpenOnTapEnabled = { explorerSettings.openFilesOnTap.value() },
+        openInViewer = ::openFileInPlace,
+        openExternally = { item ->
+            fileIntentHelper.openFileWithDefault(
+                item = item,
+                chooserTitle = context.getString(WorkspaceR.string.workspace_open_with_chooser_title),
+            )
+        },
         doLaunch = doLaunch,
         tag = tag,
     )
@@ -1452,16 +1460,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 dismissDialog()
                 trash.deleteNestedPermanently(action.items)
             }
-            is ExplorerActionBarItem.File.Open -> {
-                try {
-                    // The viewer opens as a drill-down of this workspace: an overlay in the same
-                    // pane that returns here on back.
-                    openFile(item = action.item, asDrillDown = true)
-                } catch (e: Exception) {
-                    log(tag, ERROR) { "Failed to open ${action.item.lookup.name}: ${e.asLog()}" }
-                    errorEvents.emit(e)
-                }
-            }
+            is ExplorerActionBarItem.File.Open -> openFileInPlace(action.item)
             is ExplorerActionBarItem.File.OpenInTab -> {
                 try {
                     openFile(item = action.item, asDrillDown = false)
@@ -1739,6 +1738,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             arguments = request.arguments,
             sourceWorkspaceId = id,
         )
+    }
+
+    private suspend fun openFileInPlace(item: ExplorerItem.File) {
+        try {
+            // The viewer opens as a drill-down of this workspace: an overlay in the same pane that
+            // returns here on back.
+            openFile(item = item, asDrillDown = true)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to open ${item.lookup.name}: ${e.asLog()}" }
+            errorEvents.emit(e)
+        }
     }
 
     private suspend fun orderSelection(selected: Collection<ExplorerItem>): List<ExplorerItem> {
