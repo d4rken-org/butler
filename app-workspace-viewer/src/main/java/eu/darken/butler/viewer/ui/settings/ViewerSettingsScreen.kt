@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.SkipNext
+import androidx.compose.material.icons.twotone.Swipe
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -31,6 +32,7 @@ fun ViewerSettingsScreen(
     state: ViewerSettingsViewModel.State,
     onNavigateUp: () -> Unit,
     onShowNextAfterDeleteChange: (Boolean) -> Unit,
+    onSwipeBetweenFilesChange: (Boolean) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -62,6 +64,15 @@ fun ViewerSettingsScreen(
                     onCheckedChange = onShowNextAfterDeleteChange,
                 )
             }
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.Swipe,
+                    title = stringResource(R.string.viewer_settings_swipe_between_files_title),
+                    subtitle = stringResource(R.string.viewer_settings_swipe_between_files_subtitle),
+                    checked = state.swipeBetweenFiles,
+                    onCheckedChange = onSwipeBetweenFilesChange,
+                )
+            }
         }
     }
 }
@@ -71,9 +82,10 @@ fun ViewerSettingsScreen(
 @Composable
 private fun ViewerSettingsScreenPreview() {
     ViewerSettingsScreen(
-        state = ViewerSettingsViewModel.State(showNextAfterDelete = true),
+        state = ViewerSettingsViewModel.State(showNextAfterDelete = true, swipeBetweenFiles = true),
         onNavigateUp = {},
         onShowNextAfterDeleteChange = {},
+        onSwipeBetweenFilesChange = {},
     )
 }
 
@@ -89,6 +101,7 @@ fun ViewerSettingsScreenHost(vm: ViewerSettingsViewModel = hiltViewModel()) {
             state = vmState,
             onNavigateUp = { vm.navUp() },
             onShowNextAfterDeleteChange = { vm.updateShowNextAfterDelete(it) },
+            onSwipeBetweenFilesChange = { vm.updateSwipeBetweenFiles(it) },
         )
     }
 }

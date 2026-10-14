@@ -223,6 +223,7 @@ class ViewerDeleteAdvanceTest : BaseTest() {
             errorIncidentStore = incidentStore,
             viewerSettings = mockk<ViewerSettings>().apply {
                 every { showNextAfterDelete } returns mockDataStoreValue(this@ViewerDeleteAdvanceTest.showNextAfterDelete)
+                every { swipeBetweenFiles } returns mockDataStoreValue(true)
             },
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns mockk<WorkspacePageChrome>().apply {

@@ -7,7 +7,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.viewer.core.ViewerSettings
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
 @HiltViewModel
@@ -16,16 +16,28 @@ class ViewerSettingsViewModel @Inject constructor(
     private val viewerSettings: ViewerSettings,
 ) : ViewModel4(dispatcherProvider, logTag("Viewer", "Settings", "ViewModel")) {
 
-    val state = viewerSettings.showNextAfterDelete.flow
-        .map { State(showNextAfterDelete = it) }
-        .asStateFlow()
+    val state = combine(
+        viewerSettings.showNextAfterDelete.flow,
+        viewerSettings.swipeBetweenFiles.flow,
+    ) { showNextAfterDelete, swipeBetweenFiles ->
+        State(
+            showNextAfterDelete = showNextAfterDelete,
+            swipeBetweenFiles = swipeBetweenFiles,
+        )
+    }.asStateFlow()
 
     fun updateShowNextAfterDelete(enabled: Boolean) = launch {
         log(tag) { "updateShowNextAfterDelete($enabled)" }
         viewerSettings.showNextAfterDelete.value(enabled)
     }
 
+    fun updateSwipeBetweenFiles(enabled: Boolean) = launch {
+        log(tag) { "updateSwipeBetweenFiles($enabled)" }
+        viewerSettings.swipeBetweenFiles.value(enabled)
+    }
+
     data class State(
         val showNextAfterDelete: Boolean = true,
+        val swipeBetweenFiles: Boolean = true,
     )
 }

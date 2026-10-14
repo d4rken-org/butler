@@ -164,8 +164,6 @@ fun ViewerWorkspacePage(
      * parameter so tests can read and drive the zoom.
      */
     zoomableState: ZoomableState = rememberViewerZoomableState(),
-    /** Swiping the content steps through the listing the viewer was opened from. */
-    swipeToStepEnabled: Boolean = true,
     /** Test seam for the back-gesture strips a swipe must not start in; null reads the window's. */
     swipeStepEdgeStripsPx: Pair<Int, Int>? = null,
     onAction: (ViewerActionBarItem) -> Unit = {},
@@ -324,7 +322,7 @@ fun ViewerWorkspacePage(
                 )
                 // Kept while a step is under way: the file it lands on has no neighbours until its
                 // listing resolves, and a swipe in between must not reach the tab pager.
-                val swipeToStep = swipeToStepEnabled && (state.neighbours != null || swipeStep.isStepping)
+                val swipeToStep = state.swipeToStep && (state.neighbours != null || swipeStep.isStepping)
 
                 ViewerContentArea(
                     state = state,

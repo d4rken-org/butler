@@ -341,7 +341,8 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         textPreviewFlow,
         trashSettings.enabled.flow,
         neighboursFlow,
-    ) { snapshot, renderFailure, imageSource, pdfPage, textPreview, trashEnabled, rawNeighbours ->
+        viewerSettings.swipeBetweenFiles.flow,
+    ) { snapshot, renderFailure, imageSource, pdfPage, textPreview, trashEnabled, rawNeighbours, swipeToStep ->
         val (source, workspaceState) = snapshot
         // Only the failure of what is on display now: one recorded for a source this tab has since
         // been rebound away from would hide the new content behind the old one's error.
@@ -392,6 +393,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             ),
             externalChange = workspaceState.externalChange,
             neighbours = neighbours,
+            swipeToStep = swipeToStep,
         ) as State
     }
         .catch { error ->
@@ -1248,6 +1250,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 neighbours = neighbours,
             ),
             val externalChange: ViewerExternalChange? = null,
+            val swipeToStep: Boolean = true,
         ) : State
     }
 

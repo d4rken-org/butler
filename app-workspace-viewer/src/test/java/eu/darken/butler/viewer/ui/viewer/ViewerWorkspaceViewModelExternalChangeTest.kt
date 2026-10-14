@@ -127,6 +127,7 @@ class ViewerWorkspaceViewModelExternalChangeTest : BaseTest() {
             errorIncidentStore = incidentStore,
             viewerSettings = mockk<ViewerSettings>().apply {
                 every { showNextAfterDelete } returns mockDataStoreValue(true)
+                every { swipeBetweenFiles } returns mockDataStoreValue(true)
             },
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns chrome

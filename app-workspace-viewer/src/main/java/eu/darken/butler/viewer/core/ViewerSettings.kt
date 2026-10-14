@@ -24,8 +24,11 @@ class ViewerSettings @Inject constructor(
 
     val showNextAfterDelete = dataStore.createValue("viewer.delete.show_next", true)
 
+    val swipeBetweenFiles = dataStore.createValue("viewer.swipe.step_files", true)
+
     override val mapper = PreferenceStoreMapper(
         showNextAfterDelete,
+        swipeBetweenFiles,
     )
 
     companion object {

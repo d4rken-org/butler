@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">Viewer</string>
     <string name="viewer_settings_show_next_after_delete_title">Show next file after deleting</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">After deleting a file opened from a folder, show the next file in that folder instead of closing the viewer.</string>
+    <string name="viewer_settings_swipe_between_files_title">Swipe between files</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Swipe left or right on a file opened from a folder to show the previous or next file in that folder.</string>
 </resources>

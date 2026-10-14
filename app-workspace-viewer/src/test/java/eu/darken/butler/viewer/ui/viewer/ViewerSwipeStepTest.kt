@@ -81,6 +81,7 @@ class ViewerSwipeStepTest : ComposeTest() {
         listing: Boolean = true,
         pdfPage: ViewerWorkspaceViewModel.PdfPage? = null,
         lines: List<String>? = null,
+        swipeToStep: Boolean = true,
     ) = ViewerWorkspaceViewModel.State.Ready(
         content = content,
         fileInfo = ViewerFileInfo(size = 1024L),
@@ -94,11 +95,11 @@ class ViewerSwipeStepTest : ComposeTest() {
             )
         },
         neighbours = if (listing) ViewerNeighbours(current = current, previous = previous, next = next) else null,
+        swipeToStep = swipeToStep,
     )
 
     private fun setPage(
         inPager: Boolean = false,
-        swipeToStepEnabled: Boolean = true,
         edgeStripsPx: Pair<Int, Int> = 0 to 0,
         layoutDirection: LayoutDirection = LayoutDirection.Ltr,
         unfocusedPane: Boolean = false,
@@ -119,7 +120,6 @@ class ViewerSwipeStepTest : ComposeTest() {
                             design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
                             state = pageState.value,
                             zoomableState = zoomableState,
-                            swipeToStepEnabled = swipeToStepEnabled,
                             swipeStepEdgeStripsPx = edgeStripsPx,
                             onAction = { actions.add(it) },
                             onPdfPreviousPage = { pdfPageSteps.add(-1) },
@@ -446,7 +446,8 @@ class ViewerSwipeStepTest : ComposeTest() {
 
     @Test
     fun `with swiping off a swipe on a picture turns the tab pager`() {
-        setPage(inPager = true, swipeToStepEnabled = false)
+        pageState.value = ready(swipeToStep = false)
+        setPage(inPager = true)
 
         swipeBy(dx = -200f)
 
@@ -454,9 +455,14 @@ class ViewerSwipeStepTest : ComposeTest() {
         pagerAtRestOn(2)
     }
 
-    private fun swipeTextLine(line: String, dx: Float, listing: Boolean, swipeToStepEnabled: Boolean) {
-        pageState.value = ready(content = text, listing = listing, lines = listOf(SHORT_LINE, LONG_LINE))
-        setPage(inPager = true, swipeToStepEnabled = swipeToStepEnabled)
+    private fun swipeTextLine(line: String, dx: Float, listing: Boolean, swipeToStep: Boolean) {
+        pageState.value = ready(
+            content = text,
+            listing = listing,
+            lines = listOf(SHORT_LINE, LONG_LINE),
+            swipeToStep = swipeToStep,
+        )
+        setPage(inPager = true)
         val before = contentOffsetX
 
         composeTestRule.onNodeWithText(line).performTouchInput {
@@ -470,25 +476,25 @@ class ViewerSwipeStepTest : ComposeTest() {
 
     @Test
     fun `without a listing a swipe on a text line that fits is left to the line as before`() {
-        swipeTextLine(SHORT_LINE, dx = -200f, listing = false, swipeToStepEnabled = true)
+        swipeTextLine(SHORT_LINE, dx = -200f, listing = false, swipeToStep = true)
         pagerAtRestOn(1)
     }
 
     @Test
     fun `without a listing a swipe past the start of a long text line is left to the line as before`() {
-        swipeTextLine(LONG_LINE, dx = 200f, listing = false, swipeToStepEnabled = true)
+        swipeTextLine(LONG_LINE, dx = 200f, listing = false, swipeToStep = true)
         pagerAtRestOn(1)
     }
 
     @Test
     fun `with swiping off a swipe on a text line that fits is left to the line as before`() {
-        swipeTextLine(SHORT_LINE, dx = -200f, listing = true, swipeToStepEnabled = false)
+        swipeTextLine(SHORT_LINE, dx = -200f, listing = true, swipeToStep = false)
         pagerAtRestOn(1)
     }
 
     @Test
     fun `with swiping off a swipe past the start of a long text line is left to the line as before`() {
-        swipeTextLine(LONG_LINE, dx = 200f, listing = true, swipeToStepEnabled = false)
+        swipeTextLine(LONG_LINE, dx = 200f, listing = true, swipeToStep = false)
         pagerAtRestOn(1)
     }
 
