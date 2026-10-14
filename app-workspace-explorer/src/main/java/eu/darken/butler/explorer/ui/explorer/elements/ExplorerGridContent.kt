@@ -165,6 +165,7 @@ internal fun ExplorerGridContent(
                     isFocused = item == contentFocusedItem,
                     onItemClick = { vm?.onItemClick(it) },
                     onItemLongClick = { vm?.onItemLongClick(it) },
+                    onItemMoreClick = { vm?.onItemMoreClick(it) },
                     onNavigate = { vm?.navigate(it) },
                     onToggleSelection = { vm?.toggleItemSelection(it) },
                     dragPayloadFactory = dragPayloadFactory,

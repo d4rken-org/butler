@@ -18,6 +18,17 @@ val ExplorerViewStyle.Density.rowIconSize: Dp
         ExplorerViewStyle.Density.DETAILED -> 48.dp
     }
 
+/**
+ * The ⋮ on a file row. Null is Material's 48dp button, which only a detailed row is tall enough for;
+ * the other densities shrink it to the icon slot so the row keeps its height.
+ */
+val ExplorerViewStyle.Density.rowMoreButtonSize: Dp?
+    get() = when (this) {
+        ExplorerViewStyle.Density.COMPACT -> rowIconSize
+        ExplorerViewStyle.Density.COMFORTABLE -> rowIconSize
+        ExplorerViewStyle.Density.DETAILED -> null
+    }
+
 val ExplorerViewStyle.Density.rowBadgeSize: Dp
     get() = when (this) {
         ExplorerViewStyle.Density.COMPACT -> 12.dp

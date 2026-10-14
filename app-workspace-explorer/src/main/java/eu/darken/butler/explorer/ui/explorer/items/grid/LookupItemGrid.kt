@@ -32,6 +32,8 @@ fun LookupItemGrid(
     decorations: ItemDecorations = ItemDecorations(),
     previewsSettled: State<Boolean> = PREVIEWS_ALWAYS_SETTLED,
     sizeFraction: Float? = null,
+    /** Only files take it; folders keep their tap. */
+    onMoreClick: (() -> Unit)? = null,
 ) {
     when (item) {
         is ExplorerItem.RegularDirectory -> DirectoryGrid(
@@ -62,6 +64,7 @@ fun LookupItemGrid(
             isEnabled = isEnabled,
             isHighlighted = isHighlighted,
             decorations = decorations,
+            onMoreClick = onMoreClick,
         )
 
         is ExplorerItem.RegularFile -> RegularFileGrid(
@@ -76,6 +79,7 @@ fun LookupItemGrid(
             isEnabled = isEnabled,
             isHighlighted = isHighlighted,
             decorations = decorations,
+            onMoreClick = onMoreClick,
         )
     }
 }

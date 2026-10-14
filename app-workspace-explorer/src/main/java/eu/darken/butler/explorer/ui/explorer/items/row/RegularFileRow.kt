@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +17,8 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
+import eu.darken.butler.explorer.ui.explorer.items.ItemMoreButton
+import eu.darken.butler.explorer.ui.explorer.items.rowMoreButtonSize
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
@@ -43,6 +46,7 @@ internal fun RegularFileRow(
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
+    onMoreClick: (() -> Unit)? = null,
 ) {
     val primaryText = item.displayName.get(LocalContext.current)
     val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
@@ -101,6 +105,11 @@ internal fun RegularFileRow(
                     contentDescription = stringResource(R.string.explorer_view_detail_modified_label),
                 )
             },
+        trailingContent = if (onMoreClick != null) {
+            { ItemMoreButton(onClick = onMoreClick, size = density.rowMoreButtonSize) }
+        } else {
+            null
+        },
     )
 }
 
@@ -116,6 +125,26 @@ private fun RegularFileRowPreview() {
         onClick = {},
         showSelection = false
     )
+}
+
+/** The ⋮ at every density, next to a name long enough to have to give way to it. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RegularFileRowMoreButtonPreview() {
+    Column {
+        ExplorerViewStyle.Density.entries.forEach { density ->
+            RegularFileRow(
+                item = MockDataProvider.createMockRegularFile("quarterly_report_final_revised_v3_signed.pdf"),
+                density = density,
+                isSelected = false,
+                onToggleSelection = {},
+                onClick = {},
+                showSelection = false,
+                onMoreClick = {},
+            )
+        }
+    }
 }
 
 @Preview2

@@ -649,6 +649,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val filterState: FilterState = FilterState(),
         val useRegexPatterns: Boolean = false,
         val useBackButtonForNavigation: Boolean = false,
+        /** A tap opens a file, so files carry a button for their actions sheet instead. */
+        val directOpenEnabled: Boolean = false,
         val pickerConfig: PickerConfig? = null,
         /**
          * The resolution that belongs to [locationId], or null while the new location's rules are
@@ -832,6 +834,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     viewSettings.filterState,
                     explorerSettings.useRegexPatterns.flow,
                     explorerSettings.useBackButtonForNavigation.flow,
+                    explorerSettings.openFilesOnTap.flow,
                     pickerConfigFlow,
                     trashManager.isEnabled,
                     saveAsFilenameFlow,
@@ -841,7 +844,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     favoritesController.feedback,
                     directorySizes,
                     favoritesSelection.selection,
-                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection ->
+                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, openFilesOnTap, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection ->
                     val items = listing?.items
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
@@ -921,6 +924,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         filterState = filterState,
                         useRegexPatterns = useRegexPatterns,
                         useBackButtonForNavigation = useBackButtonForNavigation,
+                        directOpenEnabled = openFilesOnTap && pickerConfig == null,
                         pickerConfig = pickerConfig,
                         resolvedSort = matchedSort,
                         sortSettings = matchedSort?.resolution?.settings ?: SortSettings(),
@@ -1007,6 +1011,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun onItemClick(item: ExplorerItem) = selection.onItemClick(item)
 
     fun onItemLongClick(item: ExplorerItem) = selection.onItemLongClick(item)
+
+    fun onItemMoreClick(item: ExplorerItem.File) = navigation.showFileOptions(item)
 
     fun onFavoriteClick(fav: FavoriteItem) {
         log(tag) { "onFavoriteClick($fav)" }

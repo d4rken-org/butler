@@ -45,6 +45,7 @@ fun ExplorerItemRenderer(
     isFocused: Boolean,
     onItemClick: (ExplorerItem) -> Unit,
     onItemLongClick: (ExplorerItem) -> Unit,
+    onItemMoreClick: (ExplorerItem.File) -> Unit,
     onNavigate: (ExplorerItem) -> Unit,
     onToggleSelection: (ExplorerItem) -> Unit,
     dragPayloadFactory: ((ExplorerItem) -> WorkspaceDragPayload?)? = null,
@@ -96,6 +97,7 @@ fun ExplorerItemRenderer(
                 }
                 onItemLongClick(it)
             },
+            onItemMoreClick = onItemMoreClick,
             onNavigate = onNavigate,
             onToggleSelection = onToggleSelection,
             previewsSettled = previewsSettled,
@@ -127,6 +129,7 @@ private fun ItemContent(
     showSelection: Boolean,
     onItemClick: (ExplorerItem) -> Unit,
     onItemLongClick: (ExplorerItem) -> Unit,
+    onItemMoreClick: (ExplorerItem.File) -> Unit,
     onNavigate: (ExplorerItem) -> Unit,
     onToggleSelection: (ExplorerItem) -> Unit,
     previewsSettled: State<Boolean>,
@@ -139,6 +142,9 @@ private fun ItemContent(
             // Recent rows say which folder a file is in, which a grid cell has no room for, so the
             // grid keeps the ordinary cell.
             val recent = state.currentLocation as? ExplorerLocation.Recent
+            val onMoreClick = (item as? ExplorerItem.File)
+                ?.takeIf { state.directOpenEnabled && !showSelection }
+                ?.let { file -> { onItemMoreClick(file) } }
             when (viewStyle.mode) {
                 ExplorerViewStyle.Mode.LIST -> {
                     if (recent != null && item is ExplorerItem.File) {
@@ -154,6 +160,7 @@ private fun ItemContent(
                             isEnabled = isEnabled,
                             isHighlighted = isHighlighted,
                             decorations = decorations,
+                            onMoreClick = onMoreClick,
                         )
                     } else {
                         LookupItemRow(
@@ -168,6 +175,7 @@ private fun ItemContent(
                             isHighlighted = isHighlighted,
                             decorations = decorations,
                             sizeFraction = sizeFraction,
+                            onMoreClick = onMoreClick,
                         )
                     }
                 }
@@ -184,6 +192,7 @@ private fun ItemContent(
                     decorations = decorations,
                     previewsSettled = previewsSettled,
                     sizeFraction = sizeFraction,
+                    onMoreClick = onMoreClick,
                 )
             }
         }

@@ -29,6 +29,7 @@
 
     <!-- File Row Content Descriptions -->
     <string name="explorer_file_regular_content_desc">File</string>
+    <string name="explorer_file_more_actions_content_desc">More actions</string>
     <string name="explorer_file_symlink_content_desc">Symbolic link</string>
     <string name="explorer_file_folder_content_desc">Folder</string>
     <string name="explorer_file_peek_content_desc">Loading file information</string>

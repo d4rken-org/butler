@@ -147,7 +147,7 @@ class ExplorerNavigationController(
                         openDirectly(item)
                     } else {
                         // Normal mode or other picker modes: show file options dialog
-                        showFileOptions(item)
+                        showFileOptionsSheet(item)
                     }
                 }
                 is ExplorerItem.Peek -> {
@@ -220,12 +220,14 @@ class ExplorerNavigationController(
             }
             else -> {
                 log(tag, INFO) { "Open on tap: no route for ${item.lookup.name}, showing the options sheet" }
-                showFileOptions(item)
+                showFileOptionsSheet(item)
             }
         }
     }
 
-    private suspend fun showFileOptions(item: ExplorerItem.File) {
+    fun showFileOptions(item: ExplorerItem.File) = doLaunch { showFileOptionsSheet(item) }
+
+    private suspend fun showFileOptionsSheet(item: ExplorerItem.File) {
         dialogs.show(
             ExplorerDialogState.FileOptions(
                 item = item,

@@ -1,7 +1,10 @@
 package eu.darken.butler.explorer.ui.explorer.items.grid
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material3.Icon
@@ -23,6 +26,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.gridDateStyle
+import eu.darken.butler.explorer.ui.explorer.items.gridMinSize
 import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
 import eu.darken.butler.explorer.ui.explorer.items.showsTileMetadata
 import eu.darken.butler.explorer.ui.explorer.items.usesShortFileSize
@@ -41,6 +45,7 @@ internal fun RegularFileGrid(
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
+    onMoreClick: (() -> Unit)? = null,
 ) {
     FileGridBase(
         modifier = modifier,
@@ -54,6 +59,7 @@ internal fun RegularFileGrid(
         isEnabled = isEnabled,
         isHighlighted = isHighlighted,
         decorations = decorations,
+        onMoreClick = onMoreClick,
         icon = {
             Icon(
                 imageVector = Icons.TwoTone.Description,
@@ -91,6 +97,27 @@ private fun RegularFileGridPreview() {
         onClick = {},
         showSelection = false
     )
+}
+
+/** The ⋮ at every density, next to a name long enough to have to give way to it. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RegularFileGridMoreButtonPreview() {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        ExplorerViewStyle.Density.entries.forEach { density ->
+            RegularFileGrid(
+                modifier = Modifier.width(density.gridMinSize),
+                item = MockDataProvider.createMockRegularFile("quarterly_report_final_revised_v3_signed.pdf"),
+                density = density,
+                isSelected = false,
+                onToggleSelection = {},
+                onClick = {},
+                showSelection = false,
+                onMoreClick = {},
+            )
+        }
+    }
 }
 
 @Preview2

@@ -1,6 +1,9 @@
 package eu.darken.butler.explorer.ui.explorer.items.grid
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Icon
@@ -20,6 +23,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.gridDateStyle
+import eu.darken.butler.explorer.ui.explorer.items.gridMinSize
 import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
 import eu.darken.butler.explorer.ui.explorer.items.showsTileMetadata
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -37,6 +41,7 @@ internal fun SymlinkFileGrid(
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
+    onMoreClick: (() -> Unit)? = null,
 ) {
     FileGridBase(
         modifier = modifier,
@@ -50,6 +55,7 @@ internal fun SymlinkFileGrid(
         isEnabled = isEnabled,
         isHighlighted = isHighlighted,
         decorations = decorations,
+        onMoreClick = onMoreClick,
         icon = {
             Icon(
                 imageVector = Icons.Default.Link,
@@ -83,6 +89,27 @@ private fun SymlinkFileGridPreview() {
         onClick = {},
         showSelection = false
     )
+}
+
+/** The ⋮ at every density, next to a name long enough to have to give way to it. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SymlinkFileGridMoreButtonPreview() {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        ExplorerViewStyle.Density.entries.forEach { density ->
+            SymlinkFileGrid(
+                modifier = Modifier.width(density.gridMinSize),
+                item = MockDataProvider.createMockSymbolicLink("link_to_the_quarterly_report_final_revised_v3.pdf"),
+                density = density,
+                isSelected = false,
+                onToggleSelection = {},
+                onClick = {},
+                showSelection = false,
+                onMoreClick = {},
+            )
+        }
+    }
 }
 
 @Preview2

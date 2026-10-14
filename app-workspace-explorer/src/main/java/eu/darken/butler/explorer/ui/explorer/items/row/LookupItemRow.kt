@@ -29,6 +29,8 @@ fun LookupItemRow(
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
     sizeFraction: Float? = null,
+    /** Only files take it; folders keep their tap. */
+    onMoreClick: (() -> Unit)? = null,
 ) {
     when (item) {
         is ExplorerItem.RegularDirectory -> DirectoryRow(
@@ -57,6 +59,7 @@ fun LookupItemRow(
             isEnabled = isEnabled,
             isHighlighted = isHighlighted,
             decorations = decorations,
+            onMoreClick = onMoreClick,
             modifier = modifier,
         )
 
@@ -71,6 +74,7 @@ fun LookupItemRow(
             isEnabled = isEnabled,
             isHighlighted = isHighlighted,
             decorations = decorations,
+            onMoreClick = onMoreClick,
             modifier = modifier,
         )
     }
