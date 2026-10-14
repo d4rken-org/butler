@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">ভিউয়ার</string>
     <string name="viewer_settings_show_next_after_delete_title">মুছে ফেলার পরে পরের ফাইল দেখান</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">ফোল্ডার থেকে খোলা ফাইল মুছে ফেললে ভিউয়ার বন্ধ না করে ওই ফোল্ডারের পরের ফাইল দেখান।</string>
+    <string name="viewer_settings_swipe_between_files_title">সোয়াইপ করে ফাইল পাল্টান</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">ফোল্ডার থেকে খোলা ফাইলে বাঁয়ে বা ডানে সোয়াইপ করে ওই ফোল্ডারের আগের বা পরের ফাইল দেখান।</string>
 </resources>

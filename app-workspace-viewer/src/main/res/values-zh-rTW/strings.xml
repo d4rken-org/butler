@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">無法讀取此檔案</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">刪除從資料夾開啟的檔案後，顯示該資料夾中的下一個檔案，而不是關閉檢視器。</string>
     <string name="viewer_settings_show_next_after_delete_title">刪除後顯示下一個檔案</string>
+    <string name="viewer_settings_swipe_between_files_title">滑動切換檔案</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">在從資料夾開啟的檔案上向左或向右滑動，即可顯示該資料夾中的上一個或下一個檔案。</string>
     <string name="viewer_settings_title">檢視器</string>
 </resources>

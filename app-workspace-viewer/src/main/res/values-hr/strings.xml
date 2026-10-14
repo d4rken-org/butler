@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">Prikazivač</string>
     <string name="viewer_settings_show_next_after_delete_title">Prikaži sljedeću datoteku nakon brisanja</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Nakon brisanja datoteke otvorene iz mape prikaži sljedeću datoteku u toj mapi umjesto zatvaranja prikazivača.</string>
+    <string name="viewer_settings_swipe_between_files_title">Prelazi među datotekama povlačenjem</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Povuci ulijevo ili udesno po datoteci otvorenoj iz mape za prikaz prethodne ili sljedeće datoteke u toj mapi.</string>
 </resources>

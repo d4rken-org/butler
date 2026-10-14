@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">ไม่สามารถอ่านไฟล์นี้ได้</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">หลังจากลบไฟล์ที่เปิดจากโฟลเดอร์ ให้แสดงไฟล์ถัดไปในโฟลเดอร์นั้นแทนการปิดตัวดูไฟล์</string>
     <string name="viewer_settings_show_next_after_delete_title">แสดงไฟล์ถัดไปหลังลบ</string>
+    <string name="viewer_settings_swipe_between_files_title">ปัดสลับไฟล์</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">ปัดซ้ายหรือขวาบนไฟล์ที่เปิดจากโฟลเดอร์ เพื่อแสดงไฟล์ก่อนหน้าหรือถัดไปในโฟลเดอร์นั้น</string>
     <string name="viewer_settings_title">ตัวดูไฟล์</string>
 </resources>

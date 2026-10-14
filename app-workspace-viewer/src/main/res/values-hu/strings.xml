@@ -92,4 +92,6 @@
     <string name="viewer_settings_title">Megjelenítő</string>
     <string name="viewer_settings_show_next_after_delete_title">Következő fájl megjelenítése törlés után</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Mappából megnyitott fájl törlése után a megjelenítő bezárása helyett a mappa következő fájlja jelenik meg.</string>
+    <string name="viewer_settings_swipe_between_files_title">Fájlváltás csúsztatással</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Mappából megnyitott fájlon balra vagy jobbra csúsztatva a mappa előző vagy következő fájlja jelenik meg.</string>
 </resources>

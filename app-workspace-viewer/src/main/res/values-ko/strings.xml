@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">뷰어</string>
     <string name="viewer_settings_show_next_after_delete_title">파일 삭제 후 다음 파일 표시</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">폴더에서 열린 파일을 삭제한 후 뷰어를 닫는 대신 해당 폴더의 다음 파일을 표시합니다.</string>
+    <string name="viewer_settings_swipe_between_files_title">스와이프로 파일 전환</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">폴더에서 열린 파일을 좌우로 스와이프하여 해당 폴더의 이전 또는 다음 파일을 표시합니다.</string>
 </resources>

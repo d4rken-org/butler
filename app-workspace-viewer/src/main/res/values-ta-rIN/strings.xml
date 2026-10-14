@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">பார்வையாளர்</string>
     <string name="viewer_settings_show_next_after_delete_title">நீக்கிய பிறகு அடுத்த கோப்பைக் காட்டு</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">கோப்புறையிலிருந்து திறந்த கோப்பை நீக்கிய பிறகு, பார்வையாளரை மூடுவதற்குப் பதிலாக அந்தக் கோப்புறையில் உள்ள அடுத்த கோப்பைக் காட்டு.</string>
+    <string name="viewer_settings_swipe_between_files_title">கோப்புகளுக்கிடையே ஸ்வைப் செய்</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">கோப்புறையிலிருந்து திறந்த கோப்பில் இடது அல்லது வலதுபுறம் ஸ்வைப் செய்து, அந்தக் கோப்புறையில் உள்ள முந்தைய அல்லது அடுத்த கோப்பைக் காட்டு.</string>
 </resources>

@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">Soubor se nepodařilo přečíst</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Po smazání souboru otevřeného ze složky zobrazit další soubor v této složce místo zavření prohlížeče.</string>
     <string name="viewer_settings_show_next_after_delete_title">Po smazání zobrazit další soubor</string>
+    <string name="viewer_settings_swipe_between_files_title">Přepínat mezi soubory přejetím</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Přejetím doleva nebo doprava na souboru otevřeném ze složky zobrazit předchozí nebo další soubor v této složce.</string>
     <string name="viewer_settings_title">Prohlížeč</string>
 </resources>

@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">Цей файл не вдалося прочитати</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Після видалення файлу, відкритого з теки, показувати наступний файл із цієї теки замість закриття переглядача.</string>
     <string name="viewer_settings_show_next_after_delete_title">Показувати наступний файл після видалення</string>
+    <string name="viewer_settings_swipe_between_files_title">Перемикати файли гортанням</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Проведіть пальцем ліворуч або праворуч по файлу, відкритому з теки, щоб показати попередній або наступний файл із цієї теки.</string>
     <string name="viewer_settings_title">Переглядач</string>
 </resources>

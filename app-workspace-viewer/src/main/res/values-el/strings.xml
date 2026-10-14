@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">Αυτό το αρχείο δεν μπορούσε να διαβαστεί</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Μετά τη διαγραφή ενός αρχείου που άνοιξε από φάκελο, εμφάνιση του επόμενου αρχείου του φακέλου αντί για κλείσιμο του προβολέα.</string>
     <string name="viewer_settings_show_next_after_delete_title">Εμφάνιση επόμενου αρχείου μετά τη διαγραφή</string>
+    <string name="viewer_settings_swipe_between_files_title">Σύρσιμο μεταξύ αρχείων</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Σύρσιμο αριστερά ή δεξιά σε ένα αρχείο που άνοιξε από φάκελο για εμφάνιση του προηγούμενου ή του επόμενου αρχείου του φακέλου.</string>
     <string name="viewer_settings_title">Προβολέας</string>
 </resources>

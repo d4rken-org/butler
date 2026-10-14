@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">వ్యూయర్</string>
     <string name="viewer_settings_show_next_after_delete_title">తొలగించిన తర్వాత తదుపరి ఫైల్‌ను చూపండి</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">ఫోల్డర్ నుంచి తెరిచిన ఫైల్‌ను తొలగించిన తర్వాత, వ్యూయర్‌ను మూసివేయకుండా ఆ ఫోల్డర్‌లోని తదుపరి ఫైల్‌ను చూపండి.</string>
+    <string name="viewer_settings_swipe_between_files_title">ఫైల్‌ల మధ్య స్వైప్ చేయండి</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">ఫోల్డర్ నుంచి తెరిచిన ఫైల్‌పై ఎడమకు లేదా కుడికి స్వైప్ చేసి, ఆ ఫోల్డర్‌లోని మునుపటి లేదా తదుపరి ఫైల్‌ను చూపండి.</string>
 </resources>

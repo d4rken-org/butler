@@ -92,4 +92,6 @@
     <string name="viewer_settings_title">Vizualizator</string>
     <string name="viewer_settings_show_next_after_delete_title">Arată fișierul următor după ștergere</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">După ștergerea unui fișier deschis dintr-un dosar, arată următorul fișier din acel dosar în loc să închizi vizualizatorul.</string>
+    <string name="viewer_settings_swipe_between_files_title">Glisează între fișiere</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Glisează la stânga sau la dreapta pe un fișier deschis dintr-un dosar pentru a arăta fișierul anterior sau următor din acel dosar.</string>
 </resources>

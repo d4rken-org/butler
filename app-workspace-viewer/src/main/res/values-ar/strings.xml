@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">تعذر قراءة هذا الملف</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">بعد حذف ملف فُتح من مجلد، اعرض الملف التالي في ذلك المجلد بدلًا من إغلاق العارض.</string>
     <string name="viewer_settings_show_next_after_delete_title">عرض الملف التالي بعد الحذف</string>
+    <string name="viewer_settings_swipe_between_files_title">التمرير بين الملفات</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">مرر لليسار أو اليمين على ملف فُتح من مجلد لعرض الملف السابق أو التالي في ذلك المجلد.</string>
     <string name="viewer_settings_title">العارض</string>
 </resources>

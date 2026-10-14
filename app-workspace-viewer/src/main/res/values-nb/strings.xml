@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">Filviser</string>
     <string name="viewer_settings_show_next_after_delete_title">Vis neste fil etter sletting</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Etter at en fil åpnet fra en mappe er slettet, vises neste fil i den mappen i stedet for at filviseren lukkes.</string>
+    <string name="viewer_settings_swipe_between_files_title">Sveip mellom filer</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Sveip til venstre eller høyre på en fil åpnet fra en mappe for å vise forrige eller neste fil i den mappen.</string>
 </resources>

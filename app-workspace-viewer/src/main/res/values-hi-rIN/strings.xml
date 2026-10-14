@@ -92,4 +92,6 @@
     <string name="viewer_settings_title">दर्शक</string>
     <string name="viewer_settings_show_next_after_delete_title">मिटाने के बाद अगली फ़ाइल दिखाएँ</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">फ़ोल्डर से खोली गई फ़ाइल मिटाने के बाद दर्शक बंद करने के बजाय उस फ़ोल्डर की अगली फ़ाइल दिखाएँ।</string>
+    <string name="viewer_settings_swipe_between_files_title">स्वाइप करके फ़ाइल बदलें</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">फ़ोल्डर से खोली गई फ़ाइल पर बाएँ या दाएँ स्वाइप करके उस फ़ोल्डर की पिछली या अगली फ़ाइल दिखाएँ।</string>
 </resources>

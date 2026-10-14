@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">Không thể đọc tệp này</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Sau khi xóa một tệp được mở từ một thư mục, hiển thị tệp tiếp theo trong thư mục đó thay vì đóng trình xem.</string>
     <string name="viewer_settings_show_next_after_delete_title">Hiện tệp tiếp theo sau khi xóa</string>
+    <string name="viewer_settings_swipe_between_files_title">Vuốt để chuyển tệp</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Vuốt sang trái hoặc phải trên một tệp được mở từ một thư mục để hiển thị tệp trước đó hoặc tệp tiếp theo trong thư mục đó.</string>
     <string name="viewer_settings_title">Trình xem</string>
 </resources>

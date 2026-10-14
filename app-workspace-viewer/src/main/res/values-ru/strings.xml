@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">Этот файл невозможно было прочитать</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">После удаления файла, открытого из папки, показывать следующий файл из этой папки вместо закрытия просмотра.</string>
     <string name="viewer_settings_show_next_after_delete_title">Показывать следующий файл после удаления</string>
+    <string name="viewer_settings_swipe_between_files_title">Переключать файлы смахиванием</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Проведите пальцем влево или вправо по файлу, открытому из папки, чтобы показать предыдущий или следующий файл из этой папки.</string>
     <string name="viewer_settings_title">Просмотр</string>
 </resources>

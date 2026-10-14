@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">ویوئر</string>
     <string name="viewer_settings_show_next_after_delete_title">حذف کرنے کے بعد اگلی فائل دکھائیں</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">کسی فولڈر سے کھولی گئی فائل حذف کرنے کے بعد ویوئر بند کرنے کے بجائے اسی فولڈر کی اگلی فائل دکھائیں۔</string>
+    <string name="viewer_settings_swipe_between_files_title">فائلوں کے درمیان سوائپ کریں</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">کسی فولڈر سے کھولی گئی فائل پر بائیں یا دائیں سوائپ کر کے اسی فولڈر کی پچھلی یا اگلی فائل دکھائیں۔</string>
 </resources>

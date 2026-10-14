@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">ビューアー</string>
     <string name="viewer_settings_show_next_after_delete_title">ファイル削除後に次のファイルを表示</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">フォルダから開いたファイルを削除した後、ビューアーを閉じる代わりにそのフォルダの次のファイルを表示します。</string>
+    <string name="viewer_settings_swipe_between_files_title">スワイプでファイルを切り替え</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">フォルダから開いたファイル上で左右にスワイプすると、そのフォルダの前または次のファイルを表示します。</string>
 </resources>

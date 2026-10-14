@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">Visualizador</string>
     <string name="viewer_settings_show_next_after_delete_title">Mostrar próximo arquivo após deletar</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Depois de deletar um arquivo aberto de uma pasta, mostra o próximo arquivo nessa pasta em vez de fechar o visualizador.</string>
+    <string name="viewer_settings_swipe_between_files_title">Deslizar entre arquivos</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Deslize para a esquerda ou para a direita em um arquivo aberto de uma pasta para mostrar o arquivo anterior ou o próximo nessa pasta.</string>
 </resources>

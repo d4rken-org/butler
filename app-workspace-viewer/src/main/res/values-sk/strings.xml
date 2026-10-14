@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">Prehliadač</string>
     <string name="viewer_settings_show_next_after_delete_title">Zobraziť nasledujúci súbor po odstránení</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Po odstránení súboru otvoreného z priečinka zobraziť nasledujúci súbor v tomto priečinku namiesto zatvorenia prehliadača.</string>
+    <string name="viewer_settings_swipe_between_files_title">Prepínať medzi súbormi potiahnutím</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Potiahnutím doľava alebo doprava na súbore otvorenom z priečinka zobraziť predchádzajúci alebo nasledujúci súbor v tomto priečinku.</string>
 </resources>

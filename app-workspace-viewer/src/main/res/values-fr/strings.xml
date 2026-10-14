@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">Ce fichier n’a pas pu être lu</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Après la suppression d’un fichier ouvert depuis un dossier, afficher le fichier suivant de ce dossier au lieu de fermer la visionneuse.</string>
     <string name="viewer_settings_show_next_after_delete_title">Afficher le fichier suivant après une suppression</string>
+    <string name="viewer_settings_swipe_between_files_title">Balayer entre les fichiers</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Balayer vers la gauche ou la droite sur un fichier ouvert depuis un dossier pour afficher le fichier précédent ou suivant de ce dossier.</string>
     <string name="viewer_settings_title">Visionneuse</string>
 </resources>

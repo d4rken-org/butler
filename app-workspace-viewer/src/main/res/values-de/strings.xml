@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">Diese Datei konnte nicht gelesen werden</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Nach dem Löschen einer aus einem Ordner geöffneten Datei die nächste Datei in diesem Ordner anzeigen, statt den Betrachter zu schließen.</string>
     <string name="viewer_settings_show_next_after_delete_title">Nächste Datei nach dem Löschen anzeigen</string>
+    <string name="viewer_settings_swipe_between_files_title">Zwischen Dateien wischen</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Auf einer aus einem Ordner geöffneten Datei nach links oder rechts wischen, um die vorherige oder nächste Datei in diesem Ordner anzuzeigen.</string>
     <string name="viewer_settings_title">Betrachter</string>
 </resources>

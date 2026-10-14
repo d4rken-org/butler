@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">این فایل نتوانست خوانده شود</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">پس از حذف فایلی که از یک پوشه باز شده، به‌جای بستن نمایشگر، فایل بعدی همان پوشه نمایش داده می‌شود.</string>
     <string name="viewer_settings_show_next_after_delete_title">نمایش فایل بعدی پس از حذف</string>
+    <string name="viewer_settings_swipe_between_files_title">سوایپ بین فایل‌ها</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">با سوایپ به چپ یا راست روی فایلی که از یک پوشه باز شده، فایل قبلی یا بعدی همان پوشه نمایش داده می‌شود.</string>
     <string name="viewer_settings_title">نمایشگر</string>
 </resources>

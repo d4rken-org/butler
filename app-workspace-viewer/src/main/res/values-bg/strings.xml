@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">Преглед</string>
     <string name="viewer_settings_show_next_after_delete_title">Показвай следващия файл след изтриване</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">След изтриване на файл, отворен от папка, показвай следващия файл в тази папка, вместо да затваряш прозореца за преглед.</string>
+    <string name="viewer_settings_swipe_between_files_title">Превключвай файловете с плъзгане</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Плъзни наляво или надясно върху файл, отворен от папка, за да покажеш предишния или следващия файл в тази папка.</string>
 </resources>

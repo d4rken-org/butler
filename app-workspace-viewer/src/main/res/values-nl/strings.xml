@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">Weergever</string>
     <string name="viewer_settings_show_next_after_delete_title">Volgende bestand na verwijderen weergeven</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Als je een bestand uit een map verwijdert, toont Butler het volgende bestand in die map in plaats van de viewer te sluiten.</string>
+    <string name="viewer_settings_swipe_between_files_title">Tussen bestanden swipen</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Swipe naar links of rechts op een bestand dat je uit een map hebt geopend om het vorige of volgende bestand in die map te tonen.</string>
 </resources>

@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">Katselin</string>
     <string name="viewer_settings_show_next_after_delete_title">Näytä seuraava tiedosto poistamisen jälkeen</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Kun poistat kansiosta avatun tiedoston, näytä kansion seuraava tiedosto katselimen sulkemisen sijaan.</string>
+    <string name="viewer_settings_swipe_between_files_title">Vaihda tiedostoa pyyhkäisemällä</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Pyyhkäise kansiosta avatun tiedoston päällä vasemmalle tai oikealle näyttääksesi kansion edellisen tai seuraavan tiedoston.</string>
 </resources>

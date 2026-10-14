@@ -115,4 +115,6 @@
     <string name="viewer_settings_title">Tagatingin</string>
     <string name="viewer_settings_show_next_after_delete_title">Ipakita ang susunod na file pagkatapos magtanggal</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Pagkatapos tanggalin ang file na binuksan mula sa isang folder, ipakita ang susunod na file sa folder na iyon sa halip na isara ang tagatingin.</string>
+    <string name="viewer_settings_swipe_between_files_title">Mag-swipe sa pagitan ng mga file</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Mag-swipe pakaliwa o pakanan sa file na binuksan mula sa isang folder para ipakita ang nakaraan o susunod na file sa folder na iyon.</string>
 </resources>

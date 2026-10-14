@@ -112,5 +112,7 @@
     <string name="viewer_text_unreadable_label">Este archivo no se pudo leer</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Tras eliminar un archivo abierto desde una carpeta, muestra el siguiente archivo de esa carpeta en lugar de cerrar el visor.</string>
     <string name="viewer_settings_show_next_after_delete_title">Mostrar el siguiente archivo tras eliminar</string>
+    <string name="viewer_settings_swipe_between_files_title">Deslizar entre archivos</string>
+    <string name="viewer_settings_swipe_between_files_subtitle">Desliza hacia la izquierda o la derecha sobre un archivo abierto desde una carpeta para mostrar el archivo anterior o siguiente de esa carpeta.</string>
     <string name="viewer_settings_title">Visor</string>
 </resources>
