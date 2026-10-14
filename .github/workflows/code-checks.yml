@@ -18,7 +18,7 @@ jobs:
         flavor: [ Foss,Gplay ]
         variant: [ Beta,Release ]
         module: [ app ]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout source code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
@@ -38,7 +38,7 @@ jobs:
         flavor: [ Foss,Gplay ]
         variant: [ Debug ]
         module: [ app ]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout source code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
@@ -70,7 +70,7 @@ jobs:
         # The unflavored SAF test fixture is excluded on purpose and covered by
         # the explicit build and test step in build-modules instead.
         flavor: [ testFoss,testGplay ]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout source code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
@@ -190,7 +190,7 @@ jobs:
 
   smb-integration:
     name: SMB integration (Docker)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Checkout source code
@@ -275,7 +275,7 @@ jobs:
 
   sftp-integration:
     name: SFTP integration (Docker)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Checkout source code
@@ -387,7 +387,7 @@ jobs:
 
   webdav-integration:
     name: WebDAV integration (Docker)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Checkout source code
@@ -474,7 +474,7 @@ jobs:
 
   check-release-tooling:
     name: Release tooling
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout source code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
