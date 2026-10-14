@@ -1,6 +1,7 @@
 package eu.darken.butler.viewer.core
 
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.workspace.contracts.viewer.ViewerSupport
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest

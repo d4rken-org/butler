@@ -1,4 +1,4 @@
-package eu.darken.butler.viewer.core
+package eu.darken.butler.workspace.contracts.viewer
 
 import eu.darken.butler.common.files.MimeInfo
 
@@ -10,12 +10,12 @@ import eu.darken.butler.common.files.MimeInfo
  * decides whether the viewer is offered at all: the viewer takes anything and explains what it
  * cannot render.
  *
- * Archives are deliberately absent. [ViewerWorkspace] classifies them separately, by file name and
+ * Archives are deliberately absent. ViewerWorkspace classifies them separately, by file name and
  * before every branch here, and offers browsing instead of rendering - claiming them here would
  * only start copying containers into Butler's cache to give them a "better" extension.
  *
- * [ViewerSupportTest] pins it to the classification in [ViewerWorkspace]: every type claimed here
- * has to reach a displayable [ViewerContent], and anything else has to stay unsupported.
+ * ViewerSupportTest pins it to the classification in ViewerWorkspace: every type claimed here
+ * has to reach a displayable ViewerContent, and anything else has to stay unsupported.
  */
 object ViewerSupport {
 

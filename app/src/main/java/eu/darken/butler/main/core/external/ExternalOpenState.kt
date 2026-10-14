@@ -3,7 +3,7 @@ package eu.darken.butler.main.core.external
 import android.net.Uri
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.editor.core.PasteFileReader
-import eu.darken.butler.viewer.core.ViewerSupport
+import eu.darken.butler.workspace.contracts.viewer.ViewerSupport
 
 /**
  * A file another app handed to Butler - via ACTION_VIEW or a single-file share - together with the
