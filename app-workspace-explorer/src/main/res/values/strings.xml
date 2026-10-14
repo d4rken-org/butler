@@ -10,6 +10,8 @@
     <string name="explorer_settings_navigation">Navigation</string>
     <string name="explorer_settings_back_button_title">Back button navigation</string>
     <string name="explorer_settings_back_button_desc">Navigate through history with back button/gesture.</string>
+    <string name="explorer_settings_open_on_tap_title">Open files on tap</string>
+    <string name="explorer_settings_open_on_tap_desc">Tap a file to open it. Use the ⋮ button on a file for its other actions.</string>
     <string name="explorer_settings_trash_category">Trash</string>
     <string name="explorer_settings_trash_enabled_title">Enable trash</string>
     <string name="explorer_settings_trash_enabled_desc">Move deleted files to trash instead of permanently deleting them</string>
