@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.FilterList
+import androidx.compose.material.icons.twotone.QuestionMark
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -47,6 +48,7 @@ fun ExplorerSettingsScreen(
     onToggleRegexPatterns: (Boolean) -> Unit,
     onToggleBackButtonNavigation: (Boolean) -> Unit,
     onToggleTrash: (Boolean) -> Unit,
+    onToggleConfirmTrashMove: (Boolean) -> Unit,
     onAutoDeleteDaysChanged: (Int) -> Unit,
     onMaxSizeChanged: (Long) -> Unit,
     onClearFolderSortRules: () -> Unit,
@@ -144,6 +146,17 @@ fun ExplorerSettingsScreen(
             }
 
             if (state.trashEnabled) {
+                item {
+                    SettingsSwitchItem(
+                        icon = Icons.TwoTone.QuestionMark,
+                        title = stringResource(R.string.explorer_settings_trash_confirm_title),
+                        subtitle = stringResource(R.string.explorer_settings_trash_confirm_desc),
+                        checked = state.confirmTrashMove,
+                        onCheckedChange = onToggleConfirmTrashMove,
+                    )
+                    SettingsDivider()
+                }
+
                 item {
                     SettingsPreferenceItem(
                         icon = Icons.TwoTone.DeleteSweep,
@@ -276,6 +289,7 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
             onToggleRegexPatterns = { vm.toggleRegexPatterns(it) },
             onToggleBackButtonNavigation = { vm.toggleBackButtonNavigation(it) },
             onToggleTrash = { vm.toggleTrash(it) },
+            onToggleConfirmTrashMove = { vm.toggleConfirmTrashMove(it) },
             onAutoDeleteDaysChanged = { vm.setTrashAutoDeleteDays(it) },
             onMaxSizeChanged = { vm.setTrashMaxSizeMB(it) },
             onClearFolderSortRules = { vm.clearFolderSortRules() },
