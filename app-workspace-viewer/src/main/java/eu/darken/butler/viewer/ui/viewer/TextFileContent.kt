@@ -41,8 +41,10 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.ui.pagerFriendlyHorizontalScroll
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.TextPreview
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import java.text.NumberFormat
 
 /**
@@ -63,7 +65,12 @@ fun TextFileContent(
      * Editor to open, and neither has a file that is gone - a button for either does nothing at all.
      */
     editorAvailable: Boolean = true,
-
+    /**
+     * Swiping the viewer's content steps through files. A line then scrolls only while it overflows
+     * and keeps a drag at its ends to itself, so a swipe on a line that fits reaches the step instead
+     * of the tab pager.
+     */
+    swipeToStep: Boolean = false,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     barScrollConnections: List<NestedScrollConnection> = emptyList(),
     onOpenInEditor: () -> Unit = {},
@@ -84,6 +91,7 @@ fun TextFileContent(
         return
     }
 
+    val workspaceFocused = LocalWorkspaceFocused.current
     SelectionContainer(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
@@ -106,10 +114,17 @@ fun TextFileContent(
                 // the right instead, so every line opened scrolled to its far end and a log could
                 // not be read without dragging each one of them back.
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    val lineScroll = rememberScrollState()
                     Text(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
+                            .then(
+                                if (swipeToStep) {
+                                    Modifier.pagerFriendlyHorizontalScroll(lineScroll, workspaceFocused)
+                                } else {
+                                    Modifier.horizontalScroll(lineScroll)
+                                },
+                            )
                             .padding(horizontal = 12.dp),
                         text = preview.lines[index],
                         style = MaterialTheme.typography.bodySmall,
