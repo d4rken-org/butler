@@ -129,6 +129,7 @@ class ViewerSaveCopyTest : BaseTest() {
             clipboardRepo = mockk(relaxed = true),
             trashSettings = mockk<TrashSettings>(relaxed = true).apply {
                 every { enabled.flow } returns flowOf(false)
+                every { confirmTrashMove.flow } returns flowOf(true)
             },
             operationsManager = mockk(relaxed = true),
             appInstallLauncher = mockk(relaxed = true),

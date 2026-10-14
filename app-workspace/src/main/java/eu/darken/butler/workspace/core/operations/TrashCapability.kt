@@ -22,3 +22,18 @@ fun partitionByTrashSupport(targets: Set<APath<*>>): TrashPartition {
         untrashable = untrashable.toSet(),
     )
 }
+
+/**
+ * Whether a delete can go ahead without the confirmation dialog: only a move into the trash, which
+ * the user can undo, and only when they turned the confirmation off.
+ */
+fun skipsDeleteConfirmation(
+    targets: Set<APath<*>>,
+    permanentRequested: Boolean,
+    trashEnabled: Boolean,
+    confirmTrashMove: Boolean,
+): Boolean = !confirmTrashMove &&
+    trashEnabled &&
+    !permanentRequested &&
+    targets.isNotEmpty() &&
+    partitionByTrashSupport(targets).untrashable.isEmpty()

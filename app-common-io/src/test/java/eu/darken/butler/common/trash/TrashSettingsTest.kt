@@ -26,4 +26,9 @@ class TrashSettingsTest : BaseTest() {
         // so the normal delete action is recoverable instead of a permanent wipe.
         create().enabled.value() shouldBe true
     }
+
+    @Test
+    fun `moving to the trash asks for confirmation by default`() = runTest {
+        create().confirmTrashMove.value() shouldBe true
+    }
 }
