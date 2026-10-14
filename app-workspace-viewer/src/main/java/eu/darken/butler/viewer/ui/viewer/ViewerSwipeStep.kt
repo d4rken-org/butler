@@ -300,7 +300,9 @@ internal fun Modifier.viewerSwipeStepOffset(state: ViewerSwipeStepState): Modifi
  *   scroller and a list's vertical scroll see each move first and win it by consuming it.
  * - The claim needs only the horizontal distance to reach the touch slop, whatever the vertical one:
  *   the tab pager claims on that same rule, so anything stricter would hand steep diagonal drags to
- *   it. Claimed moves are consumed, which cancels the pager's drag for the rest of the gesture.
+ *   it. From the claim until the last finger lifts every change is consumed, even after a second
+ *   finger abandons the drag: a move reaching the pager unconsumed lets it take the gesture over
+ *   (pinned by `ViewerSwipeStepTest`).
  *
  * On a zoomed picture, a drag telephoto refuses because it is at its pan edge is still claimed, and
  * swallowed: nothing moves and nothing steps. Telephoto gives up on a gesture whose move was consumed
@@ -323,28 +325,43 @@ private suspend fun PointerInputScope.detectSwipeStep(state: ViewerSwipeStepStat
         try {
             while (true) {
                 val event = awaitPointerEvent(PointerEventPass.Main)
-                val change = event.changes.firstOrNull { it.id == down.id } ?: return@awaitEachGesture
-                // Before the claim a second finger makes a pinch, which is the zoom's; after it, the
-                // drag is abandoned and the content springs back.
-                if (event.changes.any { it.id != down.id && it.pressed }) return@awaitEachGesture
-                // The down itself, now on its Main pass.
-                if (change.changedToDownIgnoreConsumed()) continue
-                velocity.addPointerInputChange(change)
-                val dx = change.position.x - down.position.x
+                val change = event.changes.firstOrNull { it.id == down.id }
+                val secondPointer = event.changes.any { it.id != down.id && it.pressed }
                 if (!claimed) {
+                    // A second finger before the claim makes a pinch, which is the zoom's.
+                    if (change == null || secondPointer) return@awaitEachGesture
+                    // The down itself, now on its Main pass.
+                    if (change.changedToDownIgnoreConsumed()) continue
                     if (!change.pressed || change.isConsumed) return@awaitEachGesture
+                    velocity.addPointerInputChange(change)
+                    val dx = change.position.x - down.position.x
                     if (abs(dx) < slop) continue
                     claimed = true
                     travelOffset = -sign(dx) * slop
                     drag = state.claim()
+                } else if (change != null) {
+                    velocity.addPointerInputChange(change)
                 }
-                if (!change.pressed) {
-                    val velocityX = velocity.calculateVelocity().x.takeIf { it.isFinite() } ?: 0f
-                    drag?.let { state.release(it, velocityX, size.width, flingVelocityPx) }
+                event.changes.forEach { it.consume() }
+
+                val active = drag
+                // A second finger after the claim abandons the drag, and the content springs back.
+                if (active != null && (change == null || secondPointer)) {
+                    state.cancel(active)
+                    drag = null
+                }
+                if (event.changes.none { it.pressed }) {
+                    val released = drag
+                    if (released != null) {
+                        val velocityX = velocity.calculateVelocity().x.takeIf { it.isFinite() } ?: 0f
+                        state.release(released, velocityX, size.width, flingVelocityPx)
+                    }
                     return@awaitEachGesture
                 }
-                change.consume()
-                drag?.let { state.dragTo(it, travelOffset + dx) }
+                val dragging = drag
+                if (dragging != null && change != null) {
+                    state.dragTo(dragging, travelOffset + change.position.x - down.position.x)
+                }
             }
         } finally {
             drag?.let { state.cancel(it) }
