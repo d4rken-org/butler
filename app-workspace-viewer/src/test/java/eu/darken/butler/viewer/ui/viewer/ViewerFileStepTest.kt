@@ -1,6 +1,7 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
@@ -72,12 +73,14 @@ class ViewerFileStepTest : BaseTest() {
     private lateinit var origin: MutableStateFlow<Workspace<*>?>
     private lateinit var remoteState: MutableStateFlow<WorkspaceRemote.State>
     private lateinit var workspaces: MutableStateFlow<ViewerWorkspace>
+    private lateinit var swipeSetting: MutableStateFlow<Boolean>
 
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         creates.clear()
         createGate = null
+        swipeSetting = MutableStateFlow(true)
         listing = MutableStateFlow(listOf(a, b, c))
         origin = MutableStateFlow(makeOrigin())
         remoteState = MutableStateFlow(
@@ -183,6 +186,9 @@ class ViewerFileStepTest : BaseTest() {
             errorIncidentStore = incidentStore,
             viewerSettings = mockk<ViewerSettings>().apply {
                 every { showNextAfterDelete } returns mockDataStoreValue(true)
+                every { swipeBetweenFiles } returns mockk<DataStoreValue<Boolean>>().apply {
+                    every { flow } returns swipeSetting
+                }
             },
             chromeFactory = mockk<WorkspacePageChrome.Factory>().apply {
                 every { create(any(), any()) } returns mockk<WorkspacePageChrome>().apply {
@@ -390,5 +396,24 @@ class ViewerFileStepTest : BaseTest() {
 
         vm.readyState.neighbours shouldBe null
         vm.steps shouldBe emptyList()
+    }
+
+    @Test
+    fun `the swipe gate follows the setting`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        vm.readyState.swipeToStep shouldBe true
+
+        swipeSetting.value = false
+        vm.readyState.swipeToStep shouldBe false
+        // Only the gesture goes: the bar keeps its arrows.
+        vm.steps shouldBe listOf(
+            ViewerActionBarItem.PreviousFile(isEnabled = true),
+            ViewerActionBarItem.NextFile(isEnabled = true),
+        )
+
+        swipeSetting.value = true
+        vm.readyState.swipeToStep shouldBe true
     }
 }
