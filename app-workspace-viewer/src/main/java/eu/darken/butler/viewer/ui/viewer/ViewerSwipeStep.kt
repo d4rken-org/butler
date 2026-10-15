@@ -1,8 +1,11 @@
 package eu.darken.butler.viewer.ui.viewer
 
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.absoluteOffset
@@ -37,7 +40,6 @@ import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
 import eu.darken.butler.workspace.ui.insets.backGestureStripWidths
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -60,18 +62,23 @@ private val COMMIT_FLING_VELOCITY = 400.dp
 /** How much of the finger's travel the content follows toward a side with no file to step to. */
 private const val RUBBER_BAND_FACTOR = 0.2f
 
+/** How long a committed swipe takes to move the content out before it steps. */
+private const val SLIDE_OUT_MILLIS = 180
+
 /** How long a committed step may take to show its file before the content returns regardless. */
 internal val SWIPE_STEP_ARRIVAL_TIMEOUT = 2.seconds
 
 private val swipeStepMotion = spring<Float>(stiffness = Spring.StiffnessMediumLow)
 
+private val slideOutMotion = tween<Float>(durationMillis = SLIDE_OUT_MILLIS, easing = FastOutLinearInEasing)
+
 /**
  * Where the viewer's content sits while a swipe steps through the listing, and the step itself.
  *
- * A step is dispatched once, from the release, and then followed by identity: the content leaves,
- * stays out until the file it stepped to is on display and past [ViewerContent.Loading], then comes
- * in from the other side. Any other file turning up instead, or [SWIPE_STEP_ARRIVAL_TIMEOUT]
- * passing, brings the content back to rest, and nothing that arrives after that animates again.
+ * A committed swipe slides the content out, then dispatches its step once, and is followed by
+ * identity: the file it stepped to lands in place, loading or not. Another file turning up first, or
+ * [SWIPE_STEP_ARRIVAL_TIMEOUT] passing, returns the content to rest, and nothing that arrives after
+ * that moves it again.
  */
 @Stable
 internal class ViewerSwipeStepState(private val scope: CoroutineScope) {
@@ -80,7 +87,6 @@ internal class ViewerSwipeStepState(private val scope: CoroutineScope) {
     internal data class Inputs(
         /** Null for streamed content, which has no listing to step through. */
         val source: APath<*>?,
-        val isLoading: Boolean,
         /** What is on screen; a drag is dropped when this changes under the finger. */
         val surface: Any?,
         val isZoomed: Boolean,
@@ -183,58 +189,45 @@ internal class ViewerSwipeStepState(private val scope: CoroutineScope) {
     private fun step(origin: APath<*>, next: Boolean, target: APath<*>, exitTo: Float, velocityX: Float) {
         phase = Phase.STEPPING
         motion = scope.launch {
+            // Another file landing before the content is out, e.g. from an arrow key, calls the step off.
+            val slidOut = coroutineScope {
+                val exit = launch { animateOffset(to = exitTo, velocityX = velocityX, spec = slideOutMotion) }
+                val displaced = launch { snapshotFlow { inputs?.source }.first { it != origin } }
+                select<Boolean> {
+                    exit.onJoin { true }
+                    displaced.onJoin { false }
+                }.also {
+                    exit.cancel()
+                    displaced.cancel()
+                }
+            }
             val now = inputs
             val action = now?.stepAction(next)
-            if (now == null || now.source != origin || now.neighbour(next) != target || action == null) {
-                animateOffset(to = 0f, velocityX = velocityX)
+            if (!slidOut || now == null || now.source != origin || now.neighbour(next) != target || action == null) {
+                animateOffset(to = 0f, velocityX = 0f)
                 phase = Phase.IDLE
                 return@launch
             }
             onAction(action)
-            val slidIn = coroutineScope {
-                val exit = launch { animateOffset(to = exitTo, velocityX = velocityX) }
-                val arrival = withTimeoutOrNull(SWIPE_STEP_ARRIVAL_TIMEOUT) {
-                    snapshotFlow { inputs?.arrivalOf(origin, target) ?: Arrival.PENDING }
-                        .first { it != Arrival.PENDING }
-                } ?: Arrival.LOST
-                if (arrival != Arrival.ARRIVED) {
-                    exit.cancel()
-                    return@coroutineScope false
-                }
-                val entry = launch {
-                    exit.join()
-                    offsetX = -exitTo
-                    animateOffset(to = 0f, velocityX = 0f)
-                }
-                // Another file landing before the content is back at rest ends the transition too.
-                val replaced = async { snapshotFlow { inputs?.source }.first { it != target } }
-                select<Boolean> {
-                    entry.onJoin { true }
-                    replaced.onAwait { false }
-                }.also {
-                    exit.cancel()
-                    entry.cancel()
-                    replaced.cancel()
-                }
+            val landed = withTimeoutOrNull(SWIPE_STEP_ARRIVAL_TIMEOUT) {
+                snapshotFlow { inputs?.source }.first { it != origin }
             }
-            if (!slidIn) animateOffset(to = 0f, velocityX = 0f)
+            if (landed == target) offsetX = 0f else animateOffset(to = 0f, velocityX = 0f)
             phase = Phase.IDLE
         }
     }
 
-    private suspend fun animateOffset(to: Float, velocityX: Float) {
+    private suspend fun animateOffset(to: Float, velocityX: Float, spec: AnimationSpec<Float> = swipeStepMotion) {
         animate(
             initialValue = offsetX,
             targetValue = to,
             initialVelocity = velocityX,
-            animationSpec = swipeStepMotion,
+            animationSpec = spec,
         ) { value, _ -> offsetX = value }
     }
 }
 
 private enum class Phase { IDLE, DRAGGING, SETTLING, STEPPING }
-
-private enum class Arrival { PENDING, ARRIVED, LOST }
 
 /** Like [androidx.compose.foundation.pager.HorizontalPager]: the start side holds the previous file. */
 private fun ViewerSwipeStepState.Inputs.isNext(offset: Float): Boolean =
@@ -251,12 +244,6 @@ private fun ViewerSwipeStepState.Inputs.canStep(next: Boolean): Boolean =
     neighbour(next) != null && stepAction(next) != null
 
 private fun ViewerSwipeStepState.Inputs.resists(offset: Float): Boolean = offset != 0f && !canStep(isNext(offset))
-
-private fun ViewerSwipeStepState.Inputs.arrivalOf(origin: APath<*>, target: APath<*>): Arrival = when {
-    source == target && !isLoading -> Arrival.ARRIVED
-    source == origin || source == target -> Arrival.PENDING
-    else -> Arrival.LOST
-}
 
 /**
  * Telephoto keeps its transformation after the zoomable surface leaves, so a zoom only counts while
@@ -281,7 +268,6 @@ internal fun rememberViewerSwipeStep(
     val strips = edgeStripsPx ?: LocalPaneEdges.current.backGestureStripWidths()
     val inputs = ViewerSwipeStepState.Inputs(
         source = (state.source as? ViewerSource.Stored)?.path,
-        isLoading = state.content is ViewerContent.Loading,
         surface = state.source to when (val content = state.content) {
             is ViewerContent.Image -> state.imageSource
             is ViewerContent.PdfPreview -> state.pdfPage?.bitmap

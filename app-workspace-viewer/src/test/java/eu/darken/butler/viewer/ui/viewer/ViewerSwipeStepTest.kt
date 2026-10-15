@@ -600,28 +600,25 @@ class ViewerSwipeStepTest : ComposeTest() {
     }
 
     @Test
-    fun `a step that lands slides its file in once loaded and dispatches once`() {
+    fun `a step lands its file in place without sliding it in`() {
         setPage()
         composeTestRule.mainClock.autoAdvance = false
 
         swipeBy(dx = -200f)
-        composeTestRule.mainClock.advanceTimeBy(600L)
+        composeTestRule.mainClock.advanceTimeBy(400L)
         actions shouldBe listOf(next)
         contentOffsetX shouldBeLessThan -390f
 
         // The tab is replaced under the same page; the new viewer starts out loading.
         pageState.value = ready(current = c, content = ViewerContent.Loading, previous = b, next = null)
-        composeTestRule.mainClock.advanceTimeBy(400L)
-        contentOffsetX shouldBeLessThan -390f
+        repeat(2) { composeTestRule.mainClock.advanceTimeByFrame() }
+        contentOffsetX shouldBe 0f
 
         pageState.value = ready(current = c, previous = b, next = null)
-        composeTestRule.mainClock.advanceTimeBy(100L)
-        // Entering from the side opposite the one it left by.
-        contentOffsetX shouldBeGreaterThan 0f
-        contentOffsetX shouldBeLessThan 400f
-
-        composeTestRule.mainClock.advanceTimeBy(1_500L)
-        contentOffsetX shouldBe 0f
+        repeat(10) {
+            composeTestRule.mainClock.advanceTimeByFrame()
+            contentOffsetX shouldBe 0f
+        }
         actions shouldBe listOf(next)
     }
 
@@ -657,11 +654,6 @@ class ViewerSwipeStepTest : ComposeTest() {
 
         swipeBy(dx = -200f)
         repeat(3) { composeTestRule.mainClock.advanceTimeByFrame() }
-        actions shouldBe listOf(next)
-
-        // The step's own file arrives while the content is still leaving.
-        pageState.value = ready(current = c, previous = b, next = null)
-        repeat(3) { composeTestRule.mainClock.advanceTimeByFrame() }
         val leaving = contentOffsetX
         // The premise: the slide-out has started and has not finished.
         leaving shouldBeLessThan rest - 2f
@@ -675,46 +667,34 @@ class ViewerSwipeStepTest : ComposeTest() {
             offsets.add(contentOffsetX)
         }
 
+        actions shouldBe emptyList()
         // Returning from where it is never crosses to the side opposite the exit.
         (offsets.maxOrNull() ?: rest) shouldBeLessThan rest + 2f
         contentOffsetX shouldBe rest
-        actions shouldBe listOf(next)
     }
 
     @Test
-    fun `another file landing during the slide-in returns the content to rest`() {
+    fun `another file landing after the step lands leaves the content at rest`() {
         setPage()
         composeTestRule.mainClock.autoAdvance = false
-        val rest = contentOffsetX
 
         swipeBy(dx = -200f)
-        repeat(3) { composeTestRule.mainClock.advanceTimeByFrame() }
-        actions shouldBe listOf(next)
-
-        pageState.value = ready(current = c, previous = b, next = null)
-        // Until the slide-out ends and the content reappears on the opposite side.
         var frames = 0
-        while (contentOffsetX <= rest + 2f && frames < 120) {
+        while (actions.isEmpty() && frames < 60) {
             composeTestRule.mainClock.advanceTimeByFrame()
             frames++
         }
-        repeat(3) { composeTestRule.mainClock.advanceTimeByFrame() }
-        val entering = contentOffsetX
-        // The premise: the slide-in has started and has not finished.
-        entering shouldBeGreaterThan rest + 2f
-        entering shouldBeLessThan rest + 390f
+        actions shouldBe listOf(next)
+
+        pageState.value = ready(current = c, content = ViewerContent.Loading, previous = b, next = null)
+        repeat(2) { composeTestRule.mainClock.advanceTimeByFrame() }
+        contentOffsetX shouldBe 0f
 
         pageState.value = ready(current = a, previous = null, next = b)
-        val offsets = mutableListOf<Float>()
-        repeat(190) {
+        repeat(20) {
             composeTestRule.mainClock.advanceTimeByFrame()
-            offsets.add(contentOffsetX)
+            contentOffsetX shouldBe 0f
         }
-
-        // Neither thrown back out to the right nor across to the left of rest.
-        (offsets.maxOrNull() ?: rest) shouldBeLessThan entering + 2f
-        (offsets.minOrNull() ?: rest) shouldBeGreaterThan rest - 2f
-        contentOffsetX shouldBe rest
         actions shouldBe listOf(next)
     }
 
