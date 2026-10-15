@@ -372,8 +372,8 @@
     <string name="tour_swipe_switch_body">Povuci lijevo ili desno bilo gdje na stranici da prijeđeš na drugu otvorenu karticu.</string>
     <string name="tour_swipe_create_title">Povuci za novu karticu</string>
     <string name="tour_swipe_create_body">Povuci dalje od posljednje kartice i Butler će ti ponuditi novu.</string>
-    <string name="tour_swipe_panes_title">Više kartica odjednom</string>
-    <string name="tour_swipe_panes_body">Na većem zaslonu ili u vodoravnom položaju Butler prikazuje više kartica jednu uz drugu. Postavke rasporeda u odjeljku Kartice određuju kada se to događa.</string>
+    <string name="tour_swipe_panes_title">Odaberi raspored</string>
+    <string name="tour_swipe_panes_body">Želiš drukčiji raspored? Otvori izbornik Butler i odaberi Raspored. Dostupni rasporedi ovise o veličini prozora, a neki zahtijevaju Pro.</string>
     <string name="tour_panes_rail_title">Sve tvoje kartice</string>
     <string name="tour_panes_rail_body">Ovdje su sve otvorene kartice. Dodirni jednu i odaberi okno u koje će se smjestiti. Pritisni i zadrži karticu, a zatim je povuci da promijeniš njihov redoslijed.</string>
     <string name="tour_panes_divider_title">Promijeni veličinu okana</string>

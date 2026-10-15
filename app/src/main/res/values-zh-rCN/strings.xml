@@ -357,8 +357,8 @@
     <string name="tour_swipe_switch_body">在页面任意位置向左或向右滑动，即可在已打开的标签页之间切换。</string>
     <string name="tour_swipe_create_title">滑动新建标签页</string>
     <string name="tour_swipe_create_body">滑过最后一个标签页，Butler 会为您提供一个新标签页。</string>
-    <string name="tour_swipe_panes_title">同时显示多个标签页</string>
-    <string name="tour_swipe_panes_body">在更大的屏幕上，或在横屏模式下，Butler 会并排显示多个标签页。“标签页”设置下的布局设置决定何时启用此功能。</string>
+    <string name="tour_swipe_panes_title">选择布局</string>
+    <string name="tour_swipe_panes_body">想换一种排列方式？打开 Butler 菜单并选择“布局”。可用的布局取决于窗口大小，部分布局需要 Pro。</string>
     <string name="tour_panes_rail_title">您的所有标签页</string>
     <string name="tour_panes_rail_body">所有打开的标签页都在这里。点按一个标签页并选择它应处于的窗格。按住某个标签页并拖动，可更改它们的顺序。</string>
     <string name="tour_panes_divider_title">调整窗格大小</string>

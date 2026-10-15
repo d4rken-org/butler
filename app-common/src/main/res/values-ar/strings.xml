@@ -392,7 +392,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">استخدم عدة أجزاء لمقارنة الملفات جنبًا إلى جنب.</string>
     <string name="common_tip_different_folders">افتح مجلدات مختلفة في كل جزء لإدارة الملفات بسهولة.</string>
-    <string name="common_tip_switch_layouts">بدّل تخطيطات الأجزاء من خلال Layout في قائمة Butler.</string>
+    <string name="common_tip_switch_layouts">بدّل تخطيطات الأجزاء من خلال التخطيط في قائمة Butler.</string>
     <string name="common_tip_elevated_access">فعّل Root أو وصول ADB في الإعداد لإجراء عمليات ملفات متقدمة.</string>
     <string name="common_tip_breadcrumb_home">اضغط مطولًا على عنصر مسار التنقل في المستكشف لتعيينه كمجلدك الرئيسي.</string>
 </resources>

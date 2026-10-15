@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Bir araç seçin</string>
     <string name="tour_templates_picker_body">Bu sekme seçicidir, bu sekmesinin ne olacağını seçin. Birini seçmek bu sekmesini o araca dönüştürür.</string>
     <string name="tour_templates_butler_button_title">Sekmeleriniz burada yaşıyor</string>
-    <string name="tour_templates_butler_button_body">Sekme menüsü için Butler düğmesine dokunun: Yeni sekme oluşturun, geçerli olanı kapatın veya tam sekme yöneticisini açın. Doğrudan sekme yöneticisine gitmek için uzun basın.</string>
+    <string name="tour_templates_butler_button_body">Sekme oluşturmak veya kapatmak, sekme yöneticisini açmak ya da sekmelerin yerleşimini değiştirmek üzere Düzen\'i seçmek için Butler düğmesine dokunun. Sekme yöneticisi için uzun basın.</string>
 </resources>

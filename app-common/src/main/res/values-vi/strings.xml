@@ -311,7 +311,7 @@
     <!-- Mẹo từ Butler -->
     <string name="common_tip_multiple_panes">Dùng nhiều khung để so sánh tệp cạnh nhau.</string>
     <string name="common_tip_different_folders">Mở các thư mục khác nhau ở mỗi khung để quản lý tệp dễ dàng hơn.</string>
-    <string name="common_tip_switch_layouts">Chuyển đổi bố cục khung từ Layout trong trình đơn Butler.</string>
+    <string name="common_tip_switch_layouts">Chuyển đổi bố cục khung từ Bố cục trong trình đơn Butler.</string>
     <string name="common_tip_elevated_access">Bật truy cập Root hoặc ADB trong Thiết lập để thực hiện các thao tác tệp nâng cao.</string>
     <string name="common_tip_breadcrumb_home">Nhấn giữ vào một mục trên thanh đường dẫn của Trình duyệt tệp để đặt làm thư mục chính.</string>
 </resources>

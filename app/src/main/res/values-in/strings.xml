@@ -358,8 +358,8 @@
     <string name="tour_swipe_switch_body">Geser ke kiri atau kanan di mana pun pada halaman untuk berpindah antar tab yang terbuka.</string>
     <string name="tour_swipe_create_title">Geser untuk memulai tab</string>
     <string name="tour_swipe_create_body">Geser melewati tab terakhir Anda dan Butler menawarkan tab baru.</string>
-    <string name="tour_swipe_panes_title">Lebih dari satu tab sekaligus</string>
-    <string name="tour_swipe_panes_body">Pada layar yang lebih besar, atau dalam orientasi lanskap, Butler menampilkan beberapa tab berdampingan. Pengaturan tata letak di bawah Tab menentukan kapan ini terjadi.</string>
+    <string name="tour_swipe_panes_title">Pilih tata letak</string>
+    <string name="tour_swipe_panes_body">Ingin susunan lain? Buka menu Butler dan pilih Tata letak. Tata letak yang tersedia bergantung pada ukuran jendela; beberapa memerlukan Pro.</string>
     <string name="tour_panes_rail_title">Semua tab Anda</string>
     <string name="tour_panes_rail_body">Setiap tab terbuka ada di sini. Ketuk satu dan pilih panel tujuannya. Tekan dan tahan sebuah tab, lalu seret, untuk mengubah urutannya.</string>
     <string name="tour_panes_divider_title">Ubah ukuran panel</string>

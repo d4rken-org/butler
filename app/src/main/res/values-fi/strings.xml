@@ -367,8 +367,8 @@
     <string name="tour_swipe_switch_body">Pyyhkäise vasemmalle tai oikealle missä tahansa sivulla siirtyäksesi avoimien välilehtiesi välillä.</string>
     <string name="tour_swipe_create_title">Aloita välilehti pyyhkäisemällä</string>
     <string name="tour_swipe_create_body">Pyyhkäise viimeisen välilehtesi ohi, niin Butler tarjoaa sinulle uuden.</string>
-    <string name="tour_swipe_panes_title">Useampi välilehti kerrallaan</string>
-    <string name="tour_swipe_panes_body">Suuremmalla näytöllä tai vaaka-asennossa Butler näyttää useita välilehtiä rinnakkain. Välilehtien asetteluasetukset määräävät, milloin näin tapahtuu.</string>
+    <string name="tour_swipe_panes_title">Valitse asettelu</string>
+    <string name="tour_swipe_panes_body">Haluatko toisenlaisen järjestelyn? Avaa Butler-valikko ja valitse Asettelu. Käytettävissä olevat asettelut riippuvat ikkunan koosta, ja osa vaatii Pro-version.</string>
     <string name="tour_panes_rail_title">Kaikki välilehtesi</string>
     <string name="tour_panes_rail_body">Kaikki avoimet välilehdet ovat tässä. Napauta välilehteä ja valitse ruutu, johon se sijoitetaan. Muuta järjestystä painamalla välilehteä pitkään ja vetämällä sitä.</string>
     <string name="tour_panes_divider_title">Muuta ruutujen kokoa</string>

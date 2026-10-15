@@ -367,8 +367,8 @@
     <string name="tour_swipe_switch_body">Плъзни наляво или надясно където и да е на страницата, за да преминаваш между отворените раздели.</string>
     <string name="tour_swipe_create_title">Плъзни, за да започнеш раздел</string>
     <string name="tour_swipe_create_body">Плъзни отвъд последния си раздел и Butler ще ти предложи нов.</string>
-    <string name="tour_swipe_panes_title">Няколко раздела едновременно</string>
-    <string name="tour_swipe_panes_body">На по-голям екран или в хоризонтална ориентация Butler показва няколко раздела един до друг. Настройките за подредба в „Раздели“ определят кога става това.</string>
+    <string name="tour_swipe_panes_title">Избери подредба</string>
+    <string name="tour_swipe_panes_body">Искаш друга подредба? Отвори менюто на Butler и избери „Подредба“. Наличните подредби зависят от размера на прозореца, а някои изискват Pro.</string>
     <string name="tour_panes_rail_title">Всичките ти раздели</string>
     <string name="tour_panes_rail_body">Всеки отворен раздел е тук. Докосни някой и избери в кой панел да отиде. Натисни и задръж раздел, после го плъзни, за да промениш подредбата.</string>
     <string name="tour_panes_divider_title">Промени размера на панелите</string>

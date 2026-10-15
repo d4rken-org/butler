@@ -367,8 +367,8 @@
     <string name="tour_swipe_switch_body">کھلے ٹیب کے درمیان جانے کے لیے صفحے پر کہیں بھی دائیں یا بائیں سوائپ کریں۔</string>
     <string name="tour_swipe_create_title">ٹیب شروع کرنے کے لیے سوائپ کریں</string>
     <string name="tour_swipe_create_body">آخری ٹیب سے آگے سوائپ کریں تو Butler آپ کو نیا ٹیب پیش کرے گا۔</string>
-    <string name="tour_swipe_panes_title">ایک وقت میں ایک سے زیادہ ٹیب</string>
-    <string name="tour_swipe_panes_body">بڑی اسکرین یا افقی رخ میں Butler کئی ٹیب ساتھ ساتھ دکھاتا ہے۔ ٹیب کی لے آؤٹ ترتیبات طے کرتی ہیں کہ ایسا کب ہو۔</string>
+    <string name="tour_swipe_panes_title">لے آؤٹ چنیں</string>
+    <string name="tour_swipe_panes_body">کوئی اور ترتیب چاہیے؟ Butler مینو کھولیں اور لے آؤٹ چنیں۔ دستیاب لے آؤٹ ونڈو کے سائز پر منحصر ہیں؛ کچھ کے لیے Pro درکار ہے۔</string>
     <string name="tour_panes_rail_title">آپ کے تمام ٹیب</string>
     <string name="tour_panes_rail_body">ہر کھلا ٹیب یہاں ہوتا ہے۔ کسی ٹیب پر ٹیپ کریں اور چنیں کہ وہ کس پین میں جائے۔ ترتیب بدلنے کے لیے ٹیب کو دبا کر رکھیں، پھر کھینچیں۔</string>
     <string name="tour_panes_divider_title">پین کا سائز بدلیں</string>

@@ -367,8 +367,8 @@
     <string name="tour_swipe_switch_body">Sveip til venstre eller høyre hvor som helst på siden for å bytte mellom de åpne fanene dine.</string>
     <string name="tour_swipe_create_title">Sveip for å starte en fane</string>
     <string name="tour_swipe_create_body">Sveip forbi den siste fanen, så tilbyr Butler deg en ny.</string>
-    <string name="tour_swipe_panes_title">Mer enn én fane om gangen</string>
-    <string name="tour_swipe_panes_body">På en større skjerm eller i liggende retning viser Butler flere faner side om side. Innstillingene for ruteoppsett under Faner bestemmer når det skjer.</string>
+    <string name="tour_swipe_panes_title">Velg ruteoppsett</string>
+    <string name="tour_swipe_panes_body">Vil du ha et annet oppsett? Åpne Butler-menyen og velg Ruteoppsett. Hvilke oppsett som er tilgjengelige, avhenger av vindusstørrelsen, og noen krever Pro.</string>
     <string name="tour_panes_rail_title">Alle fanene dine</string>
     <string name="tour_panes_rail_body">Alle åpne faner ligger her. Trykk på en og velg hvilken rute den skal vises i. Trykk og hold på en fane, og dra den for å endre rekkefølgen.</string>
     <string name="tour_panes_divider_title">Endre størrelsen på rutene</string>

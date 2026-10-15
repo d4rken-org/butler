@@ -345,8 +345,8 @@
     <string name="tour_swipe_switch_body">Vuốt sang trái hoặc phải ở bất kỳ đâu trên trang để chuyển giữa các thẻ đang mở.</string>
     <string name="tour_swipe_create_title">Vuốt để tạo thẻ mới</string>
     <string name="tour_swipe_create_body">Vuốt qua thẻ cuối cùng và Butler sẽ đề nghị tạo cho bạn một thẻ mới.</string>
-    <string name="tour_swipe_panes_title">Nhiều hơn một thẻ cùng lúc</string>
-    <string name="tour_swipe_panes_body">Trên màn hình lớn hơn, hoặc ở chế độ ngang, Butler hiển thị nhiều thẻ cạnh nhau. Cài đặt bố cục trong mục Thẻ quyết định khi nào điều này xảy ra.</string>
+    <string name="tour_swipe_panes_title">Chọn bố cục</string>
+    <string name="tour_swipe_panes_body">Muốn cách sắp xếp khác? Mở menu Butler và chọn Bố cục. Các bố cục có sẵn tùy thuộc vào kích thước cửa sổ; một số yêu cầu Pro.</string>
     <string name="tour_panes_rail_title">Tất cả thẻ của bạn</string>
     <string name="tour_panes_rail_body">Mọi thẻ đang mở đều nằm ở đây. Nhấn vào một thẻ và chọn khung mà nó sẽ chuyển đến. Nhấn giữ một thẻ rồi kéo để thay đổi thứ tự.</string>
     <string name="tour_panes_divider_title">Thay đổi kích thước khung</string>

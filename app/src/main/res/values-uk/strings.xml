@@ -360,8 +360,8 @@
     <string name="tour_swipe_switch_body">Проведіть пальцем ліворуч або праворуч у будь-якому місці сторінки, щоб перейти між відкритими вкладками.</string>
     <string name="tour_swipe_create_title">Гортання, щоб почати вкладку</string>
     <string name="tour_swipe_create_body">Проведіть пальцем за межі останньої вкладки, і Butler запропонує нову.</string>
-    <string name="tour_swipe_panes_title">Кілька вкладок одночасно</string>
-    <string name="tour_swipe_panes_body">На великому екрані або в альбомній орієнтації Butler показує кілька вкладок поруч. Налаштування розташування в розділі «Вкладки» визначають, коли це відбувається.</string>
+    <string name="tour_swipe_panes_title">Виберіть розташування</string>
+    <string name="tour_swipe_panes_body">Потрібне інше розташування? Відкрийте меню Butler і виберіть «Розташування». Доступні варіанти залежать від розміру вікна, деякі потребують Pro.</string>
     <string name="tour_panes_rail_title">Усі ваші вкладки</string>
     <string name="tour_panes_rail_body">Тут містяться всі відкриті вкладки. Торкніться однієї та виберіть панель, куди її помістити. Натисніть і утримуйте вкладку, а тоді перетягніть її, щоб змінити порядок.</string>
     <string name="tour_panes_divider_title">Змініть розмір панелей</string>

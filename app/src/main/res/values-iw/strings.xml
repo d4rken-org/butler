@@ -334,8 +334,8 @@
     <string name="tour_swipe_switch_body">החלקה שמאלה או ימינה בכל מקום בעמוד מאפשרת לעבור בין הלשוניות הפתוחות.</string>
     <string name="tour_swipe_create_title">החלקה לפתיחת לשונית</string>
     <string name="tour_swipe_create_body">החלקה מעבר ללשונית האחרונה ו־Butler יציע לשונית חדשה.</string>
-    <string name="tour_swipe_panes_title">יותר מלשונית אחת בכל פעם</string>
-    <string name="tour_swipe_panes_body">במסך גדול יותר, או במצב אופקי, Butler מציג כמה לשוניות זו לצד זו. הגדרות הפריסה תחת לשוניות קובעות מתי זה קורה.</string>
+    <string name="tour_swipe_panes_title">בחירת פריסה</string>
+    <string name="tour_swipe_panes_body">רוצה סידור אחר? יש לפתוח את תפריט Butler ולבחור פריסה. הפריסות הזמינות תלויות בגודל החלון, וחלקן דורשות Pro.</string>
     <string name="tour_panes_rail_title">כל הלשוניות שלך</string>
     <string name="tour_panes_rail_body">כל לשונית פתוחה נמצאת כאן. לחיצה עליה מאפשרת לבחור באיזו חלונית תוצג. לשינוי הסדר, יש ללחוץ לחיצה ארוכה על לשונית ואז לגרור אותה.</string>
     <string name="tour_panes_divider_title">שינוי גודל החלוניות</string>

@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Избери инструмент</string>
     <string name="tour_templates_picker_body">Тук избираш типа на раздела — избери какъв да бъде този раздел. Изборът на инструмент превръща този раздел в него.</string>
     <string name="tour_templates_butler_button_title">Твоите раздели са тук</string>
-    <string name="tour_templates_butler_button_body">Докосни бутона Butler за менюто на разделите: създай нов раздел, затвори текущия или отвори пълното управление на разделите. Натисни и задръж бутона, за да отидеш направо в управлението на разделите.</string>
+    <string name="tour_templates_butler_button_body">Докосни бутона Butler, за да създаваш или затваряш раздели, да отвориш управлението на разделите или да избереш „Подредба“, за да промениш как са подредени разделите. Натисни и задръж за управлението на разделите.</string>
 </resources>

@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Pumili ng kasangkapan</string>
     <string name="tour_templates_picker_body">Ito ang tagapili ng tab. Piliin kung ano ang magiging tab na ito. Kapag pumili ng isa, magiging kasangkapang iyon ang tab na ito.</string>
     <string name="tour_templates_butler_button_title">Narito ang iyong mga tab</string>
-    <string name="tour_templates_butler_button_body">I-tap ang pindutan ng Butler para sa menu ng mga tab: Gumawa ng bagong tab, isara ang kasalukuyan, o buksan ang buong tagapamahala ng mga tab. Pindutin ito nang matagal para direktang pumunta sa tagapamahala ng mga tab.</string>
+    <string name="tour_templates_butler_button_body">I-tap ang button ng Butler para gumawa o magsara ng mga tab, buksan ang tagapamahala ng mga tab, o piliin ang Layout para baguhin ang ayos ng mga tab. Pindutin nang matagal para sa tagapamahala ng mga tab.</string>
 </resources>

@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">একটি টুল বাছুন</string>
     <string name="tour_templates_picker_body">এটি ট্যাব বাছাইকারী, এই ট্যাব কী হবে তা বাছুন। একটি বাছলেই ট্যাব সেই টুলে পরিণত হয়।</string>
     <string name="tour_templates_butler_button_title">আপনার ট্যাব এখানে থাকে</string>
-    <string name="tour_templates_butler_button_body">ট্যাব মেনু পেতে Butler বোতামে ট্যাপ করুন: নতুন ট্যাব তৈরি করুন, বর্তমানটি বন্ধ করুন বা পূর্ণ ট্যাব ম্যানেজার খুলুন। সরাসরি ট্যাব ম্যানেজারে যেতে বোতামটি দীর্ঘক্ষণ চেপে ধরুন।</string>
+    <string name="tour_templates_butler_button_body">ট্যাব তৈরি বা বন্ধ করতে, ট্যাব ম্যানেজার খুলতে, বা ট্যাবগুলো কীভাবে সাজানো থাকবে তা বদলাতে বিন্যাস বাছতে Butler বোতামে ট্যাপ করুন। ট্যাব ম্যানেজারের জন্য দীর্ঘক্ষণ চেপে ধরুন।</string>
 </resources>

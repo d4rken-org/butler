@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Välj ett verktyg</string>
     <string name="tour_templates_picker_body">Det här är flikväljaren. Välj vad den här fliken ska vara. När du väljer ett verktyg blir fliken det verktyget.</string>
     <string name="tour_templates_butler_button_title">Dina flikar finns här</string>
-    <string name="tour_templates_butler_button_body">Tryck på Butler-knappen för att öppna flikmenyn: skapa en ny flik, stäng den aktuella eller öppna hela flikhanteraren. Håll knappen intryckt för att gå direkt till flikhanteraren.</string>
+    <string name="tour_templates_butler_button_body">Tryck på Butler-knappen för att skapa eller stänga flikar, öppna flikhanteraren eller välja Layout för att ändra hur flikarna är ordnade. Håll intryckt för flikhanteraren.</string>
 </resources>

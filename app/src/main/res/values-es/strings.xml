@@ -361,8 +361,8 @@
     <string name="tour_swipe_switch_body">Desliza hacia la izquierda o la derecha en cualquier parte de la página para moverte entre tus pestañas abiertas.</string>
     <string name="tour_swipe_create_title">Desliza para iniciar una pestaña</string>
     <string name="tour_swipe_create_body">Desliza más allá de tu última pestaña y Butler te ofrecerá una nueva.</string>
-    <string name="tour_swipe_panes_title">Más de una pestaña a la vez</string>
-    <string name="tour_swipe_panes_body">En una pantalla más grande, o en horizontal, Butler muestra varias pestañas una junto a otra. La configuración de diseño en Pestañas determina cuándo sucede esto.</string>
+    <string name="tour_swipe_panes_title">Elige tu diseño</string>
+    <string name="tour_swipe_panes_body">¿Quieres otra organización? Abre el menú de Butler y elige Diseño. Los diseños disponibles dependen del tamaño de la ventana; algunos requieren Pro.</string>
     <string name="tour_panes_rail_title">Todas tus pestañas</string>
     <string name="tour_panes_rail_body">Aquí se encuentran todas las pestañas abiertas. Toca una y elige el panel al que debe ir. Mantén pulsada una pestaña y arrástrala para cambiar su orden.</string>
     <string name="tour_panes_divider_title">Cambia el tamaño de los paneles</string>

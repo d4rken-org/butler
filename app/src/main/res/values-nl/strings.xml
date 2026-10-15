@@ -360,8 +360,8 @@
     <string name="tour_swipe_switch_body">Swipe ergens op de pagina naar links of rechts om tussen je open tabbladen te wisselen.</string>
     <string name="tour_swipe_create_title">Swipe om een tabblad te starten</string>
     <string name="tour_swipe_create_body">Swipe voorbij je laatste tabblad en Butler biedt je een nieuwe aan.</string>
-    <string name="tour_swipe_panes_title">Meer dan één tabblad tegelijk</string>
-    <string name="tour_swipe_panes_body">Op een groter scherm, of in liggende stand, toont Butler meerdere tabbladen naast elkaar. De indelingsinstellingen onder Tabbladen bepalen wanneer dat gebeurt.</string>
+    <string name="tour_swipe_panes_title">Kies je indeling</string>
+    <string name="tour_swipe_panes_body">Liever een andere indeling? Open het Butler-menu en kies Indeling. Welke indelingen beschikbaar zijn, hangt af van de venstergrootte; sommige vereisen Pro.</string>
     <string name="tour_panes_rail_title">Al je tabbladen</string>
     <string name="tour_panes_rail_body">Elk open tabblad staat hier. Tik op een tabblad en kies het deelvenster waar het naartoe moet. Houd een tabblad ingedrukt en sleep het om de volgorde te wijzigen.</string>
     <string name="tour_panes_divider_title">Pas de grootte van de deelvensters aan</string>

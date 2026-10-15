@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Vyberte nástroj</string>
     <string name="tour_templates_picker_body">Toto je výběr karty, zvolte, co by tato karta měla být. Výběr jedné změní tuto kartu na tento nástroj.</string>
     <string name="tour_templates_butler_button_title">Vaše karty se nacházejí zde</string>
-    <string name="tour_templates_butler_button_body">Klepněte na tlačítko Butler pro nabídku karty: Vytvořit novou kartu, zavřít aktuální kartu nebo otevřít správce karet. Dlouhým stisknutím přejít přímo na správce karet.</string>
+    <string name="tour_templates_butler_button_body">Klepnutím na tlačítko Butler můžete vytvářet nebo zavírat karty, otevřít správce karet nebo zvolit Rozložení a změnit uspořádání karet. Dlouhým stisknutím otevřete správce karet.</string>
 </resources>

@@ -327,7 +327,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Usa più riquadri per confrontare i file affiancati.</string>
     <string name="common_tip_different_folders">Apri cartelle diverse in ogni riquadro per gestire i file più facilmente.</string>
-    <string name="common_tip_switch_layouts">Cambia la disposizione dei riquadri da Layout nel menu di Butler.</string>
+    <string name="common_tip_switch_layouts">Cambia la disposizione dei riquadri da Disposizione nel menu di Butler.</string>
     <string name="common_tip_elevated_access">Attiva accesso root o ADB in Configurazione per operazioni su file avanzate.</string>
     <string name="common_tip_breadcrumb_home">Tieni premuto un segmento del percorso in Explorer per impostarlo come cartella principale.</string>
 </resources>

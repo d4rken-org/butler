@@ -358,8 +358,8 @@
     <string name="tour_swipe_switch_body">برای جابه‌جایی بین زبانه‌های باز، در هر نقطه از صفحه به چپ یا راست سوایپ کنید.</string>
     <string name="tour_swipe_create_title">برای شروع یک زبانه سوایپ کنید</string>
     <string name="tour_swipe_create_body">از آخرین زبانه خود عبور کنید و Butler یک زبانه جدید به شما پیشنهاد می‌دهد.</string>
-    <string name="tour_swipe_panes_title">بیش از یک زبانه در آنِ واحد</string>
-    <string name="tour_swipe_panes_body">در صفحه‌نمایش بزرگ‌تر یا در حالت افقی، Butler چند زبانه را کنار هم نمایش می‌دهد. تنظیمات چیدمان در بخش زبانه‌ها زمان این کار را تعیین می‌کند.</string>
+    <string name="tour_swipe_panes_title">چیدمان را انتخاب کنید</string>
+    <string name="tour_swipe_panes_body">چینش دیگری می‌خواهید؟ منوی Butler را باز کنید و «چیدمان» را انتخاب کنید. چیدمان‌های موجود به اندازه پنجره بستگی دارند و برخی به Pro نیاز دارند.</string>
     <string name="tour_panes_rail_title">همه زبانه‌های شما</string>
     <string name="tour_panes_rail_body">همه زبانه‌های باز اینجا قرار دارند. روی یکی ضربه بزنید و بخشی را که باید به آن برود انتخاب کنید. یک زبانه را لمس کرده و نگه دارید، سپس آن را بکشید تا ترتیبشان تغییر کند.</string>
     <string name="tour_panes_divider_title">اندازه بخش‌ها را تغییر دهید</string>

@@ -7,5 +7,5 @@
     <string name="tour_templates_picker_title">Alege un instrument</string>
     <string name="tour_templates_picker_body">Acesta este selectorul de file: alege ce vrei să fie această filă. Alegerea o transformă în instrumentul respectiv.</string>
     <string name="tour_templates_butler_button_title">Filele tale sunt aici</string>
-    <string name="tour_templates_butler_button_body">Atinge butonul Butler pentru meniul filelor: creează o filă nouă, închide-o pe cea curentă sau deschide managerul complet de file. Ține-l apăsat pentru a trece direct la managerul de file.</string>
+    <string name="tour_templates_butler_button_body">Atinge butonul Butler pentru a crea sau închide file, a deschide managerul de file sau a alege Aranjare și a schimba modul în care sunt aranjate filele. Ține apăsat pentru managerul de file.</string>
 </resources>

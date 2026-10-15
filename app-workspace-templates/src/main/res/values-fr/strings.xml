@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Choisir un outil</string>
     <string name="tour_templates_picker_body">C’est le sélecteur d’onglets. Choisissez à quoi doit servir cet onglet. Votre sélection transforme cet onglet en l’outil correspondant.</string>
     <string name="tour_templates_butler_button_title">Vos onglets sont ici</string>
-    <string name="tour_templates_butler_button_body">Appuyez sur le bouton Butler pour le menu des onglets : créer un nouvel onglet, fermer celui-ci ou ouvrir le gestionnaire d’onglets complet. Appuyez longuement pour accéder directement au gestionnaire d’onglets.</string>
+    <string name="tour_templates_butler_button_body">Appuyez sur le bouton Butler pour créer ou fermer des onglets, ouvrir le gestionnaire d’onglets ou choisir Disposition pour changer l’agencement des onglets. Appui long pour le gestionnaire d’onglets.</string>
 </resources>

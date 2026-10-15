@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Valitse työkalu</string>
     <string name="tour_templates_picker_body">Tämä on välilehden valitsin: valitse, millainen tästä välilehdestä tulee. Valinta muuttaa tämän välilehden valituksi työkaluksi.</string>
     <string name="tour_templates_butler_button_title">Välilehtesi löytyvät täältä</string>
-    <string name="tour_templates_butler_button_body">Napauta Butler-painiketta avataksesi välilehtivalikon: luo uusi välilehti, sulje nykyinen tai avaa välilehtien koko hallintanäkymä. Paina painiketta pitkään siirtyäksesi suoraan välilehtien hallintaan.</string>
+    <string name="tour_templates_butler_button_body">Napauta Butler-painiketta luodaksesi tai sulkeaksesi välilehtiä, avataksesi välilehtien hallinnan tai valitaksesi Asettelu, jolla muutat välilehtien järjestelyä. Paina pitkään avataksesi välilehtien hallinnan.</string>
 </resources>

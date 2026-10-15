@@ -380,8 +380,8 @@
     <string name="tour_swipe_switch_body">مرر يمينًا أو يسارًا في أي مكان على الصفحة للتنقل بين علامات التبويب المفتوحة.</string>
     <string name="tour_swipe_create_title">مرر لبدء علامة تبويب</string>
     <string name="tour_swipe_create_body">مرر متجاوزًا آخر علامة تبويب، ويعرض عليك Butler علامة تبويب جديدة.</string>
-    <string name="tour_swipe_panes_title">أكثر من علامة تبويب في آن واحد</string>
-    <string name="tour_swipe_panes_body">على شاشة أكبر، أو في الوضع الأفقي، يعرض Butler عدة علامات تبويب جنبًا إلى جنب. تحدّد إعدادات التخطيط ضمن علامات التبويب متى يحدث ذلك.</string>
+    <string name="tour_swipe_panes_title">اختر التخطيط</string>
+    <string name="tour_swipe_panes_body">تريد ترتيبًا مختلفًا؟ افتح قائمة Butler واختر التخطيط. تعتمد التخطيطات المتاحة على حجم النافذة، وبعضها يتطلب Pro.</string>
     <string name="tour_panes_rail_title">جميع علامات التبويب الخاصة بك</string>
     <string name="tour_panes_rail_body">توجد هنا كل علامة تبويب مفتوحة. اضغط على واحدة واختر اللوحة التي يجب أن تنتقل إليها. اضغط مع الاستمرار على علامة تبويب، ثم اسحبها، لتغيير ترتيبها.</string>
     <string name="tour_panes_divider_title">غيّر حجم اللوحات</string>
