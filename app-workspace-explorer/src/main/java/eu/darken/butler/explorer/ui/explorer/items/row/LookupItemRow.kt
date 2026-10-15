@@ -29,7 +29,7 @@ fun LookupItemRow(
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
     sizeFraction: Float? = null,
-    /** Only files take it; folders keep their tap. */
+    /** Only regular files take it. */
     onMoreClick: (() -> Unit)? = null,
 ) {
     when (item) {
@@ -59,7 +59,6 @@ fun LookupItemRow(
             isEnabled = isEnabled,
             isHighlighted = isHighlighted,
             decorations = decorations,
-            onMoreClick = onMoreClick,
             modifier = modifier,
         )
 

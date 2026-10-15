@@ -142,7 +142,7 @@ private fun ItemContent(
             // Recent rows say which folder a file is in, which a grid cell has no room for, so the
             // grid keeps the ordinary cell.
             val recent = state.currentLocation as? ExplorerLocation.Recent
-            val onMoreClick = (item as? ExplorerItem.File)
+            val onMoreClick = (item as? ExplorerItem.RegularFile)
                 ?.takeIf { state.directOpenEnabled && !showSelection }
                 ?.let { file -> { onItemMoreClick(file) } }
             when (viewStyle.mode) {

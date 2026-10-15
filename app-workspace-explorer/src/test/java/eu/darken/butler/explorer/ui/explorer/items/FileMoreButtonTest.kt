@@ -38,6 +38,7 @@ class FileMoreButtonTest : ComposeTest() {
 
     private val file = MockDataProvider.createMockRegularFile(FILE_NAME)
     private val directory = MockDataProvider.createMockDirectory(DIRECTORY_NAME)
+    private val symlink = MockDataProvider.createMockSymbolicLink(SYMLINK_NAME, "/storage/emulated/0")
 
     private var clicks = 0
     private var moreClicks = 0
@@ -163,7 +164,7 @@ class FileMoreButtonTest : ComposeTest() {
     ) {
         val state: ExplorerWorkspaceViewModel.State = MockDataProvider.createReadyState(
             selectionState = ExplorerSelectionState(
-                selectableItems = setOf(file, directory),
+                selectableItems = setOf(file, directory, symlink),
                 selectedItems = selectedItems,
             ),
         ).copy(directOpenEnabled = directOpenEnabled)
@@ -223,6 +224,20 @@ class FileMoreButtonTest : ComposeTest() {
     }
 
     @Test
+    fun `renderer shows no more button on a symlink row`() {
+        renderItem(symlink)
+
+        moreButton().assertDoesNotExist()
+    }
+
+    @Test
+    fun `renderer shows no more button on a symlink tile`() {
+        renderItem(symlink, mode = ExplorerViewStyle.Mode.GRID)
+
+        moreButton().assertDoesNotExist()
+    }
+
+    @Test
     fun `renderer shows no more button while selection checkboxes are showing`() {
         renderItem(file, selectedItems = setOf(directory))
 
@@ -232,5 +247,6 @@ class FileMoreButtonTest : ComposeTest() {
     companion object {
         private const val FILE_NAME = "report.pdf"
         private const val DIRECTORY_NAME = "Documents"
+        private const val SYMLINK_NAME = "sdcard"
     }
 }
