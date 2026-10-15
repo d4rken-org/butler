@@ -26,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -151,20 +150,18 @@ fun TextTruncationBar(
     onOpenInEditor: (() -> Unit)?,
 ) {
     val context = LocalContext.current
-    val notice = remember(truncation, context) {
-        when (truncation) {
-            is TextPreview.Truncation.Bytes -> context.getString(
-                R.string.viewer_text_truncated_bytes,
-                Formatter.formatShortFileSize(context, truncation.limit),
-            )
+    val notice = when (truncation) {
+        is TextPreview.Truncation.Bytes -> stringResource(
+            R.string.viewer_text_truncated_bytes,
+            Formatter.formatShortFileSize(context, truncation.limit),
+        )
 
-            is TextPreview.Truncation.Lines -> context.getString(
-                R.string.viewer_text_truncated_lines,
-                NumberFormat.getIntegerInstance().format(truncation.limit),
-            )
+        is TextPreview.Truncation.Lines -> stringResource(
+            R.string.viewer_text_truncated_lines,
+            NumberFormat.getIntegerInstance().format(truncation.limit),
+        )
 
-            is TextPreview.Truncation.LineWidth -> context.getString(R.string.viewer_text_truncated_width)
-        }
+        is TextPreview.Truncation.LineWidth -> stringResource(R.string.viewer_text_truncated_width)
     }
     Card(modifier = modifier) {
         Row(
