@@ -1,8 +1,10 @@
 package eu.darken.butler.workspace.core
 
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.core.content.FileProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,8 +24,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Hands a file to another app via ACTION_VIEW, always through a chooser so the user keeps control
- * over which app opens it.
+ * Hands a file to another app via ACTION_VIEW: through a chooser so the user keeps control over which
+ * app opens it, or straight to the default app the user already picked for its type.
  */
 @Singleton
 class OpenWithIntentUseCase @Inject constructor(
@@ -75,6 +77,66 @@ class OpenWithIntentUseCase @Inject constructor(
             false
         } catch (e: SecurityException) {
             log(tag, ERROR) { "Not allowed to launch the chooser: ${e.asLog()}" }
+            false
+        }
+    }
+
+    /**
+     * Opens the file in the user's default app for [mime] when that default is not Butler, else in a
+     * chooser that leaves Butler out. Returns false when there is no usable URI, no other app can
+     * handle the file, or the launch was refused.
+     */
+    fun openWithDefault(path: APath<*>, mime: String, chooserTitle: CharSequence): Boolean {
+        log(tag) { "openWithDefault($path, $mime)" }
+
+        val viewIntent = createViewIntent(path, mime) ?: return false
+
+        return try {
+            val packageManager = context.packageManager
+            val (own, external) = packageManager
+                .queryIntentActivities(viewIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                .mapNotNull { it.activityInfo }
+                .map { ComponentName(it.packageName, it.name) }
+                .partition { it.packageName == context.packageName }
+
+            if (external.isEmpty()) {
+                log(tag, WARN) { "No app other than Butler can handle $mime for $path" }
+                return false
+            }
+
+            // Without a default this resolves to the system's resolver. Neither the resolver nor
+            // Butler itself is an external candidate, so both fall through to the chooser.
+            val defaultApp = packageManager.resolveActivity(viewIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                ?.activityInfo
+                ?.let { ComponentName(it.packageName, it.name) }
+                ?.takeIf { it in external }
+
+            if (defaultApp != null) {
+                val direct = Intent(viewIntent).apply {
+                    component = defaultApp
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(direct)
+                log(tag, INFO) { "Opened $path with default app $defaultApp" }
+            } else {
+                val chooser = Intent.createChooser(viewIntent, chooserTitle).apply {
+                    putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, own.toTypedArray())
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(chooser)
+                log(tag, INFO) { "Open chooser without Butler launched for $path" }
+            }
+            true
+        } catch (e: ActivityNotFoundException) {
+            log(tag, WARN) { "No activity to open $path: ${e.asLog()}" }
+            false
+        } catch (e: SecurityException) {
+            log(tag, ERROR) { "Not allowed to open $path: ${e.asLog()}" }
+            false
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to open $path with the default app: ${e.asLog()}" }
             false
         }
     }

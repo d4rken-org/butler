@@ -33,12 +33,18 @@ import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isProForUi
+import eu.darken.butler.workspace.contracts.viewer.ViewerSupport
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.returnResult
+import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -65,6 +71,10 @@ class ExplorerNavigationController(
     private val toggleSelection: (ExplorerItem) -> Unit,
     private val clearSelection: () -> Unit,
     private val getState: suspend () -> ExplorerWorkspaceViewModel.State,
+    private val isOpenOnTapEnabled: suspend () -> Boolean,
+    private val openInViewer: suspend (ExplorerItem.File) -> Unit,
+    private val openExternally: (ExplorerItem.File) -> Boolean,
+    private val timeSource: TimeSource = TimeSource.Monotonic,
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
     private val tag: String,
 ) {
@@ -76,6 +86,12 @@ class ExplorerNavigationController(
 
     /** Location the current highlight belongs to, so arriving at it doesn't clear it again. */
     private var highlightedLocationId: String? = null
+
+    private val directOpenInFlight = AtomicBoolean(false)
+
+    private data class DirectOpen(val itemId: String, val at: TimeMark)
+
+    @Volatile private var lastDirectOpen: DirectOpen? = null
 
     fun navigate(item: ExplorerItem) = doLaunch {
         log(tag) { "navigate($item)" }
@@ -138,14 +154,29 @@ class ExplorerNavigationController(
                                 selectedPaths = listOf(item.lookup.lookedUp),
                             )
                         )
+                    } else if (config == null && isOpenOnTapEnabled()) {
+                        if (!directOpenInFlight.compareAndSet(false, true)) {
+                            log(tag) { "Open on tap: ${item.lookup.name} ignored, an open is already running" }
+                            return@doLaunch
+                        }
+                        try {
+                            // A hand-off returns before the other app is on screen, so the flag alone
+                            // lets a quick second tap start it again.
+                            val last = lastDirectOpen
+                            val justOpened = last != null && last.itemId == item.id &&
+                                last.at.elapsedNow() < DIRECT_OPEN_COOLDOWN
+                            if (justOpened) {
+                                log(tag) { "Open on tap: ${item.lookup.name} ignored, it was just opened" }
+                                return@doLaunch
+                            }
+                            openDirectly(item)
+                            lastDirectOpen = DirectOpen(item.id, timeSource.markNow())
+                        } finally {
+                            directOpenInFlight.set(false)
+                        }
                     } else {
                         // Normal mode or other picker modes: show file options dialog
-                        dialogs.show(
-                            ExplorerDialogState.FileOptions(
-                                item = item,
-                                showInFolder = getState().currentLocation is ExplorerLocation.Recent,
-                            )
-                        )
+                        showFileOptionsSheet(item)
                     }
                 }
                 is ExplorerItem.Peek -> {
@@ -204,6 +235,34 @@ class ExplorerNavigationController(
                 }
             }
         }
+    }
+
+    private suspend fun openDirectly(item: ExplorerItem.File) {
+        val isBundle = AppInstallFormat.fromFileName(item.lookup.name)?.isBundle == true
+        when {
+            isBundle || ViewerSupport.canDisplay(item.mimeType) -> {
+                log(tag, INFO) { "Open on tap: ${item.lookup.name} in the viewer" }
+                openInViewer(item)
+            }
+            FileActionCapabilities.canHandOffToOtherApps(item.lookup.lookedUp) && openExternally(item) -> {
+                log(tag, INFO) { "Open on tap: ${item.lookup.name} handed to another app" }
+            }
+            else -> {
+                log(tag, INFO) { "Open on tap: no route for ${item.lookup.name}, showing the options sheet" }
+                showFileOptionsSheet(item)
+            }
+        }
+    }
+
+    fun showFileOptions(item: ExplorerItem.File) = doLaunch { showFileOptionsSheet(item) }
+
+    private suspend fun showFileOptionsSheet(item: ExplorerItem.File) {
+        dialogs.show(
+            ExplorerDialogState.FileOptions(
+                item = item,
+                showInFolder = getState().currentLocation is ExplorerLocation.Recent,
+            )
+        )
     }
 
     fun navigateToPath(path: APath<*>) = doLaunch {
@@ -430,5 +489,8 @@ class ExplorerNavigationController(
 
         /** Same for [showInFolder], with more room: a folder listing is a gateway walk, Home is not. */
         private val DIRECTORY_ARRIVAL_TIMEOUT = 5.seconds
+
+        /** How long a repeated tap on the same file that was just opened on tap is ignored. */
+        private val DIRECT_OPEN_COOLDOWN = 500.milliseconds
     }
 }

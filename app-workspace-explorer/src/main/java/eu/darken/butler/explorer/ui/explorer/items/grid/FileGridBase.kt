@@ -41,6 +41,7 @@ import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
+import eu.darken.butler.explorer.ui.explorer.items.ItemMoreButton
 import eu.darken.butler.explorer.ui.explorer.items.LeadingIconSlot
 import eu.darken.butler.explorer.ui.explorer.items.gridBadgeSize
 import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
@@ -70,6 +71,8 @@ internal fun FileGridBase(
     trailingContent: (@Composable () -> Unit)? = null,
     /** Composed below the tile's text lines, e.g. a size proportion bar. */
     bottomContent: (@Composable () -> Unit)? = null,
+    /** Adds a ⋮ to the end of the name bar, where it leaves [secondaryText] in the top bar showing. */
+    onMoreClick: (() -> Unit)? = null,
 ) {
     // Animate highlight border color
     val highlightBorderColor by animateColorAsState(
@@ -176,15 +179,16 @@ internal fun FileGridBase(
             }
 
             // Bottom bar with filename
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
                     Text(
@@ -215,6 +219,15 @@ internal fun FileGridBase(
                             it()
                         }
                     }
+                }
+
+                onMoreClick?.let {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    ItemMoreButton(
+                        onClick = it,
+                        size = density.gridIconSize,
+                        tint = MaterialTheme.colorScheme.onScrim,
+                    )
                 }
             }
         }

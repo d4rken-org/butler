@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +20,8 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
+import eu.darken.butler.explorer.ui.explorer.items.ItemMoreButton
+import eu.darken.butler.explorer.ui.explorer.items.rowMoreButtonSize
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.items.usesShortFileSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -42,6 +45,7 @@ internal fun RecentItemRow(
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
+    onMoreClick: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
 
@@ -69,6 +73,11 @@ internal fun RecentItemRow(
         secondaryPath = item.lookup.parent?.userReadablePath?.get(context),
         secondaryText = item.lookup.size?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) },
         secondaryEndText = indexedAt?.let { formatSmartTime(it, absoluteStyle = DateTimeStyle.COMPACT) },
+        trailingContent = if (onMoreClick != null) {
+            { ItemMoreButton(onClick = onMoreClick, size = density.rowMoreButtonSize) }
+        } else {
+            null
+        },
     )
 }
 
@@ -81,6 +90,23 @@ private fun RecentItemRowPreview() {
         indexedAt = MockDataProvider.MockTimes.hoursAgo(2),
         density = ExplorerViewStyle.Density.COMFORTABLE,
     )
+}
+
+/** The ⋮ at every density, next to a name long enough to have to give way to it. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RecentItemRowMoreButtonPreview() {
+    Column {
+        ExplorerViewStyle.Density.entries.forEach { density ->
+            RecentItemRow(
+                item = MockDataProvider.createMockRecentFile(name = "quarterly_report_final_revised_v3_signed.pdf"),
+                indexedAt = MockDataProvider.MockTimes.hoursAgo(2),
+                density = density,
+                onMoreClick = {},
+            )
+        }
+    }
 }
 
 @Preview2

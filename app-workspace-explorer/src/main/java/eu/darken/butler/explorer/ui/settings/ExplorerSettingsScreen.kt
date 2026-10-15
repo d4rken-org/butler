@@ -14,6 +14,7 @@ import androidx.compose.material.icons.twotone.DeveloperMode
 import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.QuestionMark
 import androidx.compose.material.icons.twotone.Storage
+import androidx.compose.material.icons.twotone.TouchApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +49,7 @@ fun ExplorerSettingsScreen(
     onNavigateUp: () -> Unit,
     onToggleRegexPatterns: (Boolean) -> Unit,
     onToggleBackButtonNavigation: (Boolean) -> Unit,
+    onToggleOpenFilesOnTap: (Boolean) -> Unit,
     onToggleShowSystemLocations: (Boolean) -> Unit,
     onToggleTrash: (Boolean) -> Unit,
     onToggleConfirmTrashMove: (Boolean) -> Unit,
@@ -94,6 +96,16 @@ fun ExplorerSettingsScreen(
                     subtitle = stringResource(R.string.explorer_settings_back_button_desc),
                     checked = state.useBackButtonForNavigation,
                     onCheckedChange = onToggleBackButtonNavigation,
+                )
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.TouchApp,
+                    title = stringResource(R.string.explorer_settings_open_on_tap_title),
+                    subtitle = stringResource(R.string.explorer_settings_open_on_tap_desc),
+                    checked = state.openFilesOnTap,
+                    onCheckedChange = onToggleOpenFilesOnTap,
                 )
             }
 
@@ -300,6 +312,7 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
             onNavigateUp = { vm.navUp() },
             onToggleRegexPatterns = { vm.toggleRegexPatterns(it) },
             onToggleBackButtonNavigation = { vm.toggleBackButtonNavigation(it) },
+            onToggleOpenFilesOnTap = { vm.toggleOpenFilesOnTap(it) },
             onToggleShowSystemLocations = { vm.toggleShowSystemLocations(it) },
             onToggleTrash = { vm.toggleTrash(it) },
             onToggleConfirmTrashMove = { vm.toggleConfirmTrashMove(it) },

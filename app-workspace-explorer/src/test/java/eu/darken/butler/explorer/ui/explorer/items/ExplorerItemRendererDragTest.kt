@@ -111,6 +111,7 @@ class ExplorerItemRendererDragTest : ComposeTest() {
                     isFocused = false,
                     onItemClick = {},
                     onItemLongClick = { longClicks++ },
+                    onItemMoreClick = {},
                     onNavigate = {},
                     onToggleSelection = { toggles++ },
                     // A null payload keeps the platform drag out of Robolectric, the factory call

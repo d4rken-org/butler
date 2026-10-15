@@ -35,6 +35,7 @@ class ExplorerSettings @Inject constructor(
     val sortSettings = dataStore.createValue("explorer.sort.default", SortSettings(), json)
     val useRegexPatterns = dataStore.createValue("explorer.filter.regex.enabled", false)
     val useBackButtonForNavigation = dataStore.createValue("explorer.navigation.use_back_button", true)
+    val openFilesOnTap = dataStore.createValue("explorer.files.open_on_tap", false)
 
     val showSystemLocations = dataStore.createValue("explorer.device.show_system_locations", false)
 
@@ -87,6 +88,7 @@ class ExplorerSettings @Inject constructor(
         sortSettings,
         useRegexPatterns,
         useBackButtonForNavigation,
+        openFilesOnTap,
         showSystemLocations,
         defaultViewStyle,
         defaultStartLocation,

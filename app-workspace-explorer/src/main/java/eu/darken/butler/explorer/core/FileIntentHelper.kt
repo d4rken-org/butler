@@ -35,6 +35,19 @@ class FileIntentHelper @Inject constructor(
         )
     }
 
+    /**
+     * Opens the file in the user's default app for its type, else in a chooser without Butler.
+     * Returns false when nothing could handle it.
+     */
+    fun openFileWithDefault(item: ExplorerItem.File, chooserTitle: CharSequence): Boolean {
+        log(tag) { "openFileWithDefault(${item.lookup.name})" }
+        return openWithIntentUseCase.openWithDefault(
+            path = item.lookup.lookedUp,
+            mime = item.mimeType.rawType,
+            chooserTitle = chooserTitle,
+        )
+    }
+
     fun shareFile(item: ExplorerItem.File): Intent? {
         log(tag) { "shareFile(${item.lookup.name})" }
 

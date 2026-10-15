@@ -244,6 +244,47 @@ class ExplorerSelectionControllerTest : BaseTest() {
     }
 
     @Test
+    fun `a file tap with an active selection toggles and never navigates`() = runTest {
+        val navigated = mutableListOf<ExplorerItem>()
+        val controller = controller(navigate = { navigated.add(it) })
+        val first = fileItem("a.jpg")
+        val second = fileItem("b.mp4")
+
+        controller.toggle(first)
+        controller.onItemClick(second)
+        runCurrent()
+
+        controller.selectedItems.value shouldBe setOf(first, second)
+        navigated shouldBe emptyList()
+    }
+
+    @Test
+    fun `file taps in multi-select and save-as pickers never navigate`() = runTest {
+        listOf(
+            PickerConfig.Selection.FileMulti,
+            PickerConfig.Selection.MixedMulti,
+            PickerConfig.Selection.SaveAs(suggestedFilename = ""),
+        ).forEach { selection ->
+            val navigated = mutableListOf<ExplorerItem>()
+            val config = pickerConfig(selection)
+            val workspace = mockWorkspace(config)
+            val controller = controller(config = config, workspace = workspace, navigate = { navigated.add(it) })
+            val item = fileItem("photo.jpg")
+
+            controller.onItemClick(item)
+            runCurrent()
+
+            navigated shouldBe emptyList()
+            if (selection is PickerConfig.Selection.SaveAs) {
+                coVerify { workspace.updateSaveAsFilename("photo.jpg") }
+                controller.selectedItems.value shouldBe emptySet()
+            } else {
+                controller.selectedItems.value shouldBe setOf(item)
+            }
+        }
+    }
+
+    @Test
     fun `long press only selects where allowed`() = runTest {
         val file = fileItem("a.txt")
 

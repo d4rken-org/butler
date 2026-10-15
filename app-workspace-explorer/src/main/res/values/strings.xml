@@ -10,6 +10,8 @@
     <string name="explorer_settings_navigation">Navigation</string>
     <string name="explorer_settings_back_button_title">Back button navigation</string>
     <string name="explorer_settings_back_button_desc">Navigate through history with back button/gesture.</string>
+    <string name="explorer_settings_open_on_tap_title">Open files on tap</string>
+    <string name="explorer_settings_open_on_tap_desc">Tap a file to open it. Use the ⋮ button on a file for its other actions.</string>
     <string name="explorer_settings_show_system_locations_title">Show system locations</string>
     <string name="explorer_settings_show_system_locations_desc">List system locations, such as the read-only system partition (/system), in the device overview.</string>
     <string name="explorer_settings_trash_category">Trash</string>
@@ -31,6 +33,7 @@
 
     <!-- File Row Content Descriptions -->
     <string name="explorer_file_regular_content_desc">File</string>
+    <string name="explorer_file_more_actions_content_desc">More actions</string>
     <string name="explorer_file_symlink_content_desc">Symbolic link</string>
     <string name="explorer_file_folder_content_desc">Folder</string>
     <string name="explorer_file_peek_content_desc">Loading file information</string>

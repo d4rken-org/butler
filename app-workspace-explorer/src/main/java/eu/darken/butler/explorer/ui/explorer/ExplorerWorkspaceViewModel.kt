@@ -370,6 +370,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         toggleSelection = { selection.toggle(it) },
         clearSelection = ::clearSelection,
         getState = ::getState,
+        isOpenOnTapEnabled = { explorerSettings.openFilesOnTap.value() },
+        openInViewer = ::openFileInPlace,
+        openExternally = { item ->
+            fileIntentHelper.openFileWithDefault(
+                item = item,
+                chooserTitle = context.getString(WorkspaceR.string.workspace_open_with_chooser_title),
+            )
+        },
         doLaunch = doLaunch,
         tag = tag,
     )
@@ -650,6 +658,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val filterState: FilterState = FilterState(),
         val useRegexPatterns: Boolean = false,
         val useBackButtonForNavigation: Boolean = false,
+        /** A tap opens a file, so files carry a button for their actions sheet instead. */
+        val directOpenEnabled: Boolean = false,
         val pickerConfig: PickerConfig? = null,
         /**
          * The resolution that belongs to [locationId], or null while the new location's rules are
@@ -833,6 +843,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     viewSettings.filterState,
                     explorerSettings.useRegexPatterns.flow,
                     explorerSettings.useBackButtonForNavigation.flow,
+                    explorerSettings.openFilesOnTap.flow,
                     pickerConfigFlow,
                     trashManager.isEnabled,
                     saveAsFilenameFlow,
@@ -842,7 +853,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     favoritesController.feedback,
                     directorySizes,
                     favoritesSelection.selection,
-                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection ->
+                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, openFilesOnTap, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection ->
                     val items = listing?.items
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
@@ -922,6 +933,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         filterState = filterState,
                         useRegexPatterns = useRegexPatterns,
                         useBackButtonForNavigation = useBackButtonForNavigation,
+                        directOpenEnabled = openFilesOnTap && pickerConfig == null,
                         pickerConfig = pickerConfig,
                         resolvedSort = matchedSort,
                         sortSettings = matchedSort?.resolution?.settings ?: SortSettings(),
@@ -1008,6 +1020,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun onItemClick(item: ExplorerItem) = selection.onItemClick(item)
 
     fun onItemLongClick(item: ExplorerItem) = selection.onItemLongClick(item)
+
+    fun onItemMoreClick(item: ExplorerItem.File) = navigation.showFileOptions(item)
 
     fun onFavoriteClick(fav: FavoriteItem) {
         log(tag) { "onFavoriteClick($fav)" }
@@ -1468,16 +1482,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 dismissDialog()
                 trash.deleteNestedPermanently(action.items)
             }
-            is ExplorerActionBarItem.File.Open -> {
-                try {
-                    // The viewer opens as a drill-down of this workspace: an overlay in the same
-                    // pane that returns here on back.
-                    openFile(item = action.item, asDrillDown = true)
-                } catch (e: Exception) {
-                    log(tag, ERROR) { "Failed to open ${action.item.lookup.name}: ${e.asLog()}" }
-                    errorEvents.emit(e)
-                }
-            }
+            is ExplorerActionBarItem.File.Open -> openFileInPlace(action.item)
             is ExplorerActionBarItem.File.OpenInTab -> {
                 try {
                     openFile(item = action.item, asDrillDown = false)
@@ -1755,6 +1760,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             arguments = request.arguments,
             sourceWorkspaceId = id,
         )
+    }
+
+    private suspend fun openFileInPlace(item: ExplorerItem.File) {
+        try {
+            // The viewer opens as a drill-down of this workspace: an overlay in the same pane that
+            // returns here on back.
+            openFile(item = item, asDrillDown = true)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to open ${item.lookup.name}: ${e.asLog()}" }
+            errorEvents.emit(e)
+        }
     }
 
     private suspend fun orderSelection(selected: Collection<ExplorerItem>): List<ExplorerItem> {
