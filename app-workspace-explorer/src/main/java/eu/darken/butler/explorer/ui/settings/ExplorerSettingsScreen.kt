@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.twotone.ArrowBack
 import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
+import androidx.compose.material.icons.twotone.DeveloperMode
 import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material3.AlertDialog
@@ -46,6 +47,7 @@ fun ExplorerSettingsScreen(
     onNavigateUp: () -> Unit,
     onToggleRegexPatterns: (Boolean) -> Unit,
     onToggleBackButtonNavigation: (Boolean) -> Unit,
+    onToggleShowSystemLocations: (Boolean) -> Unit,
     onToggleTrash: (Boolean) -> Unit,
     onAutoDeleteDaysChanged: (Int) -> Unit,
     onMaxSizeChanged: (Long) -> Unit,
@@ -90,6 +92,16 @@ fun ExplorerSettingsScreen(
                     subtitle = stringResource(R.string.explorer_settings_back_button_desc),
                     checked = state.useBackButtonForNavigation,
                     onCheckedChange = onToggleBackButtonNavigation,
+                )
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.DeveloperMode,
+                    title = stringResource(R.string.explorer_settings_show_system_locations_title),
+                    subtitle = stringResource(R.string.explorer_settings_show_system_locations_desc),
+                    checked = state.showSystemLocations,
+                    onCheckedChange = onToggleShowSystemLocations,
                 )
             }
 
@@ -275,6 +287,7 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
             onNavigateUp = { vm.navUp() },
             onToggleRegexPatterns = { vm.toggleRegexPatterns(it) },
             onToggleBackButtonNavigation = { vm.toggleBackButtonNavigation(it) },
+            onToggleShowSystemLocations = { vm.toggleShowSystemLocations(it) },
             onToggleTrash = { vm.toggleTrash(it) },
             onAutoDeleteDaysChanged = { vm.setTrashAutoDeleteDays(it) },
             onMaxSizeChanged = { vm.setTrashMaxSizeMB(it) },

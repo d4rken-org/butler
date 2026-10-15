@@ -20,6 +20,7 @@ import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.canUseAdbNow
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -35,6 +36,7 @@ import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.common.storage.saf.StorageProviderSuggester
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.currentCoroutineContext
@@ -53,6 +55,7 @@ class DeviceLocationLoader @AssistedInject constructor(
     private val storageProviderSuggester: StorageProviderSuggester,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
+    private val explorerSettings: ExplorerSettings,
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "DeviceLoader")
@@ -112,13 +115,15 @@ class DeviceLocationLoader @AssistedInject constructor(
             ).run { deviceItems.add(this) }
         }
 
-        ExplorerItem.Storage.Local(
-            localId = "rom",
-            displayIcon = Icons.TwoTone.DeveloperMode,
-            displayName = R.string.explorer_navigation_rom.toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/system")),
-            canWrite = false,
-        ).run { deviceItems.add(this) }
+        if (explorerSettings.showSystemLocations.value()) {
+            ExplorerItem.Storage.Local(
+                localId = "rom",
+                displayIcon = Icons.TwoTone.DeveloperMode,
+                displayName = R.string.explorer_navigation_rom.toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/system")),
+                canWrite = false,
+            ).run { deviceItems.add(this) }
+        }
 
         // Get internal volume info for disk descriptions (manufacturer names)
         val volumeInfos = storageManager2.volumes

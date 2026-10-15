@@ -10,6 +10,8 @@
     <string name="explorer_settings_navigation">Navigation</string>
     <string name="explorer_settings_back_button_title">Back button navigation</string>
     <string name="explorer_settings_back_button_desc">Navigate through history with back button/gesture.</string>
+    <string name="explorer_settings_show_system_locations_title">Show system locations</string>
+    <string name="explorer_settings_show_system_locations_desc">List system locations, such as the read-only system partition (/system), in the device overview.</string>
     <string name="explorer_settings_trash_category">Trash</string>
     <string name="explorer_settings_trash_enabled_title">Enable trash</string>
     <string name="explorer_settings_trash_enabled_desc">Move deleted files to trash instead of permanently deleting them</string>

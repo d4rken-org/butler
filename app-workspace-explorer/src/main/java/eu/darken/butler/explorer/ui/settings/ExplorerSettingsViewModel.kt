@@ -26,16 +26,18 @@ class ExplorerSettingsViewModel @Inject constructor(
         explorerSettings.sortSettings.flow,
         explorerSettings.useRegexPatterns.flow,
         explorerSettings.useBackButtonForNavigation.flow,
+        explorerSettings.showSystemLocations.flow,
         trashSettings.enabled.flow,
         trashSettings.expiresAfter.flow,
         trashSettings.maxTrashSize.flow,
         folderSortRules.count,
-    ) { sortSettings, useRegexPatterns, useBackButtonForNavigation, recycleBinEnabled, expiresAfter, maxSize, folderSortRuleCount ->
+    ) { sortSettings, useRegexPatterns, useBackButtonForNavigation, showSystemLocations, recycleBinEnabled, expiresAfter, maxSize, folderSortRuleCount ->
         State(
             sortSettings = sortSettings,
             folderSortRuleCount = folderSortRuleCount,
             useRegexPatterns = useRegexPatterns,
             useBackButtonForNavigation = useBackButtonForNavigation,
+            showSystemLocations = showSystemLocations,
             trashEnabled = recycleBinEnabled,
             trashAutoDeleteDays = expiresAfter.inWholeDays.toInt(),
             trashMaxSizeMB = maxSize / 1048576L,
@@ -48,6 +50,10 @@ class ExplorerSettingsViewModel @Inject constructor(
 
     fun toggleBackButtonNavigation(enabled: Boolean) = launch {
         explorerSettings.useBackButtonForNavigation.value(enabled)
+    }
+
+    fun toggleShowSystemLocations(enabled: Boolean) = launch {
+        explorerSettings.showSystemLocations.value(enabled)
     }
 
     fun toggleTrash(enabled: Boolean) = launch {
@@ -74,6 +80,7 @@ class ExplorerSettingsViewModel @Inject constructor(
         val sortSettings: SortSettings,
         val useRegexPatterns: Boolean,
         val useBackButtonForNavigation: Boolean,
+        val showSystemLocations: Boolean = false,
         val trashEnabled: Boolean = true,
         val trashAutoDeleteDays: Int = 30,
         val trashMaxSizeMB: Long = 500L,
