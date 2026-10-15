@@ -1,6 +1,7 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.width
@@ -14,12 +15,14 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.SAFPath
@@ -419,6 +422,88 @@ class ViewerWorkspacePageTest : ComposeTest() {
             .performClick()
 
         retries shouldBe 1
+    }
+
+    private val stepFrom = LocalPath.build("/storage/emulated/0/DCIM/b.jpg")
+    private val stepTo = LocalPath.build("/storage/emulated/0/DCIM/c.jpg")
+    private val stepFromSize = 4_812_331L
+
+    /** The file a step leaves: an image with metadata, in a listing that has a next file. */
+    private fun stepOrigin(imageSource: BitmapZoomableImageSource? = null) = ViewerWorkspaceViewModel.State.Ready(
+        content = ViewerContent.Image(MimeInfo("image/jpeg")),
+        fileInfo = ViewerFileInfo(size = stepFromSize),
+        source = ViewerSource.Stored(stepFrom),
+        imageSource = imageSource,
+        neighbours = ViewerNeighbours(
+            current = stepFrom,
+            previous = LocalPath.build("/storage/emulated/0/DCIM/a.jpg"),
+            next = stepTo,
+        ),
+    )
+
+    /** The file a step lands on, before its lookup has answered. */
+    private val stepTarget = ViewerWorkspaceViewModel.State.Ready(
+        content = ViewerContent.Loading,
+        fileInfo = null,
+        source = ViewerSource.Stored(stepTo),
+        imageSource = null,
+        neighbours = ViewerNeighbours(current = stepTo, previous = stepFrom, next = null),
+    )
+
+    @Test
+    fun `a step keeps the previous file's info card while the next file loads`() {
+        var state by mutableStateOf<ViewerWorkspaceViewModel.State>(stepOrigin())
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = state,
+                )
+            }
+        }
+        // Size leads the collapsed card, and nothing else on the page shows it.
+        val originSize = composeTestRule.onNodeWithText(formatFileSize(context, stepFromSize))
+        originSize.assertIsDisplayed()
+
+        composeTestRule.runOnIdle { state = stepTarget }
+
+        originSize.assertIsDisplayed()
+    }
+
+    @Test
+    fun `a step does not bring back chrome the user hid`() {
+        var state by mutableStateOf<ViewerWorkspaceViewModel.State>(
+            stepOrigin(BitmapZoomableImageSource(Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888))),
+        )
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = state,
+                )
+            }
+        }
+        // Leads the bar, so it never moves into the overflow menu, and the target state has it too.
+        val stepBack = composeTestRule
+            .onNodeWithContentDescription(context.getString(R.string.viewer_previous_file_action))
+        stepBack.assertIsDisplayed()
+
+        composeTestRule
+            .onAllNodesWithContentDescription(
+                context.getString(R.string.viewer_image_content_description, "b.jpg"),
+                useUnmergedTree = true,
+            )
+            .onFirst()
+            .performClick()
+        // Telephoto holds a single tap until the double-tap window has passed.
+        composeTestRule.mainClock.advanceTimeBy(1_000L)
+        stepBack.assertIsNotDisplayed()
+
+        composeTestRule.runOnIdle { state = stepTarget }
+
+        stepBack.assertIsNotDisplayed()
     }
 
     @Test

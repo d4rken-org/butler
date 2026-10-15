@@ -145,18 +145,15 @@ class ViewerWorkspace @AssistedInject constructor(
     // Only the concrete variant carries a caller; the sealed interface itself is not caller-aware.
     private val callerArguments = creationArguments as? Workspace.ArgumentsWithCaller
 
-    override val info: StateFlow<Workspace.Info> = stateFlow.map { current ->
+    override val info: StateFlow<Workspace.Info> = stateFlow.map {
         Workspace.Info(
             id = id,
             type = type,
             title = seedDisplay.title ?: type.label,
             subtitle = seedDisplay.subtitle,
-            // A failed or unsupported file stays Ready on purpose: the page renders its own
-            // explanation plus retry and "Open with", which the global error overlay would hide.
-            lifecycleState = when (current.content) {
-                is ViewerContent.Loading -> Workspace.LifecycleState.Initializing
-                else -> Workspace.LifecycleState.Ready
-            },
+            // Always Ready: the page renders its own loading, failure and unsupported states, which
+            // the pane's initializing and error overlays would replace wholesale.
+            lifecycleState = Workspace.LifecycleState.Ready,
             callerWorkspaceId = callerArguments?.callerWorkspaceId,
             modalPresentation = callerArguments?.modalPresentation
                 ?: Workspace.ModalPresentationMode.PANE_LOCAL,
@@ -180,7 +177,7 @@ class ViewerWorkspace @AssistedInject constructor(
             title = seedDisplay.title ?: type.label,
             subtitle = seedDisplay.subtitle,
             arguments = creationArguments,
-        ),
+        ).copy(lifecycleState = Workspace.LifecycleState.Ready),
     )
 
     init {

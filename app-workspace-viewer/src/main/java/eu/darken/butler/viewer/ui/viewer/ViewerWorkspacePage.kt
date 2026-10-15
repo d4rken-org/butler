@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -303,15 +304,15 @@ fun ViewerWorkspacePage(
 
             is ViewerWorkspaceViewModel.State.Ready -> {
                 val isToolbarCollapsed = shouldCollapseToolbar(state.content, zoomedIn)
-                // Neither a spinner nor an error card is a surface the user can tap, and retry and
-                // back both live in the chrome - it must not stay hidden from an earlier tap. A PDF
-                // page without a bitmap is the same situation: it is either still rendering or has
-                // failed, and both put an untappable surface on screen.
+                var lastShownFileInfo by remember { mutableStateOf<ViewerFileInfo?>(null) }
+                // An error card is not a surface the user can tap, and retry and back both live in
+                // the chrome - it must not stay hidden from an earlier tap. A PDF page without a
+                // bitmap is the same situation: it is either still rendering or has failed, and both
+                // put an untappable surface on screen.
                 val pdfPageNotShown = state.content is ViewerContent.PdfPreview &&
                     state.pdfPage?.bitmap == null
                 val chromeShown = chromeVisible ||
                     state.content is ViewerContent.Failed ||
-                    state.content is ViewerContent.Loading ||
                     pdfPageNotShown
 
                 val swipeStep = rememberViewerSwipeStep(
@@ -436,8 +437,17 @@ fun ViewerWorkspacePage(
                         }
 
                         // Metadata read before the failure describes a file that is no longer
-                        // there, so next to the error it would read as current.
-                        val fileInfo = state.fileInfo?.takeIf { state.content !is ViewerContent.Failed }
+                        // there, so next to the error it would read as current. While a step's
+                        // target loads, the card keeps what it showed instead of sliding out and
+                        // straight back in.
+                        val fileInfo = when (state.content) {
+                            is ViewerContent.Failed -> null
+                            is ViewerContent.Loading -> state.fileInfo ?: lastShownFileInfo
+                            else -> state.fileInfo
+                        }
+                        SideEffect {
+                            if (state.content !is ViewerContent.Loading) lastShownFileInfo = fileInfo
+                        }
                         FloatingBar(
                             key = ViewerBarKeys.FILEINFO,
                             visible = chromeShown && fileInfo != null,
