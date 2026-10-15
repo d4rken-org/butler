@@ -41,7 +41,10 @@ import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -71,6 +74,7 @@ class ExplorerNavigationController(
     private val isOpenOnTapEnabled: suspend () -> Boolean,
     private val openInViewer: suspend (ExplorerItem.File) -> Unit,
     private val openExternally: (ExplorerItem.File) -> Boolean,
+    private val timeSource: TimeSource = TimeSource.Monotonic,
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
     private val tag: String,
 ) {
@@ -84,6 +88,8 @@ class ExplorerNavigationController(
     private var highlightedLocationId: String? = null
 
     private val directOpenInFlight = AtomicBoolean(false)
+
+    @Volatile private var lastDirectOpen: TimeMark? = null
 
     fun navigate(item: ExplorerItem) = doLaunch {
         log(tag) { "navigate($item)" }
@@ -152,7 +158,14 @@ class ExplorerNavigationController(
                             return@doLaunch
                         }
                         try {
+                            // A hand-off returns before the other app is on screen, so the flag alone
+                            // lets a quick second tap start it again.
+                            if (lastDirectOpen?.let { it.elapsedNow() < DIRECT_OPEN_COOLDOWN } == true) {
+                                log(tag) { "Open on tap: ${item.lookup.name} ignored, it was just opened" }
+                                return@doLaunch
+                            }
                             openDirectly(item)
+                            lastDirectOpen = timeSource.markNow()
                         } finally {
                             directOpenInFlight.set(false)
                         }
@@ -471,5 +484,8 @@ class ExplorerNavigationController(
 
         /** Same for [showInFolder], with more room: a folder listing is a gateway walk, Home is not. */
         private val DIRECTORY_ARRIVAL_TIMEOUT = 5.seconds
+
+        /** How long a tap on a file that was just opened on tap is ignored. */
+        private val DIRECT_OPEN_COOLDOWN = 500.milliseconds
     }
 }

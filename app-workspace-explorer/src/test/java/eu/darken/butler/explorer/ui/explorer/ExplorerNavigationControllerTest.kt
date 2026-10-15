@@ -44,12 +44,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.testTimeSource
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
+import kotlin.time.TimeSource
 import kotlin.uuid.Uuid
 
 class ExplorerNavigationControllerTest : BaseTest() {
@@ -166,6 +170,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         openOnTap: Boolean = false,
         externalHandOff: Boolean = true,
         openInViewerGate: CompletableDeferred<Unit>? = null,
+        timeSource: TimeSource = TimeSource.Monotonic,
     ) = ExplorerNavigationController(
         workspaceId = workspaceId,
         workspace = { workspace },
@@ -190,6 +195,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
             openedExternally.add(it)
             externalHandOff
         },
+        timeSource = timeSource,
         doLaunch = { block -> launch { block() } },
         tag = "test",
     )
@@ -474,17 +480,45 @@ class ExplorerNavigationControllerTest : BaseTest() {
     @Test
     fun `with open on tap a tap after the first open finished opens the file again`() = runTest {
         val gate = CompletableDeferred<Unit>()
-        val controller = controller(openOnTap = true, openInViewerGate = gate)
+        val controller = controller(openOnTap = true, openInViewerGate = gate, timeSource = testTimeSource)
         val item = fileItem("photo.jpg", mime = "image/jpeg")
 
         controller.navigate(item as ExplorerItem)
         runCurrent()
         gate.complete(Unit)
         runCurrent()
+        advanceTimeBy(600.milliseconds)
         controller.navigate(item as ExplorerItem)
         runCurrent()
 
         openedInViewer shouldBe listOf(item, item)
+    }
+
+    @Test
+    fun `with open on tap a second tap right after a hand-off does not hand the file off again`() = runTest {
+        val controller = controller(openOnTap = true, externalHandOff = true)
+        val item = fileItem("clip.mp4", mime = "video/mp4")
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        openedExternally shouldBe listOf(item)
+    }
+
+    @Test
+    fun `with open on tap a tap after the cooldown hands the file off again`() = runTest {
+        val controller = controller(openOnTap = true, externalHandOff = true, timeSource = testTimeSource)
+        val item = fileItem("clip.mp4", mime = "video/mp4")
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+        advanceTimeBy(600.milliseconds)
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        openedExternally shouldBe listOf(item, item)
     }
 
     @Test
