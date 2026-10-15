@@ -40,6 +40,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,6 +82,8 @@ class ExplorerNavigationController(
 
     /** Location the current highlight belongs to, so arriving at it doesn't clear it again. */
     private var highlightedLocationId: String? = null
+
+    private val directOpenInFlight = AtomicBoolean(false)
 
     fun navigate(item: ExplorerItem) = doLaunch {
         log(tag) { "navigate($item)" }
@@ -144,7 +147,15 @@ class ExplorerNavigationController(
                             )
                         )
                     } else if (config == null && isOpenOnTapEnabled()) {
-                        openDirectly(item)
+                        if (!directOpenInFlight.compareAndSet(false, true)) {
+                            log(tag) { "Open on tap: ${item.lookup.name} ignored, an open is already running" }
+                            return@doLaunch
+                        }
+                        try {
+                            openDirectly(item)
+                        } finally {
+                            directOpenInFlight.set(false)
+                        }
                     } else {
                         // Normal mode or other picker modes: show file options dialog
                         showFileOptionsSheet(item)

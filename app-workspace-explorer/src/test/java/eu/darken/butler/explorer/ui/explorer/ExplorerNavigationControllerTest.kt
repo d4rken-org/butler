@@ -39,6 +39,7 @@ import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -164,6 +165,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         gatewaySwitch: GatewaySwitch = mockk(),
         openOnTap: Boolean = false,
         externalHandOff: Boolean = true,
+        openInViewerGate: CompletableDeferred<Unit>? = null,
     ) = ExplorerNavigationController(
         workspaceId = workspaceId,
         workspace = { workspace },
@@ -180,7 +182,10 @@ class ExplorerNavigationControllerTest : BaseTest() {
         clearSelection = clearSelection,
         getState = { state },
         isOpenOnTapEnabled = { openOnTap },
-        openInViewer = { openedInViewer.add(it) },
+        openInViewer = {
+            openedInViewer.add(it)
+            openInViewerGate?.await()
+        },
         openExternally = {
             openedExternally.add(it)
             externalHandOff
@@ -448,6 +453,38 @@ class ExplorerNavigationControllerTest : BaseTest() {
             openedExternally shouldBe emptyList()
             dialogs.current() shouldBe ExplorerDialogState.None
         }
+    }
+
+    @Test
+    fun `with open on tap a second tap while the first open is running does not open the file twice`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val controller = controller(openOnTap = true, openInViewerGate = gate)
+        val item = fileItem("photo.jpg", mime = "image/jpeg")
+
+        controller.navigate(item as ExplorerItem)
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        openedInViewer shouldBe listOf(item)
+
+        gate.complete(Unit)
+        runCurrent()
+    }
+
+    @Test
+    fun `with open on tap a tap after the first open finished opens the file again`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val controller = controller(openOnTap = true, openInViewerGate = gate)
+        val item = fileItem("photo.jpg", mime = "image/jpeg")
+
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+        gate.complete(Unit)
+        runCurrent()
+        controller.navigate(item as ExplorerItem)
+        runCurrent()
+
+        openedInViewer shouldBe listOf(item, item)
     }
 
     @Test
