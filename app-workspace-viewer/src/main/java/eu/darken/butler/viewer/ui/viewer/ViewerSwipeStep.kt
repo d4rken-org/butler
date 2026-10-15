@@ -5,7 +5,7 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
@@ -288,7 +288,7 @@ internal fun Modifier.viewerSwipeStep(state: ViewerSwipeStepState, active: Boole
 
 /** The moving content inside [viewerSwipeStep]. A placement offset, so its bounds move with it. */
 internal fun Modifier.viewerSwipeStepOffset(state: ViewerSwipeStepState): Modifier = this
-    .offset { IntOffset(state.offsetX.roundToInt(), 0) }
+    .absoluteOffset { IntOffset(state.offsetX.roundToInt(), 0) }
     .testTag(VIEWER_SWIPE_CONTENT_TAG)
 
 /**

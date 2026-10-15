@@ -548,6 +548,25 @@ class ViewerSwipeStepTest : ComposeTest() {
     }
 
     @Test
+    fun `in a right-to-left layout the content follows the finger`() {
+        setPage(layoutDirection = LayoutDirection.Rtl)
+
+        composeTestRule.onRoot().performTouchInput {
+            touchSlop = viewConfiguration.touchSlop
+            down(center)
+            moveBy(Offset(-100f, 0f))
+            moveBy(Offset(-50f, 0f))
+        }
+        composeTestRule.waitForIdle()
+
+        contentOffsetX shouldBeLessThan 0f
+        contentOffsetX shouldBe (-(150f - touchSlop) plusOrMinus 1f)
+
+        composeTestRule.onRoot().performTouchInput { up() }
+        composeTestRule.waitForIdle()
+    }
+
+    @Test
     fun `toward a side with no file the content follows the finger only partly and springs back`() {
         pageState.value = ready(next = null)
         setPage()
