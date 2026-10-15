@@ -89,7 +89,9 @@ class ExplorerNavigationController(
 
     private val directOpenInFlight = AtomicBoolean(false)
 
-    @Volatile private var lastDirectOpen: TimeMark? = null
+    private data class DirectOpen(val itemId: String, val at: TimeMark)
+
+    @Volatile private var lastDirectOpen: DirectOpen? = null
 
     fun navigate(item: ExplorerItem) = doLaunch {
         log(tag) { "navigate($item)" }
@@ -160,12 +162,15 @@ class ExplorerNavigationController(
                         try {
                             // A hand-off returns before the other app is on screen, so the flag alone
                             // lets a quick second tap start it again.
-                            if (lastDirectOpen?.let { it.elapsedNow() < DIRECT_OPEN_COOLDOWN } == true) {
+                            val last = lastDirectOpen
+                            val justOpened = last != null && last.itemId == item.id &&
+                                last.at.elapsedNow() < DIRECT_OPEN_COOLDOWN
+                            if (justOpened) {
                                 log(tag) { "Open on tap: ${item.lookup.name} ignored, it was just opened" }
                                 return@doLaunch
                             }
                             openDirectly(item)
-                            lastDirectOpen = timeSource.markNow()
+                            lastDirectOpen = DirectOpen(item.id, timeSource.markNow())
                         } finally {
                             directOpenInFlight.set(false)
                         }
@@ -485,7 +490,7 @@ class ExplorerNavigationController(
         /** Same for [showInFolder], with more room: a folder listing is a gateway walk, Home is not. */
         private val DIRECTORY_ARRIVAL_TIMEOUT = 5.seconds
 
-        /** How long a tap on a file that was just opened on tap is ignored. */
+        /** How long a repeated tap on the same file that was just opened on tap is ignored. */
         private val DIRECT_OPEN_COOLDOWN = 500.milliseconds
     }
 }

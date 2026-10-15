@@ -76,14 +76,17 @@ class ExplorerNavigationControllerTest : BaseTest() {
     ): ExplorerItem.RegularFile {
         val lookup = mockk<APathLookup<*>>().apply {
             every { lookedUp } returns at
+            every { this@apply.path } returns at.path
             every { this@apply.name } returns name
         }
         return ExplorerItem.RegularFile(lookup = lookup, mimeType = MimeInfo(mime))
     }
 
     private fun symlinkItem(name: String, mime: String, target: APath<*>): ExplorerItem.SymbolicLink {
+        val linkPath = path(name)
         val lookup = mockk<APathLookup<*>>().apply {
-            every { lookedUp } returns path(name)
+            every { lookedUp } returns linkPath
+            every { this@apply.path } returns linkPath.path
             every { this@apply.name } returns name
             every { this@apply.target } returns target
         }
@@ -464,7 +467,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
     @Test
     fun `with open on tap a second tap while the first open is running does not open the file twice`() = runTest {
         val gate = CompletableDeferred<Unit>()
-        val controller = controller(openOnTap = true, openInViewerGate = gate)
+        val controller = controller(openOnTap = true, openInViewerGate = gate, timeSource = testTimeSource)
         val item = fileItem("photo.jpg", mime = "image/jpeg")
 
         controller.navigate(item as ExplorerItem)
@@ -496,7 +499,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
 
     @Test
     fun `with open on tap a second tap right after a hand-off does not hand the file off again`() = runTest {
-        val controller = controller(openOnTap = true, externalHandOff = true)
+        val controller = controller(openOnTap = true, externalHandOff = true, timeSource = testTimeSource)
         val item = fileItem("clip.mp4", mime = "video/mp4")
 
         controller.navigate(item as ExplorerItem)
@@ -519,6 +522,20 @@ class ExplorerNavigationControllerTest : BaseTest() {
         runCurrent()
 
         openedExternally shouldBe listOf(item, item)
+    }
+
+    @Test
+    fun `with open on tap a different file tapped right after an open still opens`() = runTest {
+        val controller = controller(openOnTap = true, timeSource = testTimeSource)
+        val first = fileItem("photo.jpg", mime = "image/jpeg")
+        val second = fileItem("notes.txt", mime = "text/plain")
+
+        controller.navigate(first as ExplorerItem)
+        runCurrent()
+        controller.navigate(second as ExplorerItem)
+        runCurrent()
+
+        openedInViewer shouldBe listOf(first, second)
     }
 
     @Test
