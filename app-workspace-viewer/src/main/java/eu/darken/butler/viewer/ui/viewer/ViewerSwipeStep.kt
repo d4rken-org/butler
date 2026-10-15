@@ -37,9 +37,11 @@ import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
 import eu.darken.butler.workspace.ui.insets.backGestureStripWidths
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -189,17 +191,33 @@ internal class ViewerSwipeStepState(private val scope: CoroutineScope) {
                 return@launch
             }
             onAction(action)
-            val arrival = coroutineScope {
+            val slidIn = coroutineScope {
                 val exit = launch { animateOffset(to = exitTo, velocityX = velocityX) }
                 val arrival = withTimeoutOrNull(SWIPE_STEP_ARRIVAL_TIMEOUT) {
                     snapshotFlow { inputs?.arrivalOf(origin, target) ?: Arrival.PENDING }
                         .first { it != Arrival.PENDING }
                 } ?: Arrival.LOST
-                if (arrival == Arrival.ARRIVED) exit.join() else exit.cancel()
-                arrival
+                if (arrival != Arrival.ARRIVED) {
+                    exit.cancel()
+                    return@coroutineScope false
+                }
+                val entry = launch {
+                    exit.join()
+                    offsetX = -exitTo
+                    animateOffset(to = 0f, velocityX = 0f)
+                }
+                // Another file landing before the content is back at rest ends the transition too.
+                val replaced = async { snapshotFlow { inputs?.source }.first { it != target } }
+                select<Boolean> {
+                    entry.onJoin { true }
+                    replaced.onAwait { false }
+                }.also {
+                    exit.cancel()
+                    entry.cancel()
+                    replaced.cancel()
+                }
             }
-            if (arrival == Arrival.ARRIVED) offsetX = -exitTo
-            animateOffset(to = 0f, velocityX = 0f)
+            if (!slidIn) animateOffset(to = 0f, velocityX = 0f)
             phase = Phase.IDLE
         }
     }

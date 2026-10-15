@@ -649,6 +649,75 @@ class ViewerSwipeStepTest : ComposeTest() {
         actions shouldBe listOf(next)
     }
 
+    @Test
+    fun `another file landing during the slide-out returns the content to rest`() {
+        setPage()
+        composeTestRule.mainClock.autoAdvance = false
+        val rest = contentOffsetX
+
+        swipeBy(dx = -200f)
+        repeat(3) { composeTestRule.mainClock.advanceTimeByFrame() }
+        actions shouldBe listOf(next)
+
+        // The step's own file arrives while the content is still leaving.
+        pageState.value = ready(current = c, previous = b, next = null)
+        repeat(3) { composeTestRule.mainClock.advanceTimeByFrame() }
+        val leaving = contentOffsetX
+        // The premise: the slide-out has started and has not finished.
+        leaving shouldBeLessThan rest - 2f
+        leaving shouldBeGreaterThan rest - 390f
+
+        // Something else lands before the slide-out ends, e.g. a keyboard arrow stepping back.
+        pageState.value = ready(current = a, previous = null, next = b)
+        val offsets = mutableListOf<Float>()
+        repeat(190) {
+            composeTestRule.mainClock.advanceTimeByFrame()
+            offsets.add(contentOffsetX)
+        }
+
+        // Returning from where it is never crosses to the side opposite the exit.
+        (offsets.maxOrNull() ?: rest) shouldBeLessThan rest + 2f
+        contentOffsetX shouldBe rest
+        actions shouldBe listOf(next)
+    }
+
+    @Test
+    fun `another file landing during the slide-in returns the content to rest`() {
+        setPage()
+        composeTestRule.mainClock.autoAdvance = false
+        val rest = contentOffsetX
+
+        swipeBy(dx = -200f)
+        repeat(3) { composeTestRule.mainClock.advanceTimeByFrame() }
+        actions shouldBe listOf(next)
+
+        pageState.value = ready(current = c, previous = b, next = null)
+        // Until the slide-out ends and the content reappears on the opposite side.
+        var frames = 0
+        while (contentOffsetX <= rest + 2f && frames < 120) {
+            composeTestRule.mainClock.advanceTimeByFrame()
+            frames++
+        }
+        repeat(3) { composeTestRule.mainClock.advanceTimeByFrame() }
+        val entering = contentOffsetX
+        // The premise: the slide-in has started and has not finished.
+        entering shouldBeGreaterThan rest + 2f
+        entering shouldBeLessThan rest + 390f
+
+        pageState.value = ready(current = a, previous = null, next = b)
+        val offsets = mutableListOf<Float>()
+        repeat(190) {
+            composeTestRule.mainClock.advanceTimeByFrame()
+            offsets.add(contentOffsetX)
+        }
+
+        // Neither thrown back out to the right nor across to the left of rest.
+        (offsets.maxOrNull() ?: rest) shouldBeLessThan entering + 2f
+        (offsets.minOrNull() ?: rest) shouldBeGreaterThan rest - 2f
+        contentOffsetX shouldBe rest
+        actions shouldBe listOf(next)
+    }
+
     // (g) A second finger.
 
     @Test
