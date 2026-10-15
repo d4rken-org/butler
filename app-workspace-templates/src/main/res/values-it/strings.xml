@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Scegli uno strumento</string>
     <string name="tour_templates_picker_body">Questo è il selezionatore tab, scegli a cosa dovrebbe servire questo tab. Selezionare uno trasforma questo tab nello strumento corrispondente.</string>
     <string name="tour_templates_butler_button_title">I tuoi tab vivono qui</string>
-    <string name="tour_templates_butler_button_body">Tocca il pulsante Butler per il menu tab: crea un nuovo tab, chiudi quello attuale o apri il gestore tab completo. Tieni premuto per passare direttamente al gestore tab.</string>
+    <string name="tour_templates_butler_button_body">Tocca il pulsante Butler per creare o chiudere tab, aprire il gestore tab o scegliere Disposizione e cambiare come sono disposti i tab. Tieni premuto per il gestore tab.</string>
 </resources>

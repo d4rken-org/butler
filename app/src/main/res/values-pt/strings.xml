@@ -372,8 +372,8 @@
     <string name="tour_swipe_switch_body">Desliza para a esquerda ou para a direita em qualquer parte da página para alternar entre os teus separadores abertos.</string>
     <string name="tour_swipe_create_title">Desliza para abrir um separador</string>
     <string name="tour_swipe_create_body">Desliza para além do último separador e o Butler oferece-te um novo.</string>
-    <string name="tour_swipe_panes_title">Mais do que um separador de cada vez</string>
-    <string name="tour_swipe_panes_body">Num ecrã maior ou na horizontal, o Butler mostra vários separadores lado a lado. As definições de disposição em Separadores determinam quando isso acontece.</string>
+    <string name="tour_swipe_panes_title">Escolhe a disposição</string>
+    <string name="tour_swipe_panes_body">Queres outra disposição? Abre o menu do Butler e escolhe Disposição. As disposições disponíveis dependem do tamanho da janela; algumas requerem Pro.</string>
     <string name="tour_panes_rail_title">Todos os teus separadores</string>
     <string name="tour_panes_rail_body">Todos os separadores abertos estão aqui. Toca num e escolhe o painel para onde deve ir. Mantém premido um separador e arrasta-o para alterar a ordem.</string>
     <string name="tour_panes_divider_title">Redimensiona os painéis</string>

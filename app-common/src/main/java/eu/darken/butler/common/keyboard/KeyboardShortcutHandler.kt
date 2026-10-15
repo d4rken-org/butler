@@ -77,16 +77,23 @@ private val TAG = logTag("Keyboard", "Handler")
  * DSL scope for registering keyboard shortcuts.
  */
 class KeyboardShortcutScope {
-    private val shortcuts = mutableListOf<Pair<KeyboardShortcut, () -> Unit>>()
+    private data class Registration(
+        val shortcut: KeyboardShortcut,
+        val ignoreRepeats: Boolean,
+        val action: () -> Unit,
+    )
+
+    private val shortcuts = mutableListOf<Registration>()
 
     /**
      * Register a keyboard shortcut with an action.
      *
      * @param shortcut The keyboard shortcut to listen for
+     * @param ignoreRepeats Consume the auto-repeat of a held key without running [action] again
      * @param action The action to perform when the shortcut is triggered
      */
-    fun on(shortcut: KeyboardShortcut, action: () -> Unit) {
-        shortcuts.add(shortcut to action)
+    fun on(shortcut: KeyboardShortcut, ignoreRepeats: Boolean = false, action: () -> Unit) {
+        shortcuts.add(Registration(shortcut, ignoreRepeats, action))
     }
 
     /**
@@ -100,9 +107,13 @@ class KeyboardShortcutScope {
             VERBOSE
         ) { "KeyEvent received: key=${event.key}, type=${event.type}, ctrl=${event.isCtrlPressed}, alt=${event.isAltPressed}, shift=${event.isShiftPressed}" }
 
-        for ((shortcut, action) in shortcuts) {
+        for ((shortcut, ignoreRepeats, action) in shortcuts) {
             if (shortcut.matches(event)) {
-                action()
+                if (ignoreRepeats && event.nativeKeyEvent.repeatCount > 0) {
+                    log(TAG, VERBOSE) { "Ignoring repeat of $shortcut" }
+                } else {
+                    action()
+                }
                 return true // Consume the event
             }
         }

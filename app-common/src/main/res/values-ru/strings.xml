@@ -360,7 +360,7 @@
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Используйте несколько областей, чтобы сравнивать файлы рядом друг с другом.</string>
     <string name="common_tip_different_folders">Открывайте разные папки в каждой области для удобного управления файлами.</string>
-    <string name="common_tip_switch_layouts">Переключайте расположение областей с помощью пункта Layout в меню Butler.</string>
+    <string name="common_tip_switch_layouts">Переключайте расположение областей с помощью пункта «Расположение» в меню Butler.</string>
     <string name="common_tip_elevated_access">Включите Root или Shizuku в разделе Setup для расширенных операций с файлами.</string>
     <string name="common_tip_breadcrumb_home">Удерживайте элемент пути в Проводнике, чтобы сделать его домашним каталогом.</string>
 </resources>

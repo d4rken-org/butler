@@ -63,6 +63,7 @@ import eu.darken.butler.workspace.core.operations.AppInstallLauncher
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.partitionByTrashSupport
+import eu.darken.butler.workspace.core.operations.skipsDeleteConfirmation
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -918,6 +919,17 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             // Deleting someone else's shared content is not ours to do; the action bar hides it.
             val path = workspaceSource.first().storedPath ?: return@launch
             log(tag, INFO) { "requestDelete($path, permanent=$permanent)" }
+            val skipsConfirmation = skipsDeleteConfirmation(
+                targets = setOf(path),
+                permanentRequested = permanent,
+                trashEnabled = trashSettings.enabled.value(),
+                confirmTrashMove = trashSettings.confirmTrashMove.value(),
+            )
+            if (skipsConfirmation) {
+                log(tag, INFO) { "Moving $path to the trash without confirmation" }
+                if (reserveDelete()) performDelete(path, forcePermDelete = false)
+                return@launch
+            }
             deleteRequestFlow.value = DeleteRequest(targets = setOf(path), initialPermanentDelete = permanent)
         }
     }
@@ -940,17 +952,36 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             log(tag, WARN) { "confirmDelete() without a pending request, ignoring" }
             return
         }
+        if (!reserveDelete()) return
+        deleteRequestFlow.value = null
+        performDelete(requested, forcePermDelete)
+    }
+
+    /**
+     * Takes [deleteInFlight], unless a delete holds it already or a step is under way: a delete
+     * that skipped the confirmation decides only after a suspension, and a step started meanwhile
+     * is about to replace the file it would delete.
+     */
+    private fun reserveDelete(): Boolean {
         if (!deleteInFlight.compareAndSet(expect = false, update = true)) {
             log(tag, WARN) { "A delete is already in progress, ignoring" }
-            return
+            return false
         }
-        deleteRequestFlow.value = null
+        if (fileStep?.isActive == true) {
+            log(tag, WARN) { "A step is in flight, ignoring the delete" }
+            deleteInFlight.value = false
+            return false
+        }
+        return true
+    }
 
+    /** Runs the delete [reserveDelete] reserved, and releases the reservation once it is done. */
+    private fun performDelete(requested: APath<*>, forcePermDelete: Boolean) {
         launch {
             try {
                 val workspace = workspaceSource.first()
                 if (workspace.storedPath != requested) {
-                    log(tag, WARN) { "confirmDelete() for $requested, but ${workspace.storedPath} is on display" }
+                    log(tag, WARN) { "performDelete() for $requested, but ${workspace.storedPath} is on display" }
                     return@launch
                 }
                 // Taken before the submit: by completion the listing has usually dropped this file

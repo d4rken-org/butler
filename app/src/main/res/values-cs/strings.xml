@@ -360,14 +360,14 @@
     <string name="tour_swipe_switch_body">Táhněte prstem doleva nebo doprava kdekoliv na stránce a přepínejte mezi otevřenými kartami.</string>
     <string name="tour_swipe_create_title">Tažením vytvořte kartu</string>
     <string name="tour_swipe_create_body">Přejeďte za poslední kartu a Butler vám nabídne novou.</string>
-    <string name="tour_swipe_panes_title">Více karet najednou</string>
-    <string name="tour_swipe_panes_body">Na větší obrazovce nebo na šířku zobrazí Butler několik karet vedle sebe. Kdy se tak stane, určuje nastavení rozvržení v sekci Karty.</string>
+    <string name="tour_swipe_panes_title">Zvolte rozložení</string>
+    <string name="tour_swipe_panes_body">Chcete jiné uspořádání? Otevřete nabídku Butler a zvolte Rozložení. Dostupná rozložení závisí na velikosti okna, některá vyžadují Pro.</string>
     <string name="tour_panes_rail_title">Všechny vaše karty</string>
     <string name="tour_panes_rail_body">Zde najdete všechny otevřené karty. Klepněte na kartu a vyberte panel, do kterého má patřit. Stisknutím a podržením karty a jejím přetažením změníte jejich pořadí.</string>
     <string name="tour_panes_divider_title">Změňte velikost panelů</string>
     <string name="tour_panes_divider_body">Přetažením tohoto oddělovače dáte jednomu panelu více prostoru.</string>
     <string name="tour_panes_layout_title">Změňte rozvržení</string>
-    <string name="tour_panes_layout_body">Klepněte na tlačítko Butler a vyberte Rozvržení, čímž panely přeuspořádáte. Nastavení v sekci Karty určuje rozvržení pro každou orientaci.</string>
+    <string name="tour_panes_layout_body">Klepněte na tlačítko Butler a vyberte Rozložení, čímž panely přeuspořádáte. Nastavení v sekci Karty určuje rozvržení pro každou orientaci.</string>
 
     <string name="workspace_creating_placeholder">Vytváření karty…</string>
     <string name="workspace_ondemand_swipe_title">Tažením vytvoříte novou kartu</string>

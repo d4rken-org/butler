@@ -324,8 +324,8 @@
     <string name="tour_swipe_switch_body">Csúsztass balra vagy jobbra az oldal bármely részén a nyitott lapok közötti váltáshoz.</string>
     <string name="tour_swipe_create_title">Új lap csúsztatással</string>
     <string name="tour_swipe_create_body">Csúsztass túl az utolsó lapon, és a Butler felajánl egy újat.</string>
-    <string name="tour_swipe_panes_title">Egyszerre több lap</string>
-    <string name="tour_swipe_panes_body">Nagyobb képernyőn vagy fekvő tájolásban a Butler több lapot mutat egymás mellett. A Lapok elrendezési beállításai határozzák meg, mikor történjen ez.</string>
+    <string name="tour_swipe_panes_title">Válassz elrendezést</string>
+    <string name="tour_swipe_panes_body">Más elrendezést szeretnél? Nyisd meg a Butler menüt, és válaszd az Elrendezést. Az elérhető elrendezések az ablak méretétől függenek; némelyikhez Pro szükséges.</string>
     <string name="tour_panes_rail_title">Összes lapod</string>
     <string name="tour_panes_rail_body">Itt találod az összes nyitott lapot. Koppints egyre, és válaszd ki a panelt, ahová kerüljön. A sorrend módosításához tartsd nyomva a lapot, majd húzd át.</string>
     <string name="tour_panes_divider_title">Panelek átméretezése</string>

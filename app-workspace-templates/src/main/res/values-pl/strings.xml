@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Wybierz narzędzie</string>
     <string name="tour_templates_picker_body">To jest selektor karty, wybierz, czym powinna być ta karta. Wybranie jednego zmienia tę kartę na to narzędzie.</string>
     <string name="tour_templates_butler_button_title">Twoje karty znajdują się tutaj</string>
-    <string name="tour_templates_butler_button_body">Naciśnij przycisk Butler, aby wyświetlić menu karty: utwórz nową kartę, zamknij bieżącą lub otwórz pełny menedżer kart. Naciśnij go długo, aby przejść bezpośrednio do menedżera kart.</string>
+    <string name="tour_templates_butler_button_body">Naciśnij przycisk Butler, aby tworzyć lub zamykać karty, otworzyć menedżer kart albo wybrać Układ i zmienić rozmieszczenie kart. Przytrzymaj, aby otworzyć menedżer kart.</string>
 </resources>

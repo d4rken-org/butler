@@ -345,8 +345,8 @@
     <string name="tour_swipe_switch_body">화면 어디서든 좌우로 스와이프해 열린 탭 사이를 이동하십시오.</string>
     <string name="tour_swipe_create_title">스와이프로 탭 시작하기</string>
     <string name="tour_swipe_create_body">마지막 탭을 지나 스와이프하면 Butler가 새 탭을 제안합니다.</string>
-    <string name="tour_swipe_panes_title">한 번에 여러 탭 보기</string>
-    <string name="tour_swipe_panes_body">화면이 크거나 가로 모드일 때 Butler는 여러 탭을 나란히 보여줍니다. 이 동작 시점은 탭 설정의 레이아웃 항목에서 결정됩니다.</string>
+    <string name="tour_swipe_panes_title">레이아웃 선택</string>
+    <string name="tour_swipe_panes_body">다른 배치를 원하시나요? Butler 메뉴를 열고 레이아웃을 선택하세요. 사용할 수 있는 레이아웃은 창 크기에 따라 다르며, 일부는 Pro가 필요합니다.</string>
     <string name="tour_panes_rail_title">모든 탭 한눈에</string>
     <string name="tour_panes_rail_body">열린 탭이 모두 여기에 있습니다. 탭을 선택하고 이동할 패널을 고르십시오. 탭을 길게 눌러 드래그하면 순서를 바꿀 수 있습니다.</string>
     <string name="tour_panes_divider_title">패널 크기 조절</string>

@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">เลือกเครื่องมือ</string>
     <string name="tour_templates_picker_body">นี่คือตัวเลือกแท็บ เลือกว่าแท็บนี้ควรเป็นอะไร การเลือกหนึ่งรายการจะเปลี่ยนแท็บนี้เป็นเครื่องมือนั้น</string>
     <string name="tour_templates_butler_button_title">แท็บของคุณอยู่ที่นี่</string>
-    <string name="tour_templates_butler_button_body">แตะปุ่ม Butler สำหรับเมนูแท็บ สร้างแท็บใหม่ ปิดแท็บปัจจุบัน หรือเปิดตัวจัดการแท็บแบบเต็ม กดค้างไว้เพื่อไปที่ตัวจัดการแท็บโดยตรง</string>
+    <string name="tour_templates_butler_button_body">แตะปุ่ม Butler เพื่อสร้างหรือปิดแท็บ เปิดตัวจัดการแท็บ หรือเลือกเค้าโครงเพื่อเปลี่ยนการจัดเรียงแท็บ กดค้างไว้เพื่อเปิดตัวจัดการแท็บ</string>
 </resources>

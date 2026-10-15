@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">選擇工具</string>
     <string name="tour_templates_picker_body">這是分頁選擇器，選擇此分頁應該是什麼。選擇一個會將此分頁變成該工具。</string>
     <string name="tour_templates_butler_button_title">您的分頁在這裡</string>
-    <string name="tour_templates_butler_button_body">輕觸 Butler 按鈕以開啟分頁選單：建立新分頁、關閉目前分頁或開啟完整分頁管理員。長按以直接跳到分頁管理員。</string>
+    <string name="tour_templates_butler_button_body">輕觸 Butler 按鈕即可建立或關閉分頁、開啟分頁管理員，或選擇「版面配置」來變更分頁的排列方式。長按可開啟分頁管理員。</string>
 </resources>

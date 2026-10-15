@@ -361,14 +361,14 @@
     <string name="tour_swipe_switch_body">Wische auf der Seite nach links oder rechts, um zwischen Deinen geöffneten Tabs zu wechseln.</string>
     <string name="tour_swipe_create_title">Wischen, um einen Tab zu starten</string>
     <string name="tour_swipe_create_body">Wische über Deinen letzten Tab hinaus, und Butler bietet Dir einen neuen an.</string>
-    <string name="tour_swipe_panes_title">Mehr als ein Tab gleichzeitig</string>
-    <string name="tour_swipe_panes_body">Auf einem größeren Bildschirm oder im Querformat zeigt Butler mehrere Tabs nebeneinander an. Die Layout-Einstellungen unter Tabs legen fest, wann das geschieht.</string>
+    <string name="tour_swipe_panes_title">Wähle deine Anordnung</string>
+    <string name="tour_swipe_panes_body">Lieber eine andere Anordnung? Öffne das Butler-Menü und wähle Anordnung. Welche Anordnungen verfügbar sind, hängt von der Fenstergröße ab; manche erfordern Pro.</string>
     <string name="tour_panes_rail_title">Alle Deine Tabs</string>
     <string name="tour_panes_rail_body">Hier findest Du alle geöffneten Tabs. Tippe auf einen und wähle den Bereich aus, dem er zugewiesen werden soll. Halte einen Tab gedrückt und ziehe ihn, um die Reihenfolge zu ändern.</string>
     <string name="tour_panes_divider_title">Bereiche in der Größe anpassen</string>
     <string name="tour_panes_divider_body">Ziehe diese Trennlinie, um einem Bereich mehr Platz zu geben.</string>
     <string name="tour_panes_layout_title">Anordnung ändern</string>
-    <string name="tour_panes_layout_body">Tippe auf die Butler-Schaltfläche und wähle Layout, um die Bereiche neu anzuordnen. Die Tab-Einstellungen legen ein Layout pro Ausrichtung fest.</string>
+    <string name="tour_panes_layout_body">Tippe auf die Butler-Schaltfläche und wähle Anordnung, um die Bereiche neu anzuordnen. Die Tab-Einstellungen legen ein Layout pro Ausrichtung fest.</string>
 
     <string name="workspace_creating_placeholder">Tab wird erstellt…</string>
     <string name="workspace_ondemand_swipe_title">Wischen, um neuen Tab zu erstellen</string>

@@ -371,8 +371,8 @@
     <string name="tour_swipe_switch_body">Potiahni doľava alebo doprava kdekoľvek na stránke a prepínaj medzi otvorenými kartami.</string>
     <string name="tour_swipe_create_title">Vytvor kartu potiahnutím</string>
     <string name="tour_swipe_create_body">Potiahni za poslednú kartu a Butler ti ponúkne novú.</string>
-    <string name="tour_swipe_panes_title">Viac kariet naraz</string>
-    <string name="tour_swipe_panes_body">Na väčšej obrazovke alebo na šírku zobrazuje Butler viac kariet vedľa seba. Nastavenia rozloženia v časti Karty určujú, kedy sa tak stane.</string>
+    <string name="tour_swipe_panes_title">Vyber si rozloženie</string>
+    <string name="tour_swipe_panes_body">Chceš iné usporiadanie? Otvor ponuku Butler a zvoľ Rozloženie. Dostupné rozloženia závisia od veľkosti okna a niektoré vyžadujú Pro.</string>
     <string name="tour_panes_rail_title">Všetky tvoje karty</string>
     <string name="tour_panes_rail_body">Tu nájdeš každú otvorenú kartu. Ťukni na ňu a vyber panel, do ktorého má ísť. Ak chceš zmeniť poradie kariet, podrž kartu a potiahni ju.</string>
     <string name="tour_panes_divider_title">Zmeň veľkosť panelov</string>

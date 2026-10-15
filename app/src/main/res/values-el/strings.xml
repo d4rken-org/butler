@@ -350,8 +350,8 @@
     <string name="tour_swipe_switch_body">Σύρτε αριστερά ή δεξιά οπουδήποτε στη σελίδα για να μετακινηθείτε μεταξύ των ανοιχτών σας καρτελών.</string>
     <string name="tour_swipe_create_title">Σύρετε για να ξεκινήσετε μια καρτέλα</string>
     <string name="tour_swipe_create_body">Σύρτε πέρα από την τελευταία σας καρτέλα και το Butler σας προσφέρει μια καινούρια.</string>
-    <string name="tour_swipe_panes_title">Περισσότερες από μία καρτέλα ταυτόχρονα</string>
-    <string name="tour_swipe_panes_body">Σε μεγαλύτερη οθόνη, ή σε οριζόντιο προσανατολισμό, το Butler εμφανίζει πολλές καρτέλες δίπλα-δίπλα. Οι ρυθμίσεις διάταξης στις Καρτέλες καθορίζουν πότε συμβαίνει αυτό.</string>
+    <string name="tour_swipe_panes_title">Επιλέξτε διάταξη</string>
+    <string name="tour_swipe_panes_body">Θέλετε διαφορετική διάταξη; Ανοίξτε το μενού του Butler και επιλέξτε Διάταξη. Οι διαθέσιμες διατάξεις εξαρτώνται από το μέγεθος του παραθύρου· ορισμένες απαιτούν Pro.</string>
     <string name="tour_panes_rail_title">Όλες οι καρτέλες σας</string>
     <string name="tour_panes_rail_body">Κάθε ανοιχτή καρτέλα βρίσκεται εδώ. Πατήστε μία και επιλέξτε το τμήμα στο οποίο θα πάει. Πατήστε παρατεταμένα μια καρτέλα και μετά σύρτε την για να αλλάξετε τη σειρά τους.</string>
     <string name="tour_panes_divider_title">Αλλαγή μεγέθους τμημάτων</string>

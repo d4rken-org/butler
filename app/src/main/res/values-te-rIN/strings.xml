@@ -367,8 +367,8 @@
     <string name="tour_swipe_switch_body">తెరిచి ఉన్న ట్యాబ్‌ల మధ్య మారడానికి పేజీలో ఎక్కడైనా ఎడమకు లేదా కుడికి స్వైప్ చేయండి.</string>
     <string name="tour_swipe_create_title">ట్యాబ్‌ను ప్రారంభించడానికి స్వైప్ చేయండి</string>
     <string name="tour_swipe_create_body">చివరి ట్యాబ్‌ను దాటి స్వైప్ చేస్తే, Butler కొత్త ట్యాబ్‌ను అందిస్తుంది.</string>
-    <string name="tour_swipe_panes_title">ఒకేసారి ఒకటి కంటే ఎక్కువ ట్యాబ్‌లు</string>
-    <string name="tour_swipe_panes_body">పెద్ద స్క్రీన్‌పై లేదా ల్యాండ్‌స్కేప్‌లో Butler అనేక ట్యాబ్‌లను పక్కపక్కన చూపిస్తుంది. ఇలా ఎప్పుడు చూపించాలో ట్యాబ్‌ల కింద ఉన్న లేఅవుట్ సెట్టింగ్‌లు నిర్ణయిస్తాయి.</string>
+    <string name="tour_swipe_panes_title">మీ లేఅవుట్‌ను ఎంచుకోండి</string>
+    <string name="tour_swipe_panes_body">వేరే అమరిక కావాలా? Butler మెనూను తెరిచి లేఅవుట్‌ను ఎంచుకోండి. అందుబాటులో ఉండే లేఅవుట్‌లు విండో పరిమాణంపై ఆధారపడి ఉంటాయి; కొన్నింటికి Pro అవసరం.</string>
     <string name="tour_panes_rail_title">మీ ట్యాబ్‌లన్నీ</string>
     <string name="tour_panes_rail_body">తెరిచి ఉన్న ప్రతి ట్యాబ్ ఇక్కడ ఉంటుంది. ఒకదాన్ని నొక్కి, అది వెళ్లాల్సిన పేన్‌ను ఎంచుకోండి. క్రమాన్ని మార్చడానికి ట్యాబ్‌ను నొక్కి పట్టుకుని, లాగండి.</string>
     <string name="tour_panes_divider_title">పేన్‌ల పరిమాణాన్ని మార్చండి</string>

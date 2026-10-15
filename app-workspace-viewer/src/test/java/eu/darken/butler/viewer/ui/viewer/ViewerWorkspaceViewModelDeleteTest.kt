@@ -138,6 +138,7 @@ class ViewerWorkspaceViewModelDeleteTest : BaseTest() {
             clipboardRepo = mockk(relaxed = true),
             trashSettings = mockk<TrashSettings>(relaxed = true).apply {
                 every { enabled.flow } returns flowOf(false)
+                every { confirmTrashMove.flow } returns flowOf(true)
             },
             // Never completes: these cases are about what gets submitted, not about the outcome.
             operationsManager = mockk<OperationsManager>(relaxed = true).apply {

@@ -118,6 +118,7 @@ class SearcherSelectionShareTest {
             openWithIntentUseCase = mockk(relaxed = true),
             trashSettings = mockk(relaxed = true) {
                 every { enabled.flow } returns flowOf(true)
+                every { confirmTrashMove.flow } returns flowOf(true)
             },
             folderPreviewResolver = mockk(relaxed = true),
             appInstallLauncher = mockk(relaxed = true),

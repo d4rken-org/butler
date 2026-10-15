@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">选择工具</string>
     <string name="tour_templates_picker_body">这是选项卡选择器，选择此选项卡应为什么。选择一个可以将此选项卡变为该工具。</string>
     <string name="tour_templates_butler_button_title">你的选项卡在此</string>
-    <string name="tour_templates_butler_button_body">点击 Butler 按钮打开选项卡菜单：创建新选项卡、关闭当前选项卡或打开完整的选项卡管理器。长按可直接跳转到选项卡管理器。</string>
+    <string name="tour_templates_butler_button_body">点按 Butler 按钮可创建或关闭选项卡、打开选项卡管理器，或选择“布局”来更改选项卡的排列方式。长按可打开选项卡管理器。</string>
 </resources>

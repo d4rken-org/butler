@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Escolha uma ferramenta</string>
     <string name="tour_templates_picker_body">Este é o seletor de abas, escolha o que essa aba deve ser. Escolhendo uma transforma esta aba naquela ferramenta.</string>
     <string name="tour_templates_butler_button_title">Suas abas ficam aqui</string>
-    <string name="tour_templates_butler_button_body">Toque no botão Butler para o menu de abas: criar uma nova aba, fechar a atual ou abrir o gerenciador completo de abas. Pressione e segure para ir direto ao gerenciador.</string>
+    <string name="tour_templates_butler_button_body">Toque no botão Butler para criar ou fechar abas, abrir o gerenciador de abas ou escolher Layout para mudar como as abas são organizadas. Pressione e segure para abrir o gerenciador de abas.</string>
 </resources>

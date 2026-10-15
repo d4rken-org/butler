@@ -373,8 +373,8 @@
     <string name="tour_swipe_switch_body">Przesuń palcem w lewo lub w prawo w dowolnym miejscu strony, aby przełączać się między otwartymi kartami.</string>
     <string name="tour_swipe_create_title">Przesuń, aby utworzyć kartę</string>
     <string name="tour_swipe_create_body">Przesuń poza ostatnią kartę, a Butler zaproponuje nową.</string>
-    <string name="tour_swipe_panes_title">Więcej niż jedna karta naraz</string>
-    <string name="tour_swipe_panes_body">Na większym ekranie lub w orientacji poziomej Butler pokazuje kilka kart obok siebie. Ustawienia układu w sekcji Karty decydują, kiedy to następuje.</string>
+    <string name="tour_swipe_panes_title">Wybierz układ</string>
+    <string name="tour_swipe_panes_body">Chcesz inny układ? Otwórz menu Butler i wybierz Układ. Dostępne układy zależą od rozmiaru okna, a niektóre wymagają Pro.</string>
     <string name="tour_panes_rail_title">Wszystkie Twoje karty</string>
     <string name="tour_panes_rail_body">Tutaj znajdują się wszystkie otwarte karty. Dotknij jednej i wybierz panel, do którego ma trafić. Naciśnij i przytrzymaj kartę, a następnie przeciągnij ją, aby zmienić kolejność.</string>
     <string name="tour_panes_divider_title">Zmień rozmiar paneli</string>

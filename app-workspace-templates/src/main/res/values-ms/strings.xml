@@ -7,5 +7,5 @@
     <string name="tour_templates_picker_title">Pilih alat</string>
     <string name="tour_templates_picker_body">Ini ialah pemilih tab, pilih fungsi tab ini. Memilih satu menukar tab ini menjadi alat itu.</string>
     <string name="tour_templates_butler_button_title">Tab kamu ada di sini</string>
-    <string name="tour_templates_butler_button_body">Ketik butang Butler untuk menu tab: Cipta tab baharu, tutup tab semasa atau buka pengurus tab penuh. Tekan lama untuk terus ke pengurus tab.</string>
+    <string name="tour_templates_butler_button_body">Ketik butang Butler untuk mencipta atau menutup tab, membuka pengurus tab, atau memilih Susun atur untuk mengubah cara tab disusun. Tekan lama untuk pengurus tab.</string>
 </resources>

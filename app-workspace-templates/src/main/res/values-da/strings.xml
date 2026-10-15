@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Vælg et værktøj</string>
     <string name="tour_templates_picker_body">Dette er fanevælgeren. Vælg, hvad denne fane skal være. Når du vælger et værktøj, bliver denne fane til det værktøj.</string>
     <string name="tour_templates_butler_button_title">Her bor dine faner</string>
-    <string name="tour_templates_butler_button_body">Tryk på Butler-knappen for at åbne fanemenuen: Opret en ny fane, luk den aktuelle eller åbn den fulde fanehåndtering. Tryk og hold på knappen for at gå direkte til fanehåndteringen.</string>
+    <string name="tour_templates_butler_button_body">Tryk på Butler-knappen for at oprette eller lukke faner, åbne fanehåndteringen eller vælge Layout for at ændre, hvordan fanerne er arrangeret. Tryk og hold for fanehåndteringen.</string>
 </resources>

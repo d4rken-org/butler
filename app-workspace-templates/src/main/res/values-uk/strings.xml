@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Виберіть інструмент</string>
     <string name="tour_templates_picker_body">Це засіб вибору вкладки, виберіть, чим має бути ця вкладка. Вибір одного інструменту перетворить цю вкладку на цей інструмент.</string>
     <string name="tour_templates_butler_button_title">Ваші вкладки знаходяться тут</string>
-    <string name="tour_templates_butler_button_body">Натисніть кнопку Butler для меню вкладок: створіть нову вкладку, закрийте поточну або відкрийте повний менеджер вкладок. Довго натисніть її, щоб перейти прямо до менеджера вкладок.</string>
+    <string name="tour_templates_butler_button_body">Натисніть кнопку Butler, щоб створювати чи закривати вкладки, відкрити менеджер вкладок або вибрати «Розташування» і змінити впорядкування вкладок. Довге натискання відкриває менеджер вкладок.</string>
 </resources>

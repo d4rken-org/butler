@@ -89,7 +89,7 @@ fun Modifier.explorerKeyboardShortcuts(
                 onExecuteAction(createAction)
             }
         }
-        on(KeyboardShortcut.Delete) {
+        on(KeyboardShortcut.Delete, ignoreRepeats = true) {
             val deleteAction = availableActions
                 .filterIsInstance<ExplorerActionBarItem.Directory.Delete>()
                 .firstOrNull()
@@ -106,7 +106,7 @@ fun Modifier.explorerKeyboardShortcuts(
             }
         }
         // Shift+Delete: Permanently delete (bypass trash)
-        on(KeyboardShortcut.ShiftDelete) {
+        on(KeyboardShortcut.ShiftDelete, ignoreRepeats = true) {
             val deleteAction = availableActions
                 .filterIsInstance<ExplorerActionBarItem.Directory.Delete>()
                 .firstOrNull()

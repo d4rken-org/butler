@@ -33,9 +33,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -74,6 +76,9 @@ class ViewerDeleteAdvanceTest : BaseTest() {
     /** Every delete submitted, with the operation id it was handed. */
     private val deletes = mutableListOf<Pair<APath<*>, Operation.Id>>()
 
+    /** The `forcePermDelete` of every delete submitted, in the order of [deletes]. */
+    private val deleteModes = mutableListOf<Boolean>()
+
     /** Set to hold a create inside the ViewModel, so a tap arrives while one is in flight. */
     private var createGate: CompletableDeferred<Unit>? = null
 
@@ -84,6 +89,11 @@ class ViewerDeleteAdvanceTest : BaseTest() {
     private var onDelete: ((APath<*>, Operation.Id) -> Unit)? = null
 
     private var showNextAfterDelete = true
+
+    private var trashEnabledSetting = false
+
+    /** Replace with a gated flow to hold `requestDelete` inside its settings read. */
+    private var confirmTrashMoveSetting: Flow<Boolean> = flowOf(true)
 
     /** No replay, like the real one: a completion nobody listens to is gone. */
     private lateinit var completions: MutableSharedFlow<CompletedOperationSnapshot>
@@ -99,10 +109,13 @@ class ViewerDeleteAdvanceTest : BaseTest() {
         creates.clear()
         closes.clear()
         deletes.clear()
+        deleteModes.clear()
         createGate = null
         createResult = WorkspaceAction.Create.Result.Success(workspaceId)
         onDelete = null
         showNextAfterDelete = true
+        trashEnabledSetting = false
+        confirmTrashMoveSetting = flowOf(true)
         completions = MutableSharedFlow(extraBufferCapacity = 16)
         listing = MutableStateFlow(listOf(a, b, c))
         origin = MutableStateFlow(makeOrigin())
@@ -157,6 +170,7 @@ class ViewerDeleteAdvanceTest : BaseTest() {
         coEvery { delete(any()) } answers {
             val operationId = Operation.Id()
             deletes.add(path to operationId)
+            deleteModes.add(firstArg())
             onDelete?.invoke(path, operationId)
             operationId
         }
@@ -212,7 +226,8 @@ class ViewerDeleteAdvanceTest : BaseTest() {
             shareIntentUseCase = mockk(relaxed = true),
             clipboardRepo = mockk(relaxed = true),
             trashSettings = mockk<TrashSettings>(relaxed = true).apply {
-                every { enabled.flow } returns flowOf(false)
+                every { enabled.flow } returns flowOf(trashEnabledSetting)
+                every { confirmTrashMove.flow } returns confirmTrashMoveSetting
             },
             operationsManager = mockk<OperationsManager>(relaxed = true).apply {
                 every { completedOperations } returns completions
@@ -237,6 +252,15 @@ class ViewerDeleteAdvanceTest : BaseTest() {
     /** The state only renders while it is collected, and the delete reads the neighbours from it. */
     private fun TestScope.startCollecting(vm: ViewerWorkspaceViewModel) {
         backgroundScope.launch(Dispatchers.Unconfined) { vm.state.collect { } }
+    }
+
+    /** Every value the confirmation dialog was driven with, the initial one included. */
+    private fun TestScope.recordDeleteRequests(
+        vm: ViewerWorkspaceViewModel,
+    ): List<ViewerWorkspaceViewModel.DeleteRequest?> {
+        val requests = mutableListOf<ViewerWorkspaceViewModel.DeleteRequest?>()
+        backgroundScope.launch(Dispatchers.Unconfined) { vm.deleteRequest.collect { requests.add(it) } }
+        return requests
     }
 
     private fun TestScope.collectErrors(vm: ViewerWorkspaceViewModel): List<Throwable> {
@@ -582,5 +606,101 @@ class ViewerDeleteAdvanceTest : BaseTest() {
         ready.actions.filterIsInstance<ViewerActionBarItem.NextFile>() shouldBe listOf(
             ViewerActionBarItem.NextFile(isEnabled = true),
         )
+    }
+
+    @Test
+    fun `with the confirmation off a trash move advances without asking`() = runTest2 {
+        trashEnabledSetting = true
+        confirmTrashMoveSetting = flowOf(false)
+        val vm = makeViewModel()
+        startCollecting(vm)
+        val requests = recordDeleteRequests(vm)
+
+        vm.requestDelete()
+
+        deletes.map { it.first } shouldBe listOf(b)
+        deleteModes shouldBe listOf(false)
+
+        completeLastDelete()
+
+        closes shouldBe emptyList()
+        creates.single().target shouldBe c
+        requests.filterNotNull() shouldBe emptyList()
+    }
+
+    @Test
+    fun `with the confirmation off and show next off a trash move closes the viewer`() = runTest2 {
+        trashEnabledSetting = true
+        confirmTrashMoveSetting = flowOf(false)
+        showNextAfterDelete = false
+        val vm = makeViewModel()
+        startCollecting(vm)
+        val requests = recordDeleteRequests(vm)
+
+        vm.requestDelete()
+        completeLastDelete()
+
+        deleteModes shouldBe listOf(false)
+        creates shouldBe emptyList()
+        closes.single().id shouldBe workspaceId
+        requests.filterNotNull() shouldBe emptyList()
+    }
+
+    @Test
+    fun `a step started while the confirmation setting is read keeps the delete from running`() = runTest2 {
+        trashEnabledSetting = true
+        val settingGate = CompletableDeferred<Unit>()
+        confirmTrashMoveSetting = flow {
+            settingGate.await()
+            emit(false)
+        }
+        val stepGate = CompletableDeferred<Unit>()
+        createGate = stepGate
+        val vm = makeViewModel()
+        startCollecting(vm)
+        val requests = recordDeleteRequests(vm)
+
+        vm.requestDelete()
+        vm.showNextFile()
+        creates.single().target shouldBe c
+
+        settingGate.complete(Unit)
+        deletes shouldBe emptyList()
+
+        stepGate.complete(Unit)
+        deletes shouldBe emptyList()
+        requests.filterNotNull() shouldBe emptyList()
+    }
+
+    @Test
+    fun `with the confirmation off a permanent delete still asks`() = runTest2 {
+        trashEnabledSetting = true
+        confirmTrashMoveSetting = flowOf(false)
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        vm.requestDelete(permanent = true)
+
+        vm.deleteRequest.value shouldBe ViewerWorkspaceViewModel.DeleteRequest(
+            targets = setOf(b),
+            initialPermanentDelete = true,
+        )
+        deletes shouldBe emptyList()
+    }
+
+    @Test
+    fun `with the confirmation on a trash move asks first`() = runTest2 {
+        trashEnabledSetting = true
+        confirmTrashMoveSetting = flowOf(true)
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        vm.requestDelete()
+
+        vm.deleteRequest.value shouldBe ViewerWorkspaceViewModel.DeleteRequest(
+            targets = setOf(b),
+            initialPermanentDelete = false,
+        )
+        deletes shouldBe emptyList()
     }
 }

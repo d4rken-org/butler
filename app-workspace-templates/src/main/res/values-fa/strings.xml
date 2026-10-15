@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">یک ابزار انتخاب کنید</string>
     <string name="tour_templates_picker_body">این انتخاب‌کننده زبانه است، انتخاب کنید این زبانه چه باید باشد. انتخاب یکی این زبانه را به آن ابزار تبدیل می‌کند.</string>
     <string name="tour_templates_butler_button_title">زبانه‌های شما اینجا هستند</string>
-    <string name="tour_templates_butler_button_body">برای منوی زبانه روی دکمه Butler ضربه بزنید: یک زبانه جدید ایجاد کنید، یکی فعلی را ببندید، یا مدیر کامل زبانه را باز کنید. برای رفتن مستقیم به مدیر زبانه، آن را مدت‌طولانی فشار دهید.</string>
+    <string name="tour_templates_butler_button_body">روی دکمه Butler ضربه بزنید تا زبانه بسازید یا ببندید، مدیر زبانه را باز کنید، یا «چیدمان» را برای تغییر نحوه چینش زبانه‌ها انتخاب کنید. برای مدیر زبانه، آن را طولانی فشار دهید.</string>
 </resources>

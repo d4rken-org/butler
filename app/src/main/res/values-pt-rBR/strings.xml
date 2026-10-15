@@ -363,8 +363,8 @@
     <string name="tour_swipe_switch_body">Deslize para a esquerda ou para a direita em qualquer lugar da página para alternar entre suas abas abertas.</string>
     <string name="tour_swipe_create_title">Deslize para iniciar uma aba</string>
     <string name="tour_swipe_create_body">Deslize além da sua última aba e o Butler oferece uma nova.</string>
-    <string name="tour_swipe_panes_title">Mais de uma aba por vez</string>
-    <string name="tour_swipe_panes_body">Em uma tela maior, ou na orientação paisagem, o Butler mostra várias abas lado a lado. As configurações de layout em Abas decidem quando isso acontece.</string>
+    <string name="tour_swipe_panes_title">Escolha seu layout</string>
+    <string name="tour_swipe_panes_body">Quer outra organização? Abra o menu do Butler e escolha Layout. Os layouts disponíveis dependem do tamanho da janela; alguns exigem Pro.</string>
     <string name="tour_panes_rail_title">Todas as suas abas</string>
     <string name="tour_panes_rail_body">Todas as abas abertas ficam aqui. Toque em uma e escolha o painel para onde ela deve ir. Toque e segure uma aba, depois arraste-a, para mudar a ordem.</string>
     <string name="tour_panes_divider_title">Redimensione os painéis</string>

@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Elige una herramienta</string>
     <string name="tour_templates_picker_body">Este es el selector de pestañas. Elige qué debería ser esta pestaña. Al elegir una, esta pestaña se convierte en esa herramienta.</string>
     <string name="tour_templates_butler_button_title">Aquí es donde viven tus pestañas</string>
-    <string name="tour_templates_butler_button_body">Toca el botón Butler para el menú de pestañas: Crea una pestaña nueva, cierra la actual, o abre el administrador de pestañas completo. Mantenlo presionado para ir directamente al administrador de pestañas.</string>
+    <string name="tour_templates_butler_button_body">Toca el botón Butler para crear o cerrar pestañas, abrir el administrador de pestañas o elegir Diseño y cambiar cómo se organizan las pestañas. Mantenlo presionado para ir al administrador de pestañas.</string>
 </resources>

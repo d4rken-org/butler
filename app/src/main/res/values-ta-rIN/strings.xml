@@ -361,8 +361,8 @@
     <string name="tour_swipe_switch_body">திறந்துள்ள தாவல்களுக்கிடையே மாற, பக்கத்தில் எங்கு வேண்டுமானாலும் இடது அல்லது வலது பக்கம் ஸ்வைப் செய்யுங்கள்.</string>
     <string name="tour_swipe_create_title">தாவலைத் தொடங்க ஸ்வைப் செய்யுங்கள்</string>
     <string name="tour_swipe_create_body">கடைசித் தாவலைத் தாண்டி ஸ்வைப் செய்தால், Butler புதிய தாவலை வழங்கும்.</string>
-    <string name="tour_swipe_panes_title">ஒரே நேரத்தில் ஒன்றுக்கு மேற்பட்ட தாவல்கள்</string>
-    <string name="tour_swipe_panes_body">பெரிய திரையிலோ கிடைமட்டத் திரை நிலையிலோ, Butler பல தாவல்களை அருகருகே காட்டும். இது எப்போது நிகழும் என்பதைத் தாவல்கள் பிரிவிலுள்ள தளவமைப்பு அமைப்புகள் தீர்மானிக்கும்.</string>
+    <string name="tour_swipe_panes_title">தளவமைப்பைத் தேர்ந்தெடுங்கள்</string>
+    <string name="tour_swipe_panes_body">வேறு அமைப்பு வேண்டுமா? Butler பட்டியைத் திறந்து தளவமைப்பைத் தேர்ந்தெடுங்கள். கிடைக்கும் தளவமைப்புகள் சாளரத்தின் அளவைப் பொறுத்தது; சிலவற்றுக்கு Pro தேவை.</string>
     <string name="tour_panes_rail_title">உங்கள் அனைத்துத் தாவல்களும்</string>
     <string name="tour_panes_rail_body">திறந்துள்ள ஒவ்வொரு தாவலும் இங்கே இருக்கும். ஒன்றைத் தட்டி, அது செல்ல வேண்டிய பலகத்தைத் தேர்ந்தெடுங்கள். தாவல்களின் வரிசையை மாற்ற, ஒரு தாவலை நீண்ட நேரம் அழுத்தி இழுக்கவும்.</string>
     <string name="tour_panes_divider_title">பலகங்களின் அளவை மாற்றுங்கள்</string>

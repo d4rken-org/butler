@@ -329,8 +329,8 @@
     <string name="tour_swipe_switch_body">Glisează la stânga sau la dreapta oriunde pe pagină pentru a trece între filele deschise.</string>
     <string name="tour_swipe_create_title">Glisează pentru a începe o filă</string>
     <string name="tour_swipe_create_body">Glisează dincolo de ultima filă și Butler îți oferă una nouă.</string>
-    <string name="tour_swipe_panes_title">Mai multe file deodată</string>
-    <string name="tour_swipe_panes_body">Pe un ecran mai mare sau în mod peisaj, Butler arată mai multe file alăturate. Setările de aranjare din File decid când se întâmplă asta.</string>
+    <string name="tour_swipe_panes_title">Alege aranjarea</string>
+    <string name="tour_swipe_panes_body">Vrei altă aranjare? Deschide meniul Butler și alege Aranjare. Aranjările disponibile depind de dimensiunea ferestrei; unele necesită Pro.</string>
     <string name="tour_panes_rail_title">Toate filele tale</string>
     <string name="tour_panes_rail_body">Fiecare filă deschisă se află aici. Atinge una și alege panoul în care să apară. Ține apăsată o filă, apoi trage-o pentru a schimba ordinea.</string>
     <string name="tour_panes_divider_title">Redimensionează panourile</string>

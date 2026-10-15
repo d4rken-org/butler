@@ -345,8 +345,8 @@
     <string name="tour_swipe_switch_body">画面上を左右にスワイプすると、開いているタブを移動できます。</string>
     <string name="tour_swipe_create_title">スワイプでタブを作成</string>
     <string name="tour_swipe_create_body">最後のタブを越えてスワイプすると、Butlerが新しいタブを提案します。</string>
-    <string name="tour_swipe_panes_title">複数のタブを同時に表示</string>
-    <string name="tour_swipe_panes_body">大きな画面や横向きでは、Butlerは複数のタブを並べて表示します。「タブ」設定内のレイアウト設定がその条件を決めます。</string>
+    <string name="tour_swipe_panes_title">レイアウトを選ぶ</string>
+    <string name="tour_swipe_panes_body">別の並べ方にしたいときは、Butlerメニューを開いて「レイアウト」を選びます。使えるレイアウトはウィンドウのサイズによって異なり、一部はProが必要です。</string>
     <string name="tour_panes_rail_title">すべてのタブ</string>
     <string name="tour_panes_rail_body">開いているすべてのタブがここにあります。タップして表示先のペインを選べます。タブを長押ししてドラッグすると順序を変更できます。</string>
     <string name="tour_panes_divider_title">ペインのサイズ変更</string>

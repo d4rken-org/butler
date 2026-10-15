@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">اختر أداة</string>
     <string name="tour_templates_picker_body">هذا هو منتقي العلامات، اختر ما يجب أن تكون عليه هذه العلامة. سيؤدي اختيار واحد إلى تحويل هذه العلامة إلى تلك الأداة.</string>
     <string name="tour_templates_butler_button_title">تعيش علاماتك هنا</string>
-    <string name="tour_templates_butler_button_body">اضغط على زر Butler لقائمة العلامات: أنشئ علامة جديدة، أغلق الحالية، أو افتح مدير العلامات الكامل. اضغط عليه مطولاً للانتقال مباشرة إلى مدير العلامات.</string>
+    <string name="tour_templates_butler_button_body">اضغط على زر Butler لإنشاء علامات تبويب أو إغلاقها، أو فتح مدير العلامات، أو اختيار التخطيط لتغيير ترتيب علامات التبويب. اضغط عليه مطولاً لفتح مدير العلامات.</string>
 </resources>

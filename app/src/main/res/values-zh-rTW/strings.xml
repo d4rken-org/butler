@@ -360,8 +360,8 @@
     <string name="tour_swipe_switch_body">在頁面上任意位置向左或向右滑動，即可在已開啟的分頁間切換。</string>
     <string name="tour_swipe_create_title">滑動建立分頁</string>
     <string name="tour_swipe_create_body">滑過最後一個分頁，Butler 就會為你建立新分頁。</string>
-    <string name="tour_swipe_panes_title">同時顯示多個分頁</string>
-    <string name="tour_swipe_panes_body">在較大的螢幕或橫向模式下，Butler 會並排顯示多個分頁。「分頁」下的版面設定可決定何時啟用此功能。</string>
+    <string name="tour_swipe_panes_title">選擇版面配置</string>
+    <string name="tour_swipe_panes_body">想換個排列方式？開啟 Butler 選單並選擇「版面配置」。可用的版面配置取決於視窗大小，部分需要 Pro。</string>
     <string name="tour_panes_rail_title">所有分頁</string>
     <string name="tour_panes_rail_body">所有已開啟的分頁都在這裡。點按任一分頁，選擇要放入的窗格。按住分頁並拖曳即可調整順序。</string>
     <string name="tour_panes_divider_title">調整窗格大小</string>

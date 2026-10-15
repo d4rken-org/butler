@@ -9,7 +9,8 @@ import eu.darken.butler.viewer.core.ViewerContent
 /**
  * Keyboard shortcuts for the viewer page:
  * - Left / Right: previous / next file of the listing the viewer was opened from
- * - Delete: ask to delete the file; Shift+Delete asks with "Delete permanently" already ticked
+ * - Delete: ask to delete the file; Shift+Delete asks with "Delete permanently" already ticked.
+ *   Holding either key acts once.
  * - PageUp / PageDown: previous / next page of a PDF
  *
  * Nothing is registered unless [active]: `keyboardShortcuts` dispatches regardless of its `enabled`
@@ -39,12 +40,12 @@ internal fun Modifier.viewerKeyboardShortcuts(
             .firstOrNull { it.isEnabled }
             ?.let(onAction)
     }
-    on(KeyboardShortcut.Delete) {
+    on(KeyboardShortcut.Delete, ignoreRepeats = true) {
         actions.filterIsInstance<ViewerActionBarItem.Delete>()
             .firstOrNull()
             ?.let(onAction)
     }
-    on(KeyboardShortcut.ShiftDelete) {
+    on(KeyboardShortcut.ShiftDelete, ignoreRepeats = true) {
         if (actions.any { it is ViewerActionBarItem.Delete }) {
             onPageAction(ViewerPageAction.RequestPermanentDelete)
         }

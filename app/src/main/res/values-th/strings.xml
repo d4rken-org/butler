@@ -345,14 +345,14 @@
     <string name="tour_swipe_switch_body">ปัดซ้ายหรือขวาที่ใดก็ได้บนหน้าจอเพื่อสลับไปมาระหว่างแท็บที่เปิดอยู่</string>
     <string name="tour_swipe_create_title">ปัดเพื่อสร้างแท็บ</string>
     <string name="tour_swipe_create_body">ปัดเลยแท็บสุดท้าย Butler จะเสนอแท็บใหม่ให้ทันที</string>
-    <string name="tour_swipe_panes_title">แสดงได้มากกว่าหนึ่งแท็บพร้อมกัน</string>
-    <string name="tour_swipe_panes_body">บนหน้าจอที่ใหญ่ขึ้น หรือในแนวนอน Butler จะแสดงหลายแท็บเรียงข้างกัน การตั้งค่าเลย์เอาต์ในเมนูแท็บเป็นตัวกำหนดว่าจะแสดงเมื่อใด</string>
+    <string name="tour_swipe_panes_title">เลือกเค้าโครง</string>
+    <string name="tour_swipe_panes_body">อยากจัดเรียงแบบอื่นไหม เปิดเมนู Butler แล้วเลือกเค้าโครง เค้าโครงที่ใช้ได้ขึ้นอยู่กับขนาดหน้าต่าง และบางแบบต้องใช้ Pro</string>
     <string name="tour_panes_rail_title">แท็บทั้งหมดของคุณ</string>
     <string name="tour_panes_rail_body">แท็บที่เปิดอยู่ทั้งหมดจะอยู่ที่นี่ แตะแท็บแล้วเลือกพาเนลที่ต้องการวาง กดค้างแท็บแล้วลากเพื่อเปลี่ยนลำดับ</string>
     <string name="tour_panes_divider_title">ปรับขนาดพาเนล</string>
     <string name="tour_panes_divider_body">ลากเส้นแบ่งนี้เพื่อขยายพื้นที่ให้พาเนลใดพาเนลหนึ่ง</string>
     <string name="tour_panes_layout_title">เปลี่ยนการจัดวาง</string>
-    <string name="tour_panes_layout_body">แตะปุ่ม Butler แล้วเลือกเลย์เอาต์เพื่อจัดพาเนลใหม่ การตั้งค่าแท็บจะกำหนดเลย์เอาต์แยกตามแนวจอ</string>
+    <string name="tour_panes_layout_body">แตะปุ่ม Butler แล้วเลือกเค้าโครงเพื่อจัดพาเนลใหม่ การตั้งค่าแท็บจะกำหนดเลย์เอาต์แยกตามแนวจอ</string>
 
     <string name="workspace_creating_placeholder">กำลังสร้างแท็บ…</string>
     <string name="workspace_ondemand_swipe_title">ปัดเพื่อสร้างแท็บใหม่</string>

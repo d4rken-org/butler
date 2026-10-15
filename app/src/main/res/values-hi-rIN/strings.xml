@@ -324,8 +324,8 @@
     <string name="tour_swipe_switch_body">खुले टैब के बीच जाने के लिए पेज पर कहीं भी बाएँ या दाएँ स्वाइप करें।</string>
     <string name="tour_swipe_create_title">स्वाइप करके टैब शुरू करें</string>
     <string name="tour_swipe_create_body">आखिरी टैब के आगे स्वाइप करें और Butler आपको एक नया टैब देगा।</string>
-    <string name="tour_swipe_panes_title">एक समय में एक से ज़्यादा टैब</string>
-    <string name="tour_swipe_panes_body">बड़ी स्क्रीन पर या लैंडस्केप में Butler कई टैब साथ-साथ दिखाता है। यह कब हो, इसे टैब के अंतर्गत लेआउट सेटिंग तय करती है।</string>
+    <string name="tour_swipe_panes_title">अपना लेआउट चुनें</string>
+    <string name="tour_swipe_panes_body">कोई और व्यवस्था चाहिए? Butler मेनू खोलें और लेआउट चुनें। उपलब्ध लेआउट विंडो के आकार पर निर्भर करते हैं; कुछ के लिए Pro ज़रूरी है।</string>
     <string name="tour_panes_rail_title">आपके सभी टैब</string>
     <string name="tour_panes_rail_body">हर खुला टैब यहाँ है। किसी को दबाएँ और उसका पैनल चुनें। क्रम बदलने के लिए टैब देर तक दबाकर खींचें।</string>
     <string name="tour_panes_divider_title">पैनल का आकार बदलें</string>

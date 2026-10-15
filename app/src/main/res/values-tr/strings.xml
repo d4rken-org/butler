@@ -351,8 +351,8 @@
     <string name="tour_swipe_switch_body">Açık sekmeleriniz arasında geçiş yapmak için sayfanın herhangi bir yerinde sola veya sağa kaydırın.</string>
     <string name="tour_swipe_create_title">Sekme başlatmak için kaydırın</string>
     <string name="tour_swipe_create_body">Son sekmenizi geçecek şekilde kaydırın, Butler size yeni bir sekme sunar.</string>
-    <string name="tour_swipe_panes_title">Aynı anda birden fazla sekme</string>
-    <string name="tour_swipe_panes_body">Daha büyük bir ekranda veya yatay modda Butler birden çok sekmeyi yan yana gösterir. Sekmeler altındaki düzen ayarları bunun ne zaman olacağını belirler.</string>
+    <string name="tour_swipe_panes_title">Düzeninizi seçin</string>
+    <string name="tour_swipe_panes_body">Farklı bir yerleşim mi istiyorsunuz? Butler menüsünü açın ve Düzen\'i seçin. Kullanılabilen düzenler pencere boyutuna bağlıdır; bazıları Pro gerektirir.</string>
     <string name="tour_panes_rail_title">Tüm sekmeleriniz</string>
     <string name="tour_panes_rail_body">Her açık sekme burada bulunur. Birine dokunun ve gideceği bölmeyi seçin. Sırasını değiştirmek için bir sekmeyi basılı tutup sürükleyin.</string>
     <string name="tour_panes_divider_title">Bölmeleri yeniden boyutlandırın</string>

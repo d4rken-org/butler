@@ -367,8 +367,8 @@
     <string name="tour_swipe_switch_body">খোলা ট্যাবগুলোর মধ্যে যেতে পৃষ্ঠার যেকোনো জায়গায় বাঁয়ে বা ডানে সোয়াইপ করুন।</string>
     <string name="tour_swipe_create_title">সোয়াইপ করে ট্যাব শুরু করুন</string>
     <string name="tour_swipe_create_body">শেষ ট্যাবের পরে সোয়াইপ করলে Butler নতুন ট্যাবের সুযোগ দেয়।</string>
-    <string name="tour_swipe_panes_title">একসঙ্গে একাধিক ট্যাব</string>
-    <string name="tour_swipe_panes_body">বড় পর্দায় বা ল্যান্ডস্কেপে Butler একাধিক ট্যাব পাশাপাশি দেখায়। কখন তা হবে, ট্যাবের বিন্যাস সেটিংস ঠিক করে।</string>
+    <string name="tour_swipe_panes_title">বিন্যাস বেছে নিন</string>
+    <string name="tour_swipe_panes_body">অন্যভাবে সাজাতে চান? Butler মেনু খুলে বিন্যাস বাছুন। কোন বিন্যাস পাওয়া যাবে তা উইন্ডোর আকারের ওপর নির্ভর করে; কিছু বিন্যাসের জন্য Pro লাগে।</string>
     <string name="tour_panes_rail_title">আপনার সব ট্যাব</string>
     <string name="tour_panes_rail_body">প্রতিটি খোলা ট্যাব এখানে থাকে। একটিতে ট্যাপ করে কোন প্যানে যাবে বাছুন। ক্রম বদলাতে ট্যাব চেপে ধরে টানুন।</string>
     <string name="tour_panes_divider_title">প্যানের আকার বদলান</string>

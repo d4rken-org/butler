@@ -363,8 +363,8 @@
     <string name="tour_swipe_switch_body">Mag-swipe pakaliwa o pakanan saanman sa pahina upang lumipat sa pagitan ng iyong mga bukas na tab.</string>
     <string name="tour_swipe_create_title">Mag-swipe upang magsimula ng tab</string>
     <string name="tour_swipe_create_body">Mag-swipe lampas sa iyong huling tab at mag-aalok ang Butler ng bago.</string>
-    <string name="tour_swipe_panes_title">Higit sa isang tab sa isang pagkakataon</string>
-    <string name="tour_swipe_panes_body">Sa mas malaking screen, o kapag nakapahalang, nagpapakita ang Butler ng ilang tab nang magkakatabi. Itinatakda ng mga setting ng layout sa ilalim ng Mga tab kung kailan ito mangyayari.</string>
+    <string name="tour_swipe_panes_title">Piliin ang iyong layout</string>
+    <string name="tour_swipe_panes_body">Gusto mo ng ibang ayos? Buksan ang menu ng Butler at piliin ang Layout. Nakadepende sa laki ng window ang mga available na layout; ang ilan ay nangangailangan ng Pro.</string>
     <string name="tour_panes_rail_title">Lahat ng iyong tab</string>
     <string name="tour_panes_rail_body">Nandito ang bawat bukas na tab. I-tap ang isa at piliin ang panel na paglalagyan nito. Pindutin nang matagal ang isang tab at i-drag ito upang baguhin ang pagkakasunod.</string>
     <string name="tour_panes_divider_title">Baguhin ang laki ng mga panel</string>

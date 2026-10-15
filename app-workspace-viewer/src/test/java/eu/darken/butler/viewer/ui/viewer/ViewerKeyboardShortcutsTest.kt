@@ -186,6 +186,39 @@ class ViewerKeyboardShortcutsTest : ComposeTest() {
         pageActions shouldBe emptyList()
     }
 
+    /** Holds [keyCode] down for [repeats] auto-repeats, then releases it. */
+    private fun hold(keyCode: Int, repeats: Int, metaState: Int = 0) {
+        (0..repeats).forEach { repeat ->
+            composeTestRule.onRoot().performKeyPress(
+                KeyEvent(NativeKeyEvent(0L, 0L, NativeKeyEvent.ACTION_DOWN, keyCode, repeat, metaState)),
+            )
+        }
+        composeTestRule.onRoot().performKeyPress(
+            KeyEvent(NativeKeyEvent(0L, 0L, NativeKeyEvent.ACTION_UP, keyCode, 0, metaState)),
+        )
+        composeTestRule.waitForIdle()
+    }
+
+    @Test
+    fun `holding delete asks only once`() {
+        setPage(imageState())
+
+        hold(NativeKeyEvent.KEYCODE_FORWARD_DEL, repeats = 3)
+
+        actions shouldBe listOf(ViewerActionBarItem.Delete(trashEnabled = false))
+        pageActions shouldBe emptyList()
+    }
+
+    @Test
+    fun `holding shift+delete asks only once`() {
+        setPage(imageState())
+
+        hold(NativeKeyEvent.KEYCODE_FORWARD_DEL, repeats = 3, metaState = NativeKeyEvent.META_SHIFT_ON)
+
+        pageActions shouldBe listOf(ViewerPageAction.RequestPermanentDelete)
+        actions shouldBe emptyList()
+    }
+
     @Test
     fun `delete does nothing for streamed content`() {
         setPage(streamedState())

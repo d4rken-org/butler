@@ -9,5 +9,5 @@
     <string name="tour_templates_picker_title">Kies een hulpmiddel</string>
     <string name="tour_templates_picker_body">Dit is het scherm om een tabblad te kiezen. Kies wat dit tabblad moet zijn. Als je er één kiest, wordt dit tabblad veranderd in dat hulpmiddel.</string>
     <string name="tour_templates_butler_button_title">Je tabbladen staan hier</string>
-    <string name="tour_templates_butler_button_body">Tik op de Butler-knop voor het tabbladmenu: maak een nieuw tabblad, sluit de huidige, of open de volledige tabbladmanager. Houd het ingedrukt om direct naar de tabbladmanager te gaan.</string>
+    <string name="tour_templates_butler_button_body">Tik op de Butler-knop om tabbladen te maken of te sluiten, de tabbladmanager te openen, of kies Indeling om te wijzigen hoe tabbladen zijn geschikt. Houd ingedrukt voor de tabbladmanager.</string>
 </resources>

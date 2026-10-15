@@ -363,8 +363,8 @@
     <string name="tour_swipe_switch_body">Balayez vers la gauche ou la droite n’importe où sur la page pour naviguer entre vos onglets ouverts.</string>
     <string name="tour_swipe_create_title">Balayez pour démarrer un onglet</string>
     <string name="tour_swipe_create_body">Balayez au-delà de votre dernier onglet et Butler vous en propose un nouveau.</string>
-    <string name="tour_swipe_panes_title">Plus d’un onglet à la fois</string>
-    <string name="tour_swipe_panes_body">Sur un écran plus grand, ou en mode paysage, Butler affiche plusieurs onglets côte à côte. Les paramètres de disposition sous Onglets déterminent quand cela se produit.</string>
+    <string name="tour_swipe_panes_title">Choisissez votre disposition</string>
+    <string name="tour_swipe_panes_body">Envie d’un autre agencement ? Ouvrez le menu Butler et choisissez Disposition. Les dispositions disponibles dépendent de la taille de la fenêtre ; certaines nécessitent Pro.</string>
     <string name="tour_panes_rail_title">Tous vos onglets</string>
     <string name="tour_panes_rail_body">Tous les onglets ouverts se trouvent ici. Touchez-en un et choisissez le panneau où il doit aller. Maintenez un onglet, puis faites-le glisser, pour changer leur ordre.</string>
     <string name="tour_panes_divider_title">Redimensionnez les panneaux</string>
