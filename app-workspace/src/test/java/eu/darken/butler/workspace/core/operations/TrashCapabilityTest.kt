@@ -48,4 +48,51 @@ class TrashCapabilityTest : BaseTest() {
         partition.trashable.shouldBeEmpty()
         partition.untrashable.shouldBeEmpty()
     }
+
+    private fun skips(
+        targets: Set<APath<*>> = setOf(localA, localB),
+        permanentRequested: Boolean = false,
+        trashEnabled: Boolean = true,
+        confirmTrashMove: Boolean = false,
+    ) = skipsDeleteConfirmation(
+        targets = targets,
+        permanentRequested = permanentRequested,
+        trashEnabled = trashEnabled,
+        confirmTrashMove = confirmTrashMove,
+    )
+
+    @Test
+    fun `a trash move of local items skips the confirmation when it is turned off`() {
+        skips() shouldBe true
+    }
+
+    @Test
+    fun `the confirmation setting on keeps the dialog`() {
+        skips(confirmTrashMove = true) shouldBe false
+    }
+
+    @Test
+    fun `a disabled trash keeps the dialog`() {
+        skips(trashEnabled = false) shouldBe false
+    }
+
+    @Test
+    fun `a permanent delete keeps the dialog`() {
+        skips(permanentRequested = true) shouldBe false
+    }
+
+    @Test
+    fun `a mixed local and saf selection keeps the dialog`() {
+        skips(targets = setOf(localA, safA)) shouldBe false
+    }
+
+    @Test
+    fun `a saf only selection keeps the dialog`() {
+        skips(targets = setOf(safA, safB)) shouldBe false
+    }
+
+    @Test
+    fun `an empty selection keeps the dialog`() {
+        skips(targets = emptySet()) shouldBe false
+    }
 }

@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">Αυτός ο λογαριασμός ενδέχεται να μην μπορεί να ανοίξει τον φάκελο που έχει οριστεί για το \"%1$s\". Έλεγξε τα δικαιώματα του φακέλου στον διακομιστή.</string>
     <string name="sftp_error_pro_required_title">Οι διακομιστές SFTP απαιτούν Butler Pro</string>
     <string name="sftp_error_pro_required_description">Η περιήγηση σε διακομιστές SFTP είναι μέρος του Butler Pro. Η προσθήκη, η δοκιμή και η αφαίρεση διακομιστών είναι δωρεάν.</string>
+    <string name="webdav_error_credential_unavailable_title">Απαιτείται σύνδεση</string>
+    <string name="webdav_error_credential_unavailable_description">Ο αποθηκευμένος κωδικός για αυτόν τον διακομιστή WebDAV δεν μπορεί πλέον να διαβαστεί. Εισήγαγέ τον ξανά για να επανασυνδεθείς.</string>
+    <string name="webdav_error_unreachable_title">Ο διακομιστής δεν είναι προσβάσιμος</string>
+    <string name="webdav_error_unreachable_description">Το Butler δεν μπόρεσε να προσεγγίσει το \"%1$s\". Έλεγξε τη διεύθυνση και ότι ο διακομιστής εκτελείται.</string>
+    <string name="webdav_error_auth_title">Η σύνδεση απέτυχε</string>
+    <string name="webdav_error_auth_description">Το \"%1$s\" απέρριψε το όνομα χρήστη ή τον κωδικό.</string>
+    <string name="webdav_error_certificate_untrusted_title">Μη έμπιστο πιστοποιητικό</string>
+    <string name="webdav_error_certificate_untrusted_description">Το \"%1$s\" παρουσίασε ένα πιστοποιητικό που αυτή η συσκευή δεν εμπιστεύεται. Το Butler δεν συνδέθηκε.\n\nΑποτύπωμα: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">Το πιστοποιητικό του διακομιστή άλλαξε</string>
+    <string name="webdav_error_certificate_changed_description">Το \"%1$s\" παρουσίασε διαφορετικό πιστοποιητικό από αυτό που είχες εμπιστευτεί. Το Butler δεν συνδέθηκε.\n\nΕμπιστευμένο: %2$s\nΠαρουσιάστηκε: %3$s</string>
+    <string name="webdav_error_access_denied_title">Δεν υπάρχει πρόσβαση σε αυτόν τον φάκελο</string>
+    <string name="webdav_error_access_denied_description">Δεν επιτρέπεται σε αυτόν τον λογαριασμό να ανοίξει τον φάκελο που έχει οριστεί για το \"%1$s\". Έλεγξε τα δικαιώματα του φακέλου στον διακομιστή.</string>
+    <string name="webdav_error_not_collection_title">Δεν είναι φάκελος WebDAV</string>
+    <string name="webdav_error_not_collection_description">Το \"%1$s\" δεν είναι φάκελος WebDAV. Έλεγξε τη διεύθυνση, πρέπει να παραπέμπει σε φάκελο στον διακομιστή.</string>
+    <string name="webdav_error_pro_required_title">Οι διακομιστές WebDAV απαιτούν Butler Pro</string>
+    <string name="webdav_error_pro_required_description">Η περιήγηση σε διακομιστές WebDAV είναι μέρος του Butler Pro. Η προσθήκη, η δοκιμή και η αφαίρεση διακομιστών είναι δωρεάν.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Προστατευμένη δέσμη εφαρμογής</string>
     <string name="app_install_error_protected_bundle_description">Το \"%1$s\" είναι κρυπτογραφημένο και μπορεί να εγκατασταθεί μόνο από την εφαρμογή που το δημιούργησε.</string>

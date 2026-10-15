@@ -232,7 +232,7 @@ fun SearcherWorkspacePage(
                         onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAll))
                     }
                 }
-                on(KeyboardShortcut.Delete) {
+                on(KeyboardShortcut.Delete, ignoreRepeats = true) {
                     val selectedResults = currentState.selectionState.selectedResults
                     if (selectedResults.isNotEmpty()) {
                         onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.Delete(selectedResults)))

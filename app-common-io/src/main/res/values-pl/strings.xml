@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">To konto może nie mieć dostępu do folderu ustawionego dla \"%1$s\". Sprawdź uprawnienia folderu na serwerze.</string>
     <string name="sftp_error_pro_required_title">Serwery SFTP wymagają Butler Pro</string>
     <string name="sftp_error_pro_required_description">Przeglądanie serwerów SFTP jest częścią Butler Pro. Dodawanie, testowanie i usuwanie serwerów jest bezpłatne.</string>
+    <string name="webdav_error_credential_unavailable_title">Wymagane logowanie</string>
+    <string name="webdav_error_credential_unavailable_description">Nie można już odczytać zapisanego hasła do tego serwera WebDAV. Wpisz je ponownie, aby połączyć się ponownie.</string>
+    <string name="webdav_error_unreachable_title">Serwer niedostępny</string>
+    <string name="webdav_error_unreachable_description">Butler nie mógł połączyć się z \"%1$s\". Sprawdź adres i czy serwer jest uruchomiony.</string>
+    <string name="webdav_error_auth_title">Logowanie nie powiodło się</string>
+    <string name="webdav_error_auth_description">\"%1$s\" odrzucił nazwę użytkownika lub hasło.</string>
+    <string name="webdav_error_certificate_untrusted_title">Niezaufany certyfikat</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" przedstawił certyfikat, któremu to urządzenie nie ufa. Butler się nie zalogował.\n\nOdcisk: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">Certyfikat serwera się zmienił</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" przedstawił inny certyfikat niż ten uznany za zaufany. Butler się nie zalogował.\n\nZaufany: %2$s\nPrzedstawiony: %3$s</string>
+    <string name="webdav_error_access_denied_title">Brak dostępu do tego folderu</string>
+    <string name="webdav_error_access_denied_description">To konto nie ma uprawnień do otwierania folderu ustawionego dla \"%1$s\". Sprawdź uprawnienia folderu na serwerze.</string>
+    <string name="webdav_error_not_collection_title">To nie jest folder WebDAV</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" nie jest folderem WebDAV. Sprawdź adres, musi wskazywać folder na serwerze.</string>
+    <string name="webdav_error_pro_required_title">Serwery WebDAV wymagają Butler Pro</string>
+    <string name="webdav_error_pro_required_description">Przeglądanie serwerów WebDAV jest częścią Butler Pro. Dodawanie, testowanie i usuwanie serwerów jest bezpłatne.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Chroniony pakiet aplikacji</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" jest szyfrowany i może być zainstalowany tylko przez aplikację, która go utworzyła.</string>

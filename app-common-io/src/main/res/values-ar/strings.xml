@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">قد لا يتمكن هذا الحساب من فتح المجلد المحدد لـ \"%1$s\". تحقق من أذونات المجلد على الخادم.</string>
     <string name="sftp_error_pro_required_title">خوادم SFTP تتطلب Butler Pro</string>
     <string name="sftp_error_pro_required_description">تصفح خوادم SFTP جزء من Butler Pro. إضافة الخوادم واختبارها وإزالتها مجانية.</string>
+    <string name="webdav_error_credential_unavailable_title">تسجيل دخول مطلوب</string>
+    <string name="webdav_error_credential_unavailable_description">لم تعد قراءة كلمة المرور المحفوظة لخادم WebDAV هذا ممكنة. يُرجى إدخالها مرة أخرى للاتصال من جديد.</string>
+    <string name="webdav_error_unreachable_title">الخادم غير متوفر</string>
+    <string name="webdav_error_unreachable_description">تعذر على Butler الوصول إلى \"%1$s\". يُرجى التحقق من العنوان ومن أن الخادم قيد التشغيل.</string>
+    <string name="webdav_error_auth_title">فشل تسجيل الدخول</string>
+    <string name="webdav_error_auth_description">\"%1$s\" رفض اسم المستخدم أو كلمة المرور.</string>
+    <string name="webdav_error_certificate_untrusted_title">شهادة غير موثوقة</string>
+    <string name="webdav_error_certificate_untrusted_description">قدّم \"%1$s\" شهادة لا يثق بها هذا الجهاز. لم يسجّل Butler الدخول.\n\nالبصمة: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">تغيّرت شهادة الخادم</string>
+    <string name="webdav_error_certificate_changed_description">قدّم \"%1$s\" شهادة مختلفة عن الشهادة التي تم الوثوق بها. لم يسجّل Butler الدخول.\n\nالموثوقة: %2$s\nالمقدَّمة: %3$s</string>
+    <string name="webdav_error_access_denied_title">لا يوجد وصول إلى هذا المجلد</string>
+    <string name="webdav_error_access_denied_description">لا يُسمح لهذا الحساب بفتح المجلد المحدد لـ \"%1$s\". يُرجى التحقق من أذونات المجلد على الخادم.</string>
+    <string name="webdav_error_not_collection_title">ليس مجلد WebDAV</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" ليس مجلد WebDAV. يُرجى التحقق من العنوان، يجب أن يشير إلى مجلد على الخادم.</string>
+    <string name="webdav_error_pro_required_title">خوادم WebDAV تتطلب Butler Pro</string>
+    <string name="webdav_error_pro_required_description">تصفح خوادم WebDAV جزء من Butler Pro. إضافة الخوادم واختبارها وإزالتها مجانية.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">حزمة التطبيق محمية</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" مشفرة ويمكن تثبيتها فقط من قبل التطبيق الذي أنشأها.</string>

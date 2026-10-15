@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">این حساب ممکن است نتواند پوشه تنظیم‌شده برای \"%1$s\" را باز کند. مجوزهای پوشه را روی سرور بررسی کنید.</string>
     <string name="sftp_error_pro_required_title">سرورهای SFTP نیاز به Butler Pro دارند</string>
     <string name="sftp_error_pro_required_description">مرور سرورهای SFTP بخشی از Butler Pro است. افزودن، آزمایش و حذف سرورها رایگان است.</string>
+    <string name="webdav_error_credential_unavailable_title">ورود مورد نیاز است</string>
+    <string name="webdav_error_credential_unavailable_description">رمز عبور ذخیره‌شده برای این سرور WebDAV دیگر قابل خواندن نیست. برای اتصال دوباره آن را وارد کنید.</string>
+    <string name="webdav_error_unreachable_title">سرور در دسترس نیست</string>
+    <string name="webdav_error_unreachable_description">Butler نتوانست به \"%1$s\" دسترسی پیدا کند. نشانی را بررسی کنید و مطمئن شوید سرور روشن است.</string>
+    <string name="webdav_error_auth_title">ورود ناموفق بود</string>
+    <string name="webdav_error_auth_description">\"%1$s\" نام کاربری یا رمز عبور را رد کرد.</string>
+    <string name="webdav_error_certificate_untrusted_title">گواهی غیرقابل اعتماد</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" گواهی‌ای ارائه کرد که این دستگاه به آن اعتماد ندارد. Butler وارد نشد.\n\nاثر انگشت: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">گواهی سرور تغییر کرد</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" گواهی‌ای متفاوت از گواهی‌ای که به آن اعتماد کرده بودید ارائه کرد. Butler وارد نشد.\n\nمورد اعتماد: %2$s\nارائه‌شده: %3$s</string>
+    <string name="webdav_error_access_denied_title">بدون دسترسی به این پوشه</string>
+    <string name="webdav_error_access_denied_description">این حساب اجازه باز کردن پوشه تنظیم‌شده برای \"%1$s\" را ندارد. مجوزهای پوشه را روی سرور بررسی کنید.</string>
+    <string name="webdav_error_not_collection_title">پوشه WebDAV نیست</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" یک پوشه WebDAV نیست. نشانی را بررسی کنید، باید به پوشه‌ای روی سرور اشاره کند.</string>
+    <string name="webdav_error_pro_required_title">سرورهای WebDAV نیاز به Butler Pro دارند</string>
+    <string name="webdav_error_pro_required_description">مرور سرورهای WebDAV بخشی از Butler Pro است. افزودن، آزمایش و حذف سرورها رایگان است.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">بسته برنامه محافظت شده</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" رمزگذاری شده است و تنها می‌تواند توسط برنامه‌ای که آن را ایجاد کرد نصب شود.</string>

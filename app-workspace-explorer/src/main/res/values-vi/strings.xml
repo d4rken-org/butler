@@ -147,6 +147,15 @@
     <string name="explorer_info_sftp_credential_session">Được giữ đến khi Butler đóng</string>
     <string name="explorer_info_sftp_host_key_type_label">Loại khóa máy chủ</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Dấu vân tay khóa máy chủ</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Ẩn danh</string>
+    <string name="explorer_info_webdav_credential_stored">Được lưu trên thiết bị này</string>
+    <string name="explorer_info_webdav_credential_session">Được giữ đến khi Butler đóng</string>
+    <string name="explorer_info_webdav_certificate_label">Chứng chỉ</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Chứng chỉ đã tin cậy (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Được hệ thống tin cậy</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Không được mã hóa (HTTP)</string>
 
     <!-- Thông tin nhiều mục -->
     <string name="explorer_info_selected_label">Đã chọn</string>
@@ -326,6 +335,8 @@
     <string name="explorer_network_protocol_smb_caption">Thư mục chia sẻ Windows và hầu hết thư mục NAS</string>
     <string name="explorer_network_protocol_sftp_label">Máy chủ SFTP</string>
     <string name="explorer_network_protocol_sftp_caption">Bất kỳ máy chủ nào bạn có thể truy cập qua SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud và các máy chủ WebDAV khác</string>
     <string name="explorer_sftp_form_add_title">Thêm máy chủ SFTP</string>
     <string name="explorer_sftp_form_edit_title">Sửa máy chủ SFTP</string>
     <string name="explorer_sftp_form_sign_in_title">Đăng nhập vào %1$s</string>
@@ -376,6 +387,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Thay thế khóa máy chủ?</string>
     <string name="explorer_sftp_host_key_retrust_message">Chỉ thay thế khóa nếu bạn biết lý do %1$s đã đổi nó. Butler sẽ tin cậy khóa được đưa ra từ giờ trở đi.</string>
     <string name="explorer_sftp_host_key_retrust_action">Thay thế khóa</string>
+    <string name="explorer_webdav_form_add_title">Thêm máy chủ WebDAV</string>
+    <string name="explorer_webdav_form_edit_title">Sửa máy chủ WebDAV</string>
+    <string name="explorer_webdav_form_sign_in_title">Đăng nhập vào %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Nhập lại mật khẩu để mở máy chủ này.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Máy chủ này yêu cầu tên đăng nhập và mật khẩu.</string>
+    <string name="explorer_webdav_form_url_label">URL máy chủ</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Kết nối không được mã hóa: mật khẩu và tệp được gửi dưới dạng văn bản thuần.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Ẩn danh</string>
+    <string name="explorer_webdav_form_error_url_blank">Nhập URL máy chủ</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL phải bắt đầu bằng https:// hoặc http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Nhập tên đăng nhập và mật khẩu vào các trường riêng, không nhập vào URL</string>
+    <string name="explorer_webdav_form_error_url_query">URL không được chứa truy vấn (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL không được chứa phần định danh (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">Tên đăng nhập không được chứa dấu hai chấm (:) hoặc ký tự điều khiển</string>
+    <string name="explorer_webdav_form_error_password_required">Nhập lại mật khẩu để thay đổi tên đăng nhập, phương thức đăng nhập hoặc tùy chọn ghi nhớ</string>
+    <string name="explorer_webdav_form_error_auth">%1$s từ chối tên đăng nhập hoặc mật khẩu</string>
+    <string name="explorer_webdav_form_error_access_denied">Tài khoản này không được phép mở thư mục này</string>
+    <string name="explorer_webdav_form_error_not_collection">URL này không phải là thư mục WebDAV. Với Nextcloud, URL kết thúc bằng /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Thư mục này không tồn tại trên máy chủ</string>
+    <string name="explorer_webdav_form_error_unreachable">Không thể kết nối với %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Máy chủ đưa ra một chứng chỉ khác với chứng chỉ đã tin cậy cho nó. Chưa có gì được lưu.\n\nĐã tin cậy: %1$s\nĐược đưa ra: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Chứng chỉ của máy chủ không được tin cậy. Chưa có gì được lưu.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Thông tin máy chủ đã thay đổi sau khi phép thử kết nối bắt đầu. Chưa có gì được lưu, hãy kiểm tra lại để xem lại chứng chỉ của máy chủ.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Không thể xác nhận danh tính của máy chủ. Chưa có gì được lưu.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">URL hoặc chứng chỉ của máy chủ này đã thay đổi kể từ khi chứng chỉ đó được đưa ra. Chưa có gì bị thay đổi, hãy mở lại máy chủ để xem lại chứng chỉ mà nó đang đưa ra.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Máy chủ WebDAV này đã bị xóa. Chưa có gì bị thay đổi.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Tin cậy chứng chỉ này?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Thiết bị này không tin cậy chứng chỉ mà %1$s đưa ra. Chứng chỉ có thể được tự ký, được cấp bởi một tổ chức chứng thực riêng hoặc được cấp cho một tên khác. Chỉ tiếp tục nếu dấu vân tay của chứng chỉ khớp với dấu vân tay hiển thị trên máy chủ.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Thiết bị này không còn tin cậy chứng chỉ mà %1$s đưa ra. Chỉ tiếp tục nếu dấu vân tay của chứng chỉ khớp với dấu vân tay hiển thị trên máy chủ. Butler sẽ tin cậy chứng chỉ này cho máy chủ này từ giờ trở đi.</string>
+    <string name="explorer_webdav_certificate_subject_label">Cấp cho</string>
+    <string name="explorer_webdav_certificate_issuer_label">Cấp bởi</string>
+    <string name="explorer_webdav_certificate_validity_label">Hiệu lực</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s đến %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">Dấu vân tay SHA-256</string>
+    <string name="explorer_webdav_certificate_stored_label">Chứng chỉ đã tin cậy</string>
+    <string name="explorer_webdav_certificate_presented_label">Chứng chỉ được đưa ra</string>
+    <string name="explorer_webdav_certificate_accept_action">Tin cậy chứng chỉ</string>
+    <string name="explorer_webdav_certificate_retrust_title">Thay thế chứng chỉ đã tin cậy?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Chỉ thay thế chứng chỉ nếu biết lý do %1$s đã đổi nó, ví dụ như do chứng chỉ được gia hạn. Butler sẽ tin cậy chứng chỉ được đưa ra từ giờ trở đi.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Thay thế chứng chỉ</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Chứng chỉ không được tin cậy</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s đưa ra một chứng chỉ mà thiết bị này không tin cậy. Chưa có gì được gửi đến máy chủ.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Chứng chỉ máy chủ đã thay đổi</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s đưa ra một chứng chỉ khác với chứng chỉ đã tin cậy cho nó. Điều này xảy ra khi chứng chỉ được gia hạn, nhưng cũng xảy ra khi có người chặn kết nối. Chưa có gì được gửi đến máy chủ.</string>
+    <string name="explorer_webdav_certificate_review_action">Xem lại</string>
 
     <!-- Đặt tên vị trí -->
     <string name="explorer_location_name_title">Đặt tên vị trí</string>

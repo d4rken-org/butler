@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">Ovom računu možda nije dopušteno otvoriti mapu postavljenu za \"%1$s\". Provjeri dozvole mape na poslužitelju.</string>
     <string name="sftp_error_pro_required_title">Za SFTP poslužitelje potreban je Butler Pro</string>
     <string name="sftp_error_pro_required_description">Pregledavanje SFTP poslužitelja dio je ponude Butler Pro. Dodavanje, testiranje i uklanjanje poslužitelja besplatno je.</string>
+    <string name="webdav_error_credential_unavailable_title">Potrebna je prijava</string>
+    <string name="webdav_error_credential_unavailable_description">Spremljenu lozinku za ovaj WebDAV poslužitelj više nije moguće pročitati. Unesi je ponovno za ponovno povezivanje.</string>
+    <string name="webdav_error_unreachable_title">Poslužitelj nije dostupan</string>
+    <string name="webdav_error_unreachable_description">Butler nije mogao pristupiti poslužitelju \"%1$s\". Provjeri adresu i radi li poslužitelj.</string>
+    <string name="webdav_error_auth_title">Prijava nije uspjela</string>
+    <string name="webdav_error_auth_description">Poslužitelj \"%1$s\" odbio je korisničko ime ili lozinku.</string>
+    <string name="webdav_error_certificate_untrusted_title">Nepouzdan certifikat</string>
+    <string name="webdav_error_certificate_untrusted_description">Poslužitelj \"%1$s\" predstavio je certifikat kojem ovaj uređaj ne vjeruje. Butler se nije prijavio.\n\nOtisak: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">Certifikat poslužitelja je promijenjen</string>
+    <string name="webdav_error_certificate_changed_description">Poslužitelj \"%1$s\" predstavio je drugi certifikat od onoga kojem se vjeruje. Butler se nije prijavio.\n\nPouzdani certifikat: %2$s\nPredstavljeni certifikat: %3$s</string>
+    <string name="webdav_error_access_denied_title">Nema pristupa ovoj mapi</string>
+    <string name="webdav_error_access_denied_description">Ovom računu nije dopušteno otvoriti mapu postavljenu za \"%1$s\". Provjeri dozvole mape na poslužitelju.</string>
+    <string name="webdav_error_not_collection_title">Ovo nije WebDAV mapa</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" nije WebDAV mapa. Provjeri adresu, mora upućivati na mapu na poslužitelju.</string>
+    <string name="webdav_error_pro_required_title">Za WebDAV poslužitelje potreban je Butler Pro</string>
+    <string name="webdav_error_pro_required_description">Pregledavanje WebDAV poslužitelja dio je ponude Butler Pro. Dodavanje, testiranje i uklanjanje poslužitelja besplatno je.</string>
 
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Zaštićeni paket aplikacije</string>

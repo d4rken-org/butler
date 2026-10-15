@@ -151,6 +151,15 @@
     <string name="explorer_info_sftp_credential_session">تا بسته شدن Butler نگه داشته می‌شود</string>
     <string name="explorer_info_sftp_host_key_type_label">نوع کلید میزبان</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">اثر انگشت کلید میزبان</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">ناشناس</string>
+    <string name="explorer_info_webdav_credential_stored">ذخیره‌شده روی این دستگاه</string>
+    <string name="explorer_info_webdav_credential_session">تا بسته شدن Butler نگه داشته می‌شود</string>
+    <string name="explorer_info_webdav_certificate_label">گواهی</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">گواهی مورد اعتماد (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">مورد اعتماد سیستم</string>
+    <string name="explorer_info_webdav_certificate_cleartext">رمزگذاری‌نشده (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">انتخاب‌شده</string>
@@ -337,6 +346,8 @@
     <string name="explorer_network_protocol_smb_caption">اشتراک‌های ویندوز و بیشتر پوشه‌های NAS</string>
     <string name="explorer_network_protocol_sftp_label">سرور SFTP</string>
     <string name="explorer_network_protocol_sftp_caption">هر سروری که از طریق SSH به آن دسترسی دارید</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud، ownCloud و دیگر سرورهای WebDAV</string>
     <string name="explorer_sftp_form_add_title">افزودن سرور SFTP</string>
     <string name="explorer_sftp_form_edit_title">ویرایش سرور SFTP</string>
     <string name="explorer_sftp_form_sign_in_title">ورود به %1$s</string>
@@ -387,6 +398,52 @@
     <string name="explorer_sftp_host_key_retrust_title">کلید سرور جایگزین شود؟</string>
     <string name="explorer_sftp_host_key_retrust_message">فقط اگر می‌دانید %1$s چرا کلید خود را تغییر داده است، کلید را جایگزین کنید. Butler از این پس به کلید ارائه‌شده اعتماد می‌کند.</string>
     <string name="explorer_sftp_host_key_retrust_action">جایگزینی کلید</string>
+    <string name="explorer_webdav_form_add_title">افزودن سرور WebDAV</string>
+    <string name="explorer_webdav_form_edit_title">ویرایش سرور WebDAV</string>
+    <string name="explorer_webdav_form_sign_in_title">ورود به %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">برای باز کردن این سرور، گذرواژه را دوباره وارد کنید.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">این سرور نام کاربری و گذرواژه می‌خواهد.</string>
+    <string name="explorer_webdav_form_url_label">URL سرور</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">اتصال رمزگذاری‌نشده: گذرواژه و فایل‌های شما به‌صورت متن ساده ارسال می‌شوند.</string>
+    <string name="explorer_webdav_form_auth_anonymous">ناشناس</string>
+    <string name="explorer_webdav_form_error_url_blank">URL سرور را وارد کنید</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL باید با https:// یا http:// شروع شود</string>
+    <string name="explorer_webdav_form_error_url_user_info">نام کاربری و گذرواژه را در فیلدهای مخصوص خود وارد کنید، نه در URL</string>
+    <string name="explorer_webdav_form_error_url_query">URL نمی‌تواند بخش پرس‌وجو (?…) داشته باشد</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL نمی‌تواند بخش قطعه (#…) داشته باشد</string>
+    <string name="explorer_webdav_form_error_username_malformed">نام کاربری نمی‌تواند دونقطه (:) یا نویسه‌های کنترلی داشته باشد</string>
+    <string name="explorer_webdav_form_error_password_required">برای تغییر نام کاربری، روش ورود یا تنظیم به‌خاطرسپاری، گذرواژه را دوباره وارد کنید</string>
+    <string name="explorer_webdav_form_error_auth">%1$s نام کاربری یا گذرواژه را رد کرد</string>
+    <string name="explorer_webdav_form_error_access_denied">این حساب اجازه باز کردن این پوشه را ندارد</string>
+    <string name="explorer_webdav_form_error_not_collection">این URL یک پوشه WebDAV نیست. در Nextcloud به /remote.php/dav/files/USERNAME/ ختم می‌شود</string>
+    <string name="explorer_webdav_form_error_missing">این پوشه روی سرور وجود ندارد</string>
+    <string name="explorer_webdav_form_error_unreachable">دسترسی به %1$s ممکن نیست</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">سرور گواهی‌ای متفاوت از گواهی مورد اعتماد برای آن ارائه کرد. چیزی ذخیره نشد.\n\nمورد اعتماد: %1$s\nارائه‌شده: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">به گواهی سرور اعتماد نشد. چیزی ذخیره نشد.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">جزئیات سرور پس از شروع آزمایش اتصال تغییر کرد. چیزی ذخیره نشد، برای بررسی گواهی سرور دوباره آزمایش کنید.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">هویت سرور تأیید نشد. چیزی ذخیره نشد.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">URL یا گواهی این سرور پس از ارائه آن گواهی تغییر کرده است. چیزی تغییر نکرد، سرور را دوباره باز کنید تا گواهی‌ای را که اکنون ارائه می‌کند بررسی کنید.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">این سرور WebDAV حذف شده است. چیزی تغییر نکرد.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">به این گواهی اعتماد شود؟</string>
+    <string name="explorer_webdav_certificate_untrusted_message">این دستگاه به گواهی‌ای که %1$s ارائه کرد اعتماد ندارد. ممکن است خودامضا باشد، توسط یک مرجع خصوصی صادر شده باشد یا برای نام دیگری صادر شده باشد. فقط اگر اثر انگشت آن با اثر انگشتی که سرور شما نشان می‌دهد مطابقت دارد، ادامه دهید.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">این دستگاه دیگر به گواهی‌ای که %1$s ارائه می‌کند اعتماد ندارد. فقط اگر اثر انگشت آن با اثر انگشتی که سرور شما نشان می‌دهد مطابقت دارد، ادامه دهید. Butler از این پس برای این سرور به این گواهی اعتماد می‌کند.</string>
+    <string name="explorer_webdav_certificate_subject_label">صادرشده برای</string>
+    <string name="explorer_webdav_certificate_issuer_label">صادرشده توسط</string>
+    <string name="explorer_webdav_certificate_validity_label">اعتبار</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s تا %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">اثر انگشت SHA-256</string>
+    <string name="explorer_webdav_certificate_stored_label">گواهی مورد اعتماد</string>
+    <string name="explorer_webdav_certificate_presented_label">گواهی ارائه‌شده</string>
+    <string name="explorer_webdav_certificate_accept_action">اعتماد به گواهی</string>
+    <string name="explorer_webdav_certificate_retrust_title">گواهی مورد اعتماد جایگزین شود؟</string>
+    <string name="explorer_webdav_certificate_retrust_message">فقط اگر می‌دانید %1$s چرا گواهی خود را تغییر داده است، مثلاً به دلیل تمدید آن، گواهی را جایگزین کنید. Butler از این پس به گواهی ارائه‌شده اعتماد می‌کند.</string>
+    <string name="explorer_webdav_certificate_retrust_action">جایگزینی گواهی</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">گواهی مورد اعتماد نیست</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s گواهی‌ای ارائه کرد که این دستگاه به آن اعتماد ندارد. چیزی به سرور ارسال نشد.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">گواهی سرور تغییر کرد</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s گواهی‌ای متفاوت از گواهی مورد اعتماد برای آن ارائه کرد. این اتفاق هنگام تمدید گواهی می‌افتد، اما وقتی کسی اتصال را شنود می‌کند هم رخ می‌دهد. چیزی به سرور ارسال نشد.</string>
+    <string name="explorer_webdav_certificate_review_action">بررسی</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">نام‌گذاری مکان</string>

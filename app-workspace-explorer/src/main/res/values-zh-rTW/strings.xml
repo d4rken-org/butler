@@ -147,6 +147,15 @@
     <string name="explorer_info_sftp_credential_session">保留至 Butler 關閉為止</string>
     <string name="explorer_info_sftp_host_key_type_label">主機金鑰類型</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">主機金鑰指紋</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">匿名</string>
+    <string name="explorer_info_webdav_credential_stored">儲存在此裝置上</string>
+    <string name="explorer_info_webdav_credential_session">保留至 Butler 關閉為止</string>
+    <string name="explorer_info_webdav_certificate_label">憑證</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">已信任的憑證 (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">受系統信任</string>
+    <string name="explorer_info_webdav_certificate_cleartext">未加密 (HTTP)</string>
 
     <!-- 多重項目資訊 -->
     <string name="explorer_info_selected_label">已選取</string>
@@ -326,6 +335,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows 共用資料夾與大多數 NAS 資料夾</string>
     <string name="explorer_network_protocol_sftp_label">SFTP 伺服器</string>
     <string name="explorer_network_protocol_sftp_caption">任何可透過 SSH 連線的伺服器</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud、ownCloud 與其他 WebDAV 伺服器</string>
     <string name="explorer_sftp_form_add_title">新增 SFTP 伺服器</string>
     <string name="explorer_sftp_form_edit_title">編輯 SFTP 伺服器</string>
     <string name="explorer_sftp_form_sign_in_title">登入 %1$s</string>
@@ -376,6 +387,52 @@
     <string name="explorer_sftp_host_key_retrust_title">要取代伺服器金鑰嗎？</string>
     <string name="explorer_sftp_host_key_retrust_message">僅在你知道 %1$s 為何變更金鑰時才取代。Butler 之後會信任目前提供的金鑰。</string>
     <string name="explorer_sftp_host_key_retrust_action">取代金鑰</string>
+    <string name="explorer_webdav_form_add_title">新增 WebDAV 伺服器</string>
+    <string name="explorer_webdav_form_edit_title">編輯 WebDAV 伺服器</string>
+    <string name="explorer_webdav_form_sign_in_title">登入 %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">請重新輸入密碼以開啟此伺服器。</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">此伺服器要求使用者名稱與密碼。</string>
+    <string name="explorer_webdav_form_url_label">伺服器 URL</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">未加密的連線：你的密碼與檔案會以明文傳送。</string>
+    <string name="explorer_webdav_form_auth_anonymous">匿名</string>
+    <string name="explorer_webdav_form_error_url_blank">請輸入伺服器 URL</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL 必須以 https:// 或 http:// 開頭</string>
+    <string name="explorer_webdav_form_error_url_user_info">請在各自的欄位中輸入使用者名稱與密碼，不要填在 URL 中</string>
+    <string name="explorer_webdav_form_error_url_query">URL 不可包含查詢字串 (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL 不可包含片段 (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">使用者名稱不可包含冒號 (:) 或控制字元</string>
+    <string name="explorer_webdav_form_error_password_required">如要變更使用者名稱、登入方式或記住設定，請重新輸入密碼</string>
+    <string name="explorer_webdav_form_error_auth">%1$s 拒絕了使用者名稱或密碼</string>
+    <string name="explorer_webdav_form_error_access_denied">此帳戶無權開啟此資料夾</string>
+    <string name="explorer_webdav_form_error_not_collection">此 URL 不是 WebDAV 資料夾。Nextcloud 的 URL 以 /remote.php/dav/files/USERNAME/ 結尾</string>
+    <string name="explorer_webdav_form_error_missing">伺服器上不存在此資料夾</string>
+    <string name="explorer_webdav_form_error_unreachable">無法連接 %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">伺服器提供的憑證與先前信任的不同。未儲存任何內容。\n\n已信任：%1$s\n目前提供：%2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">伺服器的憑證未受信任。未儲存任何內容。</string>
+    <string name="explorer_webdav_form_error_certificate_stale">連線測試開始後，伺服器詳細資料已變更。未儲存任何內容，請重新測試以檢查伺服器的憑證。</string>
+    <string name="explorer_webdav_form_error_unconfirmed">無法確認伺服器的身分。未儲存任何內容。</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">自提供該憑證以來，此伺服器的 URL 或憑證已變更。未變更任何內容，請重新開啟伺服器以檢查它目前提供的憑證。</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">此 WebDAV 伺服器已被移除。未變更任何內容。</string>
+    <string name="explorer_webdav_certificate_untrusted_title">要信任此憑證嗎？</string>
+    <string name="explorer_webdav_certificate_untrusted_message">此裝置不信任 %1$s 提供的憑證。它可能是自我簽署的憑證、由私人憑證機構簽發，或簽發給其他名稱。僅在其指紋與你的伺服器顯示的指紋相符時才繼續。</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">此裝置已不再信任 %1$s 提供的憑證。僅在其指紋與你的伺服器顯示的指紋相符時才繼續。Butler 之後會信任此伺服器的這張憑證。</string>
+    <string name="explorer_webdav_certificate_subject_label">簽發對象</string>
+    <string name="explorer_webdav_certificate_issuer_label">簽發者</string>
+    <string name="explorer_webdav_certificate_validity_label">有效期間</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s 至 %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256 指紋</string>
+    <string name="explorer_webdav_certificate_stored_label">已信任的憑證</string>
+    <string name="explorer_webdav_certificate_presented_label">目前提供的憑證</string>
+    <string name="explorer_webdav_certificate_accept_action">信任憑證</string>
+    <string name="explorer_webdav_certificate_retrust_title">要取代已信任的憑證嗎？</string>
+    <string name="explorer_webdav_certificate_retrust_message">僅在你知道 %1$s 為何變更憑證時才取代，例如因為憑證已更新。Butler 之後會信任目前提供的憑證。</string>
+    <string name="explorer_webdav_certificate_retrust_action">取代憑證</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">憑證不受信任</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s 提供了此裝置不信任的憑證。未向伺服器傳送任何內容。</string>
+    <string name="explorer_webdav_certificate_card_changed_title">伺服器憑證已變更</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s 提供的憑證與先前信任的不同。憑證更新時會發生這種情況，但有人攔截連線時也會。未向伺服器傳送任何內容。</string>
+    <string name="explorer_webdav_certificate_review_action">檢查</string>
 
     <!-- 位置命名 -->
     <string name="explorer_location_name_title">為位置命名</string>

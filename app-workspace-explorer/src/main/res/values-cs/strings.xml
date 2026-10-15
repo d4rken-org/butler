@@ -159,6 +159,15 @@
     <string name="explorer_info_sftp_credential_session">Uchováno do zavření Butleru</string>
     <string name="explorer_info_sftp_host_key_type_label">Typ klíče hostitele</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Otisk klíče hostitele</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Anonymní</string>
+    <string name="explorer_info_webdav_credential_stored">Uloženo na tomto zařízení</string>
+    <string name="explorer_info_webdav_credential_session">Uchováno do zavření Butleru</string>
+    <string name="explorer_info_webdav_certificate_label">Certifikát</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Důvěryhodný certifikát (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Důvěryhodný pro systém</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Nešifrované (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Vybráno</string>
@@ -359,6 +368,8 @@
     <string name="explorer_network_protocol_smb_caption">Sdílené složky Windows a většina složek NAS</string>
     <string name="explorer_network_protocol_sftp_label">Server SFTP</string>
     <string name="explorer_network_protocol_sftp_caption">Libovolný server dostupný přes SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud a další servery WebDAV</string>
     <string name="explorer_sftp_form_add_title">Přidat server SFTP</string>
     <string name="explorer_sftp_form_edit_title">Upravit server SFTP</string>
     <string name="explorer_sftp_form_sign_in_title">Přihlásit se k %1$s</string>
@@ -409,6 +420,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Nahradit klíč serveru?</string>
     <string name="explorer_sftp_host_key_retrust_message">Klíč nahrazuj, jen pokud víš, proč ho %1$s změnil. Butler bude od teď důvěřovat předloženému klíči.</string>
     <string name="explorer_sftp_host_key_retrust_action">Nahradit klíč</string>
+    <string name="explorer_webdav_form_add_title">Přidat server WebDAV</string>
+    <string name="explorer_webdav_form_edit_title">Upravit server WebDAV</string>
+    <string name="explorer_webdav_form_sign_in_title">Přihlásit se k %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Zadej heslo znovu pro otevření tohoto serveru.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Tento server vyžaduje uživatelské jméno a heslo.</string>
+    <string name="explorer_webdav_form_url_label">URL serveru</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Nešifrované připojení: tvoje heslo a soubory se odesílají v prostém textu.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Anonymní</string>
+    <string name="explorer_webdav_form_error_url_blank">Zadej URL serveru</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL musí začínat https:// nebo http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Zadej uživatelské jméno a heslo do příslušných polí, ne do URL</string>
+    <string name="explorer_webdav_form_error_url_query">URL nesmí obsahovat dotaz (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL nesmí obsahovat fragment (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">Uživatelské jméno nesmí obsahovat dvojtečku (:) ani řídicí znaky</string>
+    <string name="explorer_webdav_form_error_password_required">Pro změnu uživatelského jména, způsobu přihlášení nebo nastavení zapamatování zadej heslo znovu</string>
+    <string name="explorer_webdav_form_error_auth">%1$s odmítl uživatelské jméno nebo heslo</string>
+    <string name="explorer_webdav_form_error_access_denied">Tento účet nemůže otevřít tuto složku</string>
+    <string name="explorer_webdav_form_error_not_collection">Tato URL není složka WebDAV. Pro Nextcloud končí na /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Tato složka na serveru neexistuje</string>
+    <string name="explorer_webdav_form_error_unreachable">Nelze se připojit k %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Server předložil jiný certifikát, než jaký pro něj byl potvrzen. Nic nebylo uloženo.\n\nDůvěryhodný: %1$s\nPředložený: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Certifikát serveru nebyl přijat. Nic nebylo uloženo.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Údaje o serveru se změnily po spuštění testu připojení. Nic nebylo uloženo, otestuj znovu a zkontroluj certifikát serveru.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Identitu serveru se nepodařilo potvrdit. Nic nebylo uloženo.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">URL nebo certifikát tohoto serveru se změnily od předložení onoho certifikátu. Nic nebylo změněno, otevři server znovu a zkontroluj certifikát, který nyní předkládá.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Tento server WebDAV byl odebrán. Nic nebylo změněno.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Důvěřovat tomuto certifikátu?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Toto zařízení nedůvěřuje certifikátu, který předložil %1$s. Může být podepsaný sám sebou, vydaný soukromou certifikační autoritou nebo vydaný pro jiné jméno. Pokračuj, jen pokud se jeho otisk shoduje s tím, který zobrazuje tvůj server.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Toto zařízení už nedůvěřuje certifikátu, který předkládá %1$s. Pokračuj, jen pokud se jeho otisk shoduje s tím, který zobrazuje tvůj server. Butler bude od teď tomuto certifikátu pro tento server důvěřovat.</string>
+    <string name="explorer_webdav_certificate_subject_label">Vydáno pro</string>
+    <string name="explorer_webdav_certificate_issuer_label">Vydal</string>
+    <string name="explorer_webdav_certificate_validity_label">Platnost</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s až %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">Otisk SHA-256</string>
+    <string name="explorer_webdav_certificate_stored_label">Důvěryhodný certifikát</string>
+    <string name="explorer_webdav_certificate_presented_label">Předložený certifikát</string>
+    <string name="explorer_webdav_certificate_accept_action">Důvěřovat certifikátu</string>
+    <string name="explorer_webdav_certificate_retrust_title">Nahradit důvěryhodný certifikát?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Certifikát nahrazuj, jen pokud víš, proč ho %1$s změnil, např. kvůli obnovení. Butler bude od teď důvěřovat předloženému certifikátu.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Nahradit certifikát</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Certifikát není důvěryhodný</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s předložil certifikát, kterému toto zařízení nedůvěřuje. Na server nebylo nic odesláno.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Certifikát serveru se změnil</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s předložil jiný certifikát, než jaký pro něj byl potvrzen. Stává se to při obnovení certifikátu, ale také když někdo spojení zachytává. Na server nebylo nic odesláno.</string>
+    <string name="explorer_webdav_certificate_review_action">Zkontrolovat</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Pojmenovat umístění</string>

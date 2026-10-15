@@ -153,6 +153,15 @@
     <string name="explorer_info_sftp_credential_session">Butler మూసివేసే వరకు ఉంచబడుతుంది</string>
     <string name="explorer_info_sftp_host_key_type_label">హోస్ట్ కీ రకం</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">హోస్ట్ కీ ఫింగర్‌ప్రింట్</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">అనామక</string>
+    <string name="explorer_info_webdav_credential_stored">ఈ పరికరంలో నిల్వ చేయబడింది</string>
+    <string name="explorer_info_webdav_credential_session">Butler మూసివేసే వరకు ఉంచబడుతుంది</string>
+    <string name="explorer_info_webdav_certificate_label">సర్టిఫికెట్</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">విశ్వసించిన సర్టిఫికెట్ (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">సిస్టమ్ విశ్వసించినది</string>
+    <string name="explorer_info_webdav_certificate_cleartext">ఎన్‌క్రిప్ట్ చేయబడలేదు (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">ఎంచుకున్నవి</string>
@@ -342,6 +351,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows షేర్‌లు, చాలా NAS ఫోల్డర్‌లు</string>
     <string name="explorer_network_protocol_sftp_label">SFTP సర్వర్</string>
     <string name="explorer_network_protocol_sftp_caption">SSH ద్వారా చేరుకోగల ఏ సర్వర్ అయినా</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud మరియు ఇతర WebDAV సర్వర్‌లు</string>
     <string name="explorer_sftp_form_add_title">SFTP సర్వర్‌ను జోడించండి</string>
     <string name="explorer_sftp_form_edit_title">SFTP సర్వర్‌ను సవరించండి</string>
     <string name="explorer_sftp_form_sign_in_title">%1$sకు సైన్ ఇన్ చేయండి</string>
@@ -392,6 +403,52 @@
     <string name="explorer_sftp_host_key_retrust_title">సర్వర్ కీని భర్తీ చేయాలా?</string>
     <string name="explorer_sftp_host_key_retrust_message">%1$s కీని ఎందుకు మార్చిందో మీకు తెలిస్తేనే కీని భర్తీ చేయండి. ఇకపై Butler చూపిన కీని విశ్వసిస్తుంది.</string>
     <string name="explorer_sftp_host_key_retrust_action">కీని భర్తీ చేయండి</string>
+    <string name="explorer_webdav_form_add_title">WebDAV సర్వర్‌ను జోడించండి</string>
+    <string name="explorer_webdav_form_edit_title">WebDAV సర్వర్‌ను సవరించండి</string>
+    <string name="explorer_webdav_form_sign_in_title">%1$sకు సైన్ ఇన్ చేయండి</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">ఈ సర్వర్‌ను తెరవడానికి పాస్‌వర్డ్‌ను మళ్లీ నమోదు చేయండి.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">ఈ సర్వర్ వినియోగదారు పేరు మరియు పాస్‌వర్డ్‌ను అడుగుతోంది.</string>
+    <string name="explorer_webdav_form_url_label">సర్వర్ URL</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">ఎన్‌క్రిప్ట్ చేయని కనెక్షన్: మీ పాస్‌వర్డ్ మరియు ఫైళ్లు సాధారణ వచనంగా పంపబడతాయి.</string>
+    <string name="explorer_webdav_form_auth_anonymous">అనామక</string>
+    <string name="explorer_webdav_form_error_url_blank">సర్వర్ URLను నమోదు చేయండి</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL https:// లేదా http:// తో మొదలవ్వాలి</string>
+    <string name="explorer_webdav_form_error_url_user_info">వినియోగదారు పేరు మరియు పాస్‌వర్డ్‌ను వాటి ఫీల్డ్‌లలో నమోదు చేయండి, URLలో కాదు</string>
+    <string name="explorer_webdav_form_error_url_query">URLలో క్వెరీ (?…) ఉండకూడదు</string>
+    <string name="explorer_webdav_form_error_url_fragment">URLలో ఫ్రాగ్మెంట్ (#…) ఉండకూడదు</string>
+    <string name="explorer_webdav_form_error_username_malformed">వినియోగదారు పేరులో కోలన్ (:) లేదా కంట్రోల్ అక్షరాలు ఉండకూడదు</string>
+    <string name="explorer_webdav_form_error_password_required">వినియోగదారు పేరు, సైన్ ఇన్ పద్ధతి లేదా గుర్తుంచుకునే సెట్టింగ్‌ను మార్చడానికి పాస్‌వర్డ్‌ను మళ్లీ నమోదు చేయండి</string>
+    <string name="explorer_webdav_form_error_auth">%1$s వినియోగదారు పేరు లేదా పాస్‌వర్డ్‌ను నిరాకరించింది</string>
+    <string name="explorer_webdav_form_error_access_denied">ఈ ఖాతాకు ఈ ఫోల్డర్‌ను తెరవడానికి అనుమతి లేకపోవచ్చు</string>
+    <string name="explorer_webdav_form_error_not_collection">ఈ URL WebDAV ఫోల్డర్ కాదు. Nextcloud కోసం ఇది /remote.php/dav/files/USERNAME/ తో ముగుస్తుంది</string>
+    <string name="explorer_webdav_form_error_missing">సర్వర్‌లో ఈ ఫోల్డర్ లేదు</string>
+    <string name="explorer_webdav_form_error_unreachable">%1$sను చేరుకోలేము</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">సర్వర్ దాని కోసం విశ్వసించిన సర్టిఫికెట్ కాకుండా వేరే సర్టిఫికెట్‌ను చూపించింది. ఏదీ సేవ్ చేయబడలేదు.\n\nవిశ్వసించినది: %1$s\nచూపినది: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">సర్వర్ సర్టిఫికెట్‌ను విశ్వసించలేదు. ఏదీ సేవ్ చేయబడలేదు.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">కనెక్షన్ పరీక్ష ప్రారంభమైన తర్వాత సర్వర్ వివరాలు మారాయి. ఏదీ సేవ్ చేయబడలేదు, సర్వర్ సర్టిఫికెట్‌ను సమీక్షించడానికి మళ్లీ పరీక్షించండి.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">సర్వర్ గుర్తింపును నిర్ధారించలేకపోయాము. ఏదీ సేవ్ చేయబడలేదు.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">ఆ సర్టిఫికెట్‌ను చూపించిన తర్వాత ఈ సర్వర్ URL లేదా సర్టిఫికెట్ మారింది. ఏదీ మార్చబడలేదు, అది ఇప్పుడు చూపిస్తున్న సర్టిఫికెట్‌ను సమీక్షించడానికి సర్వర్‌ను మళ్లీ తెరవండి.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">ఈ WebDAV సర్వర్ తీసివేయబడింది. ఏదీ మార్చబడలేదు.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">ఈ సర్టిఫికెట్‌ను విశ్వసించాలా?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">%1$s చూపించిన సర్టిఫికెట్‌ను ఈ పరికరం విశ్వసించదు. అది స్వీయ సంతకం చేసినది, ప్రైవేట్ సంస్థ జారీ చేసినది లేదా వేరే పేరు కోసం జారీ చేసినది కావచ్చు. దాని ఫింగర్‌ప్రింట్ మీ సర్వర్ చూపించే దానితో సరిపోలితేనే కొనసాగండి.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">%1$s చూపిస్తున్న సర్టిఫికెట్‌ను ఈ పరికరం ఇక విశ్వసించదు. దాని ఫింగర్‌ప్రింట్ మీ సర్వర్ చూపించే దానితో సరిపోలితేనే కొనసాగండి. ఇకపై Butler ఈ సర్వర్ కోసం ఈ సర్టిఫికెట్‌ను విశ్వసిస్తుంది.</string>
+    <string name="explorer_webdav_certificate_subject_label">ఎవరి పేరుతో జారీ అయింది</string>
+    <string name="explorer_webdav_certificate_issuer_label">జారీ చేసిన సంస్థ</string>
+    <string name="explorer_webdav_certificate_validity_label">చెల్లుబాటు</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s నుంచి %2$s వరకు</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256 ఫింగర్‌ప్రింట్</string>
+    <string name="explorer_webdav_certificate_stored_label">విశ్వసించిన సర్టిఫికెట్</string>
+    <string name="explorer_webdav_certificate_presented_label">చూపిన సర్టిఫికెట్</string>
+    <string name="explorer_webdav_certificate_accept_action">సర్టిఫికెట్‌ను విశ్వసించండి</string>
+    <string name="explorer_webdav_certificate_retrust_title">విశ్వసించిన సర్టిఫికెట్‌ను భర్తీ చేయాలా?</string>
+    <string name="explorer_webdav_certificate_retrust_message">%1$s సర్టిఫికెట్‌ను ఎందుకు మార్చిందో, ఉదా. దాన్ని పునరుద్ధరించినందుకు, మీకు తెలిస్తేనే సర్టిఫికెట్‌ను భర్తీ చేయండి. ఇకపై Butler చూపిన సర్టిఫికెట్‌ను విశ్వసిస్తుంది.</string>
+    <string name="explorer_webdav_certificate_retrust_action">సర్టిఫికెట్‌ను భర్తీ చేయండి</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">సర్టిఫికెట్‌ను విశ్వసించలేదు</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s ఈ పరికరం విశ్వసించని సర్టిఫికెట్‌ను చూపించింది. సర్వర్‌కు ఏదీ పంపబడలేదు.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">సర్వర్ సర్టిఫికెట్ మారింది</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s దాని కోసం విశ్వసించిన సర్టిఫికెట్ కాకుండా వేరే సర్టిఫికెట్‌ను చూపించింది. సర్టిఫికెట్‌ను పునరుద్ధరించినప్పుడు ఇలా జరుగుతుంది, కానీ ఎవరైనా కనెక్షన్‌ను మధ్యలో అడ్డగించినప్పుడు కూడా జరుగుతుంది. సర్వర్‌కు ఏదీ పంపబడలేదు.</string>
+    <string name="explorer_webdav_certificate_review_action">సమీక్షించండి</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">స్థానానికి పేరు పెట్టండి</string>

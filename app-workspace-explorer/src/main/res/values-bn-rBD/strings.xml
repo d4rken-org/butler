@@ -153,6 +153,15 @@
     <string name="explorer_info_sftp_credential_session">Butler বন্ধ না হওয়া পর্যন্ত রাখা হয়</string>
     <string name="explorer_info_sftp_host_key_type_label">হোস্ট কী-এর ধরন</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">হোস্ট কী-এর ফিঙ্গারপ্রিন্ট</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">বেনামী</string>
+    <string name="explorer_info_webdav_credential_stored">এই ডিভাইসে রাখা আছে</string>
+    <string name="explorer_info_webdav_credential_session">Butler বন্ধ না হওয়া পর্যন্ত রাখা হয়</string>
+    <string name="explorer_info_webdav_certificate_label">সার্টিফিকেট</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">বিশ্বস্ত সার্টিফিকেট (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">সিস্টেমের কাছে বিশ্বস্ত</string>
+    <string name="explorer_info_webdav_certificate_cleartext">এনক্রিপ্ট করা নয় (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">নির্বাচিত</string>
@@ -342,6 +351,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows শেয়ার ও বেশির ভাগ NAS ফোল্ডার</string>
     <string name="explorer_network_protocol_sftp_label">SFTP সার্ভার</string>
     <string name="explorer_network_protocol_sftp_caption">SSH দিয়ে পৌঁছানো যায় এমন যেকোনো সার্ভার</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud ও অন্যান্য WebDAV সার্ভার</string>
     <string name="explorer_sftp_form_add_title">SFTP সার্ভার যোগ করুন</string>
     <string name="explorer_sftp_form_edit_title">SFTP সার্ভার সম্পাদনা করুন</string>
     <string name="explorer_sftp_form_sign_in_title">%1$s-এ সাইন ইন করুন</string>
@@ -392,6 +403,52 @@
     <string name="explorer_sftp_host_key_retrust_title">সার্ভারের কী বদলাবেন?</string>
     <string name="explorer_sftp_host_key_retrust_message">%1$s কেন কী বদলেছে তা জানা থাকলেই শুধু কী বদলান। Butler এখন থেকে দেখানো কী-কে বিশ্বস্ত ধরবে।</string>
     <string name="explorer_sftp_host_key_retrust_action">কী বদলান</string>
+    <string name="explorer_webdav_form_add_title">WebDAV সার্ভার যোগ করুন</string>
+    <string name="explorer_webdav_form_edit_title">WebDAV সার্ভার সম্পাদনা করুন</string>
+    <string name="explorer_webdav_form_sign_in_title">%1$s-এ সাইন ইন করুন</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">এই সার্ভার খুলতে আবার পাসওয়ার্ড দিন।</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">এই সার্ভার ব্যবহারকারীর নাম ও পাসওয়ার্ড চায়।</string>
+    <string name="explorer_webdav_form_url_label">সার্ভারের URL</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">সংযোগ এনক্রিপ্ট করা নয়: আপনার পাসওয়ার্ড ও ফাইল সরাসরি পাঠানো হয়, এনক্রিপ্ট করা হয় না।</string>
+    <string name="explorer_webdav_form_auth_anonymous">বেনামী</string>
+    <string name="explorer_webdav_form_error_url_blank">সার্ভারের URL দিন</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL https:// অথবা http:// দিয়ে শুরু হতে হবে</string>
+    <string name="explorer_webdav_form_error_url_user_info">ব্যবহারকারীর নাম ও পাসওয়ার্ড URL-এ নয়, তাদের নিজস্ব ঘরে দিন</string>
+    <string name="explorer_webdav_form_error_url_query">URL-এ কোয়েরি (?…) থাকতে পারবে না</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL-এ ফ্র্যাগমেন্ট (#…) থাকতে পারবে না</string>
+    <string name="explorer_webdav_form_error_username_malformed">ব্যবহারকারীর নামে কোলন (:) বা কন্ট্রোল অক্ষর থাকতে পারবে না</string>
+    <string name="explorer_webdav_form_error_password_required">ব্যবহারকারীর নাম, সাইন ইনের পদ্ধতি বা মনে রাখার সেটিং বদলাতে আবার পাসওয়ার্ড দিন</string>
+    <string name="explorer_webdav_form_error_auth">%1$s ব্যবহারকারীর নাম বা পাসওয়ার্ড প্রত্যাখ্যান করেছে</string>
+    <string name="explorer_webdav_form_error_access_denied">এই অ্যাকাউন্ট এই ফোল্ডার খুলতে পারে না</string>
+    <string name="explorer_webdav_form_error_not_collection">এই URL কোনো WebDAV ফোল্ডার নয়। Nextcloud-এর ক্ষেত্রে এর শেষে /remote.php/dav/files/USERNAME/ থাকে</string>
+    <string name="explorer_webdav_form_error_missing">সার্ভারে এই ফোল্ডার নেই</string>
+    <string name="explorer_webdav_form_error_unreachable">%1$s-এ পৌঁছানো যাচ্ছে না</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">সার্ভার তার জন্য বিশ্বস্ত করা সার্টিফিকেটের বদলে অন্য একটি সার্টিফিকেট দেখিয়েছে। কিছুই সংরক্ষণ করা হয়নি।\n\nবিশ্বস্ত: %1$s\nদেখানো হয়েছে: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">সার্ভারের সার্টিফিকেট বিশ্বস্ত করা হয়নি। কিছুই সংরক্ষণ করা হয়নি।</string>
+    <string name="explorer_webdav_form_error_certificate_stale">সংযোগ পরীক্ষা শুরুর পরে সার্ভারের বিস্তারিত বদলে গেছে। কিছুই সংরক্ষণ করা হয়নি, সার্ভারের সার্টিফিকেট দেখে নিতে আবার পরীক্ষা করুন।</string>
+    <string name="explorer_webdav_form_error_unconfirmed">সার্ভারের পরিচয় নিশ্চিত করা যায়নি। কিছুই সংরক্ষণ করা হয়নি।</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">সার্টিফিকেট দেখানোর পর এই সার্ভারের URL বা সার্টিফিকেট বদলে গেছে। কিছুই বদলানো হয়নি, সার্ভার এখন যে সার্টিফিকেট দেখাচ্ছে তা দেখতে সার্ভারটি আবার খুলুন।</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">এই WebDAV সার্ভার সরিয়ে ফেলা হয়েছে। কিছুই বদলানো হয়নি।</string>
+    <string name="explorer_webdav_certificate_untrusted_title">এই সার্টিফিকেটকে বিশ্বাস করবেন?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">%1$s যে সার্টিফিকেট দেখিয়েছে তা এই ডিভাইস বিশ্বস্ত মনে করে না। এটি নিজেই স্বাক্ষরিত, কোনো ব্যক্তিগত কর্তৃপক্ষের জারি করা বা অন্য নামের জন্য জারি করা হতে পারে। এর ফিঙ্গারপ্রিন্ট আপনার সার্ভারে দেখানো ফিঙ্গারপ্রিন্টের সঙ্গে মিললেই শুধু চালিয়ে যান।</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">%1$s যে সার্টিফিকেট দেখাচ্ছে তা এই ডিভাইস আর বিশ্বস্ত মনে করে না। এর ফিঙ্গারপ্রিন্ট আপনার সার্ভারে দেখানো ফিঙ্গারপ্রিন্টের সঙ্গে মিললেই শুধু চালিয়ে যান। Butler এখন থেকে এই সার্ভারের জন্য এই সার্টিফিকেট বিশ্বস্ত ধরবে।</string>
+    <string name="explorer_webdav_certificate_subject_label">যার জন্য জারি করা</string>
+    <string name="explorer_webdav_certificate_issuer_label">যিনি জারি করেছেন</string>
+    <string name="explorer_webdav_certificate_validity_label">বৈধ</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s থেকে %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256 ফিঙ্গারপ্রিন্ট</string>
+    <string name="explorer_webdav_certificate_stored_label">বিশ্বস্ত সার্টিফিকেট</string>
+    <string name="explorer_webdav_certificate_presented_label">দেখানো সার্টিফিকেট</string>
+    <string name="explorer_webdav_certificate_accept_action">সার্টিফিকেট বিশ্বস্ত করুন</string>
+    <string name="explorer_webdav_certificate_retrust_title">বিশ্বস্ত সার্টিফিকেট বদলাবেন?</string>
+    <string name="explorer_webdav_certificate_retrust_message">%1$s কেন সার্টিফিকেট বদলেছে তা জানা থাকলেই শুধু সার্টিফিকেট বদলান, যেমন এটি নবায়ন করা হয়েছে বলে। Butler এখন থেকে দেখানো সার্টিফিকেট বিশ্বস্ত ধরবে।</string>
+    <string name="explorer_webdav_certificate_retrust_action">সার্টিফিকেট বদলান</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">সার্টিফিকেট বিশ্বস্ত নয়</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s এমন একটি সার্টিফিকেট দেখিয়েছে যা এই ডিভাইস বিশ্বস্ত মনে করে না। সার্ভারে কিছু পাঠানো হয়নি।</string>
+    <string name="explorer_webdav_certificate_card_changed_title">সার্ভারের সার্টিফিকেট বদলে গেছে</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s তার জন্য বিশ্বস্ত করা সার্টিফিকেটের বদলে অন্য একটি সার্টিফিকেট দেখিয়েছে। সার্টিফিকেট নবায়ন করা হলে এমন হয়, তবে কেউ সংযোগে আড়ি পাতলেও হয়। সার্ভারে কিছু পাঠানো হয়নি।</string>
+    <string name="explorer_webdav_certificate_review_action">দেখে নিন</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">অবস্থানের নাম দিন</string>

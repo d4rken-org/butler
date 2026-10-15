@@ -151,6 +151,15 @@
     <string name="explorer_info_sftp_credential_session">Bewaard tot Butler sluit</string>
     <string name="explorer_info_sftp_host_key_type_label">Type hostsleutel</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Vingerafdruk van hostsleutel</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Anoniem</string>
+    <string name="explorer_info_webdav_credential_stored">Opgeslagen op dit apparaat</string>
+    <string name="explorer_info_webdav_credential_session">Bewaard tot Butler sluit</string>
+    <string name="explorer_info_webdav_certificate_label">Certificaat</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Vertrouwd certificaat (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Vertrouwd door het systeem</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Niet versleuteld (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Geselecteerd</string>
@@ -337,6 +346,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows-shares en de meeste NAS-mappen</string>
     <string name="explorer_network_protocol_sftp_label">SFTP-server</string>
     <string name="explorer_network_protocol_sftp_caption">Elke server die je via SSH kunt bereiken</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud en andere WebDAV-servers</string>
     <string name="explorer_sftp_form_add_title">SFTP-server toevoegen</string>
     <string name="explorer_sftp_form_edit_title">SFTP-server bewerken</string>
     <string name="explorer_sftp_form_sign_in_title">Aanmelden bij %1$s</string>
@@ -387,6 +398,52 @@
     <string name="explorer_sftp_host_key_retrust_title">De serversleutel vervangen?</string>
     <string name="explorer_sftp_host_key_retrust_message">Vervang de sleutel alleen als je weet waarom %1$s die heeft gewijzigd. Butler vertrouwt voortaan de gepresenteerde sleutel.</string>
     <string name="explorer_sftp_host_key_retrust_action">Sleutel vervangen</string>
+    <string name="explorer_webdav_form_add_title">WebDAV-server toevoegen</string>
+    <string name="explorer_webdav_form_edit_title">WebDAV-server bewerken</string>
+    <string name="explorer_webdav_form_sign_in_title">Aanmelden bij %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Voer het wachtwoord opnieuw in om deze server te openen.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Deze server vraagt om een gebruikersnaam en wachtwoord.</string>
+    <string name="explorer_webdav_form_url_label">Server-URL</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Onversleutelde verbinding: je wachtwoord en bestanden worden als platte tekst verzonden.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Anoniem</string>
+    <string name="explorer_webdav_form_error_url_blank">Voer de server-URL in</string>
+    <string name="explorer_webdav_form_error_url_scheme">De URL moet beginnen met https:// of http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Voer de gebruikersnaam en het wachtwoord in hun eigen velden in, niet in de URL</string>
+    <string name="explorer_webdav_form_error_url_query">De URL mag geen query (?…) bevatten</string>
+    <string name="explorer_webdav_form_error_url_fragment">De URL mag geen fragment (#…) bevatten</string>
+    <string name="explorer_webdav_form_error_username_malformed">De gebruikersnaam mag geen dubbele punt (:) of stuurtekens bevatten</string>
+    <string name="explorer_webdav_form_error_password_required">Voer het wachtwoord opnieuw in om de gebruikersnaam, aanmeldmethode of onthoudinstelling te wijzigen</string>
+    <string name="explorer_webdav_form_error_auth">%1$s heeft de gebruikersnaam of het wachtwoord afgewezen</string>
+    <string name="explorer_webdav_form_error_access_denied">Dit account mag deze map niet openen</string>
+    <string name="explorer_webdav_form_error_not_collection">Deze URL is geen WebDAV-map. Voor Nextcloud eindigt die op /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Deze map bestaat niet op de server</string>
+    <string name="explorer_webdav_form_error_unreachable">Kan %1$s niet bereiken</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">De server presenteerde een ander certificaat dan het certificaat dat ervoor werd vertrouwd. Er is niets opgeslagen.\n\nVertrouwd: %1$s\nGepresenteerd: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Het certificaat van de server werd niet vertrouwd. Er is niets opgeslagen.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">De servergegevens zijn gewijzigd nadat de verbindingstest was gestart. Er is niets opgeslagen, test opnieuw om het certificaat van de server te bekijken.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">De identiteit van de server kon niet worden bevestigd. Er is niets opgeslagen.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">De URL of het certificaat van deze server is gewijzigd sinds dat certificaat werd gepresenteerd. Er is niets gewijzigd, open de server opnieuw om het certificaat te bekijken dat hij nu presenteert.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Deze WebDAV-server is verwijderd. Er is niets gewijzigd.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Dit certificaat vertrouwen?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Dit apparaat vertrouwt het certificaat dat %1$s presenteerde niet. Het kan zelfondertekend zijn, door een particuliere certificaatautoriteit zijn uitgegeven of voor een andere naam zijn uitgegeven. Ga alleen verder als de vingerafdruk overeenkomt met die op je server.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Dit apparaat vertrouwt het certificaat dat %1$s presenteert niet meer. Ga alleen verder als de vingerafdruk overeenkomt met die op je server. Butler vertrouwt voortaan dit certificaat voor deze server.</string>
+    <string name="explorer_webdav_certificate_subject_label">Uitgegeven aan</string>
+    <string name="explorer_webdav_certificate_issuer_label">Uitgegeven door</string>
+    <string name="explorer_webdav_certificate_validity_label">Geldig</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s tot %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256-vingerafdruk</string>
+    <string name="explorer_webdav_certificate_stored_label">Vertrouwd certificaat</string>
+    <string name="explorer_webdav_certificate_presented_label">Gepresenteerd certificaat</string>
+    <string name="explorer_webdav_certificate_accept_action">Certificaat vertrouwen</string>
+    <string name="explorer_webdav_certificate_retrust_title">Het vertrouwde certificaat vervangen?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Vervang het certificaat alleen als je weet waarom %1$s het heeft gewijzigd, bijvoorbeeld omdat het is vernieuwd. Butler vertrouwt voortaan het gepresenteerde certificaat.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Certificaat vervangen</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Certificaat niet vertrouwd</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s presenteerde een certificaat dat dit apparaat niet vertrouwt. Er is niets naar de server verzonden.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Servercertificaat gewijzigd</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s presenteerde een ander certificaat dan het certificaat dat ervoor werd vertrouwd. Dat gebeurt wanneer een certificaat wordt vernieuwd, maar ook wanneer iemand de verbinding onderschept. Er is niets naar de server verzonden.</string>
+    <string name="explorer_webdav_certificate_review_action">Bekijken</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Locatie benoemen</string>

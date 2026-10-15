@@ -26,12 +26,15 @@ class TrashSettings @Inject constructor(
 
     val enabled = dataStore.createValue("trash.enabled", true)
 
+    val confirmTrashMove = dataStore.createValue("trash.confirm.move", true)
+
     val expiresAfter = dataStore.createValue("trash.expiration.duration", 30.days, json)
 
     val maxTrashSize = dataStore.createValue("trash.storage.maxsize", 524_288_000L)
 
     override val mapper = PreferenceStoreMapper(
         enabled,
+        confirmTrashMove,
         expiresAfter,
         maxTrashSize,
     )

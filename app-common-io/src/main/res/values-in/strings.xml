@@ -88,6 +88,22 @@
     <string name="sftp_error_access_denied_description">Akun ini mungkin tidak dapat membuka folder yang diatur untuk \"%1$s\". Periksa izin folder di server.</string>
     <string name="sftp_error_pro_required_title">Server SFTP memerlukan Butler Pro</string>
     <string name="sftp_error_pro_required_description">Menjelajahi server SFTP adalah bagian dari Butler Pro. Menambah, menguji, dan menghapus server gratis.</string>
+    <string name="webdav_error_credential_unavailable_title">Masuk diperlukan</string>
+    <string name="webdav_error_credential_unavailable_description">Kata sandi yang disimpan untuk server WebDAV ini tidak dapat dibaca lagi. Masukkan lagi untuk terhubung kembali.</string>
+    <string name="webdav_error_unreachable_title">Server tidak terjangkau</string>
+    <string name="webdav_error_unreachable_description">Butler tidak dapat menjangkau \"%1$s\". Periksa alamat dan pastikan server sedang berjalan.</string>
+    <string name="webdav_error_auth_title">Masuk gagal</string>
+    <string name="webdav_error_auth_description">\"%1$s\" menolak nama pengguna atau kata sandi.</string>
+    <string name="webdav_error_certificate_untrusted_title">Sertifikat tidak dipercaya</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" menampilkan sertifikat yang tidak dipercaya perangkat ini. Butler tidak masuk.\n\nSidik jari: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">Sertifikat server berubah</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" menampilkan sertifikat yang berbeda dari yang telah dipercaya. Butler tidak masuk.\n\nDipercayai: %2$s\nDitampilkan: %3$s</string>
+    <string name="webdav_error_access_denied_title">Tidak ada akses ke folder ini</string>
+    <string name="webdav_error_access_denied_description">Akun ini tidak diizinkan membuka folder yang diatur untuk \"%1$s\". Periksa izin folder di server.</string>
+    <string name="webdav_error_not_collection_title">Bukan folder WebDAV</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" bukan folder WebDAV. Periksa alamatnya, alamat harus mengarah ke folder di server.</string>
+    <string name="webdav_error_pro_required_title">Server WebDAV memerlukan Butler Pro</string>
+    <string name="webdav_error_pro_required_description">Menjelajahi server WebDAV adalah bagian dari Butler Pro. Menambah, menguji, dan menghapus server gratis.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Bundle aplikasi terlindungi</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" dienkripsi dan hanya dapat diinstal oleh aplikasi yang membuatnya.</string>

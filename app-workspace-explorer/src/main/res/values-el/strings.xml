@@ -151,6 +151,15 @@
     <string name="explorer_info_sftp_credential_session">Διατηρείται μέχρι να κλείσει το Butler</string>
     <string name="explorer_info_sftp_host_key_type_label">Τύπος κλειδιού διακομιστή</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Αποτύπωμα κλειδιού διακομιστή</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Ανώνυμη σύνδεση</string>
+    <string name="explorer_info_webdav_credential_stored">Αποθηκευμένο σε αυτή τη συσκευή</string>
+    <string name="explorer_info_webdav_credential_session">Διατηρείται μέχρι να κλείσει το Butler</string>
+    <string name="explorer_info_webdav_certificate_label">Πιστοποιητικό</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Εμπιστευμένο πιστοποιητικό (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Έμπιστο για το σύστημα</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Χωρίς κρυπτογράφηση (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Επιλεγμένα</string>
@@ -337,6 +346,8 @@
     <string name="explorer_network_protocol_smb_caption">Κοινόχρηστοι φάκελοι Windows και οι περισσότεροι φάκελοι NAS</string>
     <string name="explorer_network_protocol_sftp_label">Διακομιστής SFTP</string>
     <string name="explorer_network_protocol_sftp_caption">Οποιοσδήποτε διακομιστής προσβάσιμος μέσω SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud και άλλοι διακομιστές WebDAV</string>
     <string name="explorer_sftp_form_add_title">Προσθήκη διακομιστή SFTP</string>
     <string name="explorer_sftp_form_edit_title">Επεξεργασία διακομιστή SFTP</string>
     <string name="explorer_sftp_form_sign_in_title">Σύνδεση στο %1$s</string>
@@ -387,6 +398,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Αντικατάσταση του κλειδιού του διακομιστή;</string>
     <string name="explorer_sftp_host_key_retrust_message">Αντικατάστησε το κλειδί μόνο αν ξέρεις γιατί το άλλαξε το %1$s. Από εδώ και στο εξής το Butler θα εμπιστεύεται το κλειδί που παρουσιάστηκε.</string>
     <string name="explorer_sftp_host_key_retrust_action">Αντικατάσταση κλειδιού</string>
+    <string name="explorer_webdav_form_add_title">Προσθήκη διακομιστή WebDAV</string>
+    <string name="explorer_webdav_form_edit_title">Επεξεργασία διακομιστή WebDAV</string>
+    <string name="explorer_webdav_form_sign_in_title">Σύνδεση στο %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Εισήγαγε ξανά τον κωδικό πρόσβασης για να ανοίξεις αυτόν τον διακομιστή.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Αυτός ο διακομιστής ζητά όνομα χρήστη και κωδικό πρόσβασης.</string>
+    <string name="explorer_webdav_form_url_label">URL διακομιστή</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Μη κρυπτογραφημένη σύνδεση: ο κωδικός πρόσβασης και τα αρχεία σου αποστέλλονται σε απλό κείμενο.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Ανώνυμη σύνδεση</string>
+    <string name="explorer_webdav_form_error_url_blank">Εισήγαγε το URL του διακομιστή</string>
+    <string name="explorer_webdav_form_error_url_scheme">Το URL πρέπει να ξεκινά με https:// ή http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Εισήγαγε το όνομα χρήστη και τον κωδικό πρόσβασης στα δικά τους πεδία, όχι στο URL</string>
+    <string name="explorer_webdav_form_error_url_query">Το URL δεν μπορεί να περιέχει ερώτημα (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">Το URL δεν μπορεί να περιέχει τμήμα (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">Το όνομα χρήστη δεν μπορεί να περιέχει άνω και κάτω τελεία (:) ή χαρακτήρες ελέγχου</string>
+    <string name="explorer_webdav_form_error_password_required">Εισήγαγε ξανά τον κωδικό πρόσβασης για να αλλάξεις το όνομα χρήστη, τον τρόπο σύνδεσης ή τη ρύθμιση απομνημόνευσης</string>
+    <string name="explorer_webdav_form_error_auth">Το %1$s απέρριψε το όνομα χρήστη ή τον κωδικό</string>
+    <string name="explorer_webdav_form_error_access_denied">Δεν επιτρέπεται σε αυτόν τον λογαριασμό να ανοίξει αυτόν τον φάκελο</string>
+    <string name="explorer_webdav_form_error_not_collection">Αυτό το URL δεν είναι φάκελος WebDAV. Για το Nextcloud τελειώνει σε /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Αυτός ο φάκελος δεν υπάρχει στον διακομιστή</string>
+    <string name="explorer_webdav_form_error_unreachable">Δεν είναι δυνατή η πρόσβαση στο %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Ο διακομιστής παρουσίασε διαφορετικό πιστοποιητικό από αυτό που είχες εμπιστευτεί για αυτόν. Δεν αποθηκεύτηκε τίποτα.\n\nΕμπιστευμένο: %1$s\nΠαρουσιάστηκε: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Το πιστοποιητικό του διακομιστή δεν έγινε αποδεκτό ως έμπιστο. Δεν αποθηκεύτηκε τίποτα.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Τα στοιχεία του διακομιστή άλλαξαν μετά την έναρξη της δοκιμής σύνδεσης. Δεν αποθηκεύτηκε τίποτα, δοκίμασε ξανά για να ελέγξεις το πιστοποιητικό του διακομιστή.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Η ταυτότητα του διακομιστή δεν μπόρεσε να επιβεβαιωθεί. Δεν αποθηκεύτηκε τίποτα.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">Το URL ή το πιστοποιητικό αυτού του διακομιστή άλλαξε μετά την παρουσίαση εκείνου του πιστοποιητικού. Δεν άλλαξε τίποτα, άνοιξε ξανά τον διακομιστή για να ελέγξεις το πιστοποιητικό που παρουσιάζει τώρα.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Αυτός ο διακομιστής WebDAV αφαιρέθηκε. Δεν άλλαξε τίποτα.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Να εμπιστευτείς αυτό το πιστοποιητικό;</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Αυτή η συσκευή δεν εμπιστεύεται το πιστοποιητικό που παρουσίασε το %1$s. Μπορεί να είναι αυτοϋπογεγραμμένο, να έχει εκδοθεί από ιδιωτική αρχή ή για άλλο όνομα. Συνέχισε μόνο αν το αποτύπωμά του ταιριάζει με αυτό που εμφανίζει ο διακομιστής σου.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Αυτή η συσκευή δεν εμπιστεύεται πλέον το πιστοποιητικό που παρουσιάζει το %1$s. Συνέχισε μόνο αν το αποτύπωμά του ταιριάζει με αυτό που εμφανίζει ο διακομιστής σου. Από εδώ και στο εξής το Butler θα εμπιστεύεται αυτό το πιστοποιητικό για αυτόν τον διακομιστή.</string>
+    <string name="explorer_webdav_certificate_subject_label">Εκδόθηκε για</string>
+    <string name="explorer_webdav_certificate_issuer_label">Εκδόθηκε από</string>
+    <string name="explorer_webdav_certificate_validity_label">Ισχύς</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s έως %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">Αποτύπωμα SHA-256</string>
+    <string name="explorer_webdav_certificate_stored_label">Εμπιστευμένο πιστοποιητικό</string>
+    <string name="explorer_webdav_certificate_presented_label">Πιστοποιητικό που παρουσιάστηκε</string>
+    <string name="explorer_webdav_certificate_accept_action">Εμπιστοσύνη στο πιστοποιητικό</string>
+    <string name="explorer_webdav_certificate_retrust_title">Αντικατάσταση του εμπιστευμένου πιστοποιητικού;</string>
+    <string name="explorer_webdav_certificate_retrust_message">Αντικατάστησε το πιστοποιητικό μόνο αν ξέρεις γιατί το άλλαξε το %1$s, π.χ. επειδή ανανεώθηκε. Από εδώ και στο εξής το Butler θα εμπιστεύεται το πιστοποιητικό που παρουσιάστηκε.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Αντικατάσταση πιστοποιητικού</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Το πιστοποιητικό δεν είναι έμπιστο</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">Το %1$s παρουσίασε ένα πιστοποιητικό που αυτή η συσκευή δεν εμπιστεύεται. Δεν στάλθηκε τίποτα στον διακομιστή.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Το πιστοποιητικό του διακομιστή άλλαξε</string>
+    <string name="explorer_webdav_certificate_card_changed_message">Το %1$s παρουσίασε διαφορετικό πιστοποιητικό από αυτό που είχες εμπιστευτεί για αυτόν. Αυτό συμβαίνει όταν ανανεώνεται ένα πιστοποιητικό, αλλά και όταν κάποιος παρεμβάλλεται στη σύνδεση. Δεν στάλθηκε τίποτα στον διακομιστή.</string>
+    <string name="explorer_webdav_certificate_review_action">Έλεγχος</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Ονομασία τοποθεσίας</string>

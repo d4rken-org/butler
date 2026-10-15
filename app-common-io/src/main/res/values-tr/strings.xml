@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">Bu hesap \"%1$s\" için ayarlanan klasörü açamıyor olabilir. Sunucudaki klasör izinlerini kontrol et.</string>
     <string name="sftp_error_pro_required_title">SFTP sunucuları Butler Pro gerektirir</string>
     <string name="sftp_error_pro_required_description">SFTP sunucularına göz atmak Butler Pro\'nun parçasıdır. Sunucu eklemek, test etmek ve kaldırmak ücretsizdir.</string>
+    <string name="webdav_error_credential_unavailable_title">Oturum açma gerekli</string>
+    <string name="webdav_error_credential_unavailable_description">Bu WebDAV sunucusu için kaydedilen parola artık okunamıyor. Yeniden bağlanmak için tekrar gir.</string>
+    <string name="webdav_error_unreachable_title">Sunucu erişilemez</string>
+    <string name="webdav_error_unreachable_description">Butler \"%1$s\" sunucusuna ulaşamadı. Adresi ve sunucunun çalıştığını kontrol et.</string>
+    <string name="webdav_error_auth_title">Oturum açma başarısız</string>
+    <string name="webdav_error_auth_description">\"%1$s\" kullanıcı adını veya parolayı reddetti.</string>
+    <string name="webdav_error_certificate_untrusted_title">Güvenilmeyen sertifika</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" bu cihazın güvenmediği bir sertifika sundu. Butler oturum açmadı.\n\nParmak izi: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">Sunucu sertifikası değişti</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" güvendiğin sertifikadan farklı bir sertifika sundu. Butler oturum açmadı.\n\nGüvenilen: %2$s\nSunulan: %3$s</string>
+    <string name="webdav_error_access_denied_title">Bu klasöre erişim yok</string>
+    <string name="webdav_error_access_denied_description">Bu hesabın \"%1$s\" için ayarlanan klasörü açma izni yok. Sunucudaki klasör izinlerini kontrol et.</string>
+    <string name="webdav_error_not_collection_title">WebDAV klasörü değil</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" bir WebDAV klasörü değil. Adresi kontrol et, sunucudaki bir klasörü göstermesi gerekiyor.</string>
+    <string name="webdav_error_pro_required_title">WebDAV sunucuları Butler Pro gerektirir</string>
+    <string name="webdav_error_pro_required_description">WebDAV sunucularına göz atmak Butler Pro\'nun parçasıdır. Sunucu eklemek, test etmek ve kaldırmak ücretsizdir.</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">Korunan uygulama paketi</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" şifrelenmiş ve yalnızca onu oluşturan uygulama tarafından yüklenebilir.</string>

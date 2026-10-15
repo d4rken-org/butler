@@ -15,6 +15,8 @@
     <string name="explorer_settings_trash_category">Trash</string>
     <string name="explorer_settings_trash_enabled_title">Enable trash</string>
     <string name="explorer_settings_trash_enabled_desc">Move deleted files to trash instead of permanently deleting them</string>
+    <string name="explorer_settings_trash_confirm_title">Ask before moving to trash</string>
+    <string name="explorer_settings_trash_confirm_desc">Confirm before deleted items go to the trash. Permanent deletes always ask.</string>
     <string name="explorer_settings_trash_auto_delete_title">Auto-delete after</string>
     <string name="explorer_settings_trash_auto_delete_summary">Automatically delete items after this much time in trash</string>
     <string name="explorer_settings_trash_auto_delete_value">%d days</string>

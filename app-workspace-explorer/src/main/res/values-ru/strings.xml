@@ -158,6 +158,15 @@
     <string name="explorer_info_sftp_credential_session">Хранится, пока Butler не закроется</string>
     <string name="explorer_info_sftp_host_key_type_label">Тип ключа хоста</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Отпечаток ключа хоста</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">Анонимный вход</string>
+    <string name="explorer_info_webdav_credential_stored">Хранится на этом устройстве</string>
+    <string name="explorer_info_webdav_credential_session">Хранится, пока Butler не закроется</string>
+    <string name="explorer_info_webdav_certificate_label">Сертификат</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">Доверенный сертификат (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">Доверенный для системы</string>
+    <string name="explorer_info_webdav_certificate_cleartext">Без шифрования (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">Выбрано</string>
@@ -358,6 +367,8 @@
     <string name="explorer_network_protocol_smb_caption">Общие папки Windows и большинство папок NAS</string>
     <string name="explorer_network_protocol_sftp_label">SFTP-сервер</string>
     <string name="explorer_network_protocol_sftp_caption">Любой сервер, доступный по SSH</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud, ownCloud и другие WebDAV-серверы</string>
     <string name="explorer_sftp_form_add_title">Добавить SFTP-сервер</string>
     <string name="explorer_sftp_form_edit_title">Изменить SFTP-сервер</string>
     <string name="explorer_sftp_form_sign_in_title">Вход на %1$s</string>
@@ -408,6 +419,52 @@
     <string name="explorer_sftp_host_key_retrust_title">Заменить ключ сервера?</string>
     <string name="explorer_sftp_host_key_retrust_message">Заменяй ключ, только если знаешь, почему %1$s его изменил. Butler будет доверять предъявленному ключу с этого момента.</string>
     <string name="explorer_sftp_host_key_retrust_action">Заменить ключ</string>
+    <string name="explorer_webdav_form_add_title">Добавить WebDAV-сервер</string>
+    <string name="explorer_webdav_form_edit_title">Изменить WebDAV-сервер</string>
+    <string name="explorer_webdav_form_sign_in_title">Вход на %1$s</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">Введи пароль ещё раз, чтобы открыть этот сервер.</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">Этот сервер запрашивает имя пользователя и пароль.</string>
+    <string name="explorer_webdav_form_url_label">URL сервера</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">Незашифрованное соединение: твой пароль и файлы передаются в открытом виде.</string>
+    <string name="explorer_webdav_form_auth_anonymous">Анонимный вход</string>
+    <string name="explorer_webdav_form_error_url_blank">Введи URL сервера</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL должен начинаться с https:// или http://</string>
+    <string name="explorer_webdav_form_error_url_user_info">Введи имя пользователя и пароль в отдельные поля, а не в URL</string>
+    <string name="explorer_webdav_form_error_url_query">URL не может содержать параметры запроса (?…)</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL не может содержать фрагмент (#…)</string>
+    <string name="explorer_webdav_form_error_username_malformed">Имя пользователя не может содержать двоеточие (:) или управляющие символы</string>
+    <string name="explorer_webdav_form_error_password_required">Введи пароль ещё раз, чтобы изменить имя пользователя, способ входа или настройку запоминания</string>
+    <string name="explorer_webdav_form_error_auth">%1$s отклонил имя пользователя или пароль</string>
+    <string name="explorer_webdav_form_error_access_denied">У этой учётной записи нет прав на открытие этой папки</string>
+    <string name="explorer_webdav_form_error_not_collection">Этот URL не указывает на папку WebDAV. Для Nextcloud он заканчивается на /remote.php/dav/files/USERNAME/</string>
+    <string name="explorer_webdav_form_error_missing">Этой папки нет на сервере</string>
+    <string name="explorer_webdav_form_error_unreachable">Не удаётся подключиться к %1$s</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">Сервер предъявил сертификат, отличающийся от доверенного для него. Ничего не сохранено.\n\nДоверенный: %1$s\nПредъявленный: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">Сертификат сервера не принят как доверенный. Ничего не сохранено.</string>
+    <string name="explorer_webdav_form_error_certificate_stale">Данные сервера изменились после начала проверки подключения. Ничего не сохранено, повтори проверку подключения, чтобы просмотреть сертификат сервера.</string>
+    <string name="explorer_webdav_form_error_unconfirmed">Не удалось подтвердить идентичность сервера. Ничего не сохранено.</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">URL или сертификат этого сервера изменился после того, как был предъявлен этот сертификат. Ничего не изменено, открой сервер ещё раз, чтобы проверить сертификат, который он предъявляет сейчас.</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">Этот WebDAV-сервер был удалён. Ничего не изменено.</string>
+    <string name="explorer_webdav_certificate_untrusted_title">Доверять этому сертификату?</string>
+    <string name="explorer_webdav_certificate_untrusted_message">Это устройство не доверяет сертификату, который предъявил %1$s. Он может быть самоподписанным, выданным частным центром сертификации или выданным для другого имени. Продолжай, только если его отпечаток совпадает с тем, который показывает твой сервер.</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">Это устройство больше не доверяет сертификату, который предъявляет %1$s. Продолжай, только если его отпечаток совпадает с тем, который показывает твой сервер. С этого момента Butler будет доверять этому сертификату для этого сервера.</string>
+    <string name="explorer_webdav_certificate_subject_label">Кому выдан</string>
+    <string name="explorer_webdav_certificate_issuer_label">Кем выдан</string>
+    <string name="explorer_webdav_certificate_validity_label">Срок действия</string>
+    <string name="explorer_webdav_certificate_validity_format">С %1$s по %2$s</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">Отпечаток SHA-256</string>
+    <string name="explorer_webdav_certificate_stored_label">Доверенный сертификат</string>
+    <string name="explorer_webdav_certificate_presented_label">Предъявленный сертификат</string>
+    <string name="explorer_webdav_certificate_accept_action">Доверять сертификату</string>
+    <string name="explorer_webdav_certificate_retrust_title">Заменить доверенный сертификат?</string>
+    <string name="explorer_webdav_certificate_retrust_message">Заменяй сертификат, только если знаешь, почему %1$s его изменил, например, из-за продления срока действия. Butler будет доверять предъявленному сертификату с этого момента.</string>
+    <string name="explorer_webdav_certificate_retrust_action">Заменить сертификат</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">Сертификат не является доверенным</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s предъявил сертификат, которому это устройство не доверяет. Серверу ничего не было отправлено.</string>
+    <string name="explorer_webdav_certificate_card_changed_title">Сертификат сервера изменился</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s предъявил сертификат, отличающийся от доверенного для него. Так бывает при продлении срока действия сертификата, но также когда кто-то перехватывает соединение. Серверу ничего не было отправлено.</string>
+    <string name="explorer_webdav_certificate_review_action">Проверить</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">Название расположения</string>

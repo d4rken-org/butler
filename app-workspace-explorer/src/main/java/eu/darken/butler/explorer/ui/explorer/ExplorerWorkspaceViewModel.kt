@@ -57,6 +57,7 @@ import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.trash.TrashManager
 import eu.darken.butler.common.trash.TrashRepo
+import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.DefaultStartLocation
@@ -142,6 +143,7 @@ import eu.darken.butler.workspace.core.operations.AppInstallLauncher
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import eu.darken.butler.workspace.core.operations.OperationFocusRequest
+import eu.darken.butler.workspace.core.operations.skipsDeleteConfirmation
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
@@ -209,6 +211,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val webDavConnectionTester: WebDavConnectionTester,
     private val trashManager: TrashManager,
     private val trashRepo: TrashRepo,
+    private val trashSettings: TrashSettings,
     private val itemInfoCalculator: ItemInfoCalculator,
     private val pickerHelper: ExplorerPickerHelper,
     private val favoritesRepo: ExplorerFavoritesRepo,
@@ -531,7 +534,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // Handle dialog events
         dialogEvents
             .onEach { event ->
-                dialogs.handle(event)
+                if (event is ExplorerDialogEvent.ShowDeleteConfirmation &&
+                    shouldSkipDeleteConfirmation(event.items, event.initialPermanentDelete)
+                ) {
+                    onDeleteConfirmed(event.items, forcePermDelete = false)
+                } else {
+                    dialogs.handle(event)
+                }
             }
             .launchInViewModel()
 
@@ -1241,7 +1250,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             .toSet()
 
                         if (pathsToDelete.isNotEmpty()) {
-                            dialogEvents.emit(ExplorerDialogEvent.ShowDeleteConfirmation(pathsToDelete))
+                            if (shouldSkipDeleteConfirmation(pathsToDelete, permanentRequested = false)) {
+                                // Cleared before the submit, which suspends until the trash move is
+                                // done: a second tap meanwhile would submit the same items again.
+                                clearSelection()
+                                onDeleteConfirmed(pathsToDelete, forcePermDelete = false)
+                            } else {
+                                dialogEvents.emit(ExplorerDialogEvent.ShowDeleteConfirmation(pathsToDelete))
+                            }
                         }
                     }
                 }
@@ -1814,6 +1830,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    private suspend fun shouldSkipDeleteConfirmation(items: Set<APath<*>>, permanentRequested: Boolean): Boolean {
+        val skips = skipsDeleteConfirmation(
+            targets = items,
+            permanentRequested = permanentRequested,
+            trashEnabled = trashSettings.enabled.value(),
+            confirmTrashMove = trashSettings.confirmTrashMove.value(),
+        )
+        if (skips) log(tag) { "Moving ${items.size} items to the trash without confirmation" }
+        return skips
+    }
+
     fun onDeleteConfirmed(items: Set<APath<*>>, forcePermDelete: Boolean = false) = launch {
         log(tag) { "onDeleteConfirmed($items, forcePermDelete=$forcePermDelete)" }
         dialogs.dismiss()
@@ -2265,7 +2292,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             return@launch
         }
         if (validateTrashDrop(getState(), id, payload)) {
-            dialogs.show(TrashDropConfirmation(payload))
+            val paths = payload.items.map { it.path }.toSet()
+            if (shouldSkipDeleteConfirmation(paths, permanentRequested = false)) {
+                moveDropToTrash(paths)
+            } else {
+                dialogs.show(TrashDropConfirmation(payload))
+            }
             return@launch
         }
         val paneDestination = validateDropDestination(getState(), id, payload)
@@ -2296,20 +2328,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "onTrashDropConfirmed(${payload.items.size} items)" }
         // Atomic claim of the dialog: a second invocation (double tap) finds it already gone.
         if (!dialogs.dismissIfCurrent(TrashDropConfirmation(payload))) return
-        launch {
-            val paths = payload.items.map { it.path }.toSet()
-            if (paths.isEmpty()) return@launch
-            getWorkspace().execute(
-                ExplorerCommand.Delete(
-                    targets = paths,
-                    options = ExplorerCommand.Delete.Options(forcePermDelete = false),
-                )
+        launch { moveDropToTrash(payload.items.map { it.path }.toSet()) }
+    }
+
+    private suspend fun moveDropToTrash(paths: Set<APath<*>>) {
+        if (paths.isEmpty()) return
+        getWorkspace().execute(
+            ExplorerCommand.Delete(
+                targets = paths,
+                options = ExplorerCommand.Delete.Options(forcePermDelete = false),
             )
-            clearSelection()
-            // Trash is a virtual location; BrowsingEngine's incremental FS updates key on
-            // parent == current.path and don't cover it, so re-list explicitly.
-            navigation.refresh()
-        }
+        )
+        clearSelection()
+        // Trash is a virtual location; BrowsingEngine's incremental FS updates key on
+        // parent == current.path and don't cover it, so re-list explicitly.
+        navigation.refresh()
     }
 
     fun onDropConfirmed(payload: WorkspaceDragPayload, destination: APath<*>, move: Boolean) = launch {

@@ -88,6 +88,22 @@
     <string name="sftp_error_access_denied_description">اس اکاؤنٹ کو \"%1$s\" کے لیے مقرر کردہ فولڈر کھولنے کی اجازت نہیں ہو سکتی۔ سرور پر فولڈر کی اجازتیں جانچیں۔</string>
     <string name="sftp_error_pro_required_title">SFTP سرورز کے لیے Butler Pro درکار ہے</string>
     <string name="sftp_error_pro_required_description">SFTP سرورز کو براؤز کرنا Butler Pro کا حصہ ہے۔ سرورز شامل کرنا، جانچنا اور ہٹانا مفت ہے۔</string>
+    <string name="webdav_error_credential_unavailable_title">سائن اِن درکار ہے</string>
+    <string name="webdav_error_credential_unavailable_description">اس WebDAV سرور کا محفوظ کردہ پاس ورڈ اب پڑھا نہیں جا سکتا۔ دوبارہ جڑنے کے لیے اسے پھر سے درج کریں۔</string>
+    <string name="webdav_error_unreachable_title">سرور تک رسائی ممکن نہیں ہے</string>
+    <string name="webdav_error_unreachable_description">Butler \"%1$s\" تک نہیں پہنچ سکا۔ پتہ جانچیں، اور یہ بھی کہ سرور چل رہا ہے۔</string>
+    <string name="webdav_error_auth_title">سائن اِن ناکام ہو گیا</string>
+    <string name="webdav_error_auth_description">\"%1$s\" نے صارف نام یا پاس ورڈ مسترد کر دیا۔</string>
+    <string name="webdav_error_certificate_untrusted_title">غیر معتبر سرٹیفکیٹ</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" نے ایسا سرٹیفکیٹ پیش کیا جس پر یہ آلہ بھروسا نہیں کرتا۔ Butler نے سائن اِن نہیں کیا۔\n\nفنگر پرنٹ: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">سرور کا سرٹیفکیٹ بدل گیا</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" نے اس سرٹیفکیٹ سے مختلف سرٹیفکیٹ پیش کیا جس پر آپ نے بھروسا کیا تھا۔ Butler نے سائن اِن نہیں کیا۔\n\nمعتبر: %2$s\nپیش کردہ: %3$s</string>
+    <string name="webdav_error_access_denied_title">اس فولڈر تک رسائی نہیں ہے</string>
+    <string name="webdav_error_access_denied_description">اس اکاؤنٹ کو \"%1$s\" کے لیے مقرر کردہ فولڈر کھولنے کی اجازت نہیں ہے۔ سرور پر فولڈر کی اجازتیں جانچیں۔</string>
+    <string name="webdav_error_not_collection_title">یہ WebDAV فولڈر نہیں ہے</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" WebDAV فولڈر نہیں ہے۔ پتہ جانچیں، اسے سرور پر کسی فولڈر کی طرف اشارہ کرنا چاہیے۔</string>
+    <string name="webdav_error_pro_required_title">WebDAV سرورز کے لیے Butler Pro درکار ہے</string>
+    <string name="webdav_error_pro_required_description">WebDAV سرورز کو براؤز کرنا Butler Pro کا حصہ ہے۔ سرورز شامل کرنا، جانچنا اور ہٹانا مفت ہے۔</string>
 
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">محفوظ ایپ بنڈل</string>

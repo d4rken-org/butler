@@ -153,6 +153,15 @@
     <string name="explorer_info_sftp_credential_session">Butler بند ہونے تک رکھی جاتی ہے</string>
     <string name="explorer_info_sftp_host_key_type_label">ہوسٹ کلید کی قسم</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">ہوسٹ کلید کا فنگر پرنٹ</string>
+    <string name="explorer_info_webdav_type_value">WebDAV</string>
+    <string name="explorer_info_webdav_url_label">URL</string>
+    <string name="explorer_info_webdav_auth_anonymous">گمنام</string>
+    <string name="explorer_info_webdav_credential_stored">اس آلے پر محفوظ ہے</string>
+    <string name="explorer_info_webdav_credential_session">Butler بند ہونے تک محفوظ ہے</string>
+    <string name="explorer_info_webdav_certificate_label">سرٹیفکیٹ</string>
+    <string name="explorer_info_webdav_certificate_pinned_label">معتبر سرٹیفکیٹ (SHA-256)</string>
+    <string name="explorer_info_webdav_certificate_system">سسٹم کو اس پر بھروسا ہے</string>
+    <string name="explorer_info_webdav_certificate_cleartext">انکرپٹ شدہ نہیں (HTTP)</string>
 
     <!-- Multiple Items Info -->
     <string name="explorer_info_selected_label">منتخب</string>
@@ -340,6 +349,8 @@
     <string name="explorer_network_protocol_smb_caption">Windows شیئرز اور زیادہ تر NAS فولڈر</string>
     <string name="explorer_network_protocol_sftp_label">SFTP سرور</string>
     <string name="explorer_network_protocol_sftp_caption">کوئی بھی سرور جس تک آپ SSH کے ذریعے پہنچ سکتے ہیں</string>
+    <string name="explorer_network_protocol_webdav_label">WebDAV</string>
+    <string name="explorer_network_protocol_webdav_caption">Nextcloud، ownCloud اور دیگر WebDAV سرورز</string>
     <string name="explorer_sftp_form_add_title">SFTP سرور شامل کریں</string>
     <string name="explorer_sftp_form_edit_title">SFTP سرور میں ترمیم کریں</string>
     <string name="explorer_sftp_form_sign_in_title">%1$s میں سائن اِن کریں</string>
@@ -390,6 +401,52 @@
     <string name="explorer_sftp_host_key_retrust_title">سرور کی کلید بدلیں؟</string>
     <string name="explorer_sftp_host_key_retrust_message">کلید صرف تبھی بدلیں جب آپ جانتے ہوں کہ %1$s نے اسے کیوں بدلا۔ Butler اب سے پیش کردہ کلید پر بھروسا کرے گا۔</string>
     <string name="explorer_sftp_host_key_retrust_action">کلید بدلیں</string>
+    <string name="explorer_webdav_form_add_title">WebDAV سرور شامل کریں</string>
+    <string name="explorer_webdav_form_edit_title">WebDAV سرور میں ترمیم کریں</string>
+    <string name="explorer_webdav_form_sign_in_title">%1$s میں سائن اِن کریں</string>
+    <string name="explorer_webdav_form_sign_in_password_hint">اس سرور کو کھولنے کے لیے پاس ورڈ دوبارہ درج کریں۔</string>
+    <string name="explorer_webdav_form_sign_in_anonymous_hint">یہ سرور صارف نام اور پاس ورڈ مانگتا ہے۔</string>
+    <string name="explorer_webdav_form_url_label">سرور کا URL</string>
+    <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
+    <string name="explorer_webdav_form_cleartext_warning">غیر انکرپٹ شدہ کنکشن: آپ کا پاس ورڈ اور فائلیں سادہ متن میں بھیجی جاتی ہیں۔</string>
+    <string name="explorer_webdav_form_auth_anonymous">گمنام</string>
+    <string name="explorer_webdav_form_error_url_blank">سرور کا URL درج کریں</string>
+    <string name="explorer_webdav_form_error_url_scheme">URL کا آغاز https:// یا http:// سے ہونا چاہیے</string>
+    <string name="explorer_webdav_form_error_url_user_info">صارف نام اور پاس ورڈ اپنے الگ خانوں میں درج کریں، URL میں نہیں</string>
+    <string name="explorer_webdav_form_error_url_query">URL میں کوئری (?…) نہیں ہو سکتی</string>
+    <string name="explorer_webdav_form_error_url_fragment">URL میں فریگمنٹ (#…) نہیں ہو سکتا</string>
+    <string name="explorer_webdav_form_error_username_malformed">صارف نام میں کولن (:) یا کنٹرول حروف نہیں ہو سکتے</string>
+    <string name="explorer_webdav_form_error_password_required">صارف نام، سائن اِن کا طریقہ یا یاد رکھنے کی ترتیب بدلنے کے لیے پاس ورڈ دوبارہ درج کریں</string>
+    <string name="explorer_webdav_form_error_auth">%1$s نے صارف نام یا پاس ورڈ مسترد کر دیا</string>
+    <string name="explorer_webdav_form_error_access_denied">اس اکاؤنٹ کو یہ فولڈر کھولنے کی اجازت نہیں ہے</string>
+    <string name="explorer_webdav_form_error_not_collection">یہ URL WebDAV فولڈر نہیں ہے۔ Nextcloud کے لیے اس کا اختتام /remote.php/dav/files/USERNAME/ پر ہوتا ہے</string>
+    <string name="explorer_webdav_form_error_missing">یہ فولڈر سرور پر موجود نہیں ہے</string>
+    <string name="explorer_webdav_form_error_unreachable">%1$s تک رسائی ممکن نہیں</string>
+    <string name="explorer_webdav_form_error_certificate_mismatch">سرور نے اس سرٹیفکیٹ سے مختلف سرٹیفکیٹ پیش کیا جس پر اس کے لیے بھروسا کیا گیا تھا۔ کچھ بھی محفوظ نہیں ہوا۔\n\nمعتبر: %1$s\nپیش کردہ: %2$s</string>
+    <string name="explorer_webdav_form_error_certificate_rejected">سرور کے سرٹیفکیٹ پر بھروسا نہیں کیا گیا۔ کچھ بھی محفوظ نہیں ہوا۔</string>
+    <string name="explorer_webdav_form_error_certificate_stale">کنکشن کی جانچ شروع ہونے کے بعد سرور کی تفصیلات بدل گئیں۔ کچھ بھی محفوظ نہیں ہوا، سرور کے سرٹیفکیٹ کا جائزہ لینے کے لیے دوبارہ جانچیں۔</string>
+    <string name="explorer_webdav_form_error_unconfirmed">سرور کی شناخت کی تصدیق نہیں ہو سکی۔ کچھ بھی محفوظ نہیں ہوا۔</string>
+    <string name="explorer_webdav_form_error_retrust_endpoint_changed">اس سرٹیفکیٹ کے پیش ہونے کے بعد اس سرور کا URL یا سرٹیفکیٹ بدل گیا۔ کچھ بھی تبدیل نہیں ہوا، اب جو سرٹیفکیٹ یہ پیش کرتا ہے اس کا جائزہ لینے کے لیے سرور دوبارہ کھولیں۔</string>
+    <string name="explorer_webdav_form_error_retrust_not_found">یہ WebDAV سرور ہٹا دیا گیا تھا۔ کچھ بھی تبدیل نہیں ہوا۔</string>
+    <string name="explorer_webdav_certificate_untrusted_title">اس سرٹیفکیٹ پر بھروسا کریں؟</string>
+    <string name="explorer_webdav_certificate_untrusted_message">یہ آلہ %1$s کے پیش کردہ سرٹیفکیٹ پر بھروسا نہیں کرتا۔ ہو سکتا ہے یہ خود دستخط شدہ ہو، کسی نجی اتھارٹی نے جاری کیا ہو یا کسی اور نام کے لیے جاری کیا گیا ہو۔ صرف تبھی آگے بڑھیں جب اس کا فنگر پرنٹ آپ کے سرور پر دکھائے گئے فنگر پرنٹ سے ملتا ہو۔</string>
+    <string name="explorer_webdav_certificate_now_untrusted_message">یہ آلہ اب %1$s کے پیش کردہ سرٹیفکیٹ پر بھروسا نہیں کرتا۔ صرف تبھی آگے بڑھیں جب اس کا فنگر پرنٹ آپ کے سرور پر دکھائے گئے فنگر پرنٹ سے ملتا ہو۔ Butler اب سے اس سرور کے لیے اس سرٹیفکیٹ پر بھروسا کرے گا۔</string>
+    <string name="explorer_webdav_certificate_subject_label">جس کے لیے جاری کیا گیا</string>
+    <string name="explorer_webdav_certificate_issuer_label">جاری کرنے والا</string>
+    <string name="explorer_webdav_certificate_validity_label">میعاد</string>
+    <string name="explorer_webdav_certificate_validity_format">%1$s سے %2$s تک</string>
+    <string name="explorer_webdav_certificate_fingerprint_label">SHA-256 فنگر پرنٹ</string>
+    <string name="explorer_webdav_certificate_stored_label">معتبر سرٹیفکیٹ</string>
+    <string name="explorer_webdav_certificate_presented_label">پیش کردہ سرٹیفکیٹ</string>
+    <string name="explorer_webdav_certificate_accept_action">سرٹیفکیٹ پر بھروسا کریں</string>
+    <string name="explorer_webdav_certificate_retrust_title">معتبر سرٹیفکیٹ بدلیں؟</string>
+    <string name="explorer_webdav_certificate_retrust_message">سرٹیفکیٹ صرف تبھی بدلیں جب آپ کو معلوم ہو کہ %1$s نے اسے کیوں بدلا، مثلاً اس کی تجدید کی گئی ہو۔ Butler اب سے پیش کردہ سرٹیفکیٹ پر بھروسا کرے گا۔</string>
+    <string name="explorer_webdav_certificate_retrust_action">سرٹیفکیٹ بدلیں</string>
+    <string name="explorer_webdav_certificate_card_untrusted_title">سرٹیفکیٹ پر بھروسا نہیں ہے</string>
+    <string name="explorer_webdav_certificate_card_untrusted_message">%1$s نے ایسا سرٹیفکیٹ پیش کیا جس پر یہ آلہ بھروسا نہیں کرتا۔ سرور کو کچھ نہیں بھیجا گیا۔</string>
+    <string name="explorer_webdav_certificate_card_changed_title">سرور کا سرٹیفکیٹ بدل گیا</string>
+    <string name="explorer_webdav_certificate_card_changed_message">%1$s نے اس سرٹیفکیٹ سے مختلف سرٹیفکیٹ پیش کیا جس پر اس کے لیے بھروسا کیا گیا تھا۔ ایسا سرٹیفکیٹ کی تجدید پر ہوتا ہے، لیکن اس وقت بھی جب کوئی کنکشن میں مداخلت کرے۔ سرور کو کچھ نہیں بھیجا گیا۔</string>
+    <string name="explorer_webdav_certificate_review_action">جائزہ لیں</string>
 
     <!-- Location Naming -->
     <string name="explorer_location_name_title">مقام کو نام دیں</string>

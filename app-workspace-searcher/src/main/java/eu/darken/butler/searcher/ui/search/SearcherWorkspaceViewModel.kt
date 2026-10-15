@@ -79,6 +79,7 @@ import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.AppInstallLauncher
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.skipsDeleteConfirmation
 import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
@@ -1178,10 +1179,21 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG) { "handleDialogEvent($event)" }
         when (event) {
             is SearcherDialogEvent.ShowDeleteConfirmation -> {
-                dialogStateFlow.value = SearcherDialogState.DeleteConfirmation(
-                    paths = event.paths,
-                    initialPermanentDelete = event.initialPermanentDelete,
+                val skips = skipsDeleteConfirmation(
+                    targets = event.paths,
+                    permanentRequested = event.initialPermanentDelete,
+                    trashEnabled = trashSettings.enabled.value(),
+                    confirmTrashMove = trashSettings.confirmTrashMove.value(),
                 )
+                if (skips) {
+                    log(TAG) { "Moving ${event.paths.size} items to the trash without confirmation" }
+                    onDeleteConfirmed(event.paths, forcePermDelete = false)
+                } else {
+                    dialogStateFlow.value = SearcherDialogState.DeleteConfirmation(
+                        paths = event.paths,
+                        initialPermanentDelete = event.initialPermanentDelete,
+                    )
+                }
             }
             is SearcherDialogEvent.Dismiss -> {
                 dialogStateFlow.value = SearcherDialogState.None

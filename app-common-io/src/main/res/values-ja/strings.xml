@@ -87,6 +87,22 @@
     <string name="sftp_error_access_denied_description">このアカウントは \"%1$s\" に設定されたフォルダを開けない可能性があります。サーバー上のフォルダのアクセス許可を確認してください。</string>
     <string name="sftp_error_pro_required_title">SFTP サーバーには Butler Pro が必要です</string>
     <string name="sftp_error_pro_required_description">SFTP サーバーの閲覧は Butler Pro の一部です。サーバーの追加、テスト、削除は無料です。</string>
+    <string name="webdav_error_credential_unavailable_title">サインインが必要です</string>
+    <string name="webdav_error_credential_unavailable_description">この WebDAV サーバーの保存済みパスワードは読み取れなくなりました。もう一度入力して再接続してください。</string>
+    <string name="webdav_error_unreachable_title">サーバーに到達できません</string>
+    <string name="webdav_error_unreachable_description">Butler は \"%1$s\" に到達できませんでした。アドレスと、サーバーが動作していることを確認してください。</string>
+    <string name="webdav_error_auth_title">サインインに失敗しました</string>
+    <string name="webdav_error_auth_description">\"%1$s\" がユーザー名またはパスワードを拒否しました。</string>
+    <string name="webdav_error_certificate_untrusted_title">信頼されていない証明書</string>
+    <string name="webdav_error_certificate_untrusted_description">\"%1$s\" が、この端末で信頼されていない証明書を提示しました。Butler はサインインしませんでした。\n\nフィンガープリント: %2$s</string>
+    <string name="webdav_error_certificate_changed_title">サーバーの証明書が変わりました</string>
+    <string name="webdav_error_certificate_changed_description">\"%1$s\" が、信頼済みの証明書とは異なる証明書を提示しました。Butler はサインインしませんでした。\n\n信頼済み: %2$s\n提示された証明書: %3$s</string>
+    <string name="webdav_error_access_denied_title">このフォルダにアクセスできません</string>
+    <string name="webdav_error_access_denied_description">このアカウントには \"%1$s\" に設定されたフォルダを開く権限がありません。サーバー上のフォルダのアクセス許可を確認してください。</string>
+    <string name="webdav_error_not_collection_title">WebDAV フォルダではありません</string>
+    <string name="webdav_error_not_collection_description">\"%1$s\" は WebDAV フォルダではありません。アドレスがサーバー上のフォルダを指していることを確認してください。</string>
+    <string name="webdav_error_pro_required_title">WebDAV サーバーには Butler Pro が必要です</string>
+    <string name="webdav_error_pro_required_description">WebDAV サーバーの閲覧は Butler Pro の一部です。サーバーの追加、テスト、削除は無料です。</string>
     <!-- App install errors -->
     <string name="app_install_error_protected_bundle_title">保護されたアプリバンドル</string>
     <string name="app_install_error_protected_bundle_description">\"%1$s\" は暗号化されており、それを作成したアプリによってのみインストールできます。</string>
