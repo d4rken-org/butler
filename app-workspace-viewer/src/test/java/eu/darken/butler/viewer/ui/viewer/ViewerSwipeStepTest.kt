@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -185,6 +186,15 @@ class ViewerSwipeStepTest : ComposeTest() {
     private fun outlastRefusedStep() {
         composeTestRule.mainClock.advanceTimeBy(SWIPE_STEP_ARRIVAL_TIMEOUT.inWholeMilliseconds + 2_000L)
         composeTestRule.waitForIdle()
+    }
+
+    /**
+     * Switches the shown file. With the clock paused and nothing animating, a state write from the test
+     * thread does not reach the composition until apply notifications are sent.
+     */
+    private fun land(state: ViewerWorkspaceViewModel.State.Ready) {
+        pageState.value = state
+        Snapshot.sendApplyNotifications()
     }
 
     private val contentOffsetX: Float
@@ -610,11 +620,11 @@ class ViewerSwipeStepTest : ComposeTest() {
         contentOffsetX shouldBeLessThan -390f
 
         // The tab is replaced under the same page; the new viewer starts out loading.
-        pageState.value = ready(current = c, content = ViewerContent.Loading, previous = b, next = null)
+        land(ready(current = c, content = ViewerContent.Loading, previous = b, next = null))
         repeat(2) { composeTestRule.mainClock.advanceTimeByFrame() }
         contentOffsetX shouldBe 0f
 
-        pageState.value = ready(current = c, previous = b, next = null)
+        land(ready(current = c, previous = b, next = null))
         repeat(10) {
             composeTestRule.mainClock.advanceTimeByFrame()
             contentOffsetX shouldBe 0f
@@ -633,12 +643,12 @@ class ViewerSwipeStepTest : ComposeTest() {
         contentOffsetX shouldBeLessThan -390f
 
         // What a keyboard arrow stepping back would land on before the swipe's own step.
-        pageState.value = ready(current = a, previous = null, next = b)
+        land(ready(current = a, previous = null, next = b))
         composeTestRule.mainClock.advanceTimeBy(1_000L)
         contentOffsetX shouldBe 0f
 
         // The file the swipe asked for turns up after all; it must not animate anything.
-        pageState.value = ready(current = c, previous = b, next = null)
+        land(ready(current = c, previous = b, next = null))
         repeat(10) {
             composeTestRule.mainClock.advanceTimeByFrame()
             contentOffsetX shouldBe 0f
@@ -686,11 +696,11 @@ class ViewerSwipeStepTest : ComposeTest() {
         }
         actions shouldBe listOf(next)
 
-        pageState.value = ready(current = c, content = ViewerContent.Loading, previous = b, next = null)
+        land(ready(current = c, content = ViewerContent.Loading, previous = b, next = null))
         repeat(2) { composeTestRule.mainClock.advanceTimeByFrame() }
         contentOffsetX shouldBe 0f
 
-        pageState.value = ready(current = a, previous = null, next = b)
+        land(ready(current = a, previous = null, next = b))
         repeat(20) {
             composeTestRule.mainClock.advanceTimeByFrame()
             contentOffsetX shouldBe 0f
