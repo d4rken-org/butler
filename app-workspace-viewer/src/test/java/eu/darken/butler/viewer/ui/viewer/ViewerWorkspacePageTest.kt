@@ -9,11 +9,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
@@ -91,7 +93,13 @@ class ViewerWorkspacePageTest : ComposeTest() {
                         source = ViewerSource.Stored(current),
                         imageSource = null,
                         // The last file of its listing: back is available, forward is not.
-                        neighbours = ViewerNeighbours(current = current, previous = previous, next = null),
+                        neighbours = ViewerNeighbours(
+                            current = current,
+                            previous = previous,
+                            next = null,
+                            position = 2,
+                            count = 2,
+                        ),
                     ),
                     onAction = { clicked.add(it) },
                 )
@@ -438,6 +446,8 @@ class ViewerWorkspacePageTest : ComposeTest() {
             current = stepFrom,
             previous = LocalPath.build("/storage/emulated/0/DCIM/a.jpg"),
             next = stepTo,
+            position = 2,
+            count = 3,
         ),
     )
 
@@ -447,7 +457,13 @@ class ViewerWorkspacePageTest : ComposeTest() {
         fileInfo = null,
         source = ViewerSource.Stored(stepTo),
         imageSource = null,
-        neighbours = ViewerNeighbours(current = stepTo, previous = stepFrom, next = null),
+        neighbours = ViewerNeighbours(
+            current = stepTo,
+            previous = stepFrom,
+            next = null,
+            position = 3,
+            count = 3,
+        ),
     )
 
     @Test
@@ -469,6 +485,73 @@ class ViewerWorkspacePageTest : ComposeTest() {
         composeTestRule.runOnIdle { state = stepTarget }
 
         originSize.assertIsDisplayed()
+    }
+
+    /** [stepOrigin]'s file as the second of five. */
+    private fun positionedState(neighbours: Boolean = true) = ViewerWorkspaceViewModel.State.Ready(
+        content = ViewerContent.Image(MimeInfo("image/jpeg")),
+        fileInfo = ViewerFileInfo(size = stepFromSize),
+        source = ViewerSource.Stored(stepFrom),
+        imageSource = null,
+        neighbours = if (neighbours) {
+            ViewerNeighbours(
+                current = stepFrom,
+                previous = LocalPath.build("/storage/emulated/0/DCIM/a.jpg"),
+                next = stepTo,
+                position = 2,
+                count = 5,
+            )
+        } else {
+            null
+        },
+    )
+
+    private fun setPositionPage(state: () -> ViewerWorkspaceViewModel.State) {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = state(),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `the toolbar shows the file's position in its listing`() {
+        setPositionPage { positionedState() }
+
+        composeTestRule.onAllNodesWithText("2 / 5").onFirst().assertIsDisplayed()
+    }
+
+    @Test
+    fun `a viewer without a listing shows no position`() {
+        setPositionPage { positionedState(neighbours = false) }
+
+        composeTestRule.onAllNodesWithText("2 / 5").assertCountEquals(0)
+        composeTestRule.onAllNodesWithContentDescription("File 2 of 5").assertCountEquals(0)
+    }
+
+    @Test
+    fun `a step keeps the previous file's position while the next file loads`() {
+        var state by mutableStateOf<ViewerWorkspaceViewModel.State>(positionedState())
+        setPositionPage { state }
+        composeTestRule.onAllNodesWithText("2 / 5").onFirst().assertIsDisplayed()
+
+        composeTestRule.runOnIdle { state = stepTarget.copy(neighbours = null) }
+
+        composeTestRule.onAllNodesWithText("2 / 5").onFirst().assertIsDisplayed()
+
+        composeTestRule.runOnIdle {
+            state = stepTarget.copy(
+                content = ViewerContent.Image(MimeInfo("image/jpeg")),
+                fileInfo = ViewerFileInfo(size = 1024L),
+                neighbours = null,
+            )
+        }
+
+        composeTestRule.onAllNodesWithText("2 / 5").assertCountEquals(0)
     }
 
     @Test
@@ -658,7 +741,13 @@ class ViewerWorkspacePageTest : ComposeTest() {
         val actions = viewerActions(
             source = ViewerSource.Stored(path),
             trashEnabled = true,
-            neighbours = ViewerNeighbours(current = path, previous = null, next = null),
+            neighbours = ViewerNeighbours(
+                current = path,
+                previous = null,
+                next = null,
+                position = 1,
+                count = 1,
+            ),
         )
         composeTestRule.setContent {
             PreviewWrapper {

@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">باز کردن با</string>
     <string name="viewer_image_content_description">تصویر %1$s</string>
     <string name="viewer_toolbar_folder_label">پوشه</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">فایل %1$d از %2$d</string>
     <string name="viewer_back_action">بازگشت</string>
 
     <!-- Action bar -->

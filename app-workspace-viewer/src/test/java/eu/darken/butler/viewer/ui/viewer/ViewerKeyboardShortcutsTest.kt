@@ -54,7 +54,13 @@ class ViewerKeyboardShortcutsTest : ComposeTest() {
     private var rootEverFocused = false
 
     private fun imageState(
-        neighbours: ViewerNeighbours? = ViewerNeighbours(current = current, previous = previous, next = next),
+        neighbours: ViewerNeighbours? = ViewerNeighbours(
+            current = current,
+            previous = previous,
+            next = next,
+            position = 2,
+            count = 3,
+        ),
     ) = ViewerWorkspaceViewModel.State.Ready(
         content = ViewerContent.Image(MimeInfo("image/jpeg")),
         fileInfo = ViewerFileInfo(size = 1024L),
@@ -157,7 +163,17 @@ class ViewerKeyboardShortcutsTest : ComposeTest() {
 
     @Test
     fun `a disabled neighbour does not step`() {
-        setPage(imageState(neighbours = ViewerNeighbours(current = current, previous = previous, next = null)))
+        setPage(
+            imageState(
+                neighbours = ViewerNeighbours(
+                    current = current,
+                    previous = previous,
+                    next = null,
+                    position = 2,
+                    count = 2,
+                ),
+            ),
+        )
 
         press(NativeKeyEvent.KEYCODE_DPAD_RIGHT)
         actions shouldBe emptyList()
@@ -230,7 +246,15 @@ class ViewerKeyboardShortcutsTest : ComposeTest() {
     fun `an unfocused workspace neither requests focus nor answers keys`() {
         // A PDF inside a listing, so every shortcut would answer if the workspace were focused.
         setPage(
-            pdfState(neighbours = ViewerNeighbours(current = manual, previous = previous, next = next)),
+            pdfState(
+                neighbours = ViewerNeighbours(
+                    current = manual,
+                    previous = previous,
+                    next = next,
+                    position = 2,
+                    count = 3,
+                ),
+            ),
             workspaceFocused = false,
         )
         rootEverFocused shouldBe false

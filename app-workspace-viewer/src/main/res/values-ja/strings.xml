@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">別のアプリで開く</string>
     <string name="viewer_image_content_description">画像 %1$s</string>
     <string name="viewer_toolbar_folder_label">フォルダ</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">%2$d 個中 %1$d 番目のファイル</string>
     <string name="viewer_back_action">戻る</string>
 
     <!-- Action bar -->

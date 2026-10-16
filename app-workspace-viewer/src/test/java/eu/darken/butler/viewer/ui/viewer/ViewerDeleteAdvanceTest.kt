@@ -576,7 +576,13 @@ class ViewerDeleteAdvanceTest : BaseTest() {
 
         creates.single().target shouldBe c
         val ready = vm.state.value.shouldBeInstanceOf<ViewerWorkspaceViewModel.State.Ready>()
-        ready.neighbours shouldBe ViewerNeighbours(current = b, previous = a, next = c)
+        ready.neighbours shouldBe ViewerNeighbours(
+            current = b,
+            previous = a,
+            next = c,
+            position = 2,
+            count = 3,
+        )
         ready.actions.filterIsInstance<ViewerActionBarItem.PreviousFile>() shouldBe listOf(
             ViewerActionBarItem.PreviousFile(isEnabled = true),
         )

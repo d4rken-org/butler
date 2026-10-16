@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">다음을 사용하여 열기</string>
     <string name="viewer_image_content_description">이미지 %1$s</string>
     <string name="viewer_toolbar_folder_label">폴더</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">%2$d개 중 %1$d번째 파일</string>
     <string name="viewer_back_action">뒤로</string>
 
     <!-- Action bar -->

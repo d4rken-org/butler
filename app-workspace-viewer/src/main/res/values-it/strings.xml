@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">Apri con</string>
     <string name="viewer_image_content_description">Immagine %1$s</string>
     <string name="viewer_toolbar_folder_label">Cartella</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">File %1$d di %2$d</string>
     <string name="viewer_back_action">Indietro</string>
 
     <!-- Action bar -->

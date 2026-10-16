@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">開啟方式</string>
     <string name="viewer_image_content_description">影像 %1$s</string>
     <string name="viewer_toolbar_folder_label">資料夾</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">第 %1$d 個檔案，共 %2$d 個</string>
     <string name="viewer_back_action">返回</string>
 
     <!-- 操作列 -->

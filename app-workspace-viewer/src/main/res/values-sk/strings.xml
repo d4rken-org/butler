@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">Otvoriť pomocou</string>
     <string name="viewer_image_content_description">Obrázok %1$s</string>
     <string name="viewer_toolbar_folder_label">Priečinok</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">Súbor %1$d z %2$d</string>
     <string name="viewer_back_action">Späť</string>
 
     <!-- Action bar -->

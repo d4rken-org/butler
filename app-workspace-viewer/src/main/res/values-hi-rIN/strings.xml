@@ -3,6 +3,8 @@
     <string name="viewer_open_with_action">इससे खोलें</string>
     <string name="viewer_image_content_description">चित्र %1$s</string>
     <string name="viewer_toolbar_folder_label">फ़ोल्डर</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">%2$d में से फ़ाइल %1$d</string>
     <string name="viewer_back_action">वापस</string>
     <string name="viewer_previous_file_action">पिछली फ़ाइल</string>
     <string name="viewer_next_file_action">अगली फ़ाइल</string>

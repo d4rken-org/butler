@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">Abrir com</string>
     <string name="viewer_image_content_description">Imagem %1$s</string>
     <string name="viewer_toolbar_folder_label">Pasta</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">Arquivo %1$d de %2$d</string>
     <string name="viewer_back_action">Voltar</string>
 
     <!-- Action bar -->

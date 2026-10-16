@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">Ouvrir avec</string>
     <string name="viewer_image_content_description">Image %1$s</string>
     <string name="viewer_toolbar_folder_label">Dossier</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">Fichier %1$d sur %2$d</string>
     <string name="viewer_back_action">Retour</string>
 
     <!-- Action bar -->

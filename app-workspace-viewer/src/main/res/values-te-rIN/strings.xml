@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">దీనితో తెరవండి</string>
     <string name="viewer_image_content_description">చిత్రం %1$s</string>
     <string name="viewer_toolbar_folder_label">ఫోల్డర్</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">%2$d ఫైళ్లలో %1$dవ ఫైల్</string>
     <string name="viewer_back_action">వెనుకకు</string>
 
     <!-- Action bar -->

@@ -55,6 +55,8 @@ class ViewerZoomableKeyboardTest : ComposeTest() {
             current = current,
             previous = LocalPath.build("/storage/emulated/0/DCIM/a.jpg"),
             next = LocalPath.build("/storage/emulated/0/DCIM/c.jpg"),
+            position = 2,
+            count = 3,
         ),
     )
 

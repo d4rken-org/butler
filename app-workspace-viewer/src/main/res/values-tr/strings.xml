@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">Birlikte aç</string>
     <string name="viewer_image_content_description">Resim %1$s</string>
     <string name="viewer_toolbar_folder_label">Klasör</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">%2$d dosyadan %1$d. dosya</string>
     <string name="viewer_back_action">Geri</string>
 
     <!-- Action bar -->

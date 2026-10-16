@@ -305,6 +305,7 @@ fun ViewerWorkspacePage(
             is ViewerWorkspaceViewModel.State.Ready -> {
                 val isToolbarCollapsed = shouldCollapseToolbar(state.content, zoomedIn)
                 var lastShownFileInfo by remember { mutableStateOf<ViewerFileInfo?>(null) }
+                var lastShownPosition by remember { mutableStateOf<Pair<Int, Int>?>(null) }
                 // An error card is not a surface the user can tap, and retry and back both live in
                 // the chrome - it must not stay hidden from an earlier tap. A PDF page without a
                 // bitmap is the same situation: it is either still rendering or has failed, and both
@@ -343,6 +344,11 @@ fun ViewerWorkspacePage(
                     onToggleChrome = toggleChrome,
                 )
 
+                // A step's target has no neighbours until its listing resolves; the counter holds meanwhile.
+                val shownPosition = state.neighbours?.let { it.position to it.count }
+                    ?: lastShownPosition.takeIf { state.content is ViewerContent.Loading }
+                SideEffect { lastShownPosition = shownPosition }
+
                 FloatingBarStack(
                     state = topBarStackState,
                     position = BarPosition.TOP,
@@ -363,6 +369,7 @@ fun ViewerWorkspacePage(
                                 // content, which lives nowhere Butler could name.
                                 folderPath = state.source.folderPath?.withLocationNames(),
                                 isCollapsed = isToolbarCollapsed || collapsedFraction > 0.5f,
+                                position = shownPosition,
                                 onBackClick = if (isModal) {
                                     { onPageAction(ViewerPageAction.Close) }
                                 } else null,
@@ -666,6 +673,8 @@ private fun ViewerWorkspacePageSteppablePreview() {
                 current = previewPath,
                 previous = LocalPath.build("/storage/emulated/0/DCIM/Camera/IMG_20240817_183041.jpg"),
                 next = null,
+                position = 7,
+                count = 7,
             ),
         ),
     )

@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">เปิดด้วย</string>
     <string name="viewer_image_content_description">รูปภาพ %1$s</string>
     <string name="viewer_toolbar_folder_label">โฟลเดอร์</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">ไฟล์ %1$d จาก %2$d</string>
     <string name="viewer_back_action">ย้อนกลับ</string>
 
     <!-- Action bar -->

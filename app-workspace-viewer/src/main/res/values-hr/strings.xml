@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">Otvori pomoću</string>
     <string name="viewer_image_content_description">Slika %1$s</string>
     <string name="viewer_toolbar_folder_label">Mapa</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">Datoteka %1$d od %2$d</string>
     <string name="viewer_back_action">Natrag</string>
 
     <!-- Action bar -->

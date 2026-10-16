@@ -3,6 +3,7 @@ package eu.darken.butler.viewer.ui.viewer
 import android.content.Context
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -19,7 +20,7 @@ class ViewerToolbarCardTest : ComposeTest() {
     private val fileName = "IMG_20240817_183042.jpg"
     private val folderPath = "/storage/emulated/0/DCIM/Camera"
 
-    private fun toolbarWith(isCollapsed: Boolean) {
+    private fun toolbarWith(isCollapsed: Boolean, position: Pair<Int, Int>? = null) {
         composeTestRule.setContent {
             PreviewWrapper {
                 ViewerToolbarCard(
@@ -30,6 +31,7 @@ class ViewerToolbarCardTest : ComposeTest() {
                     fileName = fileName,
                     folderPath = folderPath,
                     isCollapsed = isCollapsed,
+                    position = position,
                 )
             }
         }
@@ -58,5 +60,33 @@ class ViewerToolbarCardTest : ComposeTest() {
         composeTestRule
             .onAllNodesWithText(context.getString(R.string.viewer_toolbar_folder_label))
             .assertCountEquals(0)
+    }
+
+    @Test
+    fun `the expanded toolbar shows the file's position next to its name`() {
+        toolbarWith(isCollapsed = false, position = 3 to 7)
+
+        composeTestRule.onAllNodesWithText("3 / 7")[0].assertIsDisplayed()
+    }
+
+    @Test
+    fun `the collapsed toolbar keeps the file's position`() {
+        toolbarWith(isCollapsed = true, position = 3 to 7)
+
+        composeTestRule.onAllNodesWithText("3 / 7")[0].assertIsDisplayed()
+    }
+
+    @Test
+    fun `without a listing there is no position`() {
+        toolbarWith(isCollapsed = false)
+
+        composeTestRule.onAllNodesWithText(" / ", substring = true).assertCountEquals(0)
+    }
+
+    @Test
+    fun `the position is announced in words`() {
+        toolbarWith(isCollapsed = false, position = 3 to 7)
+
+        composeTestRule.onAllNodesWithContentDescription("File 3 of 7")[0].assertIsDisplayed()
     }
 }

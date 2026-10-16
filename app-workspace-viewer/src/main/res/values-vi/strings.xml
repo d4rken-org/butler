@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">Mở bằng</string>
     <string name="viewer_image_content_description">Hình ảnh %1$s</string>
     <string name="viewer_toolbar_folder_label">Thư mục</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">Tệp %1$d của %2$d</string>
     <string name="viewer_back_action">Quay lại</string>
 
     <!-- Thanh hành động -->

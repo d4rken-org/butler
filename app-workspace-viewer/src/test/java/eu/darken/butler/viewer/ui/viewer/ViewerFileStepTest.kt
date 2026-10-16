@@ -356,7 +356,13 @@ class ViewerFileStepTest : BaseTest() {
         val vm = makeViewModel(path = a, listingSourceId = null, stepPaths = listOf(a, c, d))
         startCollecting(vm)
 
-        vm.readyState.neighbours shouldBe ViewerNeighbours(current = a, previous = null, next = c)
+        vm.readyState.neighbours shouldBe ViewerNeighbours(
+            current = a,
+            previous = null,
+            next = c,
+            position = 1,
+            count = 3,
+        )
         vm.steps shouldBe listOf(
             ViewerActionBarItem.PreviousFile(isEnabled = false),
             ViewerActionBarItem.NextFile(isEnabled = true),
@@ -385,7 +391,13 @@ class ViewerFileStepTest : BaseTest() {
         val vm = makeViewModel(path = a, stepPaths = listOf(a, c, d))
         startCollecting(vm)
 
-        vm.readyState.neighbours shouldBe ViewerNeighbours(current = a, previous = null, next = c)
+        vm.readyState.neighbours shouldBe ViewerNeighbours(
+            current = a,
+            previous = null,
+            next = c,
+            position = 1,
+            count = 3,
+        )
     }
 
     @Test

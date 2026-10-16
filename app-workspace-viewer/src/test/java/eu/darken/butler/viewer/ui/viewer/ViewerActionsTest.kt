@@ -137,7 +137,13 @@ class ViewerActionsTest : BaseTest() {
             stored,
             trashEnabled = false,
             content = apk,
-            neighbours = ViewerNeighbours(current = photo, previous = previous, next = null),
+            neighbours = ViewerNeighbours(
+                current = photo,
+                previous = previous,
+                next = null,
+                position = 2,
+                count = 2,
+            ),
         )
 
         actions.take(2) shouldBe listOf(
@@ -154,7 +160,13 @@ class ViewerActionsTest : BaseTest() {
             trashEnabled = false,
             content = apk,
             isGone = true,
-            neighbours = ViewerNeighbours(current = photo, previous = previous, next = next),
+            neighbours = ViewerNeighbours(
+                current = photo,
+                previous = previous,
+                next = next,
+                position = 2,
+                count = 3,
+            ),
         )
 
         actions.take(2) shouldBe listOf(
@@ -169,7 +181,13 @@ class ViewerActionsTest : BaseTest() {
             streamed,
             trashEnabled = false,
             content = apk,
-            neighbours = ViewerNeighbours(current = photo, previous = previous, next = next),
+            neighbours = ViewerNeighbours(
+                current = photo,
+                previous = previous,
+                next = next,
+                position = 2,
+                count = 3,
+            ),
         ) shouldBe listOf(ViewerActionBarItem.SaveCopy)
     }
 }

@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">اس کے ساتھ کھولیں</string>
     <string name="viewer_image_content_description">تصویر %1$s</string>
     <string name="viewer_toolbar_folder_label">فولڈر</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">%2$d میں سے فائل %1$d</string>
     <string name="viewer_back_action">واپس</string>
 
     <!-- Action bar -->

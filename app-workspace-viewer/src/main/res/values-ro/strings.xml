@@ -3,6 +3,8 @@
     <string name="viewer_open_with_action">Deschide cu</string>
     <string name="viewer_image_content_description">Imaginea %1$s</string>
     <string name="viewer_toolbar_folder_label">Dosar</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">Fișierul %1$d din %2$d</string>
     <string name="viewer_back_action">Înapoi</string>
     <string name="viewer_previous_file_action">Fișierul anterior</string>
     <string name="viewer_next_file_action">Fișierul următor</string>

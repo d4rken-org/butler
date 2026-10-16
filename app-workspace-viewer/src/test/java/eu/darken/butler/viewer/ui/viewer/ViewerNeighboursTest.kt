@@ -18,23 +18,47 @@ class ViewerNeighboursTest : BaseTest() {
 
     @Test
     fun `a file in the middle can step both ways`() {
-        resolveNeighbours(b, files) shouldBe ViewerNeighbours(current = b, previous = a, next = c)
+        resolveNeighbours(b, files) shouldBe ViewerNeighbours(
+            current = b,
+            previous = a,
+            next = c,
+            position = 2,
+            count = 3,
+        )
     }
 
     @Test
     fun `the first file has nothing before it`() {
-        resolveNeighbours(a, files) shouldBe ViewerNeighbours(current = a, previous = null, next = b)
+        resolveNeighbours(a, files) shouldBe ViewerNeighbours(
+            current = a,
+            previous = null,
+            next = b,
+            position = 1,
+            count = 3,
+        )
     }
 
     @Test
     fun `the last file has nothing after it`() {
-        resolveNeighbours(c, files) shouldBe ViewerNeighbours(current = c, previous = b, next = null)
+        resolveNeighbours(c, files) shouldBe ViewerNeighbours(
+            current = c,
+            previous = b,
+            next = null,
+            position = 3,
+            count = 3,
+        )
     }
 
     @Test
     fun `a file alone in its listing still resolves`() {
         // Not the same as "no listing": the arrows are offered, both of them disabled.
-        resolveNeighbours(a, listOf(a)) shouldBe ViewerNeighbours(current = a, previous = null, next = null)
+        resolveNeighbours(a, listOf(a)) shouldBe ViewerNeighbours(
+            current = a,
+            previous = null,
+            next = null,
+            position = 1,
+            count = 1,
+        )
     }
 
     @Test

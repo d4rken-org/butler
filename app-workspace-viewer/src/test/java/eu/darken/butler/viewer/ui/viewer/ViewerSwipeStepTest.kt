@@ -95,7 +95,18 @@ class ViewerSwipeStepTest : ComposeTest() {
                 preview = TextPreview(lines = it, charset = Charsets.UTF_8),
             )
         },
-        neighbours = if (listing) ViewerNeighbours(current = current, previous = previous, next = next) else null,
+        neighbours = if (listing) {
+            val position = if (previous != null) 2 else 1
+            ViewerNeighbours(
+                current = current,
+                previous = previous,
+                next = next,
+                position = position,
+                count = if (next != null) position + 1 else position,
+            )
+        } else {
+            null
+        },
         swipeToStep = swipeToStep,
     )
 

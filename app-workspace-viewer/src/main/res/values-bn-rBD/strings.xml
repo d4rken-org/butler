@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">যা দিয়ে খুলবেন</string>
     <string name="viewer_image_content_description">ছবি %1$s</string>
     <string name="viewer_toolbar_folder_label">ফোল্ডার</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">%2$dটির মধ্যে %1$d নম্বর ফাইল</string>
     <string name="viewer_back_action">পেছনে</string>
 
     <!-- Action bar -->

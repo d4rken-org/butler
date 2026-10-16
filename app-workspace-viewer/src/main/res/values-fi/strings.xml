@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">Avaa sovelluksella</string>
     <string name="viewer_image_content_description">Kuva %1$s</string>
     <string name="viewer_toolbar_folder_label">Kansio</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">Tiedosto %1$d, yhteensä %2$d</string>
     <string name="viewer_back_action">Takaisin</string>
 
     <!-- Action bar -->

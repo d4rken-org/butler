@@ -28,6 +28,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -59,8 +61,14 @@ fun ViewerToolbarCard(
     /** Null when the content has no location, i.e. it was streamed from another app. */
     folderPath: String?,
     isCollapsed: Boolean = false,
+    /** The file's 1-based position to the size of the listing it steps through, null without one. */
+    position: Pair<Int, Int>? = null,
     onBackClick: (() -> Unit)? = null,
 ) {
+    val positionLabel = position?.let { (index, count) ->
+        stringResource(R.string.viewer_toolbar_position, index, count) to
+            stringResource(R.string.viewer_toolbar_position_description, index, count)
+    }
     val cardPadding by animateDpAsState(
         targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding",
@@ -100,6 +108,15 @@ fun ViewerToolbarCard(
                     maxLines = 1,
                     overflow = TextOverflow.MiddleEllipsis,
                 )
+                positionLabel?.let { (text, description) ->
+                    Text(
+                        modifier = Modifier.semantics { contentDescription = description },
+                        text = text,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                    )
+                }
             }
         } else {
             Column {
@@ -125,6 +142,16 @@ fun ViewerToolbarCard(
                         maxLines = 1,
                         overflow = TextOverflow.MiddleEllipsis,
                     )
+                    positionLabel?.let { (text, description) ->
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            modifier = Modifier.semantics { contentDescription = description },
+                            text = text,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -253,6 +280,35 @@ private fun ViewerToolbarCardCollapsedPreview() {
         fileName = "IMG_20240817_183042_HDR.jpg",
         folderPath = "/storage/emulated/0/DCIM/Camera",
         isCollapsed = true,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerToolbarCardPositionPreview() {
+    ViewerToolbarCard(
+        modifier = Modifier.width(360.dp),
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        fileName = "IMG_20240817_183042_HDR.jpg",
+        folderPath = "/storage/emulated/0/DCIM/Camera",
+        position = 3 to 7,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerToolbarCardCollapsedPositionPreview() {
+    ViewerToolbarCard(
+        modifier = Modifier.width(360.dp),
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        fileName = "IMG_20240817_183042_HDR.jpg",
+        folderPath = "/storage/emulated/0/DCIM/Camera",
+        isCollapsed = true,
+        position = 3 to 7,
     )
 }
 

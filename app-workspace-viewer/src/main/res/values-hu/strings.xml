@@ -3,6 +3,8 @@
     <string name="viewer_open_with_action">Megnyitás ezzel</string>
     <string name="viewer_image_content_description">Kép: %1$s</string>
     <string name="viewer_toolbar_folder_label">Mappa</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">%2$d fájlból a(z) %1$d.</string>
     <string name="viewer_back_action">Vissza</string>
     <string name="viewer_previous_file_action">Előző fájl</string>
     <string name="viewer_next_file_action">Következő fájl</string>

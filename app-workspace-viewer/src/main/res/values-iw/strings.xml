@@ -3,6 +3,8 @@
     <string name="viewer_open_with_action">פתיחה באמצעות</string>
     <string name="viewer_image_content_description">תמונה %1$s</string>
     <string name="viewer_toolbar_folder_label">תיקייה</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">קובץ %1$d מתוך %2$d</string>
     <string name="viewer_back_action">חזרה</string>
     <string name="viewer_previous_file_action">הקובץ הקודם</string>
     <string name="viewer_next_file_action">הקובץ הבא</string>

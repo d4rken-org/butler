@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">Åbn med</string>
     <string name="viewer_image_content_description">Billede %1$s</string>
     <string name="viewer_toolbar_folder_label">Mappe</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">Fil %1$d af %2$d</string>
     <string name="viewer_back_action">Tilbage</string>
 
     <!-- Action bar -->

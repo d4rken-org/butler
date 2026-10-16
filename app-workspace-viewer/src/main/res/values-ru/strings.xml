@@ -4,6 +4,8 @@
     <string name="viewer_open_with_action">Открыть с помощью</string>
     <string name="viewer_image_content_description">Изображение %1$s</string>
     <string name="viewer_toolbar_folder_label">Папка</string>
+    <string name="viewer_toolbar_position">%1$d / %2$d</string>
+    <string name="viewer_toolbar_position_description">Файл %1$d из %2$d</string>
     <string name="viewer_back_action">Назад</string>
 
     <!-- Action bar -->
