@@ -306,16 +306,18 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
      */
     private val deletedPaths = MutableStateFlow<Set<APath<*>>>(emptySet())
 
-    /** Where a step from the file on display would land, or null when there is nothing to step to. */
-    private val neighboursFlow: Flow<ViewerNeighbours?> = workspaceSource.flatMapLatest { workspace ->
+    /** Where a step from [path] would land, or null [neighbours] when there is nothing to step to. */
+    private data class ResolvedNeighbours(val path: APath<*>?, val neighbours: ViewerNeighbours?)
+
+    private val neighboursFlow: Flow<ResolvedNeighbours> = workspaceSource.flatMapLatest { workspace ->
         val path = workspace.storedPath
         // A selection does not change after the viewer opened, so it has no origin to outlive.
         val stepPaths = workspace.stepPaths
         if (stepPaths != null && path != null) {
-            return@flatMapLatest flowOf(resolveNeighbours(path, stepPaths))
+            return@flatMapLatest flowOf(ResolvedNeighbours(path, resolveNeighbours(path, stepPaths)))
         }
         val originId = workspace.listingSourceId
-        if (originId == null || path == null) return@flatMapLatest flowOf(null)
+        if (originId == null || path == null) return@flatMapLatest flowOf(ResolvedNeighbours(path, null))
         val live = workspaceProvider.retrieve(originId).flatMapLatest { origin ->
             (origin as? Workspace.FileListingSource)?.fileListing ?: flowOf<List<APath<*>>?>(null)
         }
@@ -330,7 +332,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                 else -> lastListing?.takeIf { it.first == originId }?.second
             }
             files?.filterNot { it != path && it in deleted }
-        }.map { files -> files?.let { resolveNeighbours(path, it) } }
+        }.map { files -> ResolvedNeighbours(path, files?.let { resolveNeighbours(path, it) }) }
     }.distinctUntilChanged()
 
     val state = combineMany(
@@ -342,7 +344,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         trashSettings.enabled.flow,
         neighboursFlow,
         viewerSettings.swipeBetweenFiles.flow,
-    ) { snapshot, renderFailure, imageSource, pdfPage, textPreview, trashEnabled, rawNeighbours, swipeToStep ->
+    ) { snapshot, renderFailure, imageSource, pdfPage, textPreview, trashEnabled, resolvedNeighbours, swipeToStep ->
         val (source, workspaceState) = snapshot
         // Only the failure of what is on display now: one recorded for a source this tab has since
         // been rebound away from would hide the new content behind the old one's error.
@@ -373,7 +375,9 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             failure is ViewerBrokenSymlinkException
         // Only the snapshot resolved for the file on display: this tab is replaced under its own id
         // when a step lands, and the neighbours of the file it left would step the wrong way.
-        val neighbours = rawNeighbours?.takeIf { it.current == (source as? ViewerSource.Stored)?.path }
+        val sourcePath = (source as? ViewerSource.Stored)?.path
+        val neighbours = resolvedNeighbours.neighbours?.takeIf { it.current == sourcePath }
+        val neighboursPending = sourcePath != null && resolvedNeighbours.path != sourcePath
         State.Ready(
             content = content,
             fileInfo = workspaceState.fileInfo,
@@ -393,6 +397,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             ),
             externalChange = workspaceState.externalChange,
             neighbours = neighbours,
+            neighboursPending = neighboursPending,
             swipeToStep = swipeToStep,
         ) as State
     }
@@ -1243,6 +1248,8 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             val pdfPage: PdfPage? = null,
             val textPreview: TextPreviewResult? = null,
             val neighbours: ViewerNeighbours? = null,
+            /** True while [neighbours] is not yet resolved for the file on display. */
+            val neighboursPending: Boolean = false,
             val actions: List<ViewerActionBarItem> = viewerActions(
                 source,
                 trashEnabled = false,

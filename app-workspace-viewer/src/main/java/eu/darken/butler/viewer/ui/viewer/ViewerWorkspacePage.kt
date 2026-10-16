@@ -346,7 +346,7 @@ fun ViewerWorkspacePage(
 
                 // A step's target has no neighbours until its listing resolves; the counter holds meanwhile.
                 val shownPosition = state.neighbours?.let { it.position to it.count }
-                    ?: lastShownPosition.takeIf { state.content is ViewerContent.Loading }
+                    ?: lastShownPosition.takeIf { state.content is ViewerContent.Loading || state.neighboursPending }
                 SideEffect { lastShownPosition = shownPosition }
 
                 FloatingBarStack(

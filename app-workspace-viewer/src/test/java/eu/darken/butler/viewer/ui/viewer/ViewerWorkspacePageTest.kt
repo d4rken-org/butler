@@ -555,6 +555,29 @@ class ViewerWorkspacePageTest : ComposeTest() {
     }
 
     @Test
+    fun `a step keeps the previous file's position until the next file's listing resolves`() {
+        var state by mutableStateOf<ViewerWorkspaceViewModel.State>(positionedState())
+        setPositionPage { state }
+        composeTestRule.onAllNodesWithText("2 / 5").onFirst().assertIsDisplayed()
+
+        // A file that needs no decoding can arrive loaded before its neighbours do.
+        val loaded = stepTarget.copy(
+            content = ViewerContent.Image(MimeInfo("image/jpeg")),
+            fileInfo = ViewerFileInfo(size = 1024L),
+        )
+        composeTestRule.runOnIdle { state = loaded.copy(neighbours = null, neighboursPending = true) }
+
+        composeTestRule.onAllNodesWithText("2 / 5").onFirst().assertIsDisplayed()
+
+        composeTestRule.runOnIdle {
+            state = loaded.copy(neighbours = loaded.neighbours!!.copy(position = 3, count = 5))
+        }
+
+        composeTestRule.onAllNodesWithText("2 / 5").assertCountEquals(0)
+        composeTestRule.onAllNodesWithText("3 / 5").onFirst().assertIsDisplayed()
+    }
+
+    @Test
     fun `a step does not bring back chrome the user hid`() {
         var state by mutableStateOf<ViewerWorkspaceViewModel.State>(
             stepOrigin(BitmapZoomableImageSource(Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888))),

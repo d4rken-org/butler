@@ -28,6 +28,8 @@ import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -69,6 +71,9 @@ class ViewerFileStepTest : BaseTest() {
     /** Set to hold a create inside the ViewModel, so a second tap arrives while one is in flight. */
     private var createGate: CompletableDeferred<Unit>? = null
 
+    /** Set to hand later lookups of the origin a different flow than [origin], e.g. one that has not emitted. */
+    private var originOverride: Flow<Workspace<*>?>? = null
+
     private lateinit var listing: MutableStateFlow<List<APath<*>>>
     private lateinit var origin: MutableStateFlow<Workspace<*>?>
     private lateinit var remoteState: MutableStateFlow<WorkspaceRemote.State>
@@ -80,6 +85,7 @@ class ViewerFileStepTest : BaseTest() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         creates.clear()
         createGate = null
+        originOverride = null
         swipeSetting = MutableStateFlow(true)
         listing = MutableStateFlow(listOf(a, b, c))
         origin = MutableStateFlow(makeOrigin())
@@ -167,7 +173,7 @@ class ViewerFileStepTest : BaseTest() {
             context = mockk(relaxed = true),
             workspaceProvider = mockk<WorkspaceProvider>().apply {
                 every { retrieve(workspaceId) } returns workspaces
-                every { retrieve(originId) } returns origin
+                every { retrieve(originId) } answers { originOverride ?: origin }
             },
             workspaceRemote = remote,
             imageSourceFactory = mockk(relaxed = true),
@@ -349,6 +355,48 @@ class ViewerFileStepTest : BaseTest() {
             val current = state.neighbours?.current ?: return@forEach
             current shouldBe (state.source as ViewerSource.Stored).path
         }
+    }
+
+    @Test
+    fun `neighbours resolved for the file on display are not pending`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        vm.readyState.neighbours?.current shouldBe b
+        vm.readyState.neighboursPending shouldBe false
+    }
+
+    @Test
+    fun `a file missing from the listing is resolved, not pending`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+
+        listing.value = listOf(a, c)
+
+        vm.readyState.neighbours shouldBe null
+        vm.readyState.neighboursPending shouldBe false
+    }
+
+    @Test
+    fun `a step is pending until the next file's listing resolves`() = runTest2 {
+        val vm = makeViewModel()
+        startCollecting(vm)
+        vm.readyState.neighboursPending shouldBe false
+
+        val lateOrigin = MutableSharedFlow<Workspace<*>?>(replay = 1)
+        originOverride = lateOrigin
+        workspaces.value = makeWorkspace(c)
+
+        // The step's content is already loaded; only its place in the listing is outstanding.
+        vm.readyState.source shouldBe ViewerSource.Stored(c)
+        vm.readyState.content.shouldBeInstanceOf<ViewerContent.Image>()
+        vm.readyState.neighbours shouldBe null
+        vm.readyState.neighboursPending shouldBe true
+
+        lateOrigin.emit(makeOrigin())
+
+        vm.readyState.neighbours?.current shouldBe c
+        vm.readyState.neighboursPending shouldBe false
     }
 
     @Test
