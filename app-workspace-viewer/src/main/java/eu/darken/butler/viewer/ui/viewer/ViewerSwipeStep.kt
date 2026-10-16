@@ -18,7 +18,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -38,10 +37,10 @@ import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.viewer.core.ViewerSource
 import eu.darken.butler.workspace.ui.insets.LocalPaneEdges
 import eu.darken.butler.workspace.ui.insets.backGestureStripWidths
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withTimeoutOrNull
@@ -122,10 +121,20 @@ internal class ViewerSwipeStepState(private val scope: CoroutineScope) {
     private var motion: Job? = null
     private var drag: Drag? = null
 
+    /** Resolved from [update]: [inputs] is written in a SideEffect and never read in composition. */
+    private var departure: Departure? = null
+
+    private class Departure(val origin: APath<*>, val arrival: CompletableDeferred<APath<*>?>)
+
     internal fun update(inputs: Inputs, edgeStripsPx: Pair<Int, Int>, onAction: (ViewerActionBarItem) -> Unit) {
         this.inputs = inputs
         this.edgeStripsPx = edgeStripsPx
         this.onAction = onAction
+        val watch = departure
+        if (watch != null && inputs.source != watch.origin) {
+            departure = null
+            watch.arrival.complete(inputs.source)
+        }
         val active = drag ?: return
         if (inputs.surface != active.surface) cancel(active)
     }
@@ -192,7 +201,7 @@ internal class ViewerSwipeStepState(private val scope: CoroutineScope) {
             // Another file landing before the content is out, e.g. from an arrow key, calls the step off.
             val slidOut = coroutineScope {
                 val exit = launch { animateOffset(to = exitTo, velocityX = velocityX, spec = slideOutMotion) }
-                val displaced = launch { snapshotFlow { inputs?.source }.first { it != origin } }
+                val displaced = launch { awaitDeparture(origin) }
                 select<Boolean> {
                     exit.onJoin { true }
                     displaced.onJoin { false }
@@ -209,11 +218,21 @@ internal class ViewerSwipeStepState(private val scope: CoroutineScope) {
                 return@launch
             }
             onAction(action)
-            val landed = withTimeoutOrNull(SWIPE_STEP_ARRIVAL_TIMEOUT) {
-                snapshotFlow { inputs?.source }.first { it != origin }
-            }
+            val landed = withTimeoutOrNull(SWIPE_STEP_ARRIVAL_TIMEOUT) { awaitDeparture(origin) }
             if (landed == target) offsetX = 0f else animateOffset(to = 0f, velocityX = 0f)
             phase = Phase.IDLE
+        }
+    }
+
+    private suspend fun awaitDeparture(origin: APath<*>): APath<*>? {
+        val watch = Departure(origin, CompletableDeferred())
+        departure = watch
+        try {
+            val current = inputs?.source
+            if (current != origin) watch.arrival.complete(current)
+            return watch.arrival.await()
+        } finally {
+            if (departure === watch) departure = null
         }
     }
 
