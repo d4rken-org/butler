@@ -119,12 +119,12 @@
     </plurals>
 
     <!-- Origin labels (workspace that created the operation) -->
-    <string name="history_origin_explorer">Explorer</string>
+    <string name="history_origin_explorer">Esplora file</string>
     <string name="history_origin_searcher">Ricerca</string>
-    <string name="history_origin_saver">Saver</string>
-    <string name="history_origin_developer">Developer</string>
-    <string name="history_origin_viewer">Viewer</string>
-    <string name="history_origin_apps">Apps</string>
+    <string name="history_origin_saver">Salva come</string>
+    <string name="history_origin_developer">Sviluppatore</string>
+    <string name="history_origin_viewer">Visualizzatore</string>
+    <string name="history_origin_apps">App</string>
 
     <!-- Duration formats -->
     <string name="history_duration_ms">%1$d ms</string>

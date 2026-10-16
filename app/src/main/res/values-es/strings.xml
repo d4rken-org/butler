@@ -509,7 +509,7 @@
     <string name="support_debuglog_clear_confirm_message">¿Eliminar todas las sesiones de registro de depuración almacenadas?</string>
 
     <!-- Debug Log Screen -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">Registro de depuración de Butler - %1$s</string>
     <string name="debug_log_screen_subtitle">Exporta información de depuración para solucionar problemas</string>
     <string name="debug_log_screen_sensitive_information_title">Información sensible</string>
 

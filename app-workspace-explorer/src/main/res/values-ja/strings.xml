@@ -770,4 +770,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">ADB アクセスを構成すると、このフォルダを開けます。</string>
     <string name="explorer_settings_trash_auto_delete_summary">ゴミ箱に入れてからこの期間が過ぎたアイテムを自動的に削除します</string>
     <string name="explorer_settings_trash_max_size_summary">各ストレージでゴミ箱が使用できる容量</string>
+    <string name="explorer_settings_open_on_tap_title">タップでファイルを開く</string>
+    <string name="explorer_settings_open_on_tap_desc">ファイルをタップすると開きます。その他の操作は、ファイルの ⋮ ボタンから行えます。</string>
+    <string name="explorer_settings_show_system_locations_title">システムの場所を表示</string>
+    <string name="explorer_settings_show_system_locations_desc">読み取り専用のシステムパーティション（/system）など、システムの場所を端末の概要に表示します。</string>
+    <string name="explorer_settings_trash_confirm_title">ゴミ箱に移動する前に確認</string>
+    <string name="explorer_settings_trash_confirm_desc">削除する項目をゴミ箱に移動する前に確認します。完全に削除する場合は常に確認します。</string>
+    <string name="explorer_file_more_actions_content_desc">その他の操作</string>
 </resources>

@@ -46,7 +46,7 @@
     <string name="developer_system_build_header">ビルド</string>
     <string name="developer_system_build_version">バージョン</string>
     <string name="developer_system_build_code">バージョンコード</string>
-    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_flavor">フレーバー</string>
     <string name="developer_system_build_type">ビルドタイプ</string>
     <string name="developer_system_build_git">Git SHA</string>
     <string name="developer_system_memory_header">メモリ</string>

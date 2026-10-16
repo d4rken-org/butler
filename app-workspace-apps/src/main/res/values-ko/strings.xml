@@ -217,7 +217,7 @@
     <string name="apps_components_field_package">패키지</string>
     <string name="apps_components_field_permission">권한</string>
     <string name="apps_components_field_write_permission">쓰기 권한</string>
-    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_authority">제공자 식별자</string>
     <string name="apps_components_field_process">프로세스</string>
     <string name="apps_components_field_launch_mode">실행 모드</string>
     <string name="apps_components_launch_action">실행</string>

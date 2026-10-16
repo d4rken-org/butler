@@ -803,4 +803,11 @@
         <item quantity="one">%1$d kansio</item>
         <item quantity="other">%1$d kansiota</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Avaa tiedostot napauttamalla</string>
+    <string name="explorer_settings_open_on_tap_desc">Napauta tiedostoa avataksesi sen. Tiedoston muut toiminnot löytyvät sen ⋮-painikkeesta.</string>
+    <string name="explorer_settings_show_system_locations_title">Näytä järjestelmäsijainnit</string>
+    <string name="explorer_settings_show_system_locations_desc">Näytä laitteen yleisnäkymässä järjestelmäsijainnit, kuten vain luku -tilassa oleva järjestelmäosio (/system).</string>
+    <string name="explorer_settings_trash_confirm_title">Kysy ennen roskakoriin siirtämistä</string>
+    <string name="explorer_settings_trash_confirm_desc">Pyydä vahvistus ennen poistettujen kohteiden siirtämistä roskakoriin. Pysyvään poistamiseen pyydetään aina vahvistus.</string>
+    <string name="explorer_file_more_actions_content_desc">Lisää toimintoja</string>
 </resources>

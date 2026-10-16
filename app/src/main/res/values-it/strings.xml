@@ -24,7 +24,7 @@
     <string name="onboarding_workspaces_message">Apri più schede e passa dall’una all’altra — proprio come nel tuo browser web.</string>
     <string name="onboarding_workspaces_action">Continua</string>
     <string name="onboarding_workspaces_hint">Tieni aperte più schede contemporaneamente.</string>
-    <string name="onboarding_workspaces_explorer_title">Explorer</string>
+    <string name="onboarding_workspaces_explorer_title">Esplora file</string>
     <string name="onboarding_workspaces_explorer_description">Sfoglia i tuoi file.</string>
     <string name="onboarding_workspaces_searcher_title">Ricerca</string>
     <string name="onboarding_workspaces_searcher_description">Trova le cose.</string>
@@ -466,7 +466,7 @@
     <string name="support_contact_category_bug">Segnalazione di bug</string>
     <string name="support_contact_workspace_label">Area correlata</string>
     <string name="support_contact_workspace_general">Generale</string>
-    <string name="support_contact_workspace_explorer">Explorer</string>
+    <string name="support_contact_workspace_explorer">Esplora file</string>
     <string name="support_contact_workspace_searcher">Ricerca</string>
     <string name="support_contact_workspace_editor">Editor</string>
     <string name="support_contact_description_label">Descrizione</string>

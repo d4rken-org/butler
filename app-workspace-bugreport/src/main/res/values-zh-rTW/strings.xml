@@ -46,7 +46,7 @@
     <string name="bugreport_detail_field_app_version">應用程式版本</string>
     <string name="bugreport_detail_field_device">裝置</string>
     <string name="bugreport_detail_field_android">Android</string>
-    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_build">建構資訊</string>
     <string name="bugreport_detail_field_error_class">錯誤類型</string>
     <string name="bugreport_detail_field_thread">執行緒</string>
     <string name="bugreport_detail_log_truncated">最後 %1$d 行（共 %2$d 行）</string>

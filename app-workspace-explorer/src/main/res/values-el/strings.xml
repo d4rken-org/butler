@@ -36,7 +36,7 @@
     <string name="explorer_file_storage_saf_read_only_label">Πρόσβαση μόνο για ανάγνωση</string>
     <string name="explorer_file_storage_saf_write_only_label">Πρόσβαση μόνο για εγγραφή</string>
     <string name="explorer_file_storage_saf_no_access_label">Χωρίς πρόσβαση</string>
-    <string name="explorer_file_storage_saf_uri_label">SAF tree URI</string>
+    <string name="explorer_file_storage_saf_uri_label">URI δέντρου SAF</string>
     <string name="explorer_file_storage_size_format">%1$s • %2$s σύνολο • %3$s ελεύθερο</string>
     <string name="explorer_file_broken_link_label">Ανενεργός σύνδεσμος</string>
     <string name="explorer_file_items_count">%1$d στοιχεία</string>
@@ -806,4 +806,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Ρύθμισε την πρόσβαση ADB για να ανοίξεις αυτόν τον φάκελο.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Αυτόματη διαγραφή στοιχείων μετά από τόσο χρόνο στον κάδο</string>
     <string name="explorer_settings_trash_max_size_summary">Πόσο χώρο μπορεί να χρησιμοποιεί ο κάδος σε κάθε αποθηκευτική τοποθεσία</string>
+    <string name="explorer_settings_open_on_tap_title">Άνοιγμα αρχείων με πάτημα</string>
+    <string name="explorer_settings_open_on_tap_desc">Πάτησε ένα αρχείο για να το ανοίξεις. Για τις άλλες ενέργειές του, χρησιμοποίησε το κουμπί ⋮ του αρχείου.</string>
+    <string name="explorer_settings_show_system_locations_title">Εμφάνιση τοποθεσιών συστήματος</string>
+    <string name="explorer_settings_show_system_locations_desc">Εμφάνιση τοποθεσιών συστήματος, όπως το διαμέρισμα συστήματος μόνο για ανάγνωση (/system), στην επισκόπηση της συσκευής.</string>
+    <string name="explorer_settings_trash_confirm_title">Επιβεβαίωση πριν τη μετακίνηση στον κάδο</string>
+    <string name="explorer_settings_trash_confirm_desc">Επιβεβαίωση πριν τα διαγραμμένα στοιχεία μετακινηθούν στον κάδο. Η οριστική διαγραφή ζητά πάντα επιβεβαίωση.</string>
+    <string name="explorer_file_more_actions_content_desc">Περισσότερες ενέργειες</string>
 </resources>

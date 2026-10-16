@@ -524,7 +524,7 @@
     <string name="support_debuglog_clear_confirm_message">Usunąć wszystkie zapisane sesje dziennika debugowania?</string>
 
     <!-- Debug Log Screen -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">Dziennik debugowania Butlera - %1$s</string>
     <string name="debug_log_screen_subtitle">Eksportuj informacje debugowania do rozwiązywania problemów</string>
     <string name="debug_log_screen_sensitive_information_title">Dane wrażliwe</string>
 

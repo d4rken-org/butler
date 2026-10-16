@@ -46,7 +46,7 @@
     <string name="developer_system_build_header">Build</string>
     <string name="developer_system_build_version">Versie</string>
     <string name="developer_system_build_code">Versiecode</string>
-    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_flavor">Variant</string>
     <string name="developer_system_build_type">Buildtype</string>
     <string name="developer_system_build_git">Git SHA</string>
     <string name="developer_system_memory_header">Geheugen</string>

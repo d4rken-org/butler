@@ -878,4 +878,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Налаштування доступу до ADB, щоб відкрити цю теку.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Автоматично видаляти елементи після такого часу в кошику</string>
     <string name="explorer_settings_trash_max_size_summary">Скільки місця може займати кошик у кожному сховищі</string>
+    <string name="explorer_settings_open_on_tap_title">Відкривати файли дотиком</string>
+    <string name="explorer_settings_open_on_tap_desc">Торкнися файлу, щоб відкрити його. Інші дії доступні за кнопкою ⋮ біля файлу.</string>
+    <string name="explorer_settings_show_system_locations_title">Показувати системні розташування</string>
+    <string name="explorer_settings_show_system_locations_desc">Показувати системні розташування, як-от доступний лише для читання системний розділ (/system), в огляді пристрою.</string>
+    <string name="explorer_settings_trash_confirm_title">Запитувати перед переміщенням до кошика</string>
+    <string name="explorer_settings_trash_confirm_desc">Запитувати підтвердження перед переміщенням видалених елементів до кошика. Остаточне видалення завжди потребує підтвердження.</string>
+    <string name="explorer_file_more_actions_content_desc">Інші дії</string>
 </resources>

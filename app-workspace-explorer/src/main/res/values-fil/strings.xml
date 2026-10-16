@@ -107,7 +107,7 @@
     <string name="explorer_info_permissions_label">Mga pahintulot</string>
     <string name="explorer_info_owner_label">May-ari</string>
     <string name="explorer_info_child_count_label">Mga item</string>
-    <string name="explorer_info_symlink_target_label">Target</string>
+    <string name="explorer_info_symlink_target_label">Patutunguhan</string>
     <string name="explorer_info_symlink_status_label">Kalagayan</string>
     <string name="explorer_info_symlink_broken">Sirang link</string>
     <string name="explorer_info_unknown">Hindi kilala</string>
@@ -152,7 +152,7 @@
     <string name="explorer_info_sftp_host_key_fingerprint_label">Fingerprint ng host key</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
     <string name="explorer_info_webdav_url_label">URL</string>
-    <string name="explorer_info_webdav_auth_anonymous">Anonymous</string>
+    <string name="explorer_info_webdav_auth_anonymous">Hindi nagpapakilala</string>
     <string name="explorer_info_webdav_credential_stored">Nakaimbak sa device na ito</string>
     <string name="explorer_info_webdav_credential_session">Itinatago hanggang magsara ang Butler</string>
     <string name="explorer_info_webdav_certificate_label">Sertipiko</string>
@@ -267,7 +267,7 @@
     <string name="explorer_dialog_type_folder">Folder</string>
     <string name="explorer_dialog_type_file">File</string>
     <string name="explorer_dialog_create_text_file_title">Gumawa ng file mula sa teksto</string>
-    <string name="explorer_dialog_create_text_file_preview_label">Preview</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Paunang tingin</string>
     <string name="explorer_dialog_create_text_file_size_label">%1$d na character</string>
 
     <!-- Add Device Storage Dialog -->
@@ -360,7 +360,7 @@
     <string name="explorer_sftp_form_base_path_help">Walang laman: ang panimulang folder ng server. Nagsisimula sa /: absolute path. Iba pa: nakabatay sa panimulang folder.</string>
     <string name="explorer_sftp_form_auth_password">Password</string>
     <string name="explorer_sftp_form_auth_private_key">Private key</string>
-    <string name="explorer_sftp_form_private_key_label">Private key file</string>
+    <string name="explorer_sftp_form_private_key_label">File ng private key</string>
     <string name="explorer_sftp_form_private_key_none">Walang napiling key file</string>
     <string name="explorer_sftp_form_private_key_saved">Ang naka-save na key</string>
     <string name="explorer_sftp_form_private_key_reading">Binabasa ang key file…</string>
@@ -408,7 +408,7 @@
     <string name="explorer_webdav_form_url_label">URL ng server</string>
     <string name="explorer_webdav_form_url_hint">https://cloud.example.com/remote.php/dav/files/alice/</string>
     <string name="explorer_webdav_form_cleartext_warning">Hindi naka-encrypt ang koneksyon: ipinapadala ang password at mga file mo bilang plain text.</string>
-    <string name="explorer_webdav_form_auth_anonymous">Anonymous</string>
+    <string name="explorer_webdav_form_auth_anonymous">Hindi nagpapakilala</string>
     <string name="explorer_webdav_form_error_url_blank">Ilagay ang URL ng server</string>
     <string name="explorer_webdav_form_error_url_scheme">Dapat magsimula ang URL sa https:// o http://</string>
     <string name="explorer_webdav_form_error_url_user_info">Ilagay ang username at password sa kani-kanilang field, hindi sa URL</string>
@@ -803,4 +803,11 @@
         <item quantity="one">%1$d folder</item>
         <item quantity="other">%1$d na folder</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Buksan ang mga file sa pag-tap</string>
+    <string name="explorer_settings_open_on_tap_desc">I-tap ang file para buksan ito. Gamitin ang button na ⋮ sa file para sa iba pang pagkilos dito.</string>
+    <string name="explorer_settings_show_system_locations_title">Ipakita ang mga lokasyon ng system</string>
+    <string name="explorer_settings_show_system_locations_desc">Ilista ang mga lokasyon ng system, gaya ng partition ng system na para sa pagbasa lang (/system), sa pangkalahatang-ideya ng device.</string>
+    <string name="explorer_settings_trash_confirm_title">Magtanong bago ilipat sa basurahan</string>
+    <string name="explorer_settings_trash_confirm_desc">Humingi ng kumpirmasyon bago mapunta sa basurahan ang mga tinanggal na item. Laging humihingi ng kumpirmasyon para sa permanenteng pagtanggal.</string>
+    <string name="explorer_file_more_actions_content_desc">Iba pang pagkilos</string>
 </resources>

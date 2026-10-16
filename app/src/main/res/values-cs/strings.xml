@@ -509,7 +509,7 @@
     <string name="support_debuglog_clear_confirm_message">Smazat všechny uložené relace ladicího protokolu?</string>
 
     <!-- Obrazovka ladicího protokolu -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">Ladicí protokol Butleru - %1$s</string>
     <string name="debug_log_screen_subtitle">Exportovat ladicí informace pro řešení problémů</string>
     <string name="debug_log_screen_sensitive_information_title">Citlivé informace</string>
 

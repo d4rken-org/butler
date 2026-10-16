@@ -497,7 +497,7 @@
     <string name="support_debuglog_clear_confirm_message">Διαγραφή όλων των αποθηκευμένων συνεδριών αρχείου καταγραφής αποσφαλμάτωσης;</string>
 
     <!-- Debug Log Screen -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">Αρχείο καταγραφής αποσφαλμάτωσης Butler - %1$s</string>
     <string name="debug_log_screen_subtitle">Εξαγωγή πληροφοριών αποσφαλμάτωσης για αντιμετώπιση προβλημάτων</string>
     <string name="debug_log_screen_sensitive_information_title">Ευαίσθητες πληροφορίες</string>
 

@@ -1,0 +1,5 @@
+Bugfixes en kleine verbeteringen, zodat je snel bestanden kunt blijven beheren zonder gedoe.
+
+Wat er in deze versie is veranderd: butler.darken.eu/changelog
+
+Werkt er iets niet of vreemd na de update? Laat het me weten via Instellingen > Ondersteuning. Dit is een eenpersoonsproject, dus een antwoord kan even duren, maar elk rapport wordt gelezen.

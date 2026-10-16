@@ -803,4 +803,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Bu klasörü açmak için ADB erişimini yapılandırın.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Öğeler çöp kutusunda bu kadar süre kaldıktan sonra otomatik olarak silinir</string>
     <string name="explorer_settings_trash_max_size_summary">Çöp kutusunun her depolama konumunda kullanabileceği alan</string>
+    <string name="explorer_settings_open_on_tap_title">Dokununca dosyaları aç</string>
+    <string name="explorer_settings_open_on_tap_desc">Dosyayı açmak için dokun. Diğer işlemler için dosyanın ⋮ düğmesini kullan.</string>
+    <string name="explorer_settings_show_system_locations_title">Sistem konumlarını göster</string>
+    <string name="explorer_settings_show_system_locations_desc">Salt okunur sistem bölümü (/system) gibi sistem konumlarını cihazın genel görünümünde listele.</string>
+    <string name="explorer_settings_trash_confirm_title">Çöp kutusuna taşımadan önce sor</string>
+    <string name="explorer_settings_trash_confirm_desc">Silinen öğeler çöp kutusuna taşınmadan önce onay iste. Kalıcı silme işlemleri için her zaman onay istenir.</string>
+    <string name="explorer_file_more_actions_content_desc">Diğer işlemler</string>
 </resources>

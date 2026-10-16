@@ -806,4 +806,11 @@
         <item quantity="one">%1$d ఫోల్డర్</item>
         <item quantity="other">%1$d ఫోల్డర్‌లు</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">ట్యాప్ చేస్తే ఫైళ్లను తెరవండి</string>
+    <string name="explorer_settings_open_on_tap_desc">ఫైల్‌ను తెరవడానికి దానిపై ట్యాప్ చేయండి. ఇతర చర్యల కోసం ఆ ఫైల్‌పై ఉన్న ⋮ బటన్‌ను ఉపయోగించండి.</string>
+    <string name="explorer_settings_show_system_locations_title">సిస్టమ్ స్థానాలను చూపండి</string>
+    <string name="explorer_settings_show_system_locations_desc">చదవడానికి మాత్రమే అనుమతించే సిస్టమ్ పార్టిషన్ (/system) వంటి సిస్టమ్ స్థానాలను పరికర అవలోకనంలో చూపండి.</string>
+    <string name="explorer_settings_trash_confirm_title">ట్రాష్‌కు తరలించే ముందు అడగండి</string>
+    <string name="explorer_settings_trash_confirm_desc">తొలగించిన అంశాలు ట్రాష్‌కు వెళ్లే ముందు నిర్ధారణ అడుగుతుంది. శాశ్వతంగా తొలగించే ముందు ఎల్లప్పుడూ అడుగుతుంది.</string>
+    <string name="explorer_file_more_actions_content_desc">మరిన్ని చర్యలు</string>
 </resources>

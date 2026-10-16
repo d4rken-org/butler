@@ -46,7 +46,7 @@
     <string name="bugreport_detail_field_app_version">Phiên bản ứng dụng</string>
     <string name="bugreport_detail_field_device">Thiết bị</string>
     <string name="bugreport_detail_field_android">Android</string>
-    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_build">Bản dựng</string>
     <string name="bugreport_detail_field_error_class">Loại lỗi</string>
     <string name="bugreport_detail_field_thread">Luồng</string>
     <string name="bugreport_detail_log_truncated">%1$d dòng cuối cùng trong %2$d dòng</string>

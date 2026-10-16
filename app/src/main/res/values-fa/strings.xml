@@ -506,7 +506,7 @@
     <string name="support_debuglog_clear_confirm_message">همه نشست‌های ذخیره‌شده گزارش اشکال‌زدایی حذف شوند؟</string>
 
     <!-- صفحه گزارش اشکال‌زدایی -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">گزارش اشکال‌زدایی Butler - %1$s</string>
     <string name="debug_log_screen_subtitle">صدور اطلاعات اشکال‌زدایی برای عیب‌یابی</string>
     <string name="debug_log_screen_sensitive_information_title">اطلاعات حساس</string>
 

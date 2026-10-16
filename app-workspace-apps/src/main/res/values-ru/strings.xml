@@ -231,7 +231,7 @@
     <string name="apps_components_field_package">Пакет</string>
     <string name="apps_components_field_permission">Разрешение</string>
     <string name="apps_components_field_write_permission">Разрешение на запись</string>
-    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_authority">Идентификатор поставщика</string>
     <string name="apps_components_field_process">Процесс</string>
     <string name="apps_components_field_launch_mode">Режим запуска</string>
     <string name="apps_components_launch_action">Запустить</string>

@@ -806,4 +806,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Configura el acceso a ADB para abrir esta carpeta.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Elimina automáticamente los elementos tras este tiempo en la papelera</string>
     <string name="explorer_settings_trash_max_size_summary">Cuánto espacio puede usar la papelera en cada ubicación de almacenamiento</string>
+    <string name="explorer_settings_open_on_tap_title">Abrir archivos al tocar</string>
+    <string name="explorer_settings_open_on_tap_desc">Toca un archivo para abrirlo. Usa el botón ⋮ del archivo para ver las demás acciones.</string>
+    <string name="explorer_settings_show_system_locations_title">Mostrar ubicaciones del sistema</string>
+    <string name="explorer_settings_show_system_locations_desc">Muestra ubicaciones del sistema, como la partición del sistema de solo lectura (/system), en la vista general del dispositivo.</string>
+    <string name="explorer_settings_trash_confirm_title">Preguntar antes de mover a la papelera</string>
+    <string name="explorer_settings_trash_confirm_desc">Pide confirmación antes de mover los elementos eliminados a la papelera. La eliminación permanente siempre requiere confirmación.</string>
+    <string name="explorer_file_more_actions_content_desc">Más acciones</string>
 </resources>

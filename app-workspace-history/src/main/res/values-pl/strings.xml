@@ -127,10 +127,10 @@
     <!-- Origin labels (workspace that created the operation) -->
     <string name="history_origin_explorer">Eksplorator</string>
     <string name="history_origin_searcher">Wyszukiwanie</string>
-    <string name="history_origin_saver">Saver</string>
-    <string name="history_origin_developer">Developer</string>
-    <string name="history_origin_viewer">Viewer</string>
-    <string name="history_origin_apps">Apps</string>
+    <string name="history_origin_saver">Zapisz jako</string>
+    <string name="history_origin_developer">Deweloper</string>
+    <string name="history_origin_viewer">Podgląd</string>
+    <string name="history_origin_apps">Aplikacje</string>
 
     <!-- Duration formats -->
     <string name="history_duration_ms">%1$d ms</string>

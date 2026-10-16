@@ -221,7 +221,7 @@
     <string name="apps_components_field_package">Pacote</string>
     <string name="apps_components_field_permission">Permissão</string>
     <string name="apps_components_field_write_permission">Permissão de escrita</string>
-    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_authority">Autoridade</string>
     <string name="apps_components_field_process">Processo</string>
     <string name="apps_components_field_launch_mode">Modo de inicialização</string>
     <string name="apps_components_launch_action">Iniciar</string>

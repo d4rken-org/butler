@@ -65,7 +65,7 @@
     <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
     <string name="searcher_template_archives">Archiwa</string>
     <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
-    <string name="searcher_template_apks">APKs</string>
+    <string name="searcher_template_apks">Pliki APK</string>
     <string name="searcher_template_apks_desc">Pakiety aplikacji na Androida</string>
 
     <plurals name="searcher_templates_count">

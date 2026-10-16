@@ -803,4 +803,11 @@
         <item quantity="one">%1$d mapp</item>
         <item quantity="other">%1$d mappar</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Öppna filer med ett tryck</string>
+    <string name="explorer_settings_open_on_tap_desc">Tryck på en fil för att öppna den. Använd filens ⋮-knapp för fler åtgärder.</string>
+    <string name="explorer_settings_show_system_locations_title">Visa systemplatser</string>
+    <string name="explorer_settings_show_system_locations_desc">Visa systemplatser, till exempel den skrivskyddade systempartitionen (/system), i enhetsöversikten.</string>
+    <string name="explorer_settings_trash_confirm_title">Fråga innan objekt flyttas till papperskorgen</string>
+    <string name="explorer_settings_trash_confirm_desc">Bekräfta innan raderade objekt flyttas till papperskorgen. Vid permanent radering krävs alltid en bekräftelse.</string>
+    <string name="explorer_file_more_actions_content_desc">Fler åtgärder</string>
 </resources>

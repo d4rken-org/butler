@@ -51,8 +51,8 @@
 
     <!-- APK file -->
     <string name="viewer_apk_version_label">バージョン</string>
-    <string name="viewer_apk_min_sdk_label">Min SDK</string>
-    <string name="viewer_apk_target_sdk_label">Target SDK</string>
+    <string name="viewer_apk_min_sdk_label">最小 SDK</string>
+    <string name="viewer_apk_target_sdk_label">対象 SDK</string>
     <string name="viewer_apk_installed_label">インストール済み</string>
     <string name="viewer_apk_not_installed_value">インストールされていません</string>
     <string name="viewer_apk_installed_unknown_value">確認できませんでした</string>

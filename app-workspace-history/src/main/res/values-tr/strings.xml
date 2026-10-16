@@ -119,7 +119,7 @@
     </plurals>
 
     <!-- Origin labels (workspace that created the operation) -->
-    <string name="history_origin_explorer">Explorer</string>
+    <string name="history_origin_explorer">Gezgin</string>
     <string name="history_origin_searcher">Ara</string>
     <string name="history_origin_saver">Kaydetme</string>
     <string name="history_origin_developer">Geliştirici</string>

@@ -770,4 +770,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">ตั้งค่าการเข้าถึง ADB เพื่อเปิดโฟลเดอร์นี้</string>
     <string name="explorer_settings_trash_auto_delete_summary">ลบรายการโดยอัตโนมัติหลังจากอยู่ในถังขยะครบระยะเวลานี้</string>
     <string name="explorer_settings_trash_max_size_summary">พื้นที่สูงสุดที่ถังขยะใช้ได้ในแต่ละที่เก็บข้อมูล</string>
+    <string name="explorer_settings_open_on_tap_title">แตะเพื่อเปิดไฟล์</string>
+    <string name="explorer_settings_open_on_tap_desc">แตะไฟล์เพื่อเปิด ใช้ปุ่ม ⋮ บนไฟล์เพื่อเลือกการดำเนินการอื่น</string>
+    <string name="explorer_settings_show_system_locations_title">แสดงตำแหน่งระบบ</string>
+    <string name="explorer_settings_show_system_locations_desc">แสดงตำแหน่งระบบ เช่น พาร์ติชันระบบที่อ่านได้อย่างเดียว (/system) ในหน้าภาพรวมอุปกรณ์</string>
+    <string name="explorer_settings_trash_confirm_title">ถามก่อนย้ายไปถังขยะ</string>
+    <string name="explorer_settings_trash_confirm_desc">ขอการยืนยันก่อนย้ายรายการที่ลบไปถังขยะ ส่วนการลบถาวรจะถามเสมอ</string>
+    <string name="explorer_file_more_actions_content_desc">การดำเนินการเพิ่มเติม</string>
 </resources>

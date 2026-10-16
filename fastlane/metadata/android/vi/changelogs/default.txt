@@ -1,0 +1,5 @@
+Sửa lỗi và cải tiến nhỏ để việc quản lý tệp trên thiết bị luôn nhanh chóng, không gây vướng víu.
+
+Thay đổi trong phiên bản này: butler.darken.eu/changelog
+
+Có gì bị hỏng hoặc hoạt động lạ sau khi cập nhật? Hãy báo qua Cài đặt > Hỗ trợ. Dự án chỉ có một người thực hiện nên có thể mất chút thời gian để trả lời, nhưng mọi báo cáo đều được đọc.

@@ -43,10 +43,10 @@
     <string name="developer_system_device_model">型號</string>
     <string name="developer_system_device_manufacturer">製造商</string>
     <string name="developer_system_device_api">API 級別</string>
-    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_header">建構資訊</string>
     <string name="developer_system_build_version">版本</string>
     <string name="developer_system_build_code">版本代碼</string>
-    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_flavor">產品變體</string>
     <string name="developer_system_build_type">Build 類型</string>
     <string name="developer_system_build_git">Git SHA</string>
     <string name="developer_system_memory_header">記憶體</string>

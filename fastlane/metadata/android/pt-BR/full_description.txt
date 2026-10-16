@@ -1,0 +1,57 @@
+Butler é um gerenciador de arquivos para Android baseado em abas. Navegue, busque, veja e edite arquivos em todo o armazenamento, com vários painéis e acesso root quando precisar.
+
+É o explorador de arquivos para Android que eu sempre quis, então resolvi criá-lo. Rápido, privado e de código aberto.
+
+Butler funciona no armazenamento interno, em cartões SD e unidades USB OTG, e em compartilhamentos de rede com o Butler Pro. E com todos os tipos de arquivo, não só a mídia que sua galeria mostra.
+
+<b>Abas e espaços de trabalho</b>
+- Navegue em abas e use as ferramentas do Butler em paralelo.
+- Organize abas no gerenciador e abra novas no seletor de abas.
+- Vários painéis em celulares e tablets, com arrastar e soltar entre eles.
+- Fixe favoritos e adicione locais de armazenamento extras.
+
+<b>Operações com arquivos</b>
+- Copie, mova, renomeie e exclua, com velocidades de transferência e gráficos de desempenho durante as operações.
+- Suporte à lixeira para poder reverter exclusões.
+- Abra arquivos compactados como pastas: navegue em ZIP, TAR e pacotes APK sem extraí-los antes.
+- Crie e extraia arquivos ZIP, inclusive criptografados.
+- As operações continuam ao sair do app, com progresso e botão de cancelar na notificação.
+- Histórico que mostra o que foi executado, o que deu certo e o que falhou.
+
+<b>Compartilhamentos de rede (Butler Pro)</b>
+- Conecte-se a compartilhamentos do Windows e pastas NAS via SMB e navegue como em qualquer armazenamento.
+- Copie e mova arquivos entre o dispositivo e o servidor, nos dois sentidos.
+- Use o acesso de convidado ou entre com nome de usuário e senha, salvos com criptografia só no seu dispositivo.
+- Adicionar um compartilhamento e testar a conexão é grátis. Navegar nele requer o Butler Pro.
+
+<b>Busca e texto</b>
+- Busque pelo nome e no conteúdo dos arquivos, com suporte a expressões regulares (regex).
+- Um editor de texto que continua rápido mesmo com arquivos enormes.
+
+<b>Visualização de arquivos</b>
+- Veja imagens e folheie PDFs sem sair do Butler.
+- Detalhes como tamanho, dimensões, permissões e proprietário.
+- Calcule tamanhos de pastas quando quiser para ver o que ocupa seu armazenamento.
+- O que o Butler não exibe é aberto no app que consegue.
+
+<b>Apps e APKs</b>
+- Gerenciador de apps: veja apps instalados, desative-os, exporte APKs, limpe dados e desinstale.
+- Receba, inspecione e abra arquivos APK. A instalação usa o instalador do sistema Android.
+
+<b>Funciona com seus outros apps</b>
+- Butler aparece nos seletores de arquivos de outros apps para você navegar com ele ao abrir ou salvar um arquivo.
+- Compartilhe um arquivo com o Butler de qualquer app e escolha o destino exato e o nome.
+- Textos compartilhados abrem direto no editor do Butler.
+
+<b>Acesso e aparência</b>
+- Root ou Shizuku para os locais que o Android normalmente bloqueia.
+- Temas Material You com cores dinâmicas, modo escuro e opção AMOLED.
+
+<b>Privacidade</b>
+Sem rastreamento. Sem SDKs de análise, conta ou nuvem. Relatórios de erros e falhas ficam no seu dispositivo, a menos que você decida enviá-los. Código aberto.
+
+Butler pede "Acesso a todos os arquivos" porque um gerenciador precisa alcançar todo o armazenamento. Tudo o que ele faz acontece no seu dispositivo.
+
+Este app não tem anúncios. Alguns recursos exigem um upgrade pago.
+
+Butler é um gerenciador de arquivos, explorador de arquivos e editor de texto para Android.

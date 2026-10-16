@@ -675,4 +675,11 @@
     <plurals name="explorer_settings_folder_sort_rules_value">
         <item quantity="other">%1$d folder</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Buka fail apabila diketuk</string>
+    <string name="explorer_settings_open_on_tap_desc">Ketik fail untuk membukanya. Gunakan butang ⋮ pada fail untuk tindakan lain.</string>
+    <string name="explorer_settings_show_system_locations_title">Tunjukkan lokasi sistem</string>
+    <string name="explorer_settings_show_system_locations_desc">Senaraikan lokasi sistem, seperti petak sistem baca sahaja (/system), dalam gambaran keseluruhan peranti.</string>
+    <string name="explorer_settings_trash_confirm_title">Tanya sebelum mengalih ke tong sampah</string>
+    <string name="explorer_settings_trash_confirm_desc">Minta pengesahan sebelum item yang dipadam dialih ke tong sampah. Pemadaman kekal sentiasa meminta pengesahan.</string>
+    <string name="explorer_file_more_actions_content_desc">Tindakan lain</string>
 </resources>

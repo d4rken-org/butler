@@ -52,7 +52,7 @@
     <!-- APK file -->
     <string name="viewer_apk_version_label">Sürüm</string>
     <string name="viewer_apk_min_sdk_label">Min SDK</string>
-    <string name="viewer_apk_target_sdk_label">Target SDK</string>
+    <string name="viewer_apk_target_sdk_label">Hedef SDK</string>
     <string name="viewer_apk_installed_label">Yüklü</string>
     <string name="viewer_apk_not_installed_value">Yüklü değil</string>
     <string name="viewer_apk_installed_unknown_value">Kontrol edilemedi</string>

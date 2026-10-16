@@ -177,7 +177,7 @@
     <string name="apps_tag_system_label">Systeem</string>
     <string name="apps_tag_disabled_label">Uitgeschakeld</string>
     <string name="apps_tag_updated_label">Bijgewerkt</string>
-    <string name="apps_tag_sideloaded_label">Sideloaded</string>
+    <string name="apps_tag_sideloaded_label">Gesideload</string>
     <string name="apps_tag_split_label">Split-APK</string>
     <string name="apps_tag_debug_label">Debug</string>
     <string name="apps_tag_user_label">Gebruiker %1$d</string>

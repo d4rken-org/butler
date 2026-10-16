@@ -1,0 +1,57 @@
+Butler este un manager de fișiere pentru Android, bazat pe file. Explorează, caută, vizualizează și editează fișiere din întreaga stocare, cu mai multe panouri și acces root când ai nevoie.
+
+Este exploratorul de fișiere pentru Android pe care mi l-am dorit mereu, așa că l-am creat. Rapid, confidențial, cu sursă deschisă.
+
+Butler funcționează cu stocarea internă, carduri SD și unități USB OTG, dar și cu partajări de rețea prin Butler Pro. Și cu orice tip de fișier, nu doar cu cele din galerie.
+
+<b>File și spații de lucru</b>
+- Explorează fișiere în file și folosește instrumentele Butler în paralel.
+- Organizează filele în manager și creează altele din selectorul de file.
+- Mai multe panouri pe telefoane și tablete, cu tragere și plasare între ele.
+- Fixează favorite și adaugă locații de stocare.
+
+<b>Operații cu fișiere</b>
+- Copiază, mută, redenumește și șterge, cu viteze de transfer și grafice de performanță în timp real.
+- Coș de gunoi, pentru a putea anula ștergerile.
+- Deschide arhive ca pe dosare: explorează ZIP, TAR și pachete APK fără a le dezarhiva întâi.
+- Creează arhive ZIP și extrage arhive, inclusiv criptate.
+- Operațiile continuă când ieși din aplicație, cu progres și buton de anulare în notificare.
+- Istoricul arată ce operații au rulat, au reușit sau au eșuat.
+
+<b>Partajări de rețea (Butler Pro)</b>
+- Conectează-te la partajări Windows și dosare NAS prin SMB și explorează-le ca pe orice stocare.
+- Copiază și mută fișiere între dispozitiv și server, în ambele sensuri.
+- Autentifică-te ca invitat sau cu nume de utilizator și parolă, stocate criptat doar pe dispozitiv.
+- Adăugarea unei partajări și testarea conexiunii sunt gratuite. Explorarea necesită Butler Pro.
+
+<b>Căutare și text</b>
+- Caută după nume și în conținutul fișierelor, cu expresii regulate (regex).
+- Editor de text rapid chiar și cu fișiere foarte mari.
+
+<b>Vizualizarea fișierelor</b>
+- Vezi imagini și răsfoiește PDF-uri fără a ieși din Butler.
+- Detalii despre fișiere: mărime, dimensiuni, permisiuni și proprietar.
+- Calculează la cerere dimensiunile dosarelor pentru a vedea ce ocupă stocarea.
+- Ce nu poate afișa Butler este trimis aplicației care poate.
+
+<b>Aplicații și APK-uri</b>
+- Manager de aplicații: explorează aplicațiile instalate, dezactivează-le, exportă APK-uri, șterge datele și dezinstalează.
+- Primește, inspectează și deschide fișiere APK. Instalarea se face prin instalatorul de sistem Android.
+
+<b>Funcționează cu celelalte aplicații</b>
+- Butler apare în selectoarele de fișiere ale altor aplicații, ca să-l poți folosi oriunde deschizi sau salvezi un fișier.
+- Distribuie un fișier către Butler din orice aplicație și alege exact unde ajunge și cu ce nume.
+- Textul distribuit se deschide direct în editorul Butler.
+
+<b>Acces și aspect</b>
+- Root sau Shizuku pentru locurile blocate în mod normal de Android.
+- Teme Material You cu culori dinamice, mod întunecat și opțiune AMOLED.
+
+<b>Confidențialitate</b>
+Fără urmărire, SDK-uri de analiză, cont sau cloud. Rapoartele de erori și blocări rămân pe dispozitiv dacă nu alegi să le trimiți. Sursă deschisă.
+
+Butler cere „Acces la toate fișierele” fiindcă un manager de fișiere trebuie să poată accesa întreaga stocare. Totul se întâmplă pe dispozitivul tău.
+
+Aplicația nu are reclame. Unele funcții necesită un upgrade plătit.
+
+Butler este un manager de fișiere, explorator de fișiere și editor de text pentru Android.

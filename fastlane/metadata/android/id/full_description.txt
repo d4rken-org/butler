@@ -1,0 +1,57 @@
+Butler adalah pengelola berkas Android berbasis tab. Jelajahi, cari, lihat, dan edit berkas di seluruh penyimpanan, dengan tata letak multipanel dan akses root saat diperlukan.
+
+Inilah penjelajah berkas Android yang selalu saya inginkan, jadi saya membuatnya. Cepat, privat, sumber terbuka.
+
+Butler mendukung penyimpanan internal, kartu SD, drive USB OTG, dan penyimpanan jaringan dengan Butler Pro. Semua jenis berkas didukung, bukan hanya media yang ditampilkan galeri.
+
+<b>Tab dan ruang kerja</b>
+- Jelajahi berkas dalam tab dan jalankan alat Butler secara bersamaan.
+- Atur tab lewat pengelola tab dan buat tab baru dari pemilih tab.
+- Tata letak multipanel di ponsel dan tablet, dengan seret dan lepas antarpanel.
+- Sematkan favorit dan tambahkan lokasi penyimpanan.
+
+<b>Operasi berkas</b>
+- Salin, pindahkan, ganti nama, dan hapus, dengan kecepatan transfer dan grafik kinerja saat operasi berjalan.
+- Dukungan sampah agar penghapusan bisa dibatalkan.
+- Buka arsip seperti folder: jelajahi ZIP, TAR, dan bundel APK langsung tanpa mengekstraknya dulu.
+- Buat arsip ZIP dan ekstrak arsip, termasuk yang terenkripsi.
+- Operasi tetap berjalan saat aplikasi ditinggalkan, dengan progres dan tombol batal di notifikasi.
+- Riwayat operasi menampilkan apa yang dijalankan, berhasil, dan gagal.
+
+<b>Penyimpanan jaringan (Butler Pro)</b>
+- Hubungkan ke share Windows dan folder NAS lewat SMB, lalu jelajahi seperti penyimpanan lainnya.
+- Salin dan pindahkan berkas antara perangkat dan server, dua arah.
+- Masuk sebagai tamu atau dengan nama pengguna dan kata sandi yang disimpan terenkripsi hanya di perangkat ini.
+- Menambahkan share dan menguji koneksi gratis. Menjelajahinya perlu upgrade Butler Pro.
+
+<b>Pencarian dan teks</b>
+- Cari berdasarkan nama dan isi berkas, dengan dukungan ekspresi reguler (regex).
+- Editor teks yang tetap cepat untuk berkas sangat besar.
+
+<b>Melihat berkas</b>
+- Lihat gambar dan telusuri halaman PDF tanpa keluar dari Butler.
+- Detail berkas mencakup ukuran, dimensi, izin, dan pemilik.
+- Hitung ukuran folder sesuai kebutuhan untuk melihat apa yang memenuhi penyimpanan.
+- Yang tidak bisa ditampilkan Butler akan dibuka dengan aplikasi yang bisa.
+
+<b>Aplikasi dan APK</b>
+- Pengelola aplikasi: jelajahi aplikasi terpasang, nonaktifkan, ekspor APK, hapus data aplikasi, dan uninstal.
+- Terima, periksa, dan buka berkas APK. Pemasangan melalui penginstal sistem Android.
+
+<b>Bekerja dengan aplikasi lain</b>
+- Butler muncul di pemilih berkas aplikasi lain agar kamu bisa menjelajah dengan Butler saat membuka atau menyimpan berkas.
+- Bagikan berkas ke Butler dari aplikasi mana pun, lalu pilih lokasi dan nama penyimpanannya.
+- Teks yang dibagikan langsung terbuka di editor Butler.
+
+<b>Akses dan tampilan</b>
+- Root atau Shizuku untuk lokasi yang biasanya dikunci Android.
+- Tema Material You dengan warna dinamis, mode gelap, dan opsi AMOLED.
+
+<b>Privasi</b>
+Tanpa pelacakan. Tanpa SDK analitik, akun, atau cloud. Laporan crash dan kesalahan tetap di perangkat kecuali kamu memilih mengirimkannya. Sumber terbuka.
+
+Butler meminta izin "Akses semua berkas" karena pengelola berkas perlu menjangkau seluruh penyimpanan. Semua aktivitasnya berlangsung di perangkat ini.
+
+Aplikasi ini bebas iklan. Beberapa fitur memerlukan upgrade berbayar.
+
+Butler adalah pengelola berkas, penjelajah berkas, dan editor teks untuk Android.

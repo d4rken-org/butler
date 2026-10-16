@@ -711,4 +711,11 @@
         <item quantity="one">%1$d फ़ोल्डर</item>
         <item quantity="other">%1$d फ़ोल्डर</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">टैप करने पर फ़ाइलें खोलें</string>
+    <string name="explorer_settings_open_on_tap_desc">फ़ाइल खोलने के लिए उस पर टैप करें। अन्य कार्रवाइयों के लिए फ़ाइल का ⋮ बटन इस्तेमाल करें।</string>
+    <string name="explorer_settings_show_system_locations_title">सिस्टम स्थान दिखाएँ</string>
+    <string name="explorer_settings_show_system_locations_desc">डिवाइस के अवलोकन में सिस्टम स्थान दिखाएँ, जैसे केवल पढ़ने योग्य सिस्टम पार्टीशन (/system)।</string>
+    <string name="explorer_settings_trash_confirm_title">कूड़ेदान में भेजने से पहले पूछें</string>
+    <string name="explorer_settings_trash_confirm_desc">मिटाए गए आइटम कूड़ेदान में भेजने से पहले पुष्टि माँगें। स्थायी रूप से मिटाने से पहले हमेशा पूछा जाता है।</string>
+    <string name="explorer_file_more_actions_content_desc">अन्य कार्रवाइयाँ</string>
 </resources>

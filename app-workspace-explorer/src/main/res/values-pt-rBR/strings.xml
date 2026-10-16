@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Explorer -->
-    <string name="explorer_title">Explorer</string>
+    <string name="explorer_title">Explorador</string>
     <string name="explorer_subtitle">Navegue por arquivos e diretórios</string>
     <string name="explorer_settings_title">Configurações do Explorer</string>
     <string name="explorer_settings_file_display">Exibição de arquivos</string>
@@ -803,4 +803,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Configure o acesso ADB para abrir esta pasta.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Exclui itens automaticamente depois deste tempo na lixeira</string>
     <string name="explorer_settings_trash_max_size_summary">Quanto espaço a lixeira pode usar em cada local de armazenamento</string>
+    <string name="explorer_settings_open_on_tap_title">Abrir arquivos ao tocar</string>
+    <string name="explorer_settings_open_on_tap_desc">Toque em um arquivo para abri-lo. Use o botão ⋮ do arquivo para acessar as outras ações.</string>
+    <string name="explorer_settings_show_system_locations_title">Mostrar locais do sistema</string>
+    <string name="explorer_settings_show_system_locations_desc">Liste locais do sistema, como a partição do sistema somente leitura (/system), na visão geral do dispositivo.</string>
+    <string name="explorer_settings_trash_confirm_title">Perguntar antes de mover para a lixeira</string>
+    <string name="explorer_settings_trash_confirm_desc">Peça confirmação antes de enviar itens excluídos para a lixeira. Exclusões permanentes sempre pedem confirmação.</string>
+    <string name="explorer_file_more_actions_content_desc">Mais ações</string>
 </resources>

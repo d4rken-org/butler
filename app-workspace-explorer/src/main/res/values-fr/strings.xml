@@ -803,4 +803,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Configure l’accès ADB pour ouvrir ce dossier.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Supprimer automatiquement les éléments après ce délai dans la corbeille</string>
     <string name="explorer_settings_trash_max_size_summary">Espace que la corbeille peut utiliser sur chaque emplacement de stockage</string>
+    <string name="explorer_settings_open_on_tap_title">Ouvrir les fichiers d’un appui</string>
+    <string name="explorer_settings_open_on_tap_desc">Appuie sur un fichier pour l’ouvrir. Utilise son bouton ⋮ pour accéder aux autres actions.</string>
+    <string name="explorer_settings_show_system_locations_title">Afficher les emplacements système</string>
+    <string name="explorer_settings_show_system_locations_desc">Afficher les emplacements système, comme la partition système en lecture seule (/system), dans la vue d’ensemble de l’appareil.</string>
+    <string name="explorer_settings_trash_confirm_title">Demander avant de mettre à la corbeille</string>
+    <string name="explorer_settings_trash_confirm_desc">Demander confirmation avant de mettre les éléments supprimés à la corbeille. Les suppressions définitives demandent toujours confirmation.</string>
+    <string name="explorer_file_more_actions_content_desc">Autres actions</string>
 </resources>

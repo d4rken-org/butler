@@ -1,0 +1,5 @@
+Cihazındaki dosyaları yönetmek hızlı ve zahmetsiz kalsın diye hata düzeltmeleri ve küçük iyileştirmeler.
+
+Bu sürümde neler değişti: butler.darken.eu/changelog
+
+Güncellemeden sonra bir şey bozuldu mu veya tuhaf mı davranıyor? Ayarlar > Destek üzerinden bana bildir. Bu tek kişilik bir proje, bu yüzden yanıtlar biraz gecikebilir ama her rapor okunur.

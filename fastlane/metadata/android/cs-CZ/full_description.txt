@@ -1,0 +1,57 @@
+Butler je správce souborů pro Android postavený na kartách. Procházej, hledej, prohlížej a upravuj soubory na celém úložišti, s více panely a přístupem root, když ho potřebuješ.
+
+Vždy mi chyběl právě takový průzkumník souborů pro Android, a tak vznikl Butler. Rychlý, soukromý, s otevřeným zdrojovým kódem.
+
+Butler pracuje s interním úložištěm, SD kartami a disky USB OTG a s Butler Pro i se síťovými sdílenými složkami. A se všemi typy souborů, nejen s médii, která ukazuje galerie.
+
+<b>Karty a pracovní prostory</b>
+- Procházej soubory na kartách a používej nástroje Butleru souběžně.
+- Uspořádej karty ve správci karet a otevírej nové ve výběru karet.
+- Více panelů na telefonech i tabletech, s přetahováním mezi panely.
+- Připni oblíbené a přidej další umístění úložiště.
+
+<b>Operace se soubory</b>
+- Kopíruj, přesouvej, přejmenovávej a maž. Během operací uvidíš přenosové rychlosti a grafy výkonu.
+- Podpora koše, díky které lze smazání vrátit zpět.
+- Otevírej archivy jako složky: ZIP, TAR a balíčky APK lze procházet přímo, bez předchozího rozbalení.
+- Vytvářej archivy ZIP a rozbaluj je, včetně šifrovaných.
+- Operace pokračují i po opuštění aplikace, s průběhem a tlačítkem pro zrušení v oznámení.
+- Historie operací ukazuje, co proběhlo, co se podařilo a co selhalo.
+
+<b>Síťové sdílené složky (Butler Pro)</b>
+- Připoj se ke sdíleným složkám Windows a NAS přes SMB a procházej je jako jiná úložiště.
+- Kopíruj a přesouvej soubory mezi zařízením a serverem oběma směry.
+- Přihlas se jako host nebo uživatelským jménem a heslem, uloženým šifrovaně jen na tvém zařízení.
+- Přidání sdílené složky a otestování připojení je zdarma. Procházení vyžaduje upgrade na Butler Pro.
+
+<b>Hledání a text</b>
+- Hledej podle názvu souboru i v jeho obsahu, s podporou regulárních výrazů (regex).
+- Textový editor, který zůstává rychlý i u velmi velkých souborů.
+
+<b>Prohlížení souborů</b>
+- Prohlížej obrázky a listuj PDF bez opuštění Butleru.
+- Podrobnosti o souborech včetně velikosti, rozměrů, oprávnění a vlastníka.
+- Spočítej velikosti složek podle potřeby a zjisti, co skutečně zaplňuje úložiště.
+- Co Butler sám nezobrazí, předá aplikaci, která to umí.
+
+<b>Aplikace a APK</b>
+- Správce aplikací: procházej nainstalované aplikace, zakazuj je, exportuj APK, maž data aplikací a odinstalovávej.
+- Přijímej, zkoumej a otevírej soubory APK. Instalaci zajišťuje systémový instalátor Androidu.
+
+<b>Spolupráce s dalšími aplikacemi</b>
+- Butler se zobrazí ve výběru souborů jiných aplikací, takže s ním můžeš procházet soubory při otevírání i ukládání.
+- Sdílej soubor do Butleru z libovolné aplikace a vyber přesně, kam se uloží a pod jakým názvem.
+- Sdílený text se otevře přímo v editoru Butleru.
+
+<b>Přístup a vzhled</b>
+- Root nebo Shizuku pro místa, která Android běžně zamyká.
+- Vzhled Material You s dynamickými barvami, tmavým režimem a možností AMOLED.
+
+<b>Soukromí</b>
+Žádné sledování. Žádná analytická SDK, účet ani cloud. Hlášení pádů a chyb zůstávají na tvém zařízení, pokud se je nerozhodneš odeslat. Otevřený zdrojový kód.
+
+Butler žádá o „Přístup ke všem souborům“, protože správce souborů potřebuje přístup k celému úložišti. Vše probíhá na tvém zařízení.
+
+Aplikace je bez reklam. Některé funkce vyžadují placený upgrade.
+
+Butler je správce souborů, průzkumník souborů a textový editor pro Android.

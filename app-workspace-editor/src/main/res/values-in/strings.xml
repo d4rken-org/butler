@@ -137,7 +137,7 @@
     <string name="editor_dialog_large_delete_confirm_action">Lanjutkan</string>
     <string name="editor_encoding_dialog_title">Pengkodean</string>
     <string name="editor_encoding_dialog_message">Buka kembali file dengan pengkodean berbeda. Perubahan yang tidak disimpan dibuang; byte yang tidak diedit tetap tidak berubah saat disimpan.</string>
-    <string name="editor_infobar_read_only">Read-only</string>
+    <string name="editor_infobar_read_only">Hanya baca</string>
     <string name="editor_line_ending_mixed">Campur</string>
     <string name="editor_line_ending_dialog_title">Akhir baris</string>
     <string name="editor_line_ending_dialog_message">Konversi semua jeda baris dan simpan file, termasuk perubahan yang tidak disimpan. Riwayat urungkan dihapus.</string>

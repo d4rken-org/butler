@@ -804,4 +804,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">ADB-Zugriff konfigurieren, um diesen Ordner zu öffnen.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Elemente automatisch löschen, wenn sie so lange im Papierkorb liegen</string>
     <string name="explorer_settings_trash_max_size_summary">Wie viel Speicherplatz der Papierkorb auf jedem Speicherort belegen darf</string>
+    <string name="explorer_settings_open_on_tap_title">Dateien durch Antippen öffnen</string>
+    <string name="explorer_settings_open_on_tap_desc">Tippe auf eine Datei, um sie zu öffnen. Weitere Aktionen findest du über die ⋮-Schaltfläche an der Datei.</string>
+    <string name="explorer_settings_show_system_locations_title">Systemspeicherorte anzeigen</string>
+    <string name="explorer_settings_show_system_locations_desc">Systemspeicherorte wie die schreibgeschützte Systempartition (/system) in der Geräteübersicht auflisten.</string>
+    <string name="explorer_settings_trash_confirm_title">Vor dem Verschieben in den Papierkorb fragen</string>
+    <string name="explorer_settings_trash_confirm_desc">Nachfragen, bevor gelöschte Elemente in den Papierkorb verschoben werden. Vor dem endgültigen Löschen wird immer nachgefragt.</string>
+    <string name="explorer_file_more_actions_content_desc">Weitere Aktionen</string>
 </resources>

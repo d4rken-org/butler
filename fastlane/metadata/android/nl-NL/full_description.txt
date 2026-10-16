@@ -1,0 +1,57 @@
+Butler is een bestandsbeheerder voor Android die draait om tabbladen. Blader door bestanden op al je opslag, doorzoek, bekijk en bewerk ze, met meerdere panelen en root-toegang wanneer je die nodig hebt.
+
+Dit is de bestandsverkenner voor Android die ik altijd al wilde, dus heb ik hem zelf gebouwd. Snel, privé, open source.
+
+Butler werkt met interne opslag, SD-kaarten en USB-OTG-drives, en met netwerkshares via Butler Pro. En met elk bestandstype, niet alleen de media die je galerij toont.
+
+<b>Tabbladen en werkruimten</b>
+- Blader door bestanden in tabbladen en gebruik Butlers tools naast elkaar.
+- Orden tabbladen met het tabbladbeheer en open nieuwe via de tabbladkiezer.
+- Meerdere panelen op telefoons en tablets, met slepen en neerzetten tussen panelen.
+- Zet favorieten vast en voeg extra opslaglocaties toe.
+
+<b>Bestandsbewerkingen</b>
+- Kopiëren, verplaatsen, hernoemen en verwijderen, met overdrachtssnelheden en prestatiegrafieken tijdens bewerkingen.
+- Een prullenbak, zodat je verwijderingen ongedaan kunt maken.
+- Open archieven als mappen: blader direct door ZIP, TAR en APK-bundels, zonder ze eerst uit te pakken.
+- Maak ZIP-archieven en pak ze uit, ook versleutelde archieven.
+- Bewerkingen gaan door als je de app verlaat, met voortgang en een annuleerknop in de melding.
+- Een bewerkingsgeschiedenis toont wat er is uitgevoerd, gelukt en mislukt.
+
+<b>Netwerkshares (Butler Pro)</b>
+- Verbind met Windows-shares en NAS-mappen via SMB en blader erdoor als door andere opslag.
+- Kopieer en verplaats bestanden tussen je apparaat en de server, in beide richtingen.
+- Meld je aan als gast of met een gebruikersnaam en wachtwoord, alleen versleuteld opgeslagen op je apparaat.
+- Een share toevoegen en de verbinding testen is gratis. Doorbladeren vereist de upgrade naar Butler Pro.
+
+<b>Zoeken en tekst</b>
+- Zoek op bestandsnaam en in de inhoud van bestanden, met ondersteuning voor reguliere expressies (regex).
+- Een teksteditor die ook bij heel grote bestanden snel blijft.
+
+<b>Bestanden bekijken</b>
+- Bekijk afbeeldingen en blader door pdf's zonder Butler te verlaten.
+- Bestandsinformatie tot aan grootte, afmetingen, machtigingen en eigenaar.
+- Bereken mapgroottes wanneer je wilt om te zien wat je opslag echt vult.
+- Wat Butler niet zelf kan tonen, wordt geopend in een app die dat wel kan.
+
+<b>Apps en APK's</b>
+- Appbeheer: bekijk geïnstalleerde apps, schakel ze uit, exporteer APK's, wis appgegevens en verwijder apps.
+- Ontvang, inspecteer en open APK-bestanden. Installeren gaat via het installatieprogramma van Android.
+
+<b>Werkt samen met je andere apps</b>
+- Butler verschijnt in de bestandskiezers van andere apps, zodat je met Butler kunt bladeren waar je ook een bestand opent of opslaat.
+- Deel een bestand vanuit een app met Butler en kies precies waar het terechtkomt, onder de naam die jij kiest.
+- Gedeelde tekst opent direct in Butlers editor.
+
+<b>Toegang en uiterlijk</b>
+- Root of Shizuku voor de locaties die Android normaal afschermt.
+- Material You-thema's met dynamische kleuren, een donkere modus en een AMOLED-optie.
+
+<b>Privacy</b>
+Geen tracking. Geen analyse-SDK's, geen account, geen cloud. Crash- en foutrapporten blijven op je apparaat, tenzij je ervoor kiest er een te versturen. Open source.
+
+Butler vraagt om "Toegang tot alle bestanden", omdat een bestandsbeheerder bij al je opslag moet kunnen. Alles gebeurt op je apparaat.
+
+Deze app is reclamevrij. Voor sommige functies is een betaalde upgrade nodig.
+
+Butler is een bestandsbeheerder, bestandsverkenner en teksteditor voor Android.

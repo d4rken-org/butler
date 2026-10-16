@@ -1,0 +1,5 @@
+Fehlerbehebungen und kleine Verbesserungen, damit die Dateiverwaltung auf deinem Gerät schnell bleibt und dir nicht im Weg steht.
+
+Was sich in dieser Version geändert hat: butler.darken.eu/changelog
+
+Nach dem Update funktioniert etwas nicht oder verhält sich seltsam? Sag mir über Einstellungen > Support Bescheid. Das ist ein Ein-Personen-Projekt, daher können Antworten etwas dauern. Aber jeder Bericht wird gelesen.

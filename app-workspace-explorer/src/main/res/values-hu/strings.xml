@@ -711,4 +711,11 @@
         <item quantity="one">%1$d mappa</item>
         <item quantity="other">%1$d mappa</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Fájlok megnyitása koppintásra</string>
+    <string name="explorer_settings_open_on_tap_desc">Koppints egy fájlra a megnyitásához. A további műveletekhez használd a fájl ⋮ gombját.</string>
+    <string name="explorer_settings_show_system_locations_title">Rendszerhelyek megjelenítése</string>
+    <string name="explorer_settings_show_system_locations_desc">Rendszerhelyek, például a csak olvasható rendszerpartíció (/system) felsorolása az eszköz áttekintésében.</string>
+    <string name="explorer_settings_trash_confirm_title">Megerősítés kérése a kukába helyezés előtt</string>
+    <string name="explorer_settings_trash_confirm_desc">Megerősítés kérése, mielőtt a törölt elemek a kukába kerülnek. A végleges törlés mindig megerősítést kér.</string>
+    <string name="explorer_file_more_actions_content_desc">További műveletek</string>
 </resources>

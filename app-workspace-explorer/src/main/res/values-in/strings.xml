@@ -767,4 +767,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Konfigurasikan akses ADB untuk membuka folder ini.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Hapus item secara otomatis setelah selama ini berada di sampah</string>
     <string name="explorer_settings_trash_max_size_summary">Seberapa besar ruang yang boleh dipakai sampah di setiap lokasi penyimpanan</string>
+    <string name="explorer_settings_open_on_tap_title">Buka berkas dengan mengetuk</string>
+    <string name="explorer_settings_open_on_tap_desc">Ketuk berkas untuk membukanya. Gunakan tombol ⋮ pada berkas untuk tindakan lainnya.</string>
+    <string name="explorer_settings_show_system_locations_title">Tampilkan lokasi sistem</string>
+    <string name="explorer_settings_show_system_locations_desc">Tampilkan lokasi sistem, seperti partisi sistem yang hanya dapat dibaca (/system), dalam ringkasan perangkat.</string>
+    <string name="explorer_settings_trash_confirm_title">Tanya sebelum memindahkan ke sampah</string>
+    <string name="explorer_settings_trash_confirm_desc">Minta konfirmasi sebelum item yang dihapus masuk ke sampah. Penghapusan permanen selalu memerlukan konfirmasi.</string>
+    <string name="explorer_file_more_actions_content_desc">Tindakan lainnya</string>
 </resources>

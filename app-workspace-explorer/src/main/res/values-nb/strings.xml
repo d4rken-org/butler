@@ -803,4 +803,11 @@
         <item quantity="one">%1$d mappe</item>
         <item quantity="other">%1$d mapper</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Åpne filer med et trykk</string>
+    <string name="explorer_settings_open_on_tap_desc">Trykk på en fil for å åpne den. Bruk ⋮-knappen på filen for andre handlinger.</string>
+    <string name="explorer_settings_show_system_locations_title">Vis systemplasseringer</string>
+    <string name="explorer_settings_show_system_locations_desc">Vis systemplasseringer, som systempartisjonen med kun lesetilgang (/system), i enhetsoversikten.</string>
+    <string name="explorer_settings_trash_confirm_title">Spør før flytting til papirkurven</string>
+    <string name="explorer_settings_trash_confirm_desc">Be om bekreftelse før slettede elementer flyttes til papirkurven. Ved permanent sletting blir du alltid spurt.</string>
+    <string name="explorer_file_more_actions_content_desc">Flere handlinger</string>
 </resources>

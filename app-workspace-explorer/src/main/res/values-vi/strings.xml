@@ -770,4 +770,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Cấu hình quyền truy cập ADB để mở thư mục này.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Tự động xóa các mục sau khoảng thời gian này trong thùng rác</string>
     <string name="explorer_settings_trash_max_size_summary">Dung lượng thùng rác được dùng trên mỗi vị trí lưu trữ</string>
+    <string name="explorer_settings_open_on_tap_title">Chạm để mở tệp</string>
+    <string name="explorer_settings_open_on_tap_desc">Chạm vào tệp để mở. Dùng nút ⋮ trên tệp để thực hiện các hành động khác.</string>
+    <string name="explorer_settings_show_system_locations_title">Hiện vị trí hệ thống</string>
+    <string name="explorer_settings_show_system_locations_desc">Liệt kê các vị trí hệ thống, như phân vùng hệ thống chỉ đọc (/system), trong phần tổng quan thiết bị.</string>
+    <string name="explorer_settings_trash_confirm_title">Hỏi trước khi chuyển vào thùng rác</string>
+    <string name="explorer_settings_trash_confirm_desc">Yêu cầu xác nhận trước khi chuyển mục đã xóa vào thùng rác. Luôn hỏi trước khi xóa vĩnh viễn.</string>
+    <string name="explorer_file_more_actions_content_desc">Hành động khác</string>
 </resources>

@@ -491,7 +491,7 @@
     <string name="support_debuglog_clear_confirm_message">Xóa tất cả các phiên nhật ký gỡ lỗi đã lưu?</string>
 
     <!-- Màn hình nhật ký gỡ lỗi -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">Nhật ký gỡ lỗi Butler - %1$s</string>
     <string name="debug_log_screen_subtitle">Xuất thông tin gỡ lỗi để khắc phục sự cố</string>
     <string name="debug_log_screen_sensitive_information_title">Thông tin nhạy cảm</string>
 

@@ -1,0 +1,57 @@
+Butler ialah pengurus fail Android berasaskan tab. Layari, cari, lihat dan edit fail di seluruh storan, dengan susun atur berbilang anak tetingkap dan akses root apabila diperlukan.
+
+Inilah penjelajah fail Android yang saya idamkan, jadi saya membinanya. Pantas, menjaga privasi, sumber terbuka.
+
+Butler menyokong storan dalaman, kad SD dan pemacu USB OTG, serta perkongsian rangkaian dengan Butler Pro. Semua jenis fail juga, bukan sekadar media yang ditunjukkan galeri.
+
+<b>Tab dan ruang kerja</b>
+- Layari fail dalam tab dan jalankan alat Butler serentak.
+- Susun tab dengan pengurus tab dan buka tab baharu dari pemilih tab.
+- Susun atur berbilang anak tetingkap pada telefon dan tablet, dengan seret dan lepas antara anak tetingkap.
+- Sematkan kegemaran dan tambah lokasi storan.
+
+<b>Operasi fail</b>
+- Salin, alih, namakan semula dan padam, dengan kelajuan pemindahan dan graf prestasi semasa operasi berjalan.
+- Sokongan tong sampah supaya pemadaman boleh dibuat asal.
+- Buka arkib seperti folder: layari ZIP, TAR dan berkas APK terus tanpa mengekstraknya dahulu.
+- Cipta dan ekstrak arkib ZIP, termasuk yang disulitkan.
+- Operasi terus berjalan apabila kamu meninggalkan aplikasi, dengan kemajuan dan butang batal dalam pemberitahuan.
+- Sejarah operasi menunjukkan apa yang dijalankan, berjaya dan gagal.
+
+<b>Perkongsian rangkaian (Butler Pro)</b>
+- Sambung ke perkongsian Windows dan folder NAS melalui SMB, lalu layarinya seperti storan lain.
+- Salin dan alih fail antara peranti dan pelayan, dalam kedua-dua arah.
+- Log masuk sebagai tetamu atau dengan nama pengguna dan kata laluan, disimpan secara disulitkan pada peranti kamu sahaja.
+- Menambah perkongsian dan menguji sambungan adalah percuma. Melayarinya memerlukan naik taraf Butler Pro.
+
+<b>Carian dan teks</b>
+- Cari mengikut nama fail dan dalam kandungan fail, dengan sokongan ungkapan biasa (regex).
+- Editor teks yang kekal pantas untuk fail yang sangat besar.
+
+<b>Melihat fail</b>
+- Lihat imej dan selak halaman PDF tanpa meninggalkan Butler.
+- Butiran fail merangkumi saiz, dimensi, kebenaran dan pemilik.
+- Kira saiz folder apabila diperlukan untuk melihat apa yang memenuhi storan.
+- Apa yang Butler tidak dapat paparkan diserahkan kepada aplikasi yang boleh.
+
+<b>Aplikasi dan APK</b>
+- Pengurus aplikasi: layari aplikasi terpasang, lumpuhkan, eksport APK, kosongkan data aplikasi dan nyahpasang.
+- Terima, periksa dan buka fail APK. Pemasangan melalui pemasang sistem Android.
+
+<b>Serasi dengan aplikasi lain</b>
+- Butler muncul dalam pemilih fail aplikasi lain supaya kamu boleh melayari dengan Butler ketika membuka atau menyimpan fail.
+- Kongsi fail ke Butler dari mana-mana aplikasi dan pilih lokasi serta namanya.
+- Teks yang dikongsi terus dibuka dalam editor Butler.
+
+<b>Akses dan penampilan</b>
+- Root atau Shizuku untuk lokasi yang biasanya dikunci Android.
+- Tema Material You dengan warna dinamik, mod gelap dan pilihan AMOLED.
+
+<b>Privasi</b>
+Tiada penjejakan. Tiada SDK analitik, akaun atau awan. Laporan ranap dan ralat kekal pada peranti kecuali kamu memilih untuk menghantarnya. Sumber terbuka.
+
+Butler meminta "Akses semua fail" kerana pengurus fail perlu mencapai seluruh storan. Semua tindakannya berlaku pada peranti kamu.
+
+Aplikasi ini bebas iklan. Sesetengah ciri memerlukan naik taraf berbayar.
+
+Butler ialah pengurus fail, penjelajah fail dan editor teks untuk Android.

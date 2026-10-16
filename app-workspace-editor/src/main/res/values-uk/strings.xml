@@ -86,7 +86,7 @@
     </plurals>
 
     <string name="editor_infobar_selected_x_y">Вибрано %1$s, %2$s</string>
-    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
+    <string name="editor_infobar_lines_size">%1$d р. · %2$s</string>
 
     <!-- Стани завантаження редактора -->
     <string name="editor_loading_file">Завантаження файлу…</string>

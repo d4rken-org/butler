@@ -491,7 +491,7 @@
     <string name="support_debuglog_clear_confirm_message">저장된 모든 디버그 로그 세션을 삭제하시겠습니까?</string>
 
     <!-- 디버그 로그 화면 -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">Butler 디버그 로그 - %1$s</string>
     <string name="debug_log_screen_subtitle">문제 해결을 위한 디버그 정보 내보내기</string>
     <string name="debug_log_screen_sensitive_information_title">민감한 정보</string>
 

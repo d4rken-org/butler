@@ -806,4 +806,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">دسترسی ADB را برای باز کردن این پوشه پیکربندی کنید.</string>
     <string name="explorer_settings_trash_auto_delete_summary">موارد پس از این مدت ماندن در سطل زباله به‌طور خودکار حذف می‌شوند</string>
     <string name="explorer_settings_trash_max_size_summary">میزان فضایی که سطل زباله می‌تواند روی هر حافظه استفاده کند</string>
+    <string name="explorer_settings_open_on_tap_title">باز کردن فایل‌ها با ضربه زدن</string>
+    <string name="explorer_settings_open_on_tap_desc">برای باز کردن فایل، روی آن ضربه بزنید. برای سایر کنش‌های فایل از دکمه ⋮ آن استفاده کنید.</string>
+    <string name="explorer_settings_show_system_locations_title">نمایش مکان‌های سیستمی</string>
+    <string name="explorer_settings_show_system_locations_desc">مکان‌های سیستمی، مانند پارتیشن فقط‌خواندنی سیستم (/system)، در نمای کلی دستگاه فهرست شوند.</string>
+    <string name="explorer_settings_trash_confirm_title">پرسش پیش از انتقال به سطل زباله</string>
+    <string name="explorer_settings_trash_confirm_desc">پیش از انتقال موارد حذف‌شده به سطل زباله تأیید گرفته شود. حذف دائمی همیشه به تأیید نیاز دارد.</string>
+    <string name="explorer_file_more_actions_content_desc">کنش‌های بیشتر</string>
 </resources>

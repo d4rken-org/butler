@@ -1,0 +1,57 @@
+A Butler egy lapokra épülő androidos fájlkezelő. Böngéssz, keress, nézz meg és szerkessz fájlokat a teljes tárhelyeden, többpaneles elrendezéssel és szükség esetén root-hozzáféréssel.
+
+Mindig ilyen fájlkezelőt szerettem volna Androidra, hát elkészítettem. Gyors, nyílt forráskódú, és tiszteletben tartja a magánszférádat.
+
+A Butler belső tárhelyen, SD-kártyán, USB OTG-meghajtón, a Butler Pro pedig hálózati megosztásokon is működik. Minden fájltípust kezel, nem csak a galériádban látható médiát.
+
+<b>Lapok és munkaterületek</b>
+- Böngéssz lapokon, és futtasd párhuzamosan a Butler eszközeit.
+- Rendezd a lapokat a lapkezelővel, és nyiss újakat a lapválasztóból.
+- Többpaneles elrendezés telefonon és táblagépen, áthúzással a panelek között.
+- Rögzíts kedvenceket, és adj hozzá további tárhelyeket.
+
+<b>Fájlműveletek</b>
+- Másolás, áthelyezés, átnevezés és törlés, közben átviteli sebességgel és teljesítménygrafikonokkal.
+- Kuka, hogy a törlések visszavonhatók maradjanak.
+- Archívumok megnyitása mappaként: ZIP-, TAR- és APK-csomagok böngészése előzetes kicsomagolás nélkül.
+- ZIP-archívumok létrehozása és kicsomagolása, titkosítottaké is.
+- A műveletek az alkalmazás elhagyása után is futnak; az értesítésben láthatod az állapotukat és megszakíthatod őket.
+- Műveleti előzmények: mi futott, mi sikerült, és mi nem.
+
+<b>Hálózati megosztások (Butler Pro)</b>
+- Csatlakozz Windows-megosztásokhoz és NAS-mappákhoz SMB-n, és böngészd őket más tárhelyekhez hasonlóan.
+- Másolj és helyezz át fájlokat az eszközöd és a kiszolgáló között mindkét irányban.
+- Jelentkezz be vendégként vagy felhasználónévvel és jelszóval. A jelszó titkosítva, csak az eszközödön tárolódik.
+- A megosztás hozzáadása és a kapcsolat tesztelése ingyenes. A böngészéshez Butler Pro szükséges.
+
+<b>Keresés és szöveg</b>
+- Keresés fájlnév és fájltartalom alapján, reguláris kifejezések (regex) támogatásával.
+- Nagyon nagy fájloknál is gyors szövegszerkesztő.
+
+<b>Fájlok megtekintése</b>
+- Képek megtekintése és PDF-ek lapozása a Butler elhagyása nélkül.
+- Részletes fájladatok: méret, képméret, engedélyek és tulajdonos.
+- Mappaméretek kiszámítása igény szerint: lásd, mi foglalja a tárhelyedet.
+- Amit a Butler nem jelenít meg, azt a megfelelő alkalmazásnak adja át.
+
+<b>Alkalmazások és APK-k</b>
+- Alkalmazáskezelő: telepített alkalmazások böngészése, letiltása, APK-k exportálása, alkalmazásadatok törlése és eltávolítás.
+- APK-fájlok fogadása, vizsgálata és megnyitása. A telepítést az Android rendszertelepítője végzi.
+
+<b>Együttműködés más alkalmazásokkal</b>
+- A Butler megjelenik más alkalmazások fájlválasztóiban, így fájlok megnyitásakor és mentésekor is vele böngészhetsz.
+- Ossz meg fájlt a Butlerrel bármely alkalmazásból, és válaszd ki a pontos helyét és nevét.
+- A megosztott szöveg közvetlenül a Butler szerkesztőjében nyílik meg.
+
+<b>Hozzáférés és megjelenés</b>
+- Root vagy Shizuku az Android által lezárt helyek eléréséhez.
+- Material You témák dinamikus színekkel, sötét móddal és AMOLED-beállítással.
+
+<b>Adatvédelem</b>
+Nincs követés, elemző SDK, fiók vagy felhő. Az összeomlási és hibajelentések az eszközödön maradnak, hacsak nem döntesz az elküldésükről. Nyílt forráskódú.
+
+A Butler „Hozzáférés az összes fájlhoz” engedélyt kér, mert egy fájlkezelőnek a teljes tárhelyedet el kell érnie. Mindent az eszközödön végez.
+
+Az alkalmazás reklámmentes. Egyes funkciók fizetős bővítést igényelnek.
+
+A Butler fájlkezelő, fájlböngésző és szövegszerkesztő Androidra.

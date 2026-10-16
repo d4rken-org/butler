@@ -509,7 +509,7 @@
     <string name="support_debuglog_clear_confirm_message">Видалити всі збережені сеанси журналу налагодження?</string>
 
     <!-- Екран журналу налагодження -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">Журнал налагодження Butler - %1$s</string>
     <string name="debug_log_screen_subtitle">Експортуйте діагностичну інформацію для усунення несправностей</string>
     <string name="debug_log_screen_sensitive_information_title">Конфіденційна інформація</string>
 

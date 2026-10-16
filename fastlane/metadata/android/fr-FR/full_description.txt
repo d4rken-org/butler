@@ -1,0 +1,57 @@
+Butler est un gestionnaire de fichiers Android à onglets. Parcours, recherche, affiche et modifie les fichiers de tout ton stockage, avec plusieurs volets et l’accès root au besoin.
+
+C’est l’explorateur Android dont j’ai toujours rêvé, alors je l’ai créé. Rapide, respectueux de la vie privée, open source.
+
+Butler gère le stockage interne, les cartes SD, les clés USB OTG et, avec Butler Pro, les partages réseau. Et tous les types de fichiers, pas seulement les médias de ta galerie.
+
+<b>Onglets et espaces de travail</b>
+- Parcours les fichiers en onglets et utilise les outils de Butler en parallèle.
+- Organise les onglets avec leur gestionnaire et crée-en depuis le sélecteur d’onglets.
+- Plusieurs volets sur téléphone et tablette, avec glisser-déposer entre eux.
+- Épingle des favoris et ajoute des emplacements de stockage.
+
+<b>Opérations sur les fichiers</b>
+- Copie, déplace, renomme et supprime, avec vitesses de transfert et graphiques de performance en direct.
+- Une corbeille pour rendre les suppressions réversibles.
+- Ouvre les archives comme des dossiers : parcours ZIP, TAR et bundles APK sans extraction préalable.
+- Crée et extrais des archives ZIP, même chiffrées.
+- Les opérations continuent hors de l’appli, avec progression et bouton d’annulation dans la notification.
+- Un historique indique les opérations effectuées, réussies ou échouées.
+
+<b>Partages réseau (Butler Pro)</b>
+- Connecte-toi aux partages Windows et dossiers NAS via SMB, comme à tout autre stockage.
+- Copie et déplace les fichiers entre ton appareil et le serveur dans les deux sens.
+- Connecte-toi en invité ou avec identifiant et mot de passe, chiffrés sur ton appareil uniquement.
+- Ajouter un partage et tester la connexion est gratuit. Le parcourir nécessite Butler Pro.
+
+<b>Recherche et texte</b>
+- Recherche par nom ou contenu de fichier, avec expressions régulières (regex).
+- Un éditeur de texte rapide même sur les très gros fichiers.
+
+<b>Afficher les fichiers</b>
+- Affiche les images et feuillette les PDF sans quitter Butler.
+- Consulte taille, dimensions, autorisations et propriétaire des fichiers.
+- Calcule la taille des dossiers à la demande pour voir ce qui remplit ton stockage.
+- Ce que Butler n’affiche pas est confié à une appli qui le peut.
+
+<b>Applis et APK</b>
+- Gère les applis installées : parcours-les, désactive-les, exporte leurs APK, efface leurs données et désinstalle-les.
+- Reçois, examine et ouvre des APK. L’installation passe par l’outil système d’Android.
+
+<b>Avec tes autres applis</b>
+- Butler apparaît dans leurs sélecteurs de fichiers : utilise-le pour ouvrir ou enregistrer un fichier.
+- Partage un fichier vers Butler depuis une appli et choisis son emplacement exact et son nom.
+- Le texte partagé s’ouvre directement dans l’éditeur de Butler.
+
+<b>Accès et apparence</b>
+- Root ou Shizuku pour les emplacements normalement verrouillés par Android.
+- Thème Material You à couleurs dynamiques, mode sombre et option AMOLED.
+
+<b>Vie privée</b>
+Aucun suivi, SDK d’analyse, compte ou cloud. Les rapports de plantage et d’erreur restent sur ton appareil, sauf si tu décides d’en envoyer un. Open source.
+
+Butler demande l’« accès à tous les fichiers », car un gestionnaire de fichiers doit pouvoir accéder à tout ton stockage. Tout se passe sur ton appareil.
+
+Cette appli est sans pub. Certaines fonctions nécessitent une mise à niveau payante.
+
+Butler est un gestionnaire et explorateur de fichiers et un éditeur de texte pour Android.

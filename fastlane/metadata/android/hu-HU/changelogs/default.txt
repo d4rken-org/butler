@@ -1,0 +1,5 @@
+Hibajavítások és kisebb fejlesztések, hogy a fájlkezelés az eszközödön gyors maradjon, és ne legyen útban.
+
+A verzió újdonságai: butler.darken.eu/changelog
+
+Valami elromlott vagy furcsán működik a frissítés után? Írd meg a Beállítások > Támogatás menüben. Egyszemélyes projekt, így a válaszra néha várni kell, de minden jelentést elolvasok.

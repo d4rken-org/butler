@@ -947,4 +947,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">أعدّ وصول ADB لفتح هذا المجلد.</string>
     <string name="explorer_settings_trash_auto_delete_summary">حذف العناصر تلقائيًا بعد بقائها في سلة المهملات لهذه المدة</string>
     <string name="explorer_settings_trash_max_size_summary">المساحة التي يمكن لسلة المهملات استخدامها في كل موقع تخزين</string>
+    <string name="explorer_settings_open_on_tap_title">فتح الملفات بنقرة</string>
+    <string name="explorer_settings_open_on_tap_desc">النقر على الملف يفتحه. تتوفر إجراءاته الأخرى عبر زر ⋮ الخاص به.</string>
+    <string name="explorer_settings_show_system_locations_title">إظهار مواقع النظام</string>
+    <string name="explorer_settings_show_system_locations_desc">عرض مواقع النظام، مثل قسم النظام المخصص للقراءة فقط (/system)، في النظرة العامة على الجهاز.</string>
+    <string name="explorer_settings_trash_confirm_title">طلب التأكيد قبل النقل إلى سلة المهملات</string>
+    <string name="explorer_settings_trash_confirm_desc">طلب التأكيد قبل نقل العناصر المحذوفة إلى سلة المهملات. الحذف النهائي يتطلب التأكيد دائمًا.</string>
+    <string name="explorer_file_more_actions_content_desc">المزيد من الإجراءات</string>
 </resources>

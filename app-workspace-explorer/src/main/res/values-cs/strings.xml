@@ -878,4 +878,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Nakonfiguruj přístup ADB pro otevření této složky.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Automaticky smazat položky po uplynutí této doby v koši</string>
     <string name="explorer_settings_trash_max_size_summary">Kolik místa smí koš využít na každém úložišti</string>
+    <string name="explorer_settings_open_on_tap_title">Otevírat soubory klepnutím</string>
+    <string name="explorer_settings_open_on_tap_desc">Klepnutím na soubor ho otevřeš. Další akce najdeš pod tlačítkem ⋮ u souboru.</string>
+    <string name="explorer_settings_show_system_locations_title">Zobrazit systémová umístění</string>
+    <string name="explorer_settings_show_system_locations_desc">Zobrazit v přehledu zařízení systémová umístění, například systémový oddíl jen pro čtení (/system).</string>
+    <string name="explorer_settings_trash_confirm_title">Ptát se před přesunutím do koše</string>
+    <string name="explorer_settings_trash_confirm_desc">Před přesunutím smazaných položek do koše vyžadovat potvrzení. Trvalé smazání se potvrzuje vždy.</string>
+    <string name="explorer_file_more_actions_content_desc">Další akce</string>
 </resources>

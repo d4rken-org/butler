@@ -1,0 +1,5 @@
+Perbaikan bug dan peningkatan kecil agar pengelolaan berkas di perangkat tetap cepat dan tidak mengganggu.
+
+Perubahan di versi ini: butler.darken.eu/changelog
+
+Ada yang rusak atau bertingkah aneh setelah diperbarui? Beri tahu saya lewat Pengaturan > Dukungan. Proyek ini dikerjakan sendiri, jadi balasan mungkin agak lama, tetapi setiap laporan dibaca.

@@ -116,7 +116,7 @@
     </plurals>
 
     <!-- Origin labels (workspace that created the operation) -->
-    <string name="history_origin_explorer">Explorer</string>
+    <string name="history_origin_explorer">文件管理器</string>
     <string name="history_origin_searcher">搜索</string>
     <string name="history_origin_saver">保存</string>
     <string name="history_origin_developer">开发者</string>

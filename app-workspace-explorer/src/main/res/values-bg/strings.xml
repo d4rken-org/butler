@@ -803,4 +803,11 @@
         <item quantity="one">%1$d папка</item>
         <item quantity="other">%1$d папки</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Отваряй файловете с докосване</string>
+    <string name="explorer_settings_open_on_tap_desc">Докосни файл, за да го отвориш. Използвай бутона ⋮ на файла за другите му действия.</string>
+    <string name="explorer_settings_show_system_locations_title">Показвай системните местоположения</string>
+    <string name="explorer_settings_show_system_locations_desc">Показвай системни местоположения, като системния дял само за четене (/system), в общия преглед на устройството.</string>
+    <string name="explorer_settings_trash_confirm_title">Питай преди преместване в кошчето</string>
+    <string name="explorer_settings_trash_confirm_desc">Искай потвърждение, преди изтритите елементи да отидат в кошчето. При безвъзвратно изтриване винаги се иска потвърждение.</string>
+    <string name="explorer_file_more_actions_content_desc">Още действия</string>
 </resources>

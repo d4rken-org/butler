@@ -277,9 +277,9 @@
     <string name="acknowledgement_android_robot_subtitle">หุ่นยนต์ Android ถูกทำซ้ำหรือดัดแปลงจากผลงานที่ Google สร้างและเผยแพร่ และใช้ตามเงื่อนไขของ Creative Commons 3.0 Attribution License</string>
     <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
     <string name="acknowledgement_jetpack_compose_subtitle">เครื่องมือสมัยใหม่ของ Android สำหรับสร้าง UI แบบเนทีฟ (APACHE 2.0)</string>
-    <string name="acknowledgement_jetpack_libraries_title">Jetpack libraries</string>
+    <string name="acknowledgement_jetpack_libraries_title">ไลบรารี Jetpack</string>
     <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation และไลบรารี AndroidX อื่นๆ (APACHE 2.0)</string>
-    <string name="acknowledgement_kotlin_extensions_title">Kotlin extensions</string>
+    <string name="acknowledgement_kotlin_extensions_title">ส่วนขยาย Kotlin</string>
     <string name="acknowledgement_kotlin_extensions_subtitle">ไลบรารี Coroutines และ Serialization (APACHE 2.0)</string>
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">ไลบรารีโหลดรูปภาพที่ใช้ Kotlin Coroutines (APACHE 2.0)</string>
@@ -289,7 +289,7 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">ไคลเอนต์ SSH และ SFTP สำหรับเชื่อมต่อกับเซิร์ฟเวอร์ SFTP (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API บันทึกที่ Apache MINA SSHD ใช้ (MIT)</string>
-    <string name="acknowledgement_square_libraries_title">Square libraries</string>
+    <string name="acknowledgement_square_libraries_title">ไลบรารี Square</string>
     <string name="acknowledgement_square_libraries_subtitle">ไลบรารีเครือข่าย Retrofit, OkHttp และ OkIO (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>
     <string name="acknowledgement_accompanist_subtitle">ยูทิลิตีสำหรับ Jetpack Compose (APACHE 2.0)</string>
@@ -312,7 +312,7 @@
     <string name="upgrade_status_pro">สถานะ: Pro</string>
     <string name="upgrade_status_foss">สถานะ: FOSS</string>
 
-    <string name="storage_area_sdcard_label">SD card</string>
+    <string name="storage_area_sdcard_label">การ์ด SD</string>
     <string name="storage_area_public_label">ที่เก็บข้อมูลสาธารณะ</string>
     <string name="storage_area_public_app_data_label">ข้อมูลแอปสาธารณะ</string>
 
@@ -491,7 +491,7 @@
     <string name="support_debuglog_clear_confirm_message">ลบเซสชันบันทึกดีบักที่เก็บไว้ทั้งหมด?</string>
 
     <!-- Debug Log Screen -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">บันทึกดีบัก Butler - %1$s</string>
     <string name="debug_log_screen_subtitle">ส่งออกข้อมูลดีบักเพื่อแก้ปัญหา</string>
     <string name="debug_log_screen_sensitive_information_title">ข้อมูลที่ละเอียดอ่อน</string>
 

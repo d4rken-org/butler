@@ -1,0 +1,5 @@
+Correcciones de errores y pequeñas mejoras para que gestionar los archivos de tu dispositivo siga siendo rápido y no te estorbe.
+
+Cambios de esta versión: butler.darken.eu/changelog
+
+¿Algo falla o se comporta de forma extraña tras actualizar? Cuéntamelo en Configuración > Soporte. Es un proyecto de una sola persona, así que las respuestas pueden tardar un poco, pero leo todos los informes.

@@ -46,7 +46,7 @@
     <string name="developer_system_build_header">빌드</string>
     <string name="developer_system_build_version">버전</string>
     <string name="developer_system_build_code">버전 코드</string>
-    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_flavor">제품 버전</string>
     <string name="developer_system_build_type">빌드 유형</string>
     <string name="developer_system_build_git">Git SHA</string>
     <string name="developer_system_memory_header">메모리</string>

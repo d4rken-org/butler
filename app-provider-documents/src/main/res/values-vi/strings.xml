@@ -23,7 +23,7 @@
     <string name="provider_documents_error_generic">Không thể truy cập vị trí này. Kiểm tra ứng dụng Butler để tìm các tùy chọn truy cập.</string>
 
     <!-- Settings -->
-    <string name="provider_documents_settings_title">Documents Provider</string>
+    <string name="provider_documents_settings_title">Trình cung cấp tài liệu</string>
     <string name="provider_documents_settings_subtitle">Tích hợp ứng dụng bên ngoài</string>
     <string name="provider_documents_settings_category_integration_label">Tích hợp</string>
     <string name="provider_documents_enabled_title">Bật Documents Provider</string>

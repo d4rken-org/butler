@@ -724,7 +724,7 @@
     <string name="explorer_permission_multiple_options_shizuku_description">您可以使用 Android 的文件夹选择器授予访问权限，或设置 ADB 访问权限，以更快地访问受限文件夹。</string>
     <string name="explorer_permission_setup_root_description">此文件夹需要 Root 权限。如果您的设备已 Root，请在设置中进行配置。</string>
 
-    <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
+    <string name="explorer_permission_option_picker_title">存储访问框架</string>
     <string name="explorer_permission_option_picker_description">使用 Android 的文件夹选择器授予对此文件夹的访问权限。</string>
     <string name="explorer_permission_option_picker_action">打开 SAF 选择器</string>
 
@@ -767,4 +767,11 @@
     <plurals name="explorer_settings_folder_sort_rules_value">
         <item quantity="other">%1$d 个文件夹</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">点按打开文件</string>
+    <string name="explorer_settings_open_on_tap_desc">点按文件即可打开。使用文件上的 ⋮ 按钮可进行其他操作。</string>
+    <string name="explorer_settings_show_system_locations_title">显示系统位置</string>
+    <string name="explorer_settings_show_system_locations_desc">在设备概览中列出系统位置，例如只读的系统分区（/system）。</string>
+    <string name="explorer_settings_trash_confirm_title">移至回收站前询问</string>
+    <string name="explorer_settings_trash_confirm_desc">删除的项目移至回收站前需要确认。永久删除始终需要确认。</string>
+    <string name="explorer_file_more_actions_content_desc">更多操作</string>
 </resources>

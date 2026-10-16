@@ -269,7 +269,7 @@
     <string name="workspace_file_info_permissions_label">Mga pahintulot</string>
     <string name="workspace_file_info_owner_label">May-ari</string>
     <string name="workspace_file_info_child_count_label">Mga item</string>
-    <string name="workspace_file_info_symlink_target_label">Target</string>
+    <string name="workspace_file_info_symlink_target_label">Patutunguhan</string>
     <string name="workspace_file_info_unknown">Hindi kilala</string>
     <string name="workspace_file_info_copy_action">Kopyahin sa clipboard</string>
 

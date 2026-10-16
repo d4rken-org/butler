@@ -1,0 +1,57 @@
+Butler, sekmeler üzerine kurulu bir Android dosya yöneticisidir. Çok panelli düzenler ve gerektiğinde root erişimiyle tüm depolama alanındaki dosyalara göz at, dosyaları ara, görüntüle ve düzenle.
+
+Android için hep istediğim dosya gezgini, ben de yaptım. Hızlı, gizliliğe önem veren, açık kaynaklı.
+
+Butler dahili depolamada, SD kartlarda ve USB OTG sürücülerde, Butler Pro ile de ağ paylaşımlarında çalışır. Üstelik yalnızca galerinin gösterdiği medyayla değil, her dosya türüyle.
+
+<b>Sekmeler ve çalışma alanları</b>
+- Sekmelerde dosyalara göz at ve Butler araçlarını paralel çalıştır.
+- Sekme yöneticisiyle sekmeleri düzenle, sekme seçiciden yenilerini aç.
+- Telefonlarda ve tabletlerde çok panelli düzenler, paneller arasında sürükle ve bırak.
+- Favorileri sabitle ve ek depolama konumları ekle.
+
+<b>Dosya işlemleri</b>
+- Kopyala, taşı, yeniden adlandır ve sil; işlemler sürerken aktarım hızlarını ve performans grafiklerini gör.
+- Çöp kutusu desteğiyle silme işlemleri geri alınabilir.
+- Arşivleri klasör gibi aç: ZIP, TAR ve APK paketlerine önce çıkartmadan, yerinde göz at.
+- ZIP arşivleri oluştur ve şifreli olanlar dahil arşivleri çıkart.
+- Uygulamadan ayrıldığında işlemler sürer; bildirimde ilerleme ve iptal düğmesi bulunur.
+- İşlem geçmişinde nelerin çalıştığını, başarılı veya başarısız olduğunu gör.
+
+<b>Ağ paylaşımları (Butler Pro)</b>
+- SMB üzerinden Windows paylaşımlarına ve NAS klasörlerine bağlan, diğer depolama alanları gibi göz at.
+- Cihazın ve sunucu arasında her iki yönde dosya kopyala ve taşı.
+- Misafir olarak veya yalnızca cihazında şifreli saklanan kullanıcı adı ve şifreyle oturum aç.
+- Paylaşım eklemek ve bağlantıyı test etmek ücretsizdir. Göz atmak için Butler Pro yükseltmesi gerekir.
+
+<b>Arama ve metin</b>
+- Düzenli ifade (regex) desteğiyle dosya adına göre ve dosya içeriklerinde ara.
+- Çok büyük dosyalarda bile hızlı kalan bir metin düzenleyici.
+
+<b>Dosyaları görüntüleme</b>
+- Butler'dan ayrılmadan resimleri görüntüle ve PDF sayfalarında gezin.
+- Dosya boyutu, ölçüler, izinler ve sahip bilgisi dahil dosya ayrıntıları.
+- Depolamanı nelerin doldurduğunu görmek için istediğinde klasör boyutlarını hesapla.
+- Butler'ın kendi gösteremediği dosyalar, gösterebilen uygulamaya aktarılır.
+
+<b>Uygulamalar ve APK'lar</b>
+- Uygulama yöneticisi: yüklü uygulamalara göz at, devre dışı bırak, APK'ları dışa aktar, uygulama verilerini temizle ve uygulamaları kaldır.
+- APK dosyalarını al, incele ve aç. Yükleme, Android'in sistem yükleyicisi üzerinden yapılır.
+
+<b>Diğer uygulamalarınla uyumlu</b>
+- Butler, diğer uygulamaların dosya seçicilerinde görünür; dosya açarken veya kaydederken Butler ile göz atabilirsin.
+- Herhangi bir uygulamadan Butler'a dosya paylaş, tam olarak nereye ve hangi adla kaydedileceğini seç.
+- Paylaşılan metin doğrudan Butler'ın düzenleyicisinde açılır.
+
+<b>Erişim ve görünüm</b>
+- Android'in normalde kilitli tuttuğu yerler için Root veya Shizuku.
+- Dinamik renkler, karanlık mod ve AMOLED seçeneğiyle Material You teması.
+
+<b>Gizlilik</b>
+İzleme yok. Analitik SDK'ları, hesap, bulut yok. Çökme ve hata raporları, sen göndermedikçe cihazında kalır. Açık kaynaklı.
+
+Bir dosya yöneticisinin tüm depolama alanına ulaşması gerektiğinden Butler, "Tüm dosyalara erişim" izni ister. Yaptığı her şey cihazında gerçekleşir.
+
+Bu uygulama reklamsızdır. Bazı özellikler ücretli yükseltme gerektirir.
+
+Butler, Android için dosya yöneticisi, dosya gezgini ve metin düzenleyicisidir.

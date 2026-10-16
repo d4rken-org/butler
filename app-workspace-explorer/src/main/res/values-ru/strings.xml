@@ -875,4 +875,11 @@
     <string name="explorer_permission_multiple_options_shizuku_description">Можно предоставить доступ через выбор папки Android или настроить доступ ADB для более быстрого доступа к ограниченным папкам.</string>
     <string name="explorer_permission_option_setup_root_description">Настрой root, чтобы получить доступ к этой и другим ограниченным папкам.</string>
     <string name="explorer_permission_option_setup_shizuku_description">Настрой доступ ADB, чтобы открыть эту папку.</string>
+    <string name="explorer_settings_open_on_tap_title">Открывать файлы касанием</string>
+    <string name="explorer_settings_open_on_tap_desc">Коснись файла, чтобы открыть его. Остальные действия доступны по кнопке ⋮ у файла.</string>
+    <string name="explorer_settings_show_system_locations_title">Показывать системные расположения</string>
+    <string name="explorer_settings_show_system_locations_desc">Показывать в обзоре устройства системные расположения, например системный раздел (/system), доступный только для чтения.</string>
+    <string name="explorer_settings_trash_confirm_title">Спрашивать перед перемещением в корзину</string>
+    <string name="explorer_settings_trash_confirm_desc">Запрашивать подтверждение перед перемещением удаляемых объектов в корзину. При удалении навсегда подтверждение требуется всегда.</string>
+    <string name="explorer_file_more_actions_content_desc">Другие действия</string>
 </resources>

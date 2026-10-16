@@ -46,9 +46,9 @@
     <string name="bugreport_detail_field_app_version">Uygulama sürümü</string>
     <string name="bugreport_detail_field_device">Cihaz</string>
     <string name="bugreport_detail_field_android">Android</string>
-    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_build">Derleme</string>
     <string name="bugreport_detail_field_error_class">Hata türü</string>
-    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_field_thread">İş parçacığı</string>
     <string name="bugreport_detail_log_truncated">son %1$d / %2$d satır</string>
     <string name="bugreport_detail_log_count">%1$d satır</string>
     <string name="bugreport_detail_log_empty">Günlük kaydedilmedi</string>

@@ -232,7 +232,7 @@
     <string name="apps_components_field_package">Пакет</string>
     <string name="apps_components_field_permission">Дозвіл</string>
     <string name="apps_components_field_write_permission">Дозвіл на запис</string>
-    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_authority">Ідентифікатор постачальника</string>
     <string name="apps_components_field_process">Процес</string>
     <string name="apps_components_field_launch_mode">Режим запуску</string>
     <string name="apps_components_launch_action">Запустити</string>

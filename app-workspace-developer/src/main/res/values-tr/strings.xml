@@ -43,7 +43,7 @@
     <string name="developer_system_device_model">Model</string>
     <string name="developer_system_device_manufacturer">Üretici</string>
     <string name="developer_system_device_api">API Seviyesi</string>
-    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_header">Derleme</string>
     <string name="developer_system_build_version">Sürüm</string>
     <string name="developer_system_build_code">Sürüm Kodu</string>
     <string name="developer_system_build_flavor">Varyant</string>

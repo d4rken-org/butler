@@ -839,4 +839,11 @@
         <item quantity="few">%1$d mape</item>
         <item quantity="other">%1$d mapa</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Otvaraj datoteke dodirom</string>
+    <string name="explorer_settings_open_on_tap_desc">Dodirni datoteku da je otvoriš. Za ostale radnje upotrijebi gumb ⋮ na datoteci.</string>
+    <string name="explorer_settings_show_system_locations_title">Prikaži sistemske lokacije</string>
+    <string name="explorer_settings_show_system_locations_desc">Prikaži sistemske lokacije, poput sistemske particije samo za čitanje (/system), u pregledu uređaja.</string>
+    <string name="explorer_settings_trash_confirm_title">Pitaj prije premještanja u smeće</string>
+    <string name="explorer_settings_trash_confirm_desc">Zatraži potvrdu prije premještanja izbrisanih stavki u smeće. Trajno brisanje uvijek zahtijeva potvrdu.</string>
+    <string name="explorer_file_more_actions_content_desc">Više radnji</string>
 </resources>

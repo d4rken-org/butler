@@ -51,7 +51,7 @@
 
     <!-- APK file -->
     <string name="viewer_apk_version_label">Версія</string>
-    <string name="viewer_apk_min_sdk_label">Min SDK</string>
+    <string name="viewer_apk_min_sdk_label">Мінімальний SDK</string>
     <string name="viewer_apk_target_sdk_label">Цільовий SDK</string>
     <string name="viewer_apk_installed_label">Встановлено</string>
     <string name="viewer_apk_not_installed_value">Не встановлено</string>

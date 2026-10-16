@@ -747,4 +747,11 @@
         <item quantity="few">%1$d dosare</item>
         <item quantity="other">%1$d de dosare</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Deschide fișierele la atingere</string>
+    <string name="explorer_settings_open_on_tap_desc">Atinge un fișier pentru a-l deschide. Folosește butonul ⋮ al fișierului pentru celelalte acțiuni.</string>
+    <string name="explorer_settings_show_system_locations_title">Arată locațiile de sistem</string>
+    <string name="explorer_settings_show_system_locations_desc">Afișează locațiile de sistem, precum partiția de sistem doar pentru citire (/system), în prezentarea generală a dispozitivului.</string>
+    <string name="explorer_settings_trash_confirm_title">Întreabă înainte de mutarea în coș</string>
+    <string name="explorer_settings_trash_confirm_desc">Cere confirmare înainte ca elementele șterse să ajungă în coș. Ștergerile definitive cer mereu confirmare.</string>
+    <string name="explorer_file_more_actions_content_desc">Mai multe acțiuni</string>
 </resources>

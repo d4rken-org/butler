@@ -1,0 +1,5 @@
+Poprawki błędów i drobne usprawnienia, by zarządzanie plikami na urządzeniu było szybkie i nie przeszkadzało ci w pracy.
+
+Zmiany w tej wersji: butler.darken.eu/changelog
+
+Po aktualizacji coś nie działa lub zachowuje się dziwnie? Daj mi znać przez Ustawienia > Wsparcie. To jednoosobowy projekt, więc na odpowiedź czasem trzeba poczekać, ale czytam każde zgłoszenie.

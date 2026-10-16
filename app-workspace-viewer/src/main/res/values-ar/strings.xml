@@ -52,7 +52,7 @@
     <!-- APK file -->
     <string name="viewer_apk_version_label">الإصدار</string>
     <string name="viewer_apk_min_sdk_label">SDK الحد الأدنى</string>
-    <string name="viewer_apk_target_sdk_label">Target SDK</string>
+    <string name="viewer_apk_target_sdk_label">SDK المستهدف</string>
     <string name="viewer_apk_installed_label">مثبت</string>
     <string name="viewer_apk_not_installed_value">غير مثبت</string>
     <string name="viewer_apk_installed_unknown_value">تعذر الفحص</string>

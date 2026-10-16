@@ -806,4 +806,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Configureer ADB-toegang om deze map te openen.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Items automatisch verwijderen na zo lang in de prullenbak</string>
     <string name="explorer_settings_trash_max_size_summary">Hoeveel ruimte de prullenbak mag gebruiken op elke opslaglocatie</string>
+    <string name="explorer_settings_open_on_tap_title">Bestanden openen bij tikken</string>
+    <string name="explorer_settings_open_on_tap_desc">Tik op een bestand om het te openen. Gebruik de ⋮-knop bij een bestand voor de andere acties.</string>
+    <string name="explorer_settings_show_system_locations_title">Systeemlocaties tonen</string>
+    <string name="explorer_settings_show_system_locations_desc">Toon systeemlocaties, zoals de alleen-lezen systeempartitie (/system), in het apparaatoverzicht.</string>
+    <string name="explorer_settings_trash_confirm_title">Vragen vóór verplaatsen naar prullenbak</string>
+    <string name="explorer_settings_trash_confirm_desc">Vraag om bevestiging voordat verwijderde items naar de prullenbak gaan. Bij permanent verwijderen wordt altijd om bevestiging gevraagd.</string>
+    <string name="explorer_file_more_actions_content_desc">Meer acties</string>
 </resources>

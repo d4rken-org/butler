@@ -222,7 +222,7 @@
     <string name="apps_components_field_package">بسته</string>
     <string name="apps_components_field_permission">مجوز</string>
     <string name="apps_components_field_write_permission">مجوز نوشتن</string>
-    <string name="apps_components_field_authority">Authority</string>
+    <string name="apps_components_field_authority">مرجع</string>
     <string name="apps_components_field_process">فرایند</string>
     <string name="apps_components_field_launch_mode">حالت اجرا</string>
     <string name="apps_components_launch_action">اجرا</string>

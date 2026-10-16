@@ -498,7 +498,7 @@
     <string name="support_debuglog_clear_confirm_message">Depolanan tüm hata ayıklama günlüğü oturumları silinsin mi?</string>
 
     <!-- Debug Log Screen -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">Butler hata ayıklama günlüğü - %1$s</string>
     <string name="debug_log_screen_subtitle">Sorun giderme için hata ayıklama bilgilerini dışa aktar</string>
     <string name="debug_log_screen_sensitive_information_title">Hassas Bilgiler</string>
 

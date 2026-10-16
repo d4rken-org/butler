@@ -205,9 +205,9 @@
     <string name="apps_components_error">Không thể tải thành phần</string>
     <string name="apps_components_launch_failed">Không thể khởi chạy activity</string>
     <string name="apps_components_kind_activity">Activity</string>
-    <string name="apps_components_kind_service">Service</string>
-    <string name="apps_components_kind_receiver">Broadcast receiver</string>
-    <string name="apps_components_kind_provider">Content provider</string>
+    <string name="apps_components_kind_service">Dịch vụ</string>
+    <string name="apps_components_kind_receiver">Bộ nhận thông báo quảng bá</string>
+    <string name="apps_components_kind_provider">Trình cung cấp nội dung</string>
     <string name="apps_components_search_action">Tìm kiếm thành phần</string>
     <string name="apps_components_search_hint">Tìm theo tên hoặc gói</string>
     <string name="apps_components_state_label">Trạng thái</string>

@@ -875,4 +875,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">Skonfiguruj dostęp ADB, aby otworzyć ten folder.</string>
     <string name="explorer_settings_trash_auto_delete_summary">Automatycznie usuwaj elementy po upływie tego czasu w koszu</string>
     <string name="explorer_settings_trash_max_size_summary">Ile miejsca kosz może zajmować w każdej lokalizacji magazynu</string>
+    <string name="explorer_settings_open_on_tap_title">Otwieraj pliki po dotknięciu</string>
+    <string name="explorer_settings_open_on_tap_desc">Dotknij pliku, aby go otworzyć. Pozostałe akcje znajdziesz pod przyciskiem ⋮ przy pliku.</string>
+    <string name="explorer_settings_show_system_locations_title">Pokaż lokalizacje systemowe</string>
+    <string name="explorer_settings_show_system_locations_desc">Wyświetlaj lokalizacje systemowe, takie jak partycja systemowa tylko do odczytu (/system), w przeglądzie urządzenia.</string>
+    <string name="explorer_settings_trash_confirm_title">Pytaj przed przeniesieniem do kosza</string>
+    <string name="explorer_settings_trash_confirm_desc">Pytaj o potwierdzenie, zanim usuwane elementy trafią do kosza. Trwałe usuwanie zawsze wymaga potwierdzenia.</string>
+    <string name="explorer_file_more_actions_content_desc">Więcej akcji</string>
 </resources>

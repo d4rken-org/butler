@@ -1,0 +1,57 @@
+Butler to menedżer plików na Androida oparty na kartach. Przeglądaj, wyszukuj, wyświetlaj i edytuj pliki w całej pamięci urządzenia, korzystając z wielu paneli i dostępu root, gdy go potrzebujesz.
+
+To eksplorator plików na Androida, jakiego zawsze mi brakowało. Dlatego powstał Butler. Szybki, prywatny, z otwartym kodem.
+
+Butler obsługuje pamięć wewnętrzną, karty SD i nośniki USB OTG, a z Butler Pro także zasoby sieciowe. I każdy typ pliku, nie tylko multimedia widoczne w galerii.
+
+<b>Karty i obszary robocze</b>
+- Przeglądaj pliki w kartach i uruchamiaj narzędzia Butlera równolegle.
+- Porządkuj karty w menedżerze kart i otwieraj nowe z selektora kart.
+- Korzystaj z wielu paneli na telefonach i tabletach, przeciągając pliki między panelami.
+- Przypinaj ulubione i dodawaj kolejne lokalizacje pamięci.
+
+<b>Operacje na plikach</b>
+- Kopiuj, przenoś, zmieniaj nazwy i usuwaj, obserwując szybkość transferu i wykresy wydajności.
+- Obsługa kosza pozwala cofnąć usunięcie.
+- Otwieraj archiwa jak foldery: przeglądaj ZIP, TAR i pakiety APK bez wcześniejszego rozpakowywania.
+- Twórz archiwa ZIP i rozpakowuj je, także te zaszyfrowane.
+- Operacje trwają po opuszczeniu aplikacji. Postęp i przycisk anulowania znajdziesz w powiadomieniu.
+- Historia operacji pokazuje, co wykonano, co się udało, a co nie.
+
+<b>Zasoby sieciowe (Butler Pro)</b>
+- Łącz się z udziałami Windows i folderami NAS przez SMB i przeglądaj je jak inne lokalizacje pamięci.
+- Kopiuj i przenoś pliki między urządzeniem a serwerem w obu kierunkach.
+- Loguj się jako gość lub za pomocą nazwy użytkownika i hasła, zapisywanych w postaci zaszyfrowanej tylko na twoim urządzeniu.
+- Dodanie zasobu i test połączenia są bezpłatne. Przeglądanie wymaga zakupu Butler Pro.
+
+<b>Wyszukiwanie i tekst</b>
+- Szukaj po nazwie pliku i w jego zawartości, z obsługą wyrażeń regularnych (regex).
+- Edytor tekstu działa szybko nawet z bardzo dużymi plikami.
+
+<b>Wyświetlanie plików</b>
+- Oglądaj obrazy i przeglądaj strony PDF bez wychodzenia z Butlera.
+- Sprawdzaj szczegóły plików: rozmiar, wymiary, uprawnienia i właściciela.
+- Obliczaj rozmiary folderów na żądanie, aby zobaczyć, co naprawdę zapełnia pamięć.
+- To, czego Butler nie wyświetla sam, otworzy odpowiednia aplikacja.
+
+<b>Aplikacje i pliki APK</b>
+- Menedżer aplikacji: przeglądaj zainstalowane aplikacje, wyłączaj je, eksportuj pliki APK, czyść dane aplikacji i odinstalowuj je.
+- Odbieraj, sprawdzaj i otwieraj pliki APK. Instalację obsługuje instalator systemowy Androida.
+
+<b>Współpraca z innymi aplikacjami</b>
+- Butler pojawia się w selektorach plików innych aplikacji, więc możesz z niego korzystać wszędzie tam, gdzie otwierasz lub zapisujesz plik.
+- Udostępnij plik Butlerowi z dowolnej aplikacji i wybierz dokładnie, gdzie i pod jaką nazwą go zapisać.
+- Udostępniony tekst otwiera się od razu w edytorze Butlera.
+
+<b>Dostęp i wygląd</b>
+- Root lub Shizuku dają dostęp do miejsc zwykle blokowanych przez Androida.
+- Motywy Material You z dynamicznymi kolorami, trybem ciemnym i opcją AMOLED.
+
+<b>Prywatność</b>
+Bez śledzenia, analitycznych SDK, konta i chmury. Raporty o awariach i błędach pozostają na twoim urządzeniu, chyba że zdecydujesz się je wysłać. Otwarty kod źródłowy.
+
+Butler prosi o „Dostęp do wszystkich plików”, bo menedżer plików musi mieć dostęp do całej pamięci. Wszystko, co robi, odbywa się na twoim urządzeniu.
+
+Ta aplikacja nie zawiera reklam. Niektóre funkcje wymagają płatnego rozszerzenia.
+
+Butler to menedżer plików, eksplorator plików i edytor tekstu na Androida.

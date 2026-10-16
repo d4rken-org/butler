@@ -803,4 +803,11 @@
         <item quantity="one">%1$d கோப்புறை</item>
         <item quantity="other">%1$d கோப்புறைகள்</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">தட்டும்போது கோப்புகளைத் திற</string>
+    <string name="explorer_settings_open_on_tap_desc">கோப்பைத் திறக்க அதைத் தட்டுங்கள். அதன் பிற செயல்களுக்கு கோப்பில் உள்ள ⋮ பொத்தானைப் பயன்படுத்துங்கள்.</string>
+    <string name="explorer_settings_show_system_locations_title">அமைப்பு இருப்பிடங்களைக் காட்டு</string>
+    <string name="explorer_settings_show_system_locations_desc">வாசிக்க மட்டுமே அனுமதிக்கும் அமைப்புப் பகிர்வு (/system) போன்ற அமைப்பு இருப்பிடங்களைச் சாதனக் கண்ணோட்டத்தில் பட்டியலிடு.</string>
+    <string name="explorer_settings_trash_confirm_title">குப்பைத்தொட்டிக்கு நகர்த்தும் முன் கேள்</string>
+    <string name="explorer_settings_trash_confirm_desc">நீக்கப்படும் உருப்படிகளைக் குப்பைத்தொட்டிக்கு நகர்த்தும் முன் உறுதிப்படுத்தல் கேட்கப்படும். நிரந்தரமாக நீக்கும்போது எப்போதும் கேட்கப்படும்.</string>
+    <string name="explorer_file_more_actions_content_desc">கூடுதல் செயல்கள்</string>
 </resources>

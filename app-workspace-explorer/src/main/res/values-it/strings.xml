@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Explorer -->
-    <string name="explorer_title">Explorer</string>
+    <string name="explorer_title">Esplora file</string>
     <string name="explorer_subtitle">Sfoglia file e cartelle</string>
     <string name="explorer_settings_title">Impostazioni Explorer</string>
     <string name="explorer_settings_file_display">Visualizzazione file</string>
@@ -803,4 +803,11 @@
         <item quantity="one">%1$d cartella</item>
         <item quantity="other">%1$d cartelle</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Apri i file con un tocco</string>
+    <string name="explorer_settings_open_on_tap_desc">Tocca un file per aprirlo. Usa il pulsante ⋮ del file per le altre azioni.</string>
+    <string name="explorer_settings_show_system_locations_title">Mostra posizioni di sistema</string>
+    <string name="explorer_settings_show_system_locations_desc">Elenca le posizioni di sistema, come la partizione di sistema in sola lettura (/system), nella panoramica del dispositivo.</string>
+    <string name="explorer_settings_trash_confirm_title">Chiedi prima di spostare nel cestino</string>
+    <string name="explorer_settings_trash_confirm_desc">Chiedi conferma prima di spostare gli elementi eliminati nel cestino. Le eliminazioni definitive richiedono sempre conferma.</string>
+    <string name="explorer_file_more_actions_content_desc">Altre azioni</string>
 </resources>

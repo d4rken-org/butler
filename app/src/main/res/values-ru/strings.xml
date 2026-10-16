@@ -525,7 +525,7 @@
     <string name="support_debuglog_clear_confirm_message">Удалить все сохранённые сеансы журнала отладки?</string>
 
     <!-- Debug Log Screen -->
-    <string name="debug_log_share_subject">Butler DebugLog - %1$s</string>
+    <string name="debug_log_share_subject">Журнал отладки Butler - %1$s</string>
     <string name="debug_log_screen_subtitle">Экспортировать информацию отладки для устранения неполадок</string>
     <string name="debug_log_screen_sensitive_information_title">Конфиденциальная информация</string>
 

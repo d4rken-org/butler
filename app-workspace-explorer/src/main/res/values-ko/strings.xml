@@ -596,9 +596,9 @@
     </plurals>
 
     <string name="explorer_operation_copy_title">복사 작업</string>
-    <string name="explorer_operation_copy_description_single">"%2$s"에서 "%1$s" 파일을 "%3$s" 위치로 복사합니다.</string>
+    <string name="explorer_operation_copy_description_single">\"%2$s\"에서 \"%1$s\" 파일을 \"%3$s\" 위치로 복사합니다.</string>
     <plurals name="explorer_operation_copy_description">
-        <item quantity="other">항목 %1$d개를 "%2$s" 위치로 복사합니다.</item>
+        <item quantity="other">항목 %1$d개를 \"%2$s\" 위치로 복사합니다.</item>
     </plurals>
     <plurals name="explorer_operation_report_files_copied">
         <item quantity="other">파일 %d개 복사됨.</item>
@@ -611,9 +611,9 @@
     </plurals>
 
     <string name="explorer_operation_extract_title">압축 해제 작업</string>
-    <string name="explorer_operation_extract_description">"%1$s" 파일을 "%2$s" 위치로 압축 해제합니다.</string>
+    <string name="explorer_operation_extract_description">\"%1$s\" 파일을 \"%2$s\" 위치로 압축 해제합니다.</string>
     <string name="explorer_operation_download_copy_title">로컬 복사 작업</string>
-    <string name="explorer_operation_download_copy_description">로컬에서 찾아보기 위해 "%1$s" 파일을 "%2$s" 위치로 복사합니다.</string>
+    <string name="explorer_operation_download_copy_description">로컬에서 찾아보기 위해 \"%1$s\" 파일을 \"%2$s\" 위치로 복사합니다.</string>
     <plurals name="explorer_operation_report_files_extracted">
         <item quantity="other">파일 %d개 압축 해제됨.</item>
     </plurals>
@@ -623,7 +623,7 @@
 
     <string name="explorer_operation_compress_title">압축 작업</string>
     <plurals name="explorer_operation_compress_description">
-        <item quantity="other">항목 %1$d개를 "%2$s" 위치로 압축합니다.</item>
+        <item quantity="other">항목 %1$d개를 \"%2$s\" 위치로 압축합니다.</item>
     </plurals>
     <plurals name="explorer_operation_report_files_compressed">
         <item quantity="other">파일 %d개 압축됨.</item>
@@ -648,7 +648,7 @@
     <string name="explorer_compress_dialog_password_show">비밀번호 표시</string>
     <string name="explorer_compress_dialog_password_hide">비밀번호 숨기기</string>
     <string name="explorer_compress_dialog_overwrite_title">압축 파일을 바꿀까요?</string>
-    <string name="explorer_compress_dialog_overwrite_message">"%1$s" 파일이 이미 있어 바꿉니다.</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" 파일이 이미 있어 바꿉니다.</string>
     <string name="explorer_compress_dialog_overwrite_action">바꾸기</string>
 
     <!-- 드롭 대화상자 (다른 창에서 끌어온 항목) -->
@@ -656,10 +656,10 @@
         <item quantity="other">항목 %1$d개를 놓을까요?</item>
     </plurals>
     <plurals name="explorer_drop_dialog_message">
-        <item quantity="other">항목 %1$d개를 "%2$s" 위치로 복사하거나 이동할까요?</item>
+        <item quantity="other">항목 %1$d개를 \"%2$s\" 위치로 복사하거나 이동할까요?</item>
     </plurals>
     <plurals name="explorer_drop_dialog_message_copy_only">
-        <item quantity="other">항목 %1$d개를 "%2$s" 위치로 복사할까요?</item>
+        <item quantity="other">항목 %1$d개를 \"%2$s\" 위치로 복사할까요?</item>
     </plurals>
 
     <!-- 휴지통 드롭 대화상자 (휴지통 화면에 끌어놓은 항목) -->
@@ -669,9 +669,9 @@
     </plurals>
 
     <string name="explorer_operation_move_title">이동 작업</string>
-    <string name="explorer_operation_move_description_single">"%2$s"에서 "%1$s" 파일을 "%3$s" 위치로 이동합니다.</string>
+    <string name="explorer_operation_move_description_single">\"%2$s\"에서 \"%1$s\" 파일을 \"%3$s\" 위치로 이동합니다.</string>
     <plurals name="explorer_operation_move_description">
-        <item quantity="other">항목 %1$d개를 "%2$s" 위치로 이동합니다.</item>
+        <item quantity="other">항목 %1$d개를 \"%2$s\" 위치로 이동합니다.</item>
     </plurals>
     <plurals name="explorer_operation_report_files_moved">
         <item quantity="other">파일 %d개 이동됨.</item>
@@ -684,13 +684,13 @@
     </plurals>
 
     <string name="explorer_operation_create_title_directory">폴더 생성</string>
-    <string name="explorer_operation_create_description_directory">"%2$s" 위치에 "%1$s" 폴더 생성</string>
+    <string name="explorer_operation_create_description_directory">\"%2$s\" 위치에 \"%1$s\" 폴더 생성</string>
     <string name="explorer_operation_create_title_file">파일 생성</string>
-    <string name="explorer_operation_create_description_file">"%2$s" 위치에 "%1$s" 파일 생성</string>
+    <string name="explorer_operation_create_description_file">\"%2$s\" 위치에 \"%1$s\" 파일 생성</string>
     <string name="explorer_operation_create_text_file_title">텍스트 파일 생성</string>
-    <string name="explorer_operation_create_text_file_description">텍스트 조각으로 "%1$s" 생성</string>
+    <string name="explorer_operation_create_text_file_description">텍스트 조각으로 \"%1$s\" 생성</string>
     <string name="explorer_operation_calculate_sizes_title">크기 계산</string>
-    <string name="explorer_operation_calculate_sizes_description">"%1$s" 안의 폴더 크기를 계산합니다.</string>
+    <string name="explorer_operation_calculate_sizes_description">\"%1$s\" 안의 폴더 크기를 계산합니다.</string>
     <plurals name="explorer_operation_calculate_sizes_progress">
         <item quantity="other">항목 %1$d개 검사됨</item>
     </plurals>
@@ -698,14 +698,14 @@
     <plurals name="explorer_operation_calculate_sizes_summary_partial">
         <item quantity="other">폴더 %1$d개의 크기를 계산했습니다. 위치 %2$d개를 읽을 수 없었습니다.</item>
     </plurals>
-    <string name="explorer_operation_calculate_sizes_summary_discarded">계산 중 변경되어 "%1$s"의 폴더 크기 정보를 삭제했습니다.</string>
+    <string name="explorer_operation_calculate_sizes_summary_discarded">계산 중 변경되어 \"%1$s\"의 폴더 크기 정보를 삭제했습니다.</string>
 
     <!-- 탐색 오류 메시지 -->
     <string name="explorer_navigation_error_title">탐색 실패</string>
     <string name="explorer_aborted_dialog_title">작업 중단됨</string>
     <string name="explorer_aborted_dialog_message">화면에 표시되기 전에 불러오기가 취소되었습니다.</string>
     <string name="explorer_archive_unbrowsable_title">여기서는 압축 파일을 찾아볼 수 없습니다</string>
-    <string name="explorer_archive_unbrowsable_msg">"%1$s" 파일은 순차 읽기만 지원하는 저장공간에 있지만, 압축 파일을 찾아보려면 임의 접근이 필요합니다. 여기서 압축을 풀거나 로컬 사본을 다운로드해 찾아보세요.</string>
+    <string name="explorer_archive_unbrowsable_msg">\"%1$s\" 파일은 순차 읽기만 지원하는 저장공간에 있지만, 압축 파일을 찾아보려면 임의 접근이 필요합니다. 여기서 압축을 풀거나 로컬 사본을 다운로드해 찾아보세요.</string>
     <string name="explorer_archive_unbrowsable_extract_action">압축 풀기</string>
     <string name="explorer_archive_unbrowsable_download_action">로컬 사본 다운로드</string>
 
@@ -770,4 +770,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">이 폴더를 열려면 ADB 접근을 구성하세요.</string>
     <string name="explorer_settings_trash_auto_delete_summary">휴지통에 이 기간 동안 있던 항목을 자동으로 삭제합니다</string>
     <string name="explorer_settings_trash_max_size_summary">각 저장공간 위치에서 휴지통이 사용할 수 있는 공간</string>
+    <string name="explorer_settings_open_on_tap_title">탭하여 파일 열기</string>
+    <string name="explorer_settings_open_on_tap_desc">파일을 탭하면 열려요. 다른 작업을 하려면 파일의 ⋮ 버튼을 누르세요.</string>
+    <string name="explorer_settings_show_system_locations_title">시스템 위치 표시</string>
+    <string name="explorer_settings_show_system_locations_desc">기기 개요에 읽기 전용 시스템 파티션(/system)과 같은 시스템 위치를 표시해요.</string>
+    <string name="explorer_settings_trash_confirm_title">휴지통으로 이동하기 전에 확인</string>
+    <string name="explorer_settings_trash_confirm_desc">삭제한 항목을 휴지통으로 이동하기 전에 확인해요. 영구 삭제할 때는 항상 확인해요.</string>
+    <string name="explorer_file_more_actions_content_desc">추가 작업</string>
 </resources>

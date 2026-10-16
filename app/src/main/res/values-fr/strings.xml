@@ -257,8 +257,8 @@
         <item quantity="other">%1$d Opérations</item>
     </plurals>
     <plurals name="workspace_status_attention_count">
-        <item quantity="one">%1$d Attention</item>
-        <item quantity="other">%1$d Attention</item>
+        <item quantity="one">Attention requise : %1$d</item>
+        <item quantity="other">Attention requise : %1$d</item>
     </plurals>
     <plurals name="workspace_status_unsaved_count">
         <item quantity="one">%1$d Non enregistré</item>

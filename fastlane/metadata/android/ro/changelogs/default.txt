@@ -1,0 +1,5 @@
+Remedieri de erori și mici îmbunătățiri, pentru ca gestionarea fișierelor pe dispozitiv să rămână rapidă și să nu te încurce.
+
+Ce s-a schimbat în această versiune: butler.darken.eu/changelog
+
+Ceva nu mai funcționează sau se comportă ciudat după actualizare? Spune-mi prin Setări > Asistență. Proiectul este realizat de o singură persoană, așa că răspunsurile pot întârzia puțin, dar citesc fiecare raport.

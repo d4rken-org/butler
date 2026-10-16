@@ -865,4 +865,11 @@
         <item quantity="many">%1$d priečinka</item>
         <item quantity="other">%1$d priečinkov</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">Otvárať súbory ťuknutím</string>
+    <string name="explorer_settings_open_on_tap_desc">Ťuknutím na súbor ho otvoríš. Ďalšie akcie nájdeš pod tlačidlom ⋮ pri súbore.</string>
+    <string name="explorer_settings_show_system_locations_title">Zobraziť systémové umiestnenia</string>
+    <string name="explorer_settings_show_system_locations_desc">Zobraziť v prehľade zariadenia systémové umiestnenia, napríklad systémový oddiel určený len na čítanie (/system).</string>
+    <string name="explorer_settings_trash_confirm_title">Pýtať sa pred presunutím do koša</string>
+    <string name="explorer_settings_trash_confirm_desc">Vyžadovať potvrdenie pred presunutím odstraňovaných položiek do koša. Trvalé odstránenie vždy vyžaduje potvrdenie.</string>
+    <string name="explorer_file_more_actions_content_desc">Ďalšie akcie</string>
 </resources>

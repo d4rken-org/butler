@@ -46,7 +46,7 @@
     <string name="bugreport_detail_field_app_version">نسخه برنامه</string>
     <string name="bugreport_detail_field_device">دستگاه</string>
     <string name="bugreport_detail_field_android">Android</string>
-    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_build">ساخت</string>
     <string name="bugreport_detail_field_error_class">نوع خطا</string>
     <string name="bugreport_detail_field_thread">رشته</string>
     <string name="bugreport_detail_log_truncated">آخرین %1$d از %2$d خط</string>

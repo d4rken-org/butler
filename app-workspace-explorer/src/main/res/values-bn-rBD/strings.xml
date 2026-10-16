@@ -806,4 +806,11 @@
         <item quantity="one">%1$dটি ফোল্ডার</item>
         <item quantity="other">%1$dটি ফোল্ডার</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">ট্যাপ করলে ফাইল খুলুন</string>
+    <string name="explorer_settings_open_on_tap_desc">ফাইল খুলতে সেটিতে ট্যাপ করুন। ফাইলের অন্যান্য কাজের জন্য সেটির ⋮ বোতাম ব্যবহার করুন।</string>
+    <string name="explorer_settings_show_system_locations_title">সিস্টেমের অবস্থান দেখান</string>
+    <string name="explorer_settings_show_system_locations_desc">ডিভাইসের সারসংক্ষেপে শুধু পড়া যায় এমন সিস্টেম পার্টিশন (/system)-এর মতো সিস্টেমের অবস্থান দেখান।</string>
+    <string name="explorer_settings_trash_confirm_title">ট্র্যাশে সরানোর আগে জিজ্ঞেস করুন</string>
+    <string name="explorer_settings_trash_confirm_desc">মুছে ফেলা আইটেম ট্র্যাশে যাওয়ার আগে নিশ্চিত করুন। স্থায়ীভাবে মোছার আগে সবসময় জিজ্ঞেস করা হয়।</string>
+    <string name="explorer_file_more_actions_content_desc">আরও পদক্ষেপ</string>
 </resources>

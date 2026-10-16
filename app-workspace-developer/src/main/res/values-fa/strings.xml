@@ -43,10 +43,10 @@
     <string name="developer_system_device_model">مدل</string>
     <string name="developer_system_device_manufacturer">سازنده</string>
     <string name="developer_system_device_api">سطح API</string>
-    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_header">ساخت</string>
     <string name="developer_system_build_version">نسخه</string>
     <string name="developer_system_build_code">کد نسخه</string>
-    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_flavor">گونهٔ ساخت</string>
     <string name="developer_system_build_type">نوع Build</string>
     <string name="developer_system_build_git">Git SHA</string>
     <string name="developer_system_memory_header">حافظه</string>

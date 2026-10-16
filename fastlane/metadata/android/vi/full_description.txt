@@ -1,0 +1,57 @@
+Butler là trình quản lý tệp cho Android dựa trên các thẻ. Duyệt, tìm kiếm, xem và sửa tệp trên toàn bộ bộ nhớ, với bố cục đa khung và quyền root khi cần.
+
+Đây là trình duyệt tệp cho Android mà tôi luôn mong muốn, nên tôi đã tự làm. Nhanh, riêng tư, mã nguồn mở.
+
+Butler hỗ trợ bộ nhớ trong, thẻ SD, ổ USB OTG và thư mục chia sẻ qua mạng với Butler Pro. Hỗ trợ mọi loại tệp, không chỉ ảnh và video trong thư viện.
+
+<b>Thẻ và không gian làm việc</b>
+- Duyệt tệp trong các thẻ và chạy song song mọi công cụ của Butler.
+- Sắp xếp thẻ bằng trình quản lý thẻ và mở thẻ mới từ trình chọn thẻ.
+- Bố cục đa khung trên điện thoại và máy tính bảng, kéo thả giữa các khung.
+- Ghim mục yêu thích và thêm vị trí lưu trữ.
+
+<b>Thao tác tệp</b>
+- Sao chép, di chuyển, đổi tên và xóa, kèm tốc độ truyền và biểu đồ hiệu suất khi chạy.
+- Hỗ trợ thùng rác để có thể khôi phục tệp đã xóa.
+- Mở tệp nén như thư mục: duyệt ZIP, TAR và gói APK tại chỗ mà không cần giải nén trước.
+- Tạo tệp ZIP và giải nén, kể cả tệp được mã hóa.
+- Thao tác vẫn chạy khi rời ứng dụng, kèm tiến trình và nút hủy trong thông báo.
+- Lịch sử cho biết thao tác đã chạy, thành công hay thất bại.
+
+<b>Chia sẻ qua mạng (Butler Pro)</b>
+- Kết nối thư mục chia sẻ Windows và NAS qua SMB, duyệt như bộ nhớ thông thường.
+- Sao chép và di chuyển tệp hai chiều giữa thiết bị và máy chủ.
+- Đăng nhập với tư cách khách hoặc bằng tên đăng nhập và mật khẩu, được mã hóa và chỉ lưu trên thiết bị.
+- Thêm thư mục chia sẻ và thử kết nối miễn phí. Cần nâng cấp Butler Pro để duyệt.
+
+<b>Tìm kiếm và văn bản</b>
+- Tìm theo tên và nội dung tệp, hỗ trợ biểu thức chính quy (regex).
+- Trình soạn thảo văn bản vẫn nhanh với tệp rất lớn.
+
+<b>Xem tệp</b>
+- Xem ảnh và lật trang PDF ngay trong Butler.
+- Chi tiết tệp gồm kích thước, kích cỡ ảnh, quyền và chủ sở hữu.
+- Tính kích thước thư mục khi cần để biết thứ gì đang chiếm bộ nhớ.
+- Những gì Butler không tự hiển thị sẽ được chuyển cho ứng dụng phù hợp.
+
+<b>Ứng dụng và APK</b>
+- Quản lý ứng dụng: duyệt ứng dụng đã cài, vô hiệu hóa, xuất APK, xóa dữ liệu và gỡ cài đặt.
+- Nhận, kiểm tra và mở tệp APK. Cài đặt qua trình cài đặt hệ thống Android.
+
+<b>Làm việc cùng ứng dụng khác</b>
+- Butler xuất hiện trong trình chọn tệp của ứng dụng khác, để duyệt bằng Butler mỗi khi mở hoặc lưu tệp.
+- Chia sẻ tệp tới Butler từ mọi ứng dụng và chọn chính xác nơi lưu cùng tên tệp.
+- Văn bản được chia sẻ mở thẳng trong trình soạn thảo của Butler.
+
+<b>Truy cập và giao diện</b>
+- Root hoặc Shizuku để vào những nơi Android thường khóa.
+- Giao diện Material You với màu động, chế độ tối và tùy chọn AMOLED.
+
+<b>Quyền riêng tư</b>
+Không theo dõi. Không SDK phân tích, không tài khoản, không đám mây. Báo cáo sự cố và lỗi nằm trên thiết bị trừ khi được chọn gửi đi. Mã nguồn mở.
+
+Butler yêu cầu quyền "Truy cập tất cả tệp" vì trình quản lý tệp cần truy cập toàn bộ bộ nhớ. Mọi thao tác đều diễn ra trên thiết bị.
+
+Ứng dụng không có quảng cáo. Một số tính năng cần nâng cấp trả phí.
+
+Butler là trình quản lý tệp, duyệt tệp và soạn thảo văn bản cho Android.

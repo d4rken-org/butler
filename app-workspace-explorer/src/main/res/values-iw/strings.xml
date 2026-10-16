@@ -783,4 +783,11 @@
         <item quantity="many">%1$d תיקיות</item>
         <item quantity="other">%1$d תיקיות</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">פתיחת קבצים בהקשה</string>
+    <string name="explorer_settings_open_on_tap_desc">הקשה על קובץ פותחת אותו. לפעולות נוספות אפשר להשתמש בכפתור ⋮ של הקובץ.</string>
+    <string name="explorer_settings_show_system_locations_title">הצגת מיקומי מערכת</string>
+    <string name="explorer_settings_show_system_locations_desc">הצגת מיקומי מערכת, כמו מחיצת המערכת לקריאה בלבד (/system), בסקירת המכשיר.</string>
+    <string name="explorer_settings_trash_confirm_title">בקשת אישור לפני העברה לסל המחזור</string>
+    <string name="explorer_settings_trash_confirm_desc">בקשת אישור לפני העברת פריטים שנמחקו לסל המחזור. מחיקה לצמיתות תמיד דורשת אישור.</string>
+    <string name="explorer_file_more_actions_content_desc">פעולות נוספות</string>
 </resources>

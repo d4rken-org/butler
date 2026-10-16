@@ -770,4 +770,11 @@
     <string name="explorer_permission_option_setup_shizuku_description">設定 ADB 存取以開啟此資料夾。</string>
     <string name="explorer_settings_trash_auto_delete_summary">項目在回收桶中放置這麼久後會自動刪除</string>
     <string name="explorer_settings_trash_max_size_summary">回收桶在每個儲存位置可使用的空間大小</string>
+    <string name="explorer_settings_open_on_tap_title">輕觸即可開啟檔案</string>
+    <string name="explorer_settings_open_on_tap_desc">輕觸檔案即可開啟。使用檔案上的 ⋮ 按鈕可執行其他操作。</string>
+    <string name="explorer_settings_show_system_locations_title">顯示系統位置</string>
+    <string name="explorer_settings_show_system_locations_desc">在裝置總覽中列出系統位置，例如唯讀的系統分割區 (/system)。</string>
+    <string name="explorer_settings_trash_confirm_title">移至回收桶前先詢問</string>
+    <string name="explorer_settings_trash_confirm_desc">刪除的項目移至回收桶前會先要求確認。永久刪除時一律會先詢問。</string>
+    <string name="explorer_file_more_actions_content_desc">更多操作</string>
 </resources>

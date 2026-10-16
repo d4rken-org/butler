@@ -43,7 +43,7 @@
     <string name="developer_system_device_model">Mẫu</string>
     <string name="developer_system_device_manufacturer">Nhà sản xuất</string>
     <string name="developer_system_device_api">Cấp độ API</string>
-    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_header">Bản dựng</string>
     <string name="developer_system_build_version">Phiên bản</string>
     <string name="developer_system_build_code">Mã Phiên bản</string>
     <string name="developer_system_build_flavor">Biến thể</string>

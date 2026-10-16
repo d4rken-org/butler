@@ -804,4 +804,11 @@
         <item quantity="one">%1$d فولڈر</item>
         <item quantity="other">%1$d فولڈر</item>
     </plurals>
+    <string name="explorer_settings_open_on_tap_title">ٹیپ کرنے پر فائلیں کھولیں</string>
+    <string name="explorer_settings_open_on_tap_desc">فائل کھولنے کے لیے اس پر ٹیپ کریں۔ دیگر اقدامات کے لیے فائل کا ⋮ بٹن استعمال کریں۔</string>
+    <string name="explorer_settings_show_system_locations_title">سسٹم کے مقامات دکھائیں</string>
+    <string name="explorer_settings_show_system_locations_desc">آلے کے مجموعی جائزے میں سسٹم کے مقامات دکھائیں، مثلاً سسٹم کا صرف پڑھنے کے قابل پارٹیشن (/system)۔</string>
+    <string name="explorer_settings_trash_confirm_title">ردی کی ٹوکری میں منتقل کرنے سے پہلے پوچھیں</string>
+    <string name="explorer_settings_trash_confirm_desc">حذف کی گئی اشیا ردی کی ٹوکری میں جانے سے پہلے تصدیق کریں۔ مستقل طور پر حذف کرنے سے پہلے ہمیشہ پوچھا جاتا ہے۔</string>
+    <string name="explorer_file_more_actions_content_desc">مزید اقدامات</string>
 </resources>
