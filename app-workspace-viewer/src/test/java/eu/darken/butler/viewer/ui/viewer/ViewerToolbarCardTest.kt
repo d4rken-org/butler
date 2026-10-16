@@ -63,17 +63,17 @@ class ViewerToolbarCardTest : ComposeTest() {
     }
 
     @Test
-    fun `the expanded toolbar shows the file's position next to its name`() {
+    fun `the expanded toolbar shows the file's position in the folder block`() {
         toolbarWith(isCollapsed = false, position = 3 to 7)
 
         composeTestRule.onAllNodesWithText("3 / 7")[0].assertIsDisplayed()
     }
 
     @Test
-    fun `the collapsed toolbar keeps the file's position`() {
+    fun `the collapsed toolbar shows no position`() {
         toolbarWith(isCollapsed = true, position = 3 to 7)
 
-        composeTestRule.onAllNodesWithText("3 / 7")[0].assertIsDisplayed()
+        composeTestRule.onAllNodesWithText("3 / 7").assertCountEquals(0)
     }
 
     @Test

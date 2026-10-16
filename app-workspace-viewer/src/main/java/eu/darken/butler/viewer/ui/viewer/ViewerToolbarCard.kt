@@ -61,7 +61,7 @@ fun ViewerToolbarCard(
     /** Null when the content has no location, i.e. it was streamed from another app. */
     folderPath: String?,
     isCollapsed: Boolean = false,
-    /** The file's 1-based position to the size of the listing it steps through, null without one. */
+    /** Shown in the folder block: the file's 1-based position and the listing's size, null without one. */
     position: Pair<Int, Int>? = null,
     onBackClick: (() -> Unit)? = null,
 ) {
@@ -108,15 +108,6 @@ fun ViewerToolbarCard(
                     maxLines = 1,
                     overflow = TextOverflow.MiddleEllipsis,
                 )
-                positionLabel?.let { (text, description) ->
-                    Text(
-                        modifier = Modifier.semantics { contentDescription = description },
-                        text = text,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                    )
-                }
             }
         } else {
             Column {
@@ -142,16 +133,6 @@ fun ViewerToolbarCard(
                         maxLines = 1,
                         overflow = TextOverflow.MiddleEllipsis,
                     )
-                    positionLabel?.let { (text, description) ->
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            modifier = Modifier.semantics { contentDescription = description },
-                            text = text,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                        )
-                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -165,11 +146,28 @@ fun ViewerToolbarCard(
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                     ) {
                         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                            Text(
-                                text = stringResource(R.string.viewer_toolbar_folder_label),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    modifier = Modifier.weight(1f),
+                                    text = stringResource(R.string.viewer_toolbar_folder_label),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                positionLabel?.let { (text, description) ->
+                                    Text(
+                                        modifier = Modifier
+                                            .padding(start = 8.dp)
+                                            .semantics { contentDescription = description },
+                                        text = text,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 modifier = Modifier
@@ -293,21 +291,6 @@ private fun ViewerToolbarCardPositionPreview() {
         design = WorkspaceDesign(),
         fileName = "IMG_20240817_183042_HDR.jpg",
         folderPath = "/storage/emulated/0/DCIM/Camera",
-        position = 3 to 7,
-    )
-}
-
-@Preview2
-@ComposePreviewWrapper(ButlerPreviewWrapper::class)
-@Composable
-private fun ViewerToolbarCardCollapsedPositionPreview() {
-    ViewerToolbarCard(
-        modifier = Modifier.width(360.dp),
-        workspaceId = Workspace.Id(),
-        design = WorkspaceDesign(),
-        fileName = "IMG_20240817_183042_HDR.jpg",
-        folderPath = "/storage/emulated/0/DCIM/Camera",
-        isCollapsed = true,
         position = 3 to 7,
     )
 }
