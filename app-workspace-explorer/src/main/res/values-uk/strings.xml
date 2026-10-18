@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Період автовидалення</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Максимальний розмір на сховище</string>
     <string name="explorer_settings_trash_enable_dialog_title">Увімкнути кошик?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">На відміну від настільних систем, у Android немає вбудованого кошика. Butler створює його в теці кешу.\n\nВрахуйте:\n• Індикатор сховища на пристрої не покаже звільнене місце, доки елементи не буде видалено остаточно\n• Якщо на пристрої мало вільного місця, Android може очистити кеш програм і видалити файли з кошика</string>
+    <string name="explorer_settings_trash_enable_dialog_message">На відміну від настільних систем, у Android немає вбудованого кошика. Butler створює його у власній теці програми.\n\nВрахуйте:\n• Індикатор сховища на пристрої не покаже звільнене місце, доки елементи не буде видалено остаточно\n• Ви можете остаточно втратити файли з кошика, якщо видалите Butler або очистите дані програми</string>
     <string name="explorer_settings_trash_enable_action">Увімкнути</string>
 
     <!-- File Row Content Descriptions -->

@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">ఆటోమేటిక్ తొలగింపు వ్యవధి</string>
     <string name="explorer_settings_trash_max_size_dialog_title">ప్రతి నిల్వకు గరిష్ఠ పరిమాణం</string>
     <string name="explorer_settings_trash_enable_dialog_title">ట్రాష్‌ను ప్రారంభించాలా?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">డెస్క్‌టాప్ సిస్టమ్‌ల మాదిరిగా Androidలో అంతర్నిర్మిత ట్రాష్ ఉండదు. Butler తన కాష్ ఫోల్డర్‌ను ఉపయోగించి ట్రాష్‌ను అందిస్తుంది.\n\nగుర్తుంచుకోండి:\n• అంశాలను శాశ్వతంగా తొలగించే వరకు మీ పరికరంలోని నిల్వ సూచిక ఖాళీ అయిన స్థలాన్ని చూపదు\n• మీ పరికరంలో నిల్వ స్థలం తగ్గితే, Android యాప్ కాష్‌లను క్లియర్ చేయవచ్చు. దాంతో ట్రాష్‌లోని ఫైళ్లు తొలగించబడతాయి</string>
+    <string name="explorer_settings_trash_enable_dialog_message">డెస్క్‌టాప్ సిస్టమ్‌ల మాదిరిగా Androidలో అంతర్నిర్మిత ట్రాష్ ఉండదు. Butler ట్రాష్‌ను అందిస్తుంది, దాన్ని తన సొంత యాప్ ఫోల్డర్‌లో నిల్వ చేస్తుంది.\n\nగుర్తుంచుకోండి:\n• అంశాలను శాశ్వతంగా తొలగించే వరకు మీ పరికరంలోని నిల్వ సూచిక ఖాళీ అయిన స్థలాన్ని చూపదు\n• Butlerను అన్‌ఇన్‌స్టాల్ చేసినా లేదా దాని యాప్ డేటాను క్లియర్ చేసినా, ట్రాష్‌లోని ఫైళ్లు శాశ్వతంగా పోయే అవకాశం ఉంది</string>
     <string name="explorer_settings_trash_enable_action">ప్రారంభించండి</string>
 
     <!-- File Row Content Descriptions -->

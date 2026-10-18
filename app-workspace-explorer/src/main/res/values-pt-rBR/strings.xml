@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Período de exclusão automática</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Tamanho máximo por armazenamento</string>
     <string name="explorer_settings_trash_enable_dialog_title">Ativar lixeira?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Diferente dos sistemas de desktop, o Android não tem lixeira integrada. O Butler fornece uma usando sua pasta de cache.\n\nLembre-se:\n• O indicador de armazenamento do seu dispositivo não vai refletir o espaço liberado até que os itens sejam excluídos permanentemente\n• Se o armazenamento do seu dispositivo ficar baixo, o Android pode limpar caches de apps, removendo os arquivos da lixeira</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Diferente dos sistemas de desktop, o Android não tem lixeira integrada. O Butler fornece uma, armazenada na própria pasta do app.\n\nLembre-se:\n• O indicador de armazenamento do seu dispositivo não vai refletir o espaço liberado até que os itens sejam excluídos permanentemente\n• Você pode perder permanentemente os arquivos da lixeira se desinstalar o Butler ou limpar os dados do app</string>
     <string name="explorer_settings_trash_enable_action">Ativar</string>
 
     <!-- File Row Content Descriptions -->

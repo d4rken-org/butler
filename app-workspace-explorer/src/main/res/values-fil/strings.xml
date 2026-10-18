@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Tagal bago ang awtomatikong pagtanggal</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Pinakamalaking laki sa bawat storage</string>
     <string name="explorer_settings_trash_enable_dialog_title">Paganahin ang basurahan?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Hindi tulad ng mga desktop system, walang built-in na basurahan ang Android. Nagbibigay ang Butler ng basurahan gamit ang cache folder nito.\n\nTandaan:\n• Hindi makikita sa indicator ng storage ng device ang nabawing espasyo hangga’t hindi permanenteng natatanggal ang mga item\n• Kapag paubos na ang espasyo sa storage ng device, maaaring burahin ng Android ang mga cache ng app, kaya matatanggal ang mga file sa basurahan</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Hindi tulad ng mga desktop system, walang built-in na basurahan ang Android. Nagbibigay ang Butler ng basurahan na nakaimbak sa sarili nitong app folder.\n\nTandaan:\n• Hindi makikita sa indicator ng storage ng device ang nabawing espasyo hangga’t hindi permanenteng natatanggal ang mga item\n• Maaaring permanenteng mawala ang mga file sa basurahan kapag in-uninstall mo ang Butler o binura mo ang app data nito</string>
     <string name="explorer_settings_trash_enable_action">Paganahin</string>
 
     <!-- File Row Content Descriptions -->

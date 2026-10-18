@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">فترة الحذف التلقائي</string>
     <string name="explorer_settings_trash_max_size_dialog_title">الحجم الأقصى لكل تخزين</string>
     <string name="explorer_settings_trash_enable_dialog_title">تفعيل سلة المهملات؟</string>
-    <string name="explorer_settings_trash_enable_dialog_message">خلافًا لأنظمة سطح المكتب، لا يحتوي Android على سلة مهملات مدمجة. يوفر Butler واحدة باستخدام مجلد ذاكرة التخزين المؤقت الخاص به.\n\nضع في اعتبارك:\n• لن يعكس مؤشر تخزين جهازك المساحة المحررة حتى يتم حذف العناصر نهائيًا\n• إذا انخفضت مساحة التخزين في جهازك، فقد يقوم Android بمسح ذاكرات التخزين المؤقت للتطبيقات، مما يؤدي إلى إزالة الملفات المحذوفة</string>
+    <string name="explorer_settings_trash_enable_dialog_message">خلافًا لأنظمة سطح المكتب، لا يحتوي Android على سلة مهملات مدمجة. يوفر Butler واحدة، يحفظها في مجلد التطبيق الخاص به.\n\nضع في اعتبارك:\n• لن يعكس مؤشر تخزين جهازك المساحة المحررة حتى يتم حذف العناصر نهائيًا\n• قد تفقد الملفات الموجودة في سلة المهملات نهائيًا إذا ألغيت تثبيت Butler أو مسحت بيانات التطبيق الخاصة به</string>
     <string name="explorer_settings_trash_enable_action">تفعيل</string>
 
     <!-- File Row Content Descriptions -->

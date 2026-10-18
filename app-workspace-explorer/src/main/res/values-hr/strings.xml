@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Razdoblje do automatskog brisanja</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Najveća veličina po lokaciji pohrane</string>
     <string name="explorer_settings_trash_enable_dialog_title">Omogućiti smeće?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Za razliku od sustava na računalima, Android nema ugrađeno smeće. Butler ga omogućuje pomoću svoje mape predmemorije.\n\nImaj na umu:\n• Pokazatelj pohrane na tvojem uređaju neće prikazati oslobođeni prostor dok se stavke trajno ne izbrišu\n• Ako na uređaju ponestane prostora, Android može očistiti predmemorije aplikacija i tako ukloniti datoteke iz smeća</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Za razliku od sustava na računalima, Android nema ugrađeno smeće. Butler ga omogućuje i sprema u vlastitu mapu aplikacije.\n\nImaj na umu:\n• Pokazatelj pohrane na tvojem uređaju neće prikazati oslobođeni prostor dok se stavke trajno ne izbrišu\n• Ako deinstaliraš Butler ili izbrišeš njegove podatke aplikacije, možeš trajno izgubiti datoteke iz smeća</string>
     <string name="explorer_settings_trash_enable_action">Omogući</string>
 
     <!-- File Row Content Descriptions -->

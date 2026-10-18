@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Periode voor automatisch verwijderen</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximale grootte per opslag</string>
     <string name="explorer_settings_trash_enable_dialog_title">Prullenbak inschakelen?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">In tegenstelling tot desktopsystemen heeft Android geen ingebouwde prullenbak. Butler biedt er een via zijn cachemap.\n\nHoud er rekening mee:\n• De opslagindicator van je apparaat toont pas vrijgekomen ruimte nadat items permanent zijn verwijderd\n• Als de opslag van je apparaat bijna vol raakt, kan Android app-caches wissen, waardoor bestanden in de prullenbak verloren gaan</string>
+    <string name="explorer_settings_trash_enable_dialog_message">In tegenstelling tot desktopsystemen heeft Android geen ingebouwde prullenbak. Butler biedt er een, opgeslagen in zijn eigen app-map.\n\nHoud er rekening mee:\n• De opslagindicator van je apparaat toont pas vrijgekomen ruimte nadat items permanent zijn verwijderd\n• Je kunt bestanden in de prullenbak permanent kwijtraken als je Butler verwijdert of de app-gegevens wist</string>
     <string name="explorer_settings_trash_enable_action">Inschakelen</string>
 
     <!-- File Row Content Descriptions -->

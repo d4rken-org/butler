@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">자동 삭제 기간</string>
     <string name="explorer_settings_trash_max_size_dialog_title">저장공간별 최대 용량</string>
     <string name="explorer_settings_trash_enable_dialog_title">휴지통을 사용할까요?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">데스크톱 시스템과 달리 Android에는 기본 휴지통 기능이 없습니다. Butler는 캐시 폴더를 이용해 휴지통을 제공합니다.\n\n참고하세요:\n• 항목을 영구 삭제하기 전까지는 기기 저장공간 표시에 확보된 공간이 반영되지 않습니다\n• 기기 저장공간이 부족해지면 Android가 앱 캐시를 정리하면서 휴지통의 파일이 삭제될 수 있습니다</string>
+    <string name="explorer_settings_trash_enable_dialog_message">데스크톱 시스템과 달리 Android에는 기본 휴지통 기능이 없습니다. Butler는 자체 앱 폴더에 저장되는 휴지통을 제공합니다.\n\n참고하세요:\n• 항목을 영구 삭제하기 전까지는 기기 저장공간 표시에 확보된 공간이 반영되지 않습니다\n• Butler를 제거하거나 앱 데이터를 삭제하면 휴지통의 파일이 영구적으로 사라질 수 있습니다</string>
     <string name="explorer_settings_trash_enable_action">사용</string>
 
     <!-- 파일 행 설명 -->

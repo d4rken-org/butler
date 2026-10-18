@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">بازه حذف خودکار</string>
     <string name="explorer_settings_trash_max_size_dialog_title">حداکثر اندازه برای هر حافظه</string>
     <string name="explorer_settings_trash_enable_dialog_title">سطل زباله فعال شود؟</string>
-    <string name="explorer_settings_trash_enable_dialog_message">برخلاف سیستم‌های دسکتاپ، اندروید سطل زباله داخلی ندارد. Butler با استفاده از پوشه کش خود این امکان را فراهم می‌کند.\n\nنکاتی که باید در نظر بگیرید:\n• نشانگر حافظه دستگاه شما فضای آزادشده را تا حذف دائمی موارد نشان نمی‌دهد\n• اگر فضای حافظه دستگاه شما کم باشد، اندروید ممکن است کش برنامه‌ها را پاک کند و فایل‌های داخل سطل زباله را حذف کند</string>
+    <string name="explorer_settings_trash_enable_dialog_message">برخلاف سیستم‌های دسکتاپ، اندروید سطل زباله داخلی ندارد. Butler این امکان را فراهم می‌کند و آن را در پوشه برنامه خودش نگه می‌دارد.\n\nنکاتی که باید در نظر بگیرید:\n• نشانگر حافظه دستگاه شما فضای آزادشده را تا حذف دائمی موارد نشان نمی‌دهد\n• اگر Butler را حذف نصب کنید یا داده‌های برنامه آن را پاک کنید، ممکن است فایل‌های داخل سطل زباله برای همیشه از دست بروند</string>
     <string name="explorer_settings_trash_enable_action">فعال‌سازی</string>
 
     <!-- File Row Content Descriptions -->

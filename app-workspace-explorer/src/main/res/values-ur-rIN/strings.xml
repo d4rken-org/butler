@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">خودکار حذف کی مدت</string>
     <string name="explorer_settings_trash_max_size_dialog_title">ہر اسٹوریج کے لیے زیادہ سے زیادہ حجم</string>
     <string name="explorer_settings_trash_enable_dialog_title">ردی کی ٹوکری فعال کریں؟</string>
-    <string name="explorer_settings_trash_enable_dialog_message">ڈیسک ٹاپ سسٹمز کے برعکس، Android میں پہلے سے ردی کی ٹوکری موجود نہیں ہے۔ Butler اپنے کیش فولڈر کے ذریعے یہ سہولت فراہم کرتا ہے۔\n\nیاد رکھیں:\n• جب تک اشیا مستقل طور پر حذف نہ ہوں، آپ کے آلے کا اسٹوریج اشارہ خالی ہونے والی جگہ نہیں دکھائے گا\n• اگر آپ کے آلے میں اسٹوریج کم ہو جائے تو Android ایپس کا کیش صاف کر سکتا ہے، جس سے ردی کی ٹوکری میں موجود فائلیں حذف ہو جائیں گی</string>
+    <string name="explorer_settings_trash_enable_dialog_message">ڈیسک ٹاپ سسٹمز کے برعکس، Android میں پہلے سے ردی کی ٹوکری موجود نہیں ہے۔ Butler یہ سہولت فراہم کرتا ہے اور اسے اپنے ایپ فولڈر میں محفوظ رکھتا ہے۔\n\nیاد رکھیں:\n• جب تک اشیا مستقل طور پر حذف نہ ہوں، آپ کے آلے کا اسٹوریج اشارہ خالی ہونے والی جگہ نہیں دکھائے گا\n• اگر آپ Butler کو ان انسٹال کریں یا اس کا ایپ ڈیٹا صاف کریں تو ردی کی ٹوکری میں موجود فائلیں مستقل طور پر ضائع ہو سکتی ہیں</string>
     <string name="explorer_settings_trash_enable_action">فعال کریں</string>
 
     <!-- File Row Content Descriptions -->

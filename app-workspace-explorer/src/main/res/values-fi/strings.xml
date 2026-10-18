@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Automaattisen poiston aikaväli</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Enimmäiskoko tallennussijaintia kohti</string>
     <string name="explorer_settings_trash_enable_dialog_title">Otetaanko roskakori käyttöön?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Toisin kuin tietokoneiden käyttöjärjestelmissä, Androidissa ei ole sisäänrakennettua roskakoria. Butler toteuttaa sen välimuistikansionsa avulla.\n\nMuista:\n• Laitteesi tallennustilan ilmaisin ei näytä vapautunutta tilaa ennen kuin kohteet on poistettu pysyvästi\n• Jos laitteesi tallennustila käy vähiin, Android voi tyhjentää sovellusten välimuisteja ja poistaa samalla roskakorissa olevat tiedostot</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Toisin kuin tietokoneiden käyttöjärjestelmissä, Androidissa ei ole sisäänrakennettua roskakoria. Butler toteuttaa sen ja säilyttää sitä omassa sovelluskansiossaan.\n\nMuista:\n• Laitteesi tallennustilan ilmaisin ei näytä vapautunutta tilaa ennen kuin kohteet on poistettu pysyvästi\n• Voit menettää roskakorissa olevat tiedostot pysyvästi, jos poistat Butlerin asennuksen tai tyhjennät sen sovellustiedot</string>
     <string name="explorer_settings_trash_enable_action">Ota käyttöön</string>
 
     <!-- File Row Content Descriptions -->

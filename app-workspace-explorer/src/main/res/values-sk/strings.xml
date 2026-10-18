@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Čas do automatického odstránenia</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximálna veľkosť na úložisko</string>
     <string name="explorer_settings_trash_enable_dialog_title">Zapnúť kôš?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Na rozdiel od počítačových systémov nemá Android zabudovaný kôš. Butler ho poskytuje pomocou svojho priečinka vyrovnávacej pamäte.\n\nPamätaj:\n• Ukazovateľ úložiska tvojho zariadenia nezohľadní uvoľnené miesto, kým sa položky natrvalo neodstránia\n• Ak zariadeniu dochádza miesto, Android môže vymazať vyrovnávaciu pamäť aplikácií, čím odstráni aj súbory v koši</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Na rozdiel od počítačových systémov nemá Android zabudovaný kôš. Butler ho poskytuje a ukladá do vlastného priečinka aplikácie.\n\nPamätaj:\n• Ukazovateľ úložiska tvojho zariadenia nezohľadní uvoľnené miesto, kým sa položky natrvalo neodstránia\n• Ak odinštaluješ Butler alebo vymažeš jeho údaje aplikácie, môžeš súbory v koši natrvalo stratiť</string>
     <string name="explorer_settings_trash_enable_action">Zapnúť</string>
 
     <!-- File Row Content Descriptions -->

@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">自動刪除期限</string>
     <string name="explorer_settings_trash_max_size_dialog_title">每個儲存空間的最大容量</string>
     <string name="explorer_settings_trash_enable_dialog_title">要啟用回收桶嗎？</string>
-    <string name="explorer_settings_trash_enable_dialog_message">與桌面系統不同，Android 沒有內建回收桶。Butler 使用其快取資料夾提供這項功能。\n\n請注意：\n• 在項目被永久刪除之前，裝置的儲存空間指示器不會反映已釋放的空間\n• 如果裝置儲存空間不足，Android 可能會清除應用程式快取，導致回收桶中的檔案遭到刪除</string>
+    <string name="explorer_settings_trash_enable_dialog_message">與桌面系統不同，Android 沒有內建回收桶。Butler 提供這項功能，並將其存放在自己的應用程式資料夾中。\n\n請注意：\n• 在項目被永久刪除之前，裝置的儲存空間指示器不會反映已釋放的空間\n• 如果解除安裝 Butler 或清除其應用程式資料，回收桶中的檔案可能會永久遺失</string>
     <string name="explorer_settings_trash_enable_action">啟用</string>
 
     <!-- 檔案列內容描述 -->

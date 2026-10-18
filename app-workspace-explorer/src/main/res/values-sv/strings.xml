@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Tid till automatisk radering</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximal storlek per lagringsplats</string>
     <string name="explorer_settings_trash_enable_dialog_title">Aktivera papperskorgen?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Till skillnad från datorsystem har Android ingen inbyggd papperskorg. Butler tillhandahåller en genom att använda sin cachemapp.\n\nTänk på:\n• Enhetens lagringsindikator visar inte det frigjorda utrymmet förrän objekten har raderats permanent\n• Om enhetens lagringsutrymme börjar ta slut kan Android tömma apparnas cache, vilket tar bort filerna i papperskorgen</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Till skillnad från datorsystem har Android ingen inbyggd papperskorg. Butler tillhandahåller en, som sparas i appens egen mapp.\n\nTänk på:\n• Enhetens lagringsindikator visar inte det frigjorda utrymmet förrän objekten har raderats permanent\n• Du kan förlora filerna i papperskorgen permanent om du avinstallerar Butler eller rensar appdata</string>
     <string name="explorer_settings_trash_enable_action">Aktivera</string>
 
     <!-- File Row Content Descriptions -->

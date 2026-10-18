@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">ระยะเวลาลบอัตโนมัติ</string>
     <string name="explorer_settings_trash_max_size_dialog_title">ขนาดสูงสุดต่อที่เก็บข้อมูล</string>
     <string name="explorer_settings_trash_enable_dialog_title">เปิดใช้ถังขยะ</string>
-    <string name="explorer_settings_trash_enable_dialog_message">ต่างจากระบบเดสก์ท็อป Android ไม่มีถังขยะในตัว Butler จึงสร้างถังขยะขึ้นโดยใช้โฟลเดอร์แคช\n\nข้อควรทราบ\n• ตัวแสดงพื้นที่เก็บข้อมูลของอุปกรณ์จะยังไม่แสดงพื้นที่ที่ว่างจนกว่าจะลบรายการถาวร\n• หากอุปกรณ์มีพื้นที่เก็บข้อมูลเหลือน้อย Android อาจล้างแคชของแอป ซึ่งจะลบไฟล์ที่อยู่ในถังขยะไปด้วย</string>
+    <string name="explorer_settings_trash_enable_dialog_message">ต่างจากระบบเดสก์ท็อป Android ไม่มีถังขยะในตัว Butler จึงมีถังขยะให้ใช้ โดยเก็บไว้ในโฟลเดอร์แอปของตัวเอง\n\nข้อควรทราบ\n• ตัวแสดงพื้นที่เก็บข้อมูลของอุปกรณ์จะยังไม่แสดงพื้นที่ที่ว่างจนกว่าจะลบรายการถาวร\n• หากถอนการติดตั้ง Butler หรือล้างข้อมูลแอปของ Butler ไฟล์ที่อยู่ในถังขยะอาจสูญหายถาวร</string>
     <string name="explorer_settings_trash_enable_action">เปิดใช้</string>
 
     <!-- File Row Content Descriptions -->

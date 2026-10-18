@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">自動削除の期間</string>
     <string name="explorer_settings_trash_max_size_dialog_title">ストレージごとの最大サイズ</string>
     <string name="explorer_settings_trash_enable_dialog_title">ゴミ箱を有効にしますか？</string>
-    <string name="explorer_settings_trash_enable_dialog_message">デスクトップシステムと異なり、Androidには標準のゴミ箱機能がありません。Butlerはキャッシュフォルダを使ってゴミ箱を提供します。\n\n注意点:\n• 項目を完全に削除するまで、端末のストレージ表示には空き容量が反映されません\n• 端末のストレージ容量が少なくなると、Androidがアプリのキャッシュを消去し、ゴミ箱内のファイルが削除されることがあります</string>
+    <string name="explorer_settings_trash_enable_dialog_message">デスクトップシステムと異なり、Androidには標準のゴミ箱機能がありません。Butlerはゴミ箱を提供し、自身のアプリフォルダに保存します。\n\n注意点:\n• 項目を完全に削除するまで、端末のストレージ表示には空き容量が反映されません\n• Butlerをアンインストールしたりアプリデータを消去したりすると、ゴミ箱内のファイルが完全に失われることがあります</string>
     <string name="explorer_settings_trash_enable_action">有効にする</string>
 
     <!-- File Row Content Descriptions -->

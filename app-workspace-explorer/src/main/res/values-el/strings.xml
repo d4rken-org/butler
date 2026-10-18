@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Περίοδος αυτόματης διαγραφής</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Μέγιστο μέγεθος ανά αποθηκευτικό χώρο</string>
     <string name="explorer_settings_trash_enable_dialog_title">Ενεργοποίηση κάδου;</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Σε αντίθεση με τα συστήματα υπολογιστών, το Android δεν διαθέτει ενσωματωμένο κάδο. Το Butler παρέχει έναν χρησιμοποιώντας τον φάκελο cache του.\n\nΈχετε υπόψη σας:\n• Η ένδειξη αποθηκευτικού χώρου της συσκευής σας δεν θα αντικατοπτρίζει τον ελευθερωμένο χώρο μέχρι να διαγραφούν οριστικά τα στοιχεία\n• Αν ο αποθηκευτικός χώρος της συσκευής σας μειωθεί, το Android ενδέχεται να διαγράψει τις κρυφές μνήμες (cache) των εφαρμογών, αφαιρώντας τα αρχεία που βρίσκονται στον κάδο</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Σε αντίθεση με τα συστήματα υπολογιστών, το Android δεν διαθέτει ενσωματωμένο κάδο. Το Butler παρέχει έναν, αποθηκευμένο στον δικό του φάκελο εφαρμογής.\n\nΈχετε υπόψη σας:\n• Η ένδειξη αποθηκευτικού χώρου της συσκευής σας δεν θα αντικατοπτρίζει τον ελευθερωμένο χώρο μέχρι να διαγραφούν οριστικά τα στοιχεία\n• Μπορεί να χάσετε οριστικά τα αρχεία που βρίσκονται στον κάδο, αν απεγκαταστήσετε το Butler ή διαγράψετε τα δεδομένα εφαρμογής του</string>
     <string name="explorer_settings_trash_enable_action">Ενεργοποίηση</string>
 
     <!-- File Row Content Descriptions -->

@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Thời gian tự động xóa</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Dung lượng tối đa mỗi bộ nhớ</string>
     <string name="explorer_settings_trash_enable_dialog_title">Bật thùng rác?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Không giống hệ thống máy tính để bàn, Android không có thùng rác tích hợp sẵn. Butler tạo ra thùng rác bằng thư mục bộ nhớ đệm của nó.\n\nLưu ý:\n• Chỉ báo dung lượng lưu trữ của thiết bị sẽ không phản ánh dung lượng đã giải phóng cho đến khi các mục bị xóa vĩnh viễn\n• Nếu thiết bị sắp hết dung lượng, Android có thể xóa bộ nhớ đệm ứng dụng, làm mất các tệp trong thùng rác</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Không giống hệ thống máy tính để bàn, Android không có thùng rác tích hợp sẵn. Butler cung cấp thùng rác và lưu nó trong thư mục ứng dụng riêng của mình.\n\nLưu ý:\n• Chỉ báo dung lượng lưu trữ của thiết bị sẽ không phản ánh dung lượng đã giải phóng cho đến khi các mục bị xóa vĩnh viễn\n• Bạn có thể mất vĩnh viễn các tệp trong thùng rác nếu gỡ cài đặt Butler hoặc xóa dữ liệu ứng dụng của Butler</string>
     <string name="explorer_settings_trash_enable_action">Bật</string>
 
     <!-- Mô tả nội dung dòng tệp -->

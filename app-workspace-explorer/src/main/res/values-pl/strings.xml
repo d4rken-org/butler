@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Okres automatycznego usuwania</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maksymalny rozmiar na magazyn</string>
     <string name="explorer_settings_trash_enable_dialog_title">Włączyć kosz?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">W przeciwieństwie do systemów komputerowych, Android nie ma wbudowanego kosza. Butler zapewnia go za pomocą własnego folderu pamięci podręcznej.\n\nPamiętaj:\n• Wskaźnik pamięci urządzenia nie pokaże zwolnionego miejsca, dopóki elementy nie zostaną trwale usunięte\n• Jeśli na urządzeniu zabraknie miejsca, Android może wyczyścić pamięć podręczną aplikacji, usuwając pliki z kosza</string>
+    <string name="explorer_settings_trash_enable_dialog_message">W przeciwieństwie do systemów komputerowych, Android nie ma wbudowanego kosza. Butler zapewnia go i przechowuje we własnym folderze aplikacji.\n\nPamiętaj:\n• Wskaźnik pamięci urządzenia nie pokaże zwolnionego miejsca, dopóki elementy nie zostaną trwale usunięte\n• Możesz trwale utracić pliki z kosza, jeśli odinstalujesz aplikację Butler lub wyczyścisz jej dane</string>
     <string name="explorer_settings_trash_enable_action">Włącz</string>
 
     <!-- File Row Content Descriptions -->

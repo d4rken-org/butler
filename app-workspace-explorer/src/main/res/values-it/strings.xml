@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Periodo di eliminazione automatica</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Dimensione massima per archiviazione</string>
     <string name="explorer_settings_trash_enable_dialog_title">Attivare il cestino?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">A differenza dei sistemi desktop, Android non ha un cestino integrato. Butler ne fornisce uno usando la sua cartella cache.\n\nTieni presente quanto segue:\n• L’indicatore di spazio del tuo dispositivo non riflette lo spazio liberato finché gli elementi non vengono eliminati definitivamente\n• Se lo spazio sul tuo dispositivo scarseggia, Android potrebbe svuotare la cache delle app, rimuovendo i file nel cestino</string>
+    <string name="explorer_settings_trash_enable_dialog_message">A differenza dei sistemi desktop, Android non ha un cestino integrato. Butler ne fornisce uno, salvato nella propria cartella dell’app.\n\nTieni presente quanto segue:\n• L’indicatore di spazio del tuo dispositivo non riflette lo spazio liberato finché gli elementi non vengono eliminati definitivamente\n• Potresti perdere definitivamente i file nel cestino se disinstalli Butler o ne cancelli i dati dell’app</string>
     <string name="explorer_settings_trash_enable_action">Attiva</string>
 
     <!-- File Row Content Descriptions -->

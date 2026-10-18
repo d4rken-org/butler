@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Délai de suppression automatique</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Taille maximale par stockage</string>
     <string name="explorer_settings_trash_enable_dialog_title">Activer la corbeille ?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Contrairement aux systèmes de bureau, Android n’a pas de corbeille intégrée. Butler en propose une grâce à son dossier de cache.\n\nÀ noter :\n• L’indicateur de stockage de votre appareil ne reflétera l’espace libéré qu’une fois les éléments définitivement supprimés\n• Si l’espace de stockage de votre appareil vient à manquer, Android peut vider les caches des applications, ce qui supprime les fichiers de la corbeille</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Contrairement aux systèmes de bureau, Android n’a pas de corbeille intégrée. Butler en propose une, stockée dans son propre dossier d’application.\n\nÀ noter :\n• L’indicateur de stockage de votre appareil ne reflétera l’espace libéré qu’une fois les éléments définitivement supprimés\n• Vous pouvez perdre définitivement les fichiers de la corbeille si vous désinstallez Butler ou effacez ses données d’application</string>
     <string name="explorer_settings_trash_enable_action">Activer</string>
 
     <!-- File Row Content Descriptions -->

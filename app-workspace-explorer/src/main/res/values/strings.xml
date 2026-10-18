@@ -28,7 +28,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Auto-delete period</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximum size per storage</string>
     <string name="explorer_settings_trash_enable_dialog_title">Enable trash?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Unlike desktop systems, Android has no built-in trash. Butler provides one using its cache folder.\n\nKeep in mind:\n• Your device\'s storage indicator won\'t reflect freed space until items are permanently deleted\n• If your device runs low on storage, Android may clear app caches, removing trashed files</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Unlike desktop systems, Android has no built-in trash. Butler provides one, stored in its own app folder.\n\nKeep in mind:\n• Your device\'s storage indicator won\'t reflect freed space until items are permanently deleted\n• You can lose trashed files permanently if you uninstall Butler or clear its app data</string>
     <string name="explorer_settings_trash_enable_action">Enable</string>
 
     <!-- File Row Content Descriptions -->
