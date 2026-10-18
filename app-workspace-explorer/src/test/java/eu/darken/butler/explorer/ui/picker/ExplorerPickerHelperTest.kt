@@ -708,6 +708,7 @@ class ExplorerPickerHelperTest : BaseTest() {
             val actions = listOf(
                 ExplorerActionBarItem.Network.AddLocation(),
                 ExplorerActionBarItem.Network.EditLocation(),
+                ExplorerActionBarItem.Network.DisconnectLocation(),
                 ExplorerActionBarItem.Network.RemoveLocation(),
             )
 

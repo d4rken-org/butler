@@ -34,6 +34,8 @@ sealed interface ExplorerDialogState {
 
     data class RemoveLocationConfirmation(val items: List<ExplorerItem.Storage>) : ExplorerDialogState
 
+    data class DisconnectLocationConfirmation(val items: List<ExplorerItem.Storage.Network>) : ExplorerDialogState
+
     /**
      * The selection as it was when "Open" was tapped, in display order. The chosen mode opens this
      * snapshot, not the live selection. [viewerPaths] is empty unless [viewerModesAvailable].

@@ -4,6 +4,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.network.NetworkLocation
+import eu.darken.butler.common.files.network.NetworkLocationRepo
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.files.webdav.location.WebDavLocationManager
@@ -15,13 +16,14 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import kotlinx.coroutines.CoroutineScope
 
 /**
- * What network locations of any protocol share: choosing the protocol of a new one, and removing
- * them with one confirmation for a mixed selection.
+ * What network locations of any protocol share: choosing the protocol of a new one, and removing or
+ * disconnecting them with one confirmation for a mixed selection.
  */
 class ExplorerNetworkLocationController(
     private val smbLocationManager: SmbLocationManager,
     private val sftpLocationManager: SftpLocationManager,
     private val webDavLocationManager: WebDavLocationManager,
+    private val locationRepo: NetworkLocationRepo,
     private val dialogs: ExplorerDialogController,
     private val workspace: suspend () -> ExplorerWorkspace,
     private val currentLocation: () -> ExplorerLocation?,
@@ -58,6 +60,23 @@ class ExplorerNetworkLocationController(
         }
         clearSelection()
         refreshUnlessLive()
+    }
+
+    fun showDisconnectConfirmation(items: List<ExplorerItem.Storage.Network>) {
+        log(tag) { "showDisconnectConfirmation(${items.size} items)" }
+        dialogs.show(ExplorerDialogState.DisconnectLocationConfirmation(items))
+    }
+
+    fun onDisconnectConfirmed(items: List<ExplorerItem.Storage.Network>) = doLaunch {
+        log(tag) { "onDisconnectConfirmed(${items.size} items)" }
+        dialogs.dismiss()
+        try {
+            items.forEach { item -> locationRepo.disconnect(item.location) }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "onDisconnectConfirmed(): Failed: ${e.asLog()}" }
+            onError(e)
+        }
+        clearSelection()
     }
 
     /** The Network list re-reads itself from the location stores, a reload would only re-probe. */
