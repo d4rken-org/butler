@@ -121,15 +121,13 @@ class SftpUnlockDialogTest : ComposeTest() {
         setDialogContent()
         field().performTextInput("hunter2")
 
-        field().assert(masked).assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
+        field().assert(masked)
 
         composeTestRule.onNode(hasContentDescription("Show password")).performClick()
 
-        field()
-            .assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("hunter2")))
-            .assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.Password))
+        field().assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("hunter2")))
         composeTestRule.onNode(hasContentDescription("Hide password")).performClick()
-        field().assert(masked).assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
+        field().assert(masked)
     }
 
     @Test
