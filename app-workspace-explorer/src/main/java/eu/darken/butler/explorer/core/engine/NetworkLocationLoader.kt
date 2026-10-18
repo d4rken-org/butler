@@ -7,6 +7,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.network.NetworkCredentialAvailability
 import eu.darken.butler.common.files.network.NetworkEndpointProbe
 import eu.darken.butler.common.files.network.NetworkEndpointState
 import eu.darken.butler.common.files.network.NetworkLocation
@@ -19,8 +20,9 @@ import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onEach
 
 /**
@@ -33,7 +35,8 @@ import kotlinx.coroutines.flow.onEach
  *
  * The returned flow does not complete. Rows are emitted as soon as the locations are known, every
  * one of them still "checking", and each probe result arrives as another emission - nothing in the
- * load path waits for a server to answer.
+ * load path waits for a server to answer. A change of a row's credential state, such as a session
+ * ending, arrives the same way.
  */
 class NetworkLocationLoader @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -60,16 +63,26 @@ class NetworkLocationLoader @AssistedInject constructor(
         // locations must not re-probe every server again.
         var isFirstPass = true
 
+        val credentials = locationRepo.locations
+            .onEach { stored ->
+                endpointProbe.probe(stored, force = force && isFirstPass)
+                isFirstPass = false
+            }
+            .flatMapLatest { stored ->
+                // combine() over no flows never emits
+                if (stored.isEmpty()) {
+                    flowOf(stored to emptyList<NetworkCredentialAvailability>())
+                } else {
+                    combine(stored.map { locationRepo.credentialAvailability(it) }) { stored to it.toList() }
+                }
+            }
+
         emitAll(
-            combine(
-                locationRepo.locations.onEach { stored ->
-                    endpointProbe.probe(stored, force = force && isFirstPass)
-                    isFirstPass = false
-                },
-                endpointProbe.states,
-            ) { stored, endpoints ->
+            combine(credentials, endpointProbe.states) { (stored, availability), endpoints ->
                 log(tag, INFO) { "loadNetwork(): ${stored.size} network locations" }
-                val items = stored.map { it.toItem(endpoints[it.id] ?: NetworkEndpointState()) }
+                val items = stored.zip(availability) { location, credentials ->
+                    location.toItem(credentials, endpoints[location.id] ?: NetworkEndpointState())
+                }
                 ExplorerLocation.Network(
                     items = items,
                     info = ExplorerLocation.Network.Info(locationCount = items.size),
@@ -80,13 +93,16 @@ class NetworkLocationLoader @AssistedInject constructor(
         )
     }
 
-    private suspend fun NetworkLocation.toItem(endpoint: NetworkEndpointState) = ExplorerItem.Storage.Network(
+    private fun NetworkLocation.toItem(
+        credentials: NetworkCredentialAvailability,
+        endpoint: NetworkEndpointState,
+    ) = ExplorerItem.Storage.Network(
         location = this,
         displayName = displayName,
         displayIcon = icon,
         target = ExplorerNavigation.Target.Directory(rootPath),
         subtitle = endpointLabel.toCaString(),
-        credentials = locationRepo.credentialAvailability(this).first(),
+        credentials = credentials,
         endpoint = endpoint,
     )
 
