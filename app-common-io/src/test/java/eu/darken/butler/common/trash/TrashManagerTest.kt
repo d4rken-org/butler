@@ -5,13 +5,16 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.extensions.LocalPathNormalization
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.storage.StorageEnvironment
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -27,7 +30,7 @@ import testhelpers.coroutine.TestDispatcherProvider
 import kotlin.uuid.Uuid
 
 /**
- * Tests for [TrashManager]'s restore metadata handling.
+ * Tests for [TrashManager]'s restore metadata handling and trash root selection.
  *
  * Two layers:
  * - [TrashManager.reapplyOriginalMetadata] in isolation - forwards the captured ownership then
@@ -35,11 +38,14 @@ import kotlin.uuid.Uuid
  *   result or an exception (but does propagate cancellation).
  * - [TrashManager.restore] integration - the helper is actually invoked after a successful move
  *   and not otherwise, and cancellation propagates out of the restore loop.
+ *
+ * Plus [TrashManager.getTrashRoot]: the trash dir is picked on the volume the file lives on.
  */
 class TrashManagerTest : BaseTest() {
 
     private val gatewaySwitch: GatewaySwitch = mockk(relaxed = true)
     private val repository: TrashRepo = mockk(relaxed = true)
+    private val storageEnv: StorageEnvironment = mockk(relaxed = true)
 
     private val targetPath = LocalPath.build("/storage/emulated/0/Documents/report.txt")
     private val ownership = Ownership(userId = 1000L, groupId = 1000L)
@@ -47,7 +53,7 @@ class TrashManagerTest : BaseTest() {
 
     private fun create() = TrashManager(
         repository = repository,
-        storageEnv = mockk(relaxed = true),
+        storageEnv = storageEnv,
         gatewaySwitch = gatewaySwitch,
         settings = mockk(relaxed = true),
         dispatcherProvider = TestDispatcherProvider(),
@@ -225,6 +231,54 @@ class TrashManagerTest : BaseTest() {
         }
 
         coVerify(exactly = 0) { repository.deleteById(any()) }
+    }
+
+    // endregion
+
+    // region getTrashRoot()
+
+    private val internalDir = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler")
+    private val sdDir = LocalPath.build("/storage/1234-5678/Android/data/eu.darken.butler")
+
+    private fun createWithVolumes(): TrashManager {
+        every { storageEnv.ourPublicDirs } returns listOf(internalDir, sdDir)
+        return create()
+    }
+
+    @Test
+    fun `trash root for an internal file is on internal storage`() {
+        createWithVolumes().getTrashRoot(LocalPath.build("/storage/emulated/0/DCIM/x.jpg")) shouldBe
+            internalDir.child(".trash")
+    }
+
+    @Test
+    fun `trash root for an sd card file is on the sd card`() {
+        createWithVolumes().getTrashRoot(LocalPath.build("/storage/1234-5678/DCIM/x.jpg")) shouldBe
+            sdDir.child(".trash")
+    }
+
+    @Test
+    fun `trash root for a file on an unknown volume falls back to the first entry`() {
+        createWithVolumes().getTrashRoot(LocalPath.build("/data/local/tmp/x")) shouldBe
+            internalDir.child(".trash")
+    }
+
+    @Test
+    fun `trash root does not match a look-alike volume name`() {
+        createWithVolumes().getTrashRoot(LocalPath.build("/storage/1234-56789/x")) shouldBe
+            internalDir.child(".trash")
+    }
+
+    @Test
+    fun `trash root for an sdcard alias path is on internal storage`() {
+        val previous = LocalPathNormalization.primaryStorage
+        LocalPathNormalization.primaryStorage = "/storage/emulated/0"
+        try {
+            createWithVolumes().getTrashRoot(LocalPath.build("/sdcard/DCIM/x.jpg")) shouldBe
+                internalDir.child(".trash")
+        } finally {
+            LocalPathNormalization.primaryStorage = previous
+        }
     }
 
     // endregion
