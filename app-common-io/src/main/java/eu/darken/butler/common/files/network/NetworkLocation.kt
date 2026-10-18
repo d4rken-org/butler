@@ -17,6 +17,9 @@ sealed interface NetworkLocation {
     val createdAt: Instant
     val lastSeenAt: Instant?
 
+    /** Whether it signs in with a secret that is only held in memory, not remembered. */
+    val usesSessionCredential: Boolean
+
     data class Smb(val location: SmbLocation) : NetworkLocation {
         override val id: Uuid get() = location.id
         override val displayName: CaString get() = location.displayName
@@ -25,6 +28,8 @@ sealed interface NetworkLocation {
         override val port: Int get() = location.port
         override val createdAt: Instant get() = location.createdAt
         override val lastSeenAt: Instant? get() = location.lastSeenAt
+        override val usesSessionCredential: Boolean
+            get() = location.authType == SmbLocation.AuthType.PASSWORD && !location.rememberCredential
     }
 
     data class Sftp(val location: SftpLocation) : NetworkLocation {
@@ -35,6 +40,7 @@ sealed interface NetworkLocation {
         override val port: Int get() = location.port
         override val createdAt: Instant get() = location.createdAt
         override val lastSeenAt: Instant? get() = location.lastSeenAt
+        override val usesSessionCredential: Boolean get() = !location.rememberCredential
     }
 
     data class WebDav(val location: WebDavLocation) : NetworkLocation {
@@ -45,5 +51,7 @@ sealed interface NetworkLocation {
         override val port: Int get() = location.port
         override val createdAt: Instant get() = location.createdAt
         override val lastSeenAt: Instant? get() = location.lastSeenAt
+        override val usesSessionCredential: Boolean
+            get() = location.authType == WebDavLocation.AuthType.BASIC && !location.rememberCredential
     }
 }

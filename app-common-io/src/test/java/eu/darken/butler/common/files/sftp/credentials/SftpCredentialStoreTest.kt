@@ -428,4 +428,67 @@ class SftpCredentialStoreTest : BaseTest() {
         evictions shouldBe listOf(locationId)
         job.cancel()
     }
+
+    @Test
+    fun `ending a session forgets the session password and emits an eviction`() = runTest {
+        val store = create()
+        store.store(locationId, 1, password("hunter2"), remember = false)
+        val evictions = mutableListOf<Uuid>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            store.evictions.collect { evictions.add(it) }
+        }
+
+        store.endSession(locationId)
+
+        store.availability(location).first() shouldBe SftpCredentialStore.Availability.MISSING
+        shouldThrow<SftpCredentialUnavailableException> { store.resolve(location) }
+        evictions shouldBe listOf(locationId)
+        job.cancel()
+    }
+
+    @Test
+    fun `ending a session forgets session keys with and without a passphrase`() = runTest {
+        val store = create()
+        val withPassphrase = location.copy(authType = SftpLocation.AuthType.PRIVATE_KEY)
+        val withoutPassphrase = withPassphrase.copy(credentialVersion = 2)
+        store.store(locationId, 1, SftpCredential.PrivateKey("darken", keyBytes, "secret".toCharArray()), remember = false)
+        store.store(locationId, 2, SftpCredential.PrivateKey("darken", keyBytes), remember = false)
+
+        store.endSession(locationId)
+
+        store.availability(withPassphrase).first() shouldBe SftpCredentialStore.Availability.MISSING
+        store.availability(withoutPassphrase).first() shouldBe SftpCredentialStore.Availability.MISSING
+        shouldThrow<SftpCredentialUnavailableException> { store.resolve(withPassphrase) }
+        shouldThrow<SftpCredentialUnavailableException> { store.resolve(withoutPassphrase) }
+    }
+
+    @Test
+    fun `ending a session keeps a remembered password`() = runTest {
+        val dao = FakeDao()
+        val store = create(dao = dao)
+        store.store(locationId, 1, password("hunter2"), remember = true)
+
+        store.endSession(locationId)
+
+        dao.rows.value.size shouldBe 1
+        store.availability(location).first() shouldBe SftpCredentialStore.Availability.AVAILABLE
+        store.resolvedPassword(location) shouldBe "hunter2"
+    }
+
+    @Test
+    fun `ending a session keeps a remembered key`() = runTest {
+        val dao = FakeDao()
+        val store = create(dao = dao)
+        val keyLocation = location.copy(authType = SftpLocation.AuthType.PRIVATE_KEY)
+        store.store(locationId, 1, SftpCredential.PrivateKey("darken", keyBytes, "secret".toCharArray()), remember = true)
+
+        store.endSession(locationId)
+
+        dao.rows.value.size shouldBe 1
+        store.availability(keyLocation).first() shouldBe SftpCredentialStore.Availability.AVAILABLE
+        val resolved = store.resolve(keyLocation)
+        resolved.shouldBeInstanceOf<SftpCredential.PrivateKey>()
+        resolved.keyBytes.contentEquals(keyBytes) shouldBe true
+        String(resolved.passphrase!!) shouldBe "secret"
+    }
 }
