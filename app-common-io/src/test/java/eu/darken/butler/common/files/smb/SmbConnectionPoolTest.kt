@@ -4,11 +4,13 @@ import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.extensions.Segments
 import eu.darken.butler.common.files.smb.credentials.SmbCredential
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
+import eu.darken.butler.common.files.smb.credentials.SmbCredentialUnavailableException
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -96,13 +98,20 @@ class SmbConnectionPoolTest : BaseTest() {
         val shareConnected = mutableListOf<Boolean>()
         val closeHooks = mutableListOf<(() -> Unit)?>()
 
+        /** Holds the next connect mid-negotiation, after its credential was resolved, until completed. */
+        var nextConnectGate: CompletableDeferred<Unit>? = null
+
         override fun create(): SmbConnector {
             val index = shares.size
             val share = mockk<SmbShare>(relaxed = true) {
                 every { connected } answers { shareConnected[index] }
                 every { disconnect() } answers { closeHooks[index]?.invoke() }
             }
-            val client = SmbConnector { _, _ -> share }
+            val gate = nextConnectGate.also { nextConnectGate = null }
+            val client = SmbConnector { _, _ ->
+                gate?.await()
+                share
+            }
             shares.add(share)
             shareConnected.add(true)
             closeHooks.add(null)
@@ -402,6 +411,57 @@ class SmbConnectionPoolTest : BaseTest() {
 
         val next = pool.acquire(passwordLocation.id)
         next.location.host shouldBe "other.local"
+        next.close()
+    }
+
+    /**
+     * The credential was resolved, then forgotten and the location evicted while the session was still
+     * negotiating. That session must not be published, it would keep serving without a credential.
+     */
+    @Test
+    fun `a connect that finishes after its location was evicted is dropped`() = runTest {
+        val factory = FakeClientFactory()
+        val passwordLocation = locationA.copy(
+            authType = SmbLocation.AuthType.PASSWORD,
+            username = "darken",
+        )
+        val locations = FakeLocationManager(mapOf(passwordLocation.id to passwordLocation))
+        var credentialAvailable = true
+        val credentialStore = mockk<SmbCredentialStore>(relaxed = true) {
+            every { this@mockk.evictions } returns MutableSharedFlow()
+            coEvery { resolve(any()) } coAnswers {
+                if (!credentialAvailable) throw SmbCredentialUnavailableException(passwordLocation.id, "Session ended")
+                SmbCredential("darken", null, "hunter2".toCharArray())
+            }
+        }
+        val pool = SmbConnectionPool(
+            appScope = TestScope(),
+            locationManager = locations,
+            credentialStore = credentialStore,
+            clientFactory = factory,
+            upgradeRepo = FakeUpgradeRepo(),
+        )
+
+        val gate = CompletableDeferred<Unit>()
+        factory.nextConnectGate = gate
+        val pending = async { runCatching { pool.acquire(passwordLocation.id) } }
+        runCurrent()
+        factory.clients.size shouldBe 1
+
+        credentialAvailable = false
+        pool.evict(passwordLocation.id)
+        gate.complete(Unit)
+        runCurrent()
+
+        // The retry resolves the credential again and finds it gone
+        pending.await().exceptionOrNull().shouldBeInstanceOf<SmbCredentialUnavailableException>()
+        verify { factory.shares[0].disconnect() }
+        factory.clients.size shouldBe 1
+
+        credentialAvailable = true
+        val next = pool.acquire(passwordLocation.id)
+        next.share shouldNotBe factory.shares[0]
+        factory.clients.size shouldBe 2
         next.close()
     }
 
