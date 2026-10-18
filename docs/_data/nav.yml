@@ -1,0 +1,12 @@
+- section: start
+  pages:
+    - getting-started
+    - setup
+- section: using
+  pages:
+    - files
+    - faq
+    - bugs
+- section: more
+  pages:
+    - changelog

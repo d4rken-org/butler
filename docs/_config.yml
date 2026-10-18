@@ -1,0 +1,24 @@
+title: Butler
+description: "A file explorer for Android."
+url: https://butler.darken.eu
+baseurl: ""
+lang: en
+repository: d4rken-org/butler
+repository_url: https://github.com/d4rken-org/butler
+markdown: kramdown
+kramdown:
+  input: GFM
+plugins:
+  - jekyll-relative-links
+  - jekyll-github-metadata
+  - jemoji
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+      lang: en

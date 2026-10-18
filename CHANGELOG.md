@@ -2,6 +2,8 @@
 layout: plain
 permalink: /changelog
 title: "Changelog"
+lang: en
+translation_key: changelog
 ---
 
 # Changelog for Butler
@@ -84,11 +86,11 @@ title: "Changelog"
 
 {% comment %} Check if there are any bullet points (actual release notes) {% endcomment %}
 {% if final_content contains "## " or final_content contains "- " %}
-{{ final_content | markdownify }}
+{{ final_content }}
 {% else %}
 *No release notes available.*
 
-{{ final_content | markdownify }}
+{{ final_content }}
 {% endif %}
 
 ---
