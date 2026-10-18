@@ -240,14 +240,17 @@ class TrashManagerTest : BaseTest() {
     private val internalDir = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler")
     private val sdDir = LocalPath.build("/storage/1234-5678/Android/data/eu.darken.butler")
 
-    private fun createWithVolumes(): TrashManager {
-        every { storageEnv.ourPublicDirs } returns listOf(internalDir, sdDir)
+    // The fallback is the first entry, so internal results only come from matching.
+    private val sdFirst = listOf(sdDir, internalDir)
+
+    private fun createWithVolumes(dirs: List<LocalPath> = listOf(internalDir, sdDir)): TrashManager {
+        every { storageEnv.ourPublicDirs } returns dirs
         return create()
     }
 
     @Test
     fun `trash root for an internal file is on internal storage`() {
-        createWithVolumes().getTrashRoot(LocalPath.build("/storage/emulated/0/DCIM/x.jpg")) shouldBe
+        createWithVolumes(sdFirst).getTrashRoot(LocalPath.build("/storage/emulated/0/DCIM/x.jpg")) shouldBe
             internalDir.child(".trash")
     }
 
@@ -274,7 +277,7 @@ class TrashManagerTest : BaseTest() {
         val previous = LocalPathNormalization.primaryStorage
         LocalPathNormalization.primaryStorage = "/storage/emulated/0"
         try {
-            createWithVolumes().getTrashRoot(LocalPath.build("/sdcard/DCIM/x.jpg")) shouldBe
+            createWithVolumes(sdFirst).getTrashRoot(LocalPath.build("/sdcard/DCIM/x.jpg")) shouldBe
                 internalDir.child(".trash")
         } finally {
             LocalPathNormalization.primaryStorage = previous
