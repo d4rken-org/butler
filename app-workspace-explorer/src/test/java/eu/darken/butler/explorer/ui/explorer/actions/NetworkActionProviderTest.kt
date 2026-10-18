@@ -73,6 +73,13 @@ class NetworkActionProviderTest : BaseTest() {
     }
 
     @Test
+    fun `a signed-in SFTP location that asks for its key passphrase offers disconnecting`() {
+        val asking = MockDataProvider.createMockStorageSftp(rememberPassphrase = false)
+
+        actionsFor(asking).any { it is ExplorerActionBarItem.Network.DisconnectLocation } shouldBe true
+    }
+
+    @Test
     fun `disconnecting is offered right before removal`() {
         val actions = actionsFor(sessionSmb, sessionSftp)
 

@@ -768,4 +768,22 @@ class SftpCredentialStoreTest : BaseTest() {
         resolved.keyBytes.contentEquals(keyBytes) shouldBe true
         String(resolved.passphrase!!) shouldBe "secret"
     }
+
+    @Test
+    fun `ending a session forgets a held passphrase but keeps the stored key`() = runTest {
+        val dao = FakeDao()
+        val store = create(dao = dao)
+        store.store(locationId, 1, key("secret"), remember = true, rememberPassphrase = false)
+        store.availability(askingLocation).first() shouldBe SftpCredentialStore.Availability.AVAILABLE
+
+        store.endSession(locationId)
+
+        shouldThrow<SftpKeyPassphraseRequiredException> { store.resolve(askingLocation) }
+        store.availability(askingLocation).first() shouldBe SftpCredentialStore.Availability.MISSING
+        dao.rows.value.size shouldBe 1
+        store.resolveStoredKey(askingLocation, passphrase = null).let {
+            it.keyBytes.contentEquals(keyBytes) shouldBe true
+            it.passphrase shouldBe null
+        }
+    }
 }

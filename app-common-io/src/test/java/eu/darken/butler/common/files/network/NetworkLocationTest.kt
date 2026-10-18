@@ -30,8 +30,15 @@ class NetworkLocationTest : BaseTest() {
         )
     )
 
-    private fun sftp(authType: SftpLocation.AuthType, remember: Boolean) = NetworkLocation.Sftp(
-        testSftpLocation(id, authType = authType).copy(rememberCredential = remember)
+    private fun sftp(
+        authType: SftpLocation.AuthType,
+        remember: Boolean,
+        rememberPassphrase: Boolean = true,
+    ) = NetworkLocation.Sftp(
+        testSftpLocation(id, authType = authType).copy(
+            rememberCredential = remember,
+            rememberPassphrase = rememberPassphrase,
+        )
     )
 
     private fun webDav(authType: WebDavLocation.AuthType, remember: Boolean) = NetworkLocation.WebDav(
@@ -55,6 +62,16 @@ class NetworkLocationTest : BaseTest() {
         sftp(SftpLocation.AuthType.PASSWORD, remember = true).usesSessionCredential shouldBe false
         sftp(SftpLocation.AuthType.PRIVATE_KEY, remember = false).usesSessionCredential shouldBe true
         sftp(SftpLocation.AuthType.PRIVATE_KEY, remember = true).usesSessionCredential shouldBe false
+    }
+
+    @Test
+    fun `an SFTP key whose passphrase is not remembered is a session credential`() {
+        sftp(SftpLocation.AuthType.PRIVATE_KEY, remember = true, rememberPassphrase = false)
+            .usesSessionCredential shouldBe true
+        sftp(SftpLocation.AuthType.PRIVATE_KEY, remember = true, rememberPassphrase = true)
+            .usesSessionCredential shouldBe false
+        sftp(SftpLocation.AuthType.PRIVATE_KEY, remember = false, rememberPassphrase = false)
+            .usesSessionCredential shouldBe true
     }
 
     @Test
