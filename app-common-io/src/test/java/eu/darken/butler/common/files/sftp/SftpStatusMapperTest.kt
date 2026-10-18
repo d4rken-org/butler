@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialUnavailableException
+import eu.darken.butler.common.files.sftp.credentials.SftpKeyPassphraseRequiredException
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.ssh.HostKey
 import eu.darken.ssh.SshException
@@ -126,6 +127,12 @@ class SftpStatusMapperTest : BaseTest() {
     }
 
     @Test
+    fun `a passphrase that was never entered is a sign-in failure`() {
+        SftpKeyPassphraseRequiredException(locationId).isSftpSignInFailure() shouldBe true
+        ReadException(cause = SftpKeyPassphraseRequiredException(locationId)).isSftpSignInFailure() shouldBe true
+    }
+
+    @Test
     fun `cancellation passes through unmapped`() {
         val cancel = CancellationException("stop")
         SftpStatusMapper.mapConnect(cancel, location) shouldBe cancel
@@ -140,6 +147,9 @@ class SftpStatusMapperTest : BaseTest() {
 
         val pro = SftpProRequiredException()
         SftpStatusMapper.mapOperation(pro, path, "lookup", write = false) shouldBe pro
+
+        val noPassphrase = SftpKeyPassphraseRequiredException(locationId)
+        SftpStatusMapper.mapOperation(noPassphrase, path, "lookup", write = false) shouldBe noPassphrase
     }
 
     // endregion

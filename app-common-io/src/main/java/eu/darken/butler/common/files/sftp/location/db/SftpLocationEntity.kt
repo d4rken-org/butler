@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.sftp.location.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlin.time.Instant
@@ -21,6 +22,8 @@ data class SftpLocationEntity(
     val basePath: String,
     val authType: String,
     val rememberCredential: Boolean,
+    @ColumnInfo(defaultValue = "1")
+    val rememberPassphrase: Boolean,
     val credentialVersion: Int,
     val hostKeyType: String,
     val hostKeyBlob: ByteArray,
@@ -42,6 +45,7 @@ data class SftpLocationEntity(
             basePath == other.basePath &&
             authType == other.authType &&
             rememberCredential == other.rememberCredential &&
+            rememberPassphrase == other.rememberPassphrase &&
             credentialVersion == other.credentialVersion &&
             hostKeyType == other.hostKeyType &&
             hostKeyBlob.contentEquals(other.hostKeyBlob) &&
@@ -61,6 +65,7 @@ data class SftpLocationEntity(
         result = 31 * result + basePath.hashCode()
         result = 31 * result + authType.hashCode()
         result = 31 * result + rememberCredential.hashCode()
+        result = 31 * result + rememberPassphrase.hashCode()
         result = 31 * result + credentialVersion
         result = 31 * result + hostKeyType.hashCode()
         result = 31 * result + hostKeyBlob.contentHashCode()

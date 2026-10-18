@@ -21,6 +21,7 @@ class SftpSchemaIdentityTest : BaseTest() {
     fun `the server location schema versions are unchanged`() {
         roomSchemaIdentityHashes(SftpLocationDatabase::class.java) shouldBe mapOf(
             1 to "c8e9c1e3405c2385983d9c30708b65e2",
+            2 to "5a4d7e203d7704f7f663506fd6a2f666",
         )
     }
 

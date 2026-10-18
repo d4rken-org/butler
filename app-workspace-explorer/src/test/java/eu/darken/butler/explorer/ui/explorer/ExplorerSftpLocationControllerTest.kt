@@ -162,6 +162,7 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
                 basePath = any(),
                 authType = any(),
                 rememberCredential = any(),
+                rememberPassphrase = any(),
                 password = any(),
                 privateKey = any(),
                 passphrase = any(),
@@ -173,10 +174,10 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
                     existingId = null,
                     host = arg(1),
                     port = arg(2),
-                    password = arg<CharArray?>(7)?.concatToString(),
-                    privateKey = arg<ByteArray?>(8)?.decodeToString(),
-                    passphrase = arg<CharArray?>(9)?.concatToString(),
-                    hostKey = arg(10),
+                    password = arg<CharArray?>(8)?.concatToString(),
+                    privateKey = arg<ByteArray?>(9)?.decodeToString(),
+                    passphrase = arg<CharArray?>(10)?.concatToString(),
+                    hostKey = arg(11),
                 )
             )
             stored
@@ -191,6 +192,7 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
                 basePath = any(),
                 authType = any(),
                 rememberCredential = any(),
+                rememberPassphrase = any(),
                 password = any(),
                 privateKey = any(),
                 passphrase = any(),
@@ -202,10 +204,10 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
                     existingId = arg(0),
                     host = arg(2),
                     port = arg(3),
-                    password = arg<CharArray?>(8)?.concatToString(),
-                    privateKey = arg<ByteArray?>(9)?.decodeToString(),
-                    passphrase = arg<CharArray?>(10)?.concatToString(),
-                    hostKey = arg(11),
+                    password = arg<CharArray?>(9)?.concatToString(),
+                    privateKey = arg<ByteArray?>(10)?.decodeToString(),
+                    passphrase = arg<CharArray?>(11)?.concatToString(),
+                    hostKey = arg(12),
                 )
             )
             stored

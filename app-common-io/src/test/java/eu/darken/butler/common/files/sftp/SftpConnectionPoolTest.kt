@@ -1,8 +1,13 @@
 package eu.darken.butler.common.files.sftp
 
 import eu.darken.butler.common.files.SftpPath
+import eu.darken.butler.common.files.credentials.CredentialCipher
 import eu.darken.butler.common.files.sftp.credentials.SftpCredential
+import eu.darken.butler.common.files.sftp.credentials.SftpCredentialCipher
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialStore
+import eu.darken.butler.common.files.sftp.credentials.SftpKeyPassphraseRequiredException
+import eu.darken.butler.common.files.sftp.credentials.db.SftpCredentialEntity
+import eu.darken.butler.common.files.sftp.credentials.db.SftpCredentialsDao
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.smb.FakeUpgradeRepo
 import eu.darken.ssh.HostKeyPolicy
@@ -22,7 +27,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
@@ -48,6 +55,7 @@ class SftpConnectionPoolTest : BaseTest() {
         val sessionConnected = mutableListOf<Boolean>()
         val policies = mutableListOf<HostKeyPolicy>()
         val usernames = mutableListOf<String>()
+        val passphrases = mutableListOf<String?>()
         val gates = mutableMapOf<Int, CompletableDeferred<Unit>>()
         var connectFailure: Throwable? = null
         private var connects = 0
@@ -66,6 +74,7 @@ class SftpConnectionPoolTest : BaseTest() {
                 val attempt = connects++
                 policies.add(hostKeyPolicy)
                 usernames.add(credentials.username)
+                passphrases.add((credentials as? SshCredentials.PrivateKey)?.passphrase?.concatToString())
                 gates[attempt]?.await()
                 connectFailure?.let { throw it }
                 val index = sessions.size
@@ -477,6 +486,102 @@ class SftpConnectionPoolTest : BaseTest() {
         verify { factory.sessions[0].disconnect() }
         scope.cancel()
     }
+
+    // region Keys that ask for their passphrase
+
+    private val askingLocation = locationA.copy(
+        authType = SftpLocation.AuthType.PRIVATE_KEY,
+        rememberCredential = true,
+        rememberPassphrase = false,
+    )
+
+    private class InMemoryCredentials : SftpCredentialsDao {
+        val rows = MutableStateFlow<List<SftpCredentialEntity>>(emptyList())
+
+        override fun getAll(): Flow<List<SftpCredentialEntity>> = rows
+        override suspend fun getAllOnce() = rows.value
+        override suspend fun get(locationId: Uuid, credentialVersion: Int) = rows.value.firstOrNull {
+            it.locationId == locationId && it.credentialVersion == credentialVersion
+        }
+
+        override suspend fun upsert(entity: SftpCredentialEntity) {
+            rows.value = rows.value.filterNot {
+                it.locationId == entity.locationId && it.credentialVersion == entity.credentialVersion
+            } + entity
+        }
+
+        override suspend fun delete(locationId: Uuid) {
+            rows.value = rows.value.filterNot { it.locationId == locationId }
+        }
+
+        override suspend fun deleteGeneration(locationId: Uuid, credentialVersion: Int) {
+            rows.value = rows.value.filterNot {
+                it.locationId == locationId && it.credentialVersion == credentialVersion
+            }
+        }
+
+        override suspend fun deleteOtherGenerations(locationId: Uuid, keepVersion: Int) {
+            rows.value = rows.value.filterNot {
+                it.locationId == locationId && it.credentialVersion != keepVersion
+            }
+        }
+    }
+
+    /** Copies rather than aliasing the input: the store wipes the plaintext it handed over. */
+    private object PlainCipher : SftpCredentialCipher {
+        override fun encrypt(locationId: Uuid, payloadVersion: Int, plaintext: ByteArray) =
+            CredentialCipher.Envelope(CredentialCipher.ENVELOPE_VERSION, "fake", ByteArray(0), plaintext.copyOf())
+
+        override fun decrypt(locationId: Uuid, payloadVersion: Int, envelope: CredentialCipher.Envelope) =
+            envelope.ciphertext.copyOf()
+
+        override fun isKeyAvailable(keyAlias: String) = true
+    }
+
+    /** A real vault holding [askingLocation]'s key without its passphrase, as after an app restart. */
+    private suspend fun askingStore() = SftpCredentialStore(InMemoryCredentials(), PlainCipher).apply {
+        store(
+            locationId = askingLocation.id,
+            credentialVersion = askingLocation.credentialVersion,
+            credential = SftpCredential.PrivateKey("darken", byteArrayOf(1, 2, 3)),
+            remember = true,
+            rememberPassphrase = false,
+        )
+    }
+
+    @Test
+    fun `a key without its passphrase fails before anything is sent to the server`() = runTest {
+        val factory = FakeClientFactory()
+        val pool = pool(factory, FakeSftpLocationManager(listOf(askingLocation)), askingStore())
+
+        val error = shouldThrow<SftpKeyPassphraseRequiredException> {
+            pool.use(SftpPath.root(askingLocation.id), retryOnTransportLoss = true) { }
+        }
+
+        error.locationId shouldBe askingLocation.id
+        error.isSftpSignInFailure() shouldBe true
+        factory.usernames shouldBe emptyList()
+        factory.sessions shouldBe emptyList()
+    }
+
+    @Test
+    fun `a held passphrase outlives the session it was first used for`() = runTest {
+        val factory = FakeClientFactory()
+        val store = askingStore()
+        store.holdPassphrase(askingLocation.id, askingLocation.credentialVersion, "typed".toCharArray())
+        val pool = pool(factory, FakeSftpLocationManager(listOf(askingLocation)), store)
+
+        pool.use(SftpPath.root(askingLocation.id), retryOnTransportLoss = false) { }
+        pool.evict(askingLocation.id)
+        pool.use(SftpPath.root(askingLocation.id), retryOnTransportLoss = false) { }
+        pool.close()
+        pool.use(SftpPath.root(askingLocation.id), retryOnTransportLoss = false) { }
+
+        factory.sessions.size shouldBe 3
+        factory.passphrases shouldBe listOf("typed", "typed", "typed")
+    }
+
+    // endregion
 
     companion object {
         private const val FAR_FUTURE = Long.MAX_VALUE / 2

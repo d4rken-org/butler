@@ -112,13 +112,14 @@ class SftpLocationFormConnectionTestTest : ComposeTest() {
                 basePath = any(),
                 authType = any(),
                 rememberCredential = any(),
+                rememberPassphrase = any(),
                 password = any(),
                 privateKey = any(),
                 passphrase = any(),
                 hostKey = any(),
             )
         } coAnswers {
-            created.add(Created(host = arg(1), port = arg(2), hostKey = arg(10)))
+            created.add(Created(host = arg(1), port = arg(2), hostKey = arg(11)))
             SftpLocation(
                 id = Uuid.random(),
                 label = null,
@@ -129,7 +130,7 @@ class SftpLocationFormConnectionTestTest : ComposeTest() {
                 authType = arg(5),
                 rememberCredential = arg(6),
                 credentialVersion = 1,
-                hostKey = arg(10),
+                hostKey = arg(11),
                 trustRevision = 1,
                 createdAt = Instant.fromEpochMilliseconds(0),
                 updatedAt = Instant.fromEpochMilliseconds(0),

@@ -54,6 +54,7 @@ class SftpLocationManagerImpl @Inject constructor(
         basePath: String,
         authType: SftpLocation.AuthType,
         rememberCredential: Boolean,
+        rememberPassphrase: Boolean,
         password: CharArray?,
         privateKey: ByteArray?,
         passphrase: CharArray?,
@@ -71,6 +72,13 @@ class SftpLocationManagerImpl @Inject constructor(
             basePath = basePath,
             authType = authType,
             rememberCredential = rememberCredential,
+            rememberPassphrase = normalizedRememberPassphrase(
+                authType = authType,
+                rememberCredential = rememberCredential,
+                rememberPassphrase = rememberPassphrase,
+                privateKey = privateKey,
+                passphrase = passphrase,
+            ),
             credentialVersion = 1,
             hostKey = hostKey,
             trustRevision = 1,
@@ -96,10 +104,12 @@ class SftpLocationManagerImpl @Inject constructor(
         basePath: String,
         authType: SftpLocation.AuthType,
         rememberCredential: Boolean,
+        rememberPassphrase: Boolean,
         password: CharArray?,
         privateKey: ByteArray?,
         passphrase: CharArray?,
         hostKey: TrustedHostKey?,
+        expectedCredentialVersion: Int?,
     ): SftpLocation {
         return credentialWrites.withLock {
             val existing = get(id) ?: throw IllegalArgumentException("Unknown location: $id")
@@ -110,11 +120,28 @@ class SftpLocationManagerImpl @Inject constructor(
             }
 
             val secretProvided = password != null || privateKey != null
+            // The stored credential the edit means to keep may already be a newer one than it was shown
+            if (
+                !secretProvided &&
+                expectedCredentialVersion != null &&
+                existing.credentialVersion != expectedCredentialVersion
+            ) {
+                throw SftpLocationChangedException(id, expectedCredentialVersion, existing.credentialVersion)
+            }
+
+            val effectiveRememberPassphrase = normalizedRememberPassphrase(
+                authType = authType,
+                rememberCredential = rememberCredential,
+                rememberPassphrase = rememberPassphrase,
+                privateKey = privateKey,
+                passphrase = passphrase,
+            )
             val keepsStoredCredential = username == existing.username &&
                 authType == existing.authType &&
-                rememberCredential == existing.rememberCredential
+                rememberCredential == existing.rememberCredential &&
+                effectiveRememberPassphrase == existing.rememberPassphrase
             require(secretProvided || keepsStoredCredential) {
-                "Changing the username, the sign-in method or the remember setting requires re-entering the secret"
+                "Changing the username, the sign-in method or a remember setting requires re-entering the secret"
             }
 
             val now = Clock.System.now()
@@ -126,6 +153,7 @@ class SftpLocationManagerImpl @Inject constructor(
                 basePath = basePath,
                 authType = authType,
                 rememberCredential = rememberCredential,
+                rememberPassphrase = effectiveRememberPassphrase,
                 credentialVersion = if (secretProvided) existing.credentialVersion + 1 else existing.credentialVersion,
                 hostKey = hostKey ?: existing.hostKey,
                 updatedAt = now,
@@ -206,6 +234,36 @@ class SftpLocationManagerImpl @Inject constructor(
         dao.markSeen(locationId = id, host = host, port = port, at = at)
     }
 
+    override suspend fun holdPassphrase(id: Uuid, credentialVersion: Int, passphrase: CharArray): Boolean =
+        credentialWrites.withLock {
+            val current = get(id)
+            if (current == null || current.credentialVersion != credentialVersion || !current.asksForPassphrase) {
+                log(TAG, WARN) {
+                    "holdPassphrase($id, version=$credentialVersion): not held, location is now " +
+                        "${current?.let { "at ${it.credentialVersion}, asks=${it.asksForPassphrase}" } ?: "gone"}"
+                }
+                return@withLock false
+            }
+            credentialStore.holdPassphrase(id, credentialVersion, passphrase)
+            true
+        }
+
+    /**
+     * Only a remembered key with a passphrase can leave the passphrase out: anything else has nothing
+     * to ask for later.
+     */
+    private fun normalizedRememberPassphrase(
+        authType: SftpLocation.AuthType,
+        rememberCredential: Boolean,
+        rememberPassphrase: Boolean,
+        privateKey: ByteArray?,
+        passphrase: CharArray?,
+    ): Boolean = when {
+        authType != SftpLocation.AuthType.PRIVATE_KEY || !rememberCredential -> true
+        privateKey != null && passphrase == null -> true
+        else -> rememberPassphrase
+    }
+
     private fun requireSecretShape(
         authType: SftpLocation.AuthType,
         password: CharArray?,
@@ -245,6 +303,7 @@ class SftpLocationManagerImpl @Inject constructor(
             credentialVersion = location.credentialVersion,
             credential = credential,
             remember = location.rememberCredential,
+            rememberPassphrase = location.rememberPassphrase,
         )
     }
 
@@ -271,6 +330,7 @@ class SftpLocationManagerImpl @Inject constructor(
         basePath = basePath,
         authType = SftpLocation.AuthType.valueOf(authType),
         rememberCredential = rememberCredential,
+        rememberPassphrase = rememberPassphrase,
         credentialVersion = credentialVersion,
         hostKey = hostKey(),
         trustRevision = trustRevision,
@@ -288,6 +348,7 @@ class SftpLocationManagerImpl @Inject constructor(
         basePath = basePath,
         authType = authType.name,
         rememberCredential = rememberCredential,
+        rememberPassphrase = rememberPassphrase,
         credentialVersion = credentialVersion,
         hostKeyType = hostKey.type,
         hostKeyBlob = hostKey.blob,

@@ -7,6 +7,7 @@ import eu.darken.butler.common.error.LocalizedError
 import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialUnavailableException
+import eu.darken.butler.common.files.sftp.credentials.SftpKeyPassphraseRequiredException
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.common.io.R
 import eu.darken.ssh.HostKey
@@ -161,6 +162,7 @@ fun Throwable.isSftpSignInFailure(): Boolean {
             is SftpAuthException,
             is SftpKeyFormatException,
             is SftpKeyPassphraseException,
+            is SftpKeyPassphraseRequiredException,
             is SftpCredentialUnavailableException -> return true
         }
         current = current.cause

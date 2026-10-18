@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.credentials.CredentialCipher
 import eu.darken.butler.common.files.sftp.credentials.SftpCredential
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialCipher
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialStore
+import eu.darken.butler.common.files.sftp.credentials.SftpKeyPassphraseRequiredException
 import eu.darken.butler.common.files.sftp.credentials.db.SftpCredentialEntity
 import eu.darken.butler.common.files.sftp.credentials.db.SftpCredentialsDao
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager.RetrustResult
@@ -18,6 +19,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -171,9 +173,31 @@ class SftpLocationManagerTest : BaseTest() {
         basePath = basePath,
         authType = SftpLocation.AuthType.PASSWORD,
         rememberCredential = remember,
+        rememberPassphrase = true,
         password = password.toCharArray(),
         privateKey = null,
         passphrase = null,
+        hostKey = keyA,
+    )
+
+    private val sampleKey = "-----BEGIN OPENSSH PRIVATE KEY-----".encodeToByteArray()
+
+    private suspend fun SftpLocationManager.createKeySample(
+        passphrase: String? = "secret",
+        remember: Boolean = true,
+        rememberPassphrase: Boolean = false,
+    ) = create(
+        label = "NAS",
+        host = "nas.local",
+        port = 22,
+        username = "darken",
+        basePath = "",
+        authType = SftpLocation.AuthType.PRIVATE_KEY,
+        rememberCredential = remember,
+        rememberPassphrase = rememberPassphrase,
+        password = null,
+        privateKey = sampleKey,
+        passphrase = passphrase?.toCharArray(),
         hostKey = keyA,
     )
 
@@ -187,10 +211,12 @@ class SftpLocationManagerTest : BaseTest() {
         basePath: String = location.basePath,
         authType: SftpLocation.AuthType = location.authType,
         rememberCredential: Boolean = location.rememberCredential,
+        rememberPassphrase: Boolean = location.rememberPassphrase,
         password: String? = null,
         privateKey: ByteArray? = null,
         passphrase: String? = null,
         hostKey: TrustedHostKey? = null,
+        expectedCredentialVersion: Int? = null,
     ) = update(
         id = location.id,
         label = label,
@@ -200,11 +226,28 @@ class SftpLocationManagerTest : BaseTest() {
         basePath = basePath,
         authType = authType,
         rememberCredential = rememberCredential,
+        rememberPassphrase = rememberPassphrase,
         password = password?.toCharArray(),
         privateKey = privateKey,
         passphrase = passphrase?.toCharArray(),
         hostKey = hostKey,
+        expectedCredentialVersion = expectedCredentialVersion,
     )
+
+    /** What survives the app process: the rows, read by a fresh vault and manager. */
+    private fun restarted(): Pair<SftpLocationManager, SftpCredentialStore> {
+        val store = SftpCredentialStore(credentialsDao, PlainCipher)
+        return SftpLocationManagerImpl(appScope = TestScope(), dao = locationsDao, credentialStore = store) to store
+    }
+
+    private fun storedPayload(version: Int = 1): String =
+        credentialsDao.rows.value.single { it.credentialVersion == version }.ciphertext.decodeToString()
+
+    private suspend fun SftpCredentialStore.resolvedPassphrase(location: SftpLocation): String? {
+        val credential = resolve(location)
+        credential.shouldBeInstanceOf<SftpCredential.PrivateKey>()
+        return credential.passphrase?.concatToString()
+    }
 
     private suspend fun resolvedPassword(location: SftpLocation): String {
         val credential = credentialStore.resolve(location)
@@ -238,6 +281,7 @@ class SftpLocationManagerTest : BaseTest() {
             basePath = "/srv",
             authType = SftpLocation.AuthType.PRIVATE_KEY,
             rememberCredential = true,
+            rememberPassphrase = true,
             password = null,
             privateKey = keyBytes,
             passphrase = "secret".toCharArray(),
@@ -279,6 +323,7 @@ class SftpLocationManagerTest : BaseTest() {
                 basePath = "",
                 authType = SftpLocation.AuthType.PASSWORD,
                 rememberCredential = true,
+                rememberPassphrase = true,
                 password = "hunter2".toCharArray(),
                 privateKey = ByteArray(4),
                 passphrase = null,
@@ -417,6 +462,7 @@ class SftpLocationManagerTest : BaseTest() {
             basePath = "",
             authType = SftpLocation.AuthType.PRIVATE_KEY,
             rememberCredential = true,
+            rememberPassphrase = true,
             password = null,
             privateKey = ByteArray(8),
             passphrase = null,
@@ -669,4 +715,187 @@ class SftpLocationManagerTest : BaseTest() {
         updated.lastSeenAt shouldBe seenAt
         manager.get(location.id)!!.lastSeenAt shouldBe seenAt
     }
+
+    // region Keys that ask for their passphrase
+
+    @Test
+    fun `a key location can keep its key without the passphrase`() = runTest {
+        val manager = manager()
+
+        val location = manager.createKeySample(rememberPassphrase = false)
+
+        location.rememberPassphrase shouldBe false
+        location.asksForPassphrase shouldBe true
+        manager.get(location.id) shouldBe location
+        locationsDao.rows.value.single().rememberPassphrase shouldBe false
+        storedPayload().contains("secret") shouldBe false
+        // Entered while saving, so the location opens without asking until the app process ends
+        credentialStore.resolvedPassphrase(location) shouldBe "secret"
+        restarted().second.resolvedPassphraseOrNull(location) shouldBe null
+    }
+
+    @Test
+    fun `a key location remembering its passphrase stores it`() = runTest {
+        val location = manager().createKeySample(rememberPassphrase = true)
+
+        location.rememberPassphrase shouldBe true
+        storedPayload().contains("secret") shouldBe true
+        restarted().second.resolvedPassphrase(location) shouldBe "secret"
+    }
+
+    @Test
+    fun `only a remembered key with a passphrase can leave it out`() = runTest {
+        val manager = manager()
+
+        manager.create(
+            label = null,
+            host = "nas.local",
+            port = 22,
+            username = "darken",
+            basePath = "",
+            authType = SftpLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            rememberPassphrase = false,
+            password = "hunter2".toCharArray(),
+            privateKey = null,
+            passphrase = null,
+            hostKey = keyA,
+        ).rememberPassphrase shouldBe true
+        manager.createKeySample(remember = false, rememberPassphrase = false).rememberPassphrase shouldBe true
+        // An unencrypted key has nothing to ask for
+        manager.createKeySample(passphrase = null, rememberPassphrase = false).rememberPassphrase shouldBe true
+
+        locationsDao.rows.value.map { it.rememberPassphrase } shouldBe listOf(true, true, true)
+    }
+
+    @Test
+    fun `an edit with a new key passes the passphrase setting through`() = runTest {
+        val manager = manager()
+        val location = manager.createKeySample(rememberPassphrase = true)
+
+        val updated = manager.edit(location, rememberPassphrase = false, privateKey = sampleKey, passphrase = "next")
+
+        updated.rememberPassphrase shouldBe false
+        updated.credentialVersion shouldBe 2
+        storedPayload(version = 2).contains("next") shouldBe false
+        credentialStore.resolvedPassphrase(updated) shouldBe "next"
+    }
+
+    @Test
+    fun `changing the passphrase setting without the key is rejected`() = runTest {
+        val manager = manager()
+        val asking = manager.createKeySample(rememberPassphrase = false)
+        val remembering = manager.createKeySample(rememberPassphrase = true)
+
+        shouldThrow<IllegalArgumentException> { manager.edit(asking, rememberPassphrase = true) }
+        shouldThrow<IllegalArgumentException> { manager.edit(remembering, rememberPassphrase = false) }
+
+        manager.get(asking.id) shouldBe asking
+        manager.get(remembering.id) shouldBe remembering
+    }
+
+    @Test
+    fun `the passphrase setting is normalized before it is compared`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+
+        val updated = manager.edit(location, label = "Renamed", rememberPassphrase = false)
+
+        updated.rememberPassphrase shouldBe true
+        updated.credentialVersion shouldBe 1
+    }
+
+    @Test
+    fun `an unchanged edit keeps the held passphrase`() = runTest {
+        val manager = manager()
+        val location = manager.createKeySample(rememberPassphrase = false)
+
+        val updated = manager.edit(location, label = "Renamed")
+
+        updated.credentialVersion shouldBe 1
+        credentialStore.resolvedPassphrase(updated) shouldBe "secret"
+    }
+
+    @Test
+    fun `an edit based on an older credential is refused before anything is written`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+        val current = manager.edit(location, password = "newpass")
+        val rowBefore = locationsDao.rows.value.single()
+
+        val error = shouldThrow<SftpLocationChangedException> {
+            manager.edit(current, label = "Renamed", expectedCredentialVersion = 1)
+        }
+
+        error.expectedCredentialVersion shouldBe 1
+        error.actualCredentialVersion shouldBe 2
+        locationsDao.rows.value.single() shouldBe rowBefore
+        manager.edit(current, label = "Renamed", expectedCredentialVersion = 2).label shouldBe "Renamed"
+    }
+
+    @Test
+    fun `an edit bringing its own secret does not depend on the credential it was based on`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+        manager.edit(location, password = "newpass")
+
+        val updated = manager.edit(location, password = "third", expectedCredentialVersion = 1)
+
+        updated.credentialVersion shouldBe 3
+        resolvedPassword(updated) shouldBe "third"
+    }
+
+    @Test
+    fun `a passphrase entered after a restart is held for the location`() = runTest {
+        val location = manager().createKeySample(rememberPassphrase = false)
+        val (manager, store) = restarted()
+        shouldThrow<SftpKeyPassphraseRequiredException> { store.resolve(location) }
+
+        manager.holdPassphrase(location.id, 1, "secret".toCharArray()) shouldBe true
+
+        store.resolvedPassphrase(location) shouldBe "secret"
+    }
+
+    @Test
+    fun `a passphrase is not held for another generation`() = runTest {
+        val location = manager().createKeySample(rememberPassphrase = false)
+        val (manager, store) = restarted()
+
+        manager.holdPassphrase(location.id, 2, "secret".toCharArray()) shouldBe false
+
+        store.resolvedPassphraseOrNull(location) shouldBe null
+        store.availability(location.copy(credentialVersion = 2)).first() shouldBe
+            SftpCredentialStore.Availability.MISSING
+    }
+
+    @Test
+    fun `a passphrase is not held for a location that does not ask for one`() = runTest {
+        val remembering = manager().createKeySample(rememberPassphrase = true)
+        val password = manager().createSample()
+        val (manager, store) = restarted()
+
+        manager.holdPassphrase(remembering.id, 1, "other".toCharArray()) shouldBe false
+        manager.holdPassphrase(password.id, 1, "other".toCharArray()) shouldBe false
+
+        store.resolvedPassphrase(remembering) shouldBe "secret"
+    }
+
+    @Test
+    fun `a passphrase is not held for a deleted location`() = runTest {
+        val first = manager()
+        val location = first.createKeySample(rememberPassphrase = false)
+        first.delete(location.id)
+
+        first.holdPassphrase(location.id, 1, "secret".toCharArray()) shouldBe false
+
+        credentialStore.availability(location).first() shouldBe SftpCredentialStore.Availability.MISSING
+    }
+
+    private suspend fun SftpCredentialStore.resolvedPassphraseOrNull(location: SftpLocation): String? = try {
+        resolvedPassphrase(location)
+    } catch (e: SftpKeyPassphraseRequiredException) {
+        null
+    }
+
+    // endregion
 }
