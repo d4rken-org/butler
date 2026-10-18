@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Periode før automatisk sletning</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maksimal størrelse pr. lager</string>
     <string name="explorer_settings_trash_enable_dialog_title">Aktiver papirkurv?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">I modsætning til computersystemer har Android ingen indbygget papirkurv. Butler tilbyder en ved hjælp af sin cachemappe.\n\nHusk:\n• Din enheds lagerindikator viser ikke den frigjorte plads, før elementerne er slettet permanent\n• Hvis din enhed er ved at løbe tør for lagerplads, kan Android rydde appcacher og dermed fjerne filer i papirkurven</string>
+    <string name="explorer_settings_trash_enable_dialog_message">I modsætning til computersystemer har Android ingen indbygget papirkurv. Butler tilbyder en, som gemmes i appens egen mappe.\n\nHusk:\n• Din enheds lagerindikator viser ikke den frigjorte plads, før elementerne er slettet permanent\n• Du kan miste filer i papirkurven permanent, hvis du afinstallerer Butler eller rydder dens appdata</string>
     <string name="explorer_settings_trash_enable_action">Aktiver</string>
 
     <!-- File Row Content Descriptions -->

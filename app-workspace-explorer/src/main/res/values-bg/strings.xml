@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Срок за автоматично изтриване</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Максимален размер за всяко хранилище</string>
     <string name="explorer_settings_trash_enable_dialog_title">Да се включи ли кошчето?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">За разлика от настолните системи, Android няма вградено кошче. Butler осигурява такова чрез папката си за кеш.\n\nИмай предвид:\n• Индикаторът за хранилището на устройството ти няма да отрази освободеното място, докато елементите не бъдат изтрити безвъзвратно\n• Ако свободното място на устройството ти намалее, Android може да изчисти кеша на приложенията и да премахне файловете в кошчето</string>
+    <string name="explorer_settings_trash_enable_dialog_message">За разлика от настолните системи, Android няма вградено кошче. Butler осигурява такова, което се съхранява в собствената му папка на приложението.\n\nИмай предвид:\n• Индикаторът за хранилището на устройството ти няма да отрази освободеното място, докато елементите не бъдат изтрити безвъзвратно\n• Можеш да загубиш безвъзвратно файловете в кошчето, ако деинсталираш Butler или изчистиш данните на приложението</string>
     <string name="explorer_settings_trash_enable_action">Включи</string>
 
     <!-- File Row Content Descriptions -->

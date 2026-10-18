@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">தானாக நீக்கும் கால அளவு</string>
     <string name="explorer_settings_trash_max_size_dialog_title">ஒவ்வொரு சேமிப்பகத்திற்கும் அதிகபட்ச அளவு</string>
     <string name="explorer_settings_trash_enable_dialog_title">குப்பைத்தொட்டியை இயக்கவா?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">கணினிகளைப் போல Android இல் உள்ளமைந்த குப்பைத்தொட்டி இல்லை. Butler தனது தற்காலிகச் சேமிப்புக் கோப்புறையைப் பயன்படுத்தி ஒன்றை வழங்குகிறது.\n\nநினைவில் கொள்ளுங்கள்:\n• உருப்படிகள் நிரந்தரமாக நீக்கப்படும் வரை உங்கள் சாதனத்தின் சேமிப்பகக் காட்டி விடுவிக்கப்பட்ட இடத்தைக் காட்டாது\n• உங்கள் சாதனத்தில் சேமிப்பக இடம் குறைந்தால், Android செயலிகளின் தற்காலிகச் சேமிப்புகளை அழிக்கலாம்; இதனால் குப்பைத்தொட்டியில் உள்ள கோப்புகள் நீக்கப்படும்</string>
+    <string name="explorer_settings_trash_enable_dialog_message">கணினிகளைப் போல Android இல் உள்ளமைந்த குப்பைத்தொட்டி இல்லை. Butler ஒன்றை வழங்குகிறது, அது தனது சொந்தச் செயலிக் கோப்புறையில் சேமிக்கப்படுகிறது.\n\nநினைவில் கொள்ளுங்கள்:\n• உருப்படிகள் நிரந்தரமாக நீக்கப்படும் வரை உங்கள் சாதனத்தின் சேமிப்பகக் காட்டி விடுவிக்கப்பட்ட இடத்தைக் காட்டாது\n• Butler-ஐ நிறுவல் நீக்கினால் அல்லது அதன் செயலித் தரவை அழித்தால், குப்பைத்தொட்டியில் உள்ள கோப்புகளை நிரந்தரமாக இழக்க நேரிடலாம்</string>
     <string name="explorer_settings_trash_enable_action">இயக்கு</string>
 
     <!-- File Row Content Descriptions -->

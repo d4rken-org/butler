@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Periode hapus otomatis</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Ukuran maksimum per penyimpanan</string>
     <string name="explorer_settings_trash_enable_dialog_title">Aktifkan sampah?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Berbeda dari sistem desktop, Android tidak memiliki sampah bawaan. Butler menyediakannya menggunakan folder cache-nya.\n\nPerhatikan:\n• Indikator penyimpanan perangkat Anda tidak akan menunjukkan ruang yang terbebaskan sampai item dihapus secara permanen\n• Jika penyimpanan perangkat Anda hampir penuh, Android dapat membersihkan cache aplikasi, sehingga menghapus berkas yang ada di sampah</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Berbeda dari sistem desktop, Android tidak memiliki sampah bawaan. Butler menyediakannya dan menyimpannya di folder aplikasinya sendiri.\n\nPerhatikan:\n• Indikator penyimpanan perangkat Anda tidak akan menunjukkan ruang yang terbebaskan sampai item dihapus secara permanen\n• Anda dapat kehilangan berkas yang ada di sampah secara permanen jika Anda mencopot pemasangan Butler atau menghapus data aplikasinya</string>
     <string name="explorer_settings_trash_enable_action">Aktifkan</string>
 
     <!-- File Row Content Descriptions -->

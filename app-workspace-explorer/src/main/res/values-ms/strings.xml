@@ -21,7 +21,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Tempoh padam automatik</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Saiz maksimum setiap storan</string>
     <string name="explorer_settings_trash_enable_dialog_title">Aktifkan tong sampah?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Tidak seperti sistem desktop, Android tiada tong sampah terbina dalam. Butler menyediakannya menggunakan folder cachenya.\n\nPerlu diingat:\n• Penunjuk storan peranti tidak akan menunjukkan ruang yang dikosongkan sehingga item dipadam secara kekal\n• Jika storan peranti hampir penuh, Android mungkin mengosongkan cache aplikasi dan membuang fail dalam tong sampah</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Tidak seperti sistem desktop, Android tiada tong sampah terbina dalam. Butler menyediakannya dan menyimpannya dalam folder aplikasinya sendiri.\n\nPerlu diingat:\n• Penunjuk storan peranti tidak akan menunjukkan ruang yang dikosongkan sehingga item dipadam secara kekal\n• Fail dalam tong sampah boleh hilang secara kekal jika Butler dinyahpasang atau data aplikasinya dikosongkan</string>
     <string name="explorer_settings_trash_enable_action">Aktifkan</string>
     <string name="explorer_file_regular_content_desc">Fail</string>
     <string name="explorer_file_symlink_content_desc">Pautan simbolik</string>

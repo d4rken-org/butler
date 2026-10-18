@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Periodo de eliminación automática</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Tamaño máximo por almacenamiento</string>
     <string name="explorer_settings_trash_enable_dialog_title">¿Activar la papelera?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">A diferencia de los sistemas de escritorio, Android no tiene una papelera integrada. Butler proporciona una usando su carpeta de caché.\n\nTen en cuenta:\n• El indicador de almacenamiento de tu dispositivo no reflejará el espacio liberado hasta que los elementos se eliminen permanentemente\n• Si tu dispositivo se queda sin espacio, Android puede borrar las cachés de las apps, eliminando los archivos de la papelera</string>
+    <string name="explorer_settings_trash_enable_dialog_message">A diferencia de los sistemas de escritorio, Android no tiene una papelera integrada. Butler proporciona una, guardada en su propia carpeta de la app.\n\nTen en cuenta:\n• El indicador de almacenamiento de tu dispositivo no reflejará el espacio liberado hasta que los elementos se eliminen permanentemente\n• Puedes perder permanentemente los archivos de la papelera si desinstalas Butler o borras sus datos de la app</string>
     <string name="explorer_settings_trash_enable_action">Activar</string>
 
     <!-- File Row Content Descriptions -->

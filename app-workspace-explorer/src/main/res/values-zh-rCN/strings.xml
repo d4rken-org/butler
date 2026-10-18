@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">自动删除周期</string>
     <string name="explorer_settings_trash_max_size_dialog_title">每个存储位置的最大容量</string>
     <string name="explorer_settings_trash_enable_dialog_title">启用回收站？</string>
-    <string name="explorer_settings_trash_enable_dialog_message">与桌面系统不同，Android 没有内置回收站。Butler 使用其缓存文件夹提供了一个。\n\n请注意：\n• 在项目被永久删除之前，设备的存储指示器不会反映已释放的空间\n• 如果设备存储空间不足，Android 可能会清除应用缓存，从而移除回收站中的文件</string>
+    <string name="explorer_settings_trash_enable_dialog_message">与桌面系统不同，Android 没有内置回收站。Butler 提供了一个，存放在其自身的应用文件夹中。\n\n请注意：\n• 在项目被永久删除之前，设备的存储指示器不会反映已释放的空间\n• 如果卸载 Butler 或清除其应用数据，回收站中的文件可能会永久丢失</string>
     <string name="explorer_settings_trash_enable_action">启用</string>
 
     <!-- File Row Content Descriptions -->

@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Zeitraum für automatisches Löschen</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximale Größe pro Speicher</string>
     <string name="explorer_settings_trash_enable_dialog_title">Papierkorb aktivieren?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Anders als Desktop-Systeme hat Android keinen integrierten Papierkorb. Butler stellt über seinen Cache-Ordner einen bereit.\n\nBitte beachte:\n• Die Speicheranzeige Deines Geräts zeigt den freigegebenen Speicherplatz erst an, wenn Elemente endgültig gelöscht wurden\n• Wenn der Speicherplatz auf Deinem Gerät knapp wird, kann Android App-Caches leeren und dadurch Dateien im Papierkorb entfernen</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Anders als Desktop-Systeme hat Android keinen integrierten Papierkorb. Butler stellt einen bereit, der im eigenen App-Ordner gespeichert wird.\n\nBitte beachte:\n• Die Speicheranzeige Deines Geräts zeigt den freigegebenen Speicherplatz erst an, wenn Elemente endgültig gelöscht wurden\n• Du kannst Dateien im Papierkorb endgültig verlieren, wenn Du Butler deinstallierst oder seine App-Daten löschst</string>
     <string name="explorer_settings_trash_enable_action">Aktivieren</string>
 
     <!-- File Row Content Descriptions -->

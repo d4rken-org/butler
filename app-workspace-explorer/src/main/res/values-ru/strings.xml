@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Период автоудаления</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Максимальный размер на хранилище</string>
     <string name="explorer_settings_trash_enable_dialog_title">Включить корзину?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">В отличие от настольных систем, в Android нет встроенной корзины. Butler реализует её с помощью папки кэша.\n\nУчтите:\n• Индикатор хранилища устройства не отразит освобождённое место, пока объекты не будут удалены навсегда\n• Если на устройстве заканчивается место, Android может очистить кэш приложений, удалив файлы из корзины</string>
+    <string name="explorer_settings_trash_enable_dialog_message">В отличие от настольных систем, в Android нет встроенной корзины. Butler реализует её и хранит в собственной папке приложения.\n\nУчтите:\n• Индикатор хранилища устройства не отразит освобождённое место, пока объекты не будут удалены навсегда\n• Вы можете безвозвратно потерять файлы из корзины, если удалите Butler или очистите данные приложения</string>
     <string name="explorer_settings_trash_enable_action">Включить</string>
 
     <!-- File Row Content Descriptions -->

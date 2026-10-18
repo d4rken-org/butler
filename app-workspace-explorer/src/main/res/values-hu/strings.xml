@@ -21,7 +21,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Automatikus törlés időköze</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Maximális méret tárhelyenként</string>
     <string name="explorer_settings_trash_enable_dialog_title">Engedélyezed a kukát?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Az asztali rendszerekkel ellentétben az Androidnak nincs beépített kukája. A Butler a gyorsítótármappájával biztosít egyet.\n\nNe feledd:\n• Az eszköz tárhelyjelzője csak az elemek végleges törlése után mutatja a felszabadult helyet\n• Ha kevés a szabad tárhely, az Android törölheti az alkalmazások gyorsítótárát, eltávolítva a kukába helyezett fájlokat</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Az asztali rendszerekkel ellentétben az Androidnak nincs beépített kukája. A Butler biztosít egyet, amelyet a saját alkalmazásmappájában tárol.\n\nNe feledd:\n• Az eszköz tárhelyjelzője csak az elemek végleges törlése után mutatja a felszabadult helyet\n• Ha eltávolítod a Butlert, vagy törlöd az alkalmazásadatait, véglegesen elveszítheted a kukába helyezett fájlokat</string>
     <string name="explorer_settings_trash_enable_action">Engedélyezés</string>
     <string name="explorer_file_regular_content_desc">Fájl</string>
     <string name="explorer_file_symlink_content_desc">Szimbolikus hivatkozás</string>

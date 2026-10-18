@@ -22,7 +22,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Período de eliminação automática</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Tamanho máximo por local de armazenamento</string>
     <string name="explorer_settings_trash_enable_dialog_title">Ativar o lixo?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Ao contrário dos sistemas de computador, o Android não tem um lixo integrado. O Butler disponibiliza um através da sua pasta de cache.\n\nTem em conta:\n• O indicador de armazenamento do teu dispositivo não mostrará o espaço libertado até os itens serem eliminados permanentemente\n• Se o teu dispositivo ficar com pouco espaço de armazenamento, o Android pode limpar as caches das aplicações, removendo os ficheiros no lixo</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Ao contrário dos sistemas de computador, o Android não tem um lixo integrado. O Butler disponibiliza um, guardado na sua própria pasta da aplicação.\n\nTem em conta:\n• O indicador de armazenamento do teu dispositivo não mostrará o espaço libertado até os itens serem eliminados permanentemente\n• Podes perder permanentemente os ficheiros no lixo se desinstalares o Butler ou limpares os dados da aplicação</string>
     <string name="explorer_settings_trash_enable_action">Ativar</string>
 
     <!-- File Row Content Descriptions -->

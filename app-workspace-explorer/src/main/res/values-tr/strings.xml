@@ -20,7 +20,7 @@
     <string name="explorer_settings_trash_auto_delete_dialog_title">Otomatik silme süresi</string>
     <string name="explorer_settings_trash_max_size_dialog_title">Depolama başına maksimum boyut</string>
     <string name="explorer_settings_trash_enable_dialog_title">Çöp kutusu etkinleştirilsin mi?</string>
-    <string name="explorer_settings_trash_enable_dialog_message">Masaüstü sistemlerinden farklı olarak Android\'de yerleşik bir çöp kutusu yoktur. Butler, önbellek klasörünü kullanarak bir tane sağlar.\n\nUnutmayın:\n• Öğeler kalıcı olarak silinene kadar cihazınızın depolama göstergesi boşalan alanı yansıtmaz\n• Cihazınızda depolama alanı azalırsa Android, uygulama önbelleklerini temizleyerek çöpe atılan dosyaları kaldırabilir</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Masaüstü sistemlerinden farklı olarak Android\'de yerleşik bir çöp kutusu yoktur. Butler, kendi uygulama klasöründe saklanan bir tane sağlar.\n\nUnutmayın:\n• Öğeler kalıcı olarak silinene kadar cihazınızın depolama göstergesi boşalan alanı yansıtmaz\n• Butler\'ı kaldırırsanız veya uygulama verilerini temizlerseniz çöpe atılan dosyaları kalıcı olarak kaybedebilirsiniz</string>
     <string name="explorer_settings_trash_enable_action">Etkinleştir</string>
 
     <!-- File Row Content Descriptions -->
