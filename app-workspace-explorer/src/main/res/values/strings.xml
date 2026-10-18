@@ -385,6 +385,8 @@
     <string name="explorer_sftp_form_error_username_malformed">The username cannot contain control characters</string>
     <string name="explorer_sftp_form_error_password_required">Enter the password again to change the username, sign-in method or remember setting</string>
     <string name="explorer_sftp_form_error_key_required">Choose a private key file</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Enter the key\'s passphrase</string>
+    <string name="explorer_sftp_form_error_location_changed">This server was changed in the meantime. Try again.</string>
     <string name="explorer_sftp_form_error_key_too_large">This file is larger than %1$d KiB and cannot be a private key</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Choose a file, not a folder</string>
     <string name="explorer_sftp_form_error_key_unreadable">The key file could not be read</string>

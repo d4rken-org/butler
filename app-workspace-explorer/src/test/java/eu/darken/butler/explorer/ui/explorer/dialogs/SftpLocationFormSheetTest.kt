@@ -194,6 +194,53 @@ class SftpLocationFormSheetTest : ComposeTest() {
     }
 
     @Test
+    fun `the passphrase setting starts as stored and is handed over`() {
+        val asking = stored.copy(authType = SftpLocation.AuthType.PRIVATE_KEY, rememberPassphrase = false)
+
+        SftpLocationFormFields(null).toInput().rememberPassphrase shouldBe true
+        val fields = SftpLocationFormFields(asking)
+        fields.toInput().rememberPassphrase shouldBe false
+
+        fields.rememberPassphrase = true
+        fields.toInput().rememberPassphrase shouldBe true
+        fields.revision shouldBe 1
+    }
+
+    @Test
+    fun `the stored key stays reusable when only the passphrase setting changes`() {
+        val key = stored.copy(authType = SftpLocation.AuthType.PRIVATE_KEY)
+        val asking = key.copy(rememberPassphrase = false)
+        val keyAuth = SftpLocation.AuthType.PRIVATE_KEY
+
+        key.canReuseCredentialFor("darken", keyAuth, rememberCredential = true) shouldBe true
+        key.canReuseCredentialFor("root", keyAuth, rememberCredential = true) shouldBe false
+        key.canReuseCredentialFor("darken", keyAuth, rememberCredential = false) shouldBe false
+
+        key.keepsCredentialFor("darken", keyAuth, rememberCredential = true, rememberPassphrase = true) shouldBe true
+        key.keepsCredentialFor("darken", keyAuth, rememberCredential = true, rememberPassphrase = false) shouldBe false
+        asking.keepsCredentialFor("darken", keyAuth, rememberCredential = true, rememberPassphrase = false) shouldBe true
+        asking.keepsCredentialFor("darken", keyAuth, rememberCredential = true, rememberPassphrase = true) shouldBe false
+    }
+
+    @Test
+    fun `the passphrase setting means nothing where no passphrase can be asked for`() {
+        val sessionKey = stored.copy(authType = SftpLocation.AuthType.PRIVATE_KEY, rememberCredential = false)
+
+        stored.keepsCredentialFor(
+            "darken",
+            SftpLocation.AuthType.PASSWORD,
+            rememberCredential = true,
+            rememberPassphrase = false,
+        ) shouldBe true
+        sessionKey.keepsCredentialFor(
+            "darken",
+            SftpLocation.AuthType.PRIVATE_KEY,
+            rememberCredential = false,
+            rememberPassphrase = false,
+        ) shouldBe true
+    }
+
+    @Test
     fun `saving is blocked while testing and an error is shown inline`() {
         setSheetContent(
             ExplorerDialogState.SftpLocationForm(

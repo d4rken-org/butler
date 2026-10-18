@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.sftp.SftpHostKeyChangedException
 import eu.darken.butler.common.files.sftp.credentials.SftpCredential
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialStore
 import eu.darken.butler.common.files.sftp.location.SftpLocation
+import eu.darken.butler.common.files.sftp.location.SftpLocationChangedException
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -67,6 +68,7 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
         authType: SftpLocation.AuthType = SftpLocation.AuthType.PASSWORD,
         password: String = "hunter2",
         passphrase: String = "",
+        rememberPassphrase: Boolean = true,
         label: String = "",
         revision: Int = 5,
     ) = SftpLocationFormInput(
@@ -79,7 +81,19 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
         password = password,
         passphrase = passphrase,
         rememberCredential = true,
+        rememberPassphrase = rememberPassphrase,
         revision = revision,
+    )
+
+    private val keyLocation = stored.copy(authType = SftpLocation.AuthType.PRIVATE_KEY, credentialVersion = 3)
+
+    private val askingLocation = keyLocation.copy(rememberPassphrase = false)
+
+    private fun keyInput(passphrase: String = "", rememberPassphrase: Boolean) = input(
+        authType = SftpLocation.AuthType.PRIVATE_KEY,
+        password = "",
+        passphrase = passphrase,
+        rememberPassphrase = rememberPassphrase,
     )
 
     // region fakes
@@ -144,9 +158,17 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
         val privateKey: String?,
         val passphrase: String?,
         val hostKey: TrustedHostKey?,
+        val rememberPassphrase: Boolean = true,
+        val expectedCredentialVersion: Int? = null,
     )
 
+    private data class Hold(val id: Uuid, val credentialVersion: Int, val passphrase: String)
+
     private val saved = mutableListOf<Saved>()
+    private val holds = mutableListOf<Hold>()
+    private val managerCalls = mutableListOf<String>()
+    private var updateFailure: Exception? = null
+    private var holdResult = true
     private val retrusts = mutableListOf<List<Any>>()
     private var retrustResult: SftpLocationManager.RetrustResult =
         SftpLocationManager.RetrustResult.Retrusted(stored.copy(hostKey = hostKey(2), trustRevision = 2))
@@ -178,6 +200,7 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
                     privateKey = arg<ByteArray?>(9)?.decodeToString(),
                     passphrase = arg<CharArray?>(10)?.concatToString(),
                     hostKey = arg(11),
+                    rememberPassphrase = arg(7),
                 )
             )
             stored
@@ -197,8 +220,11 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
                 privateKey = any(),
                 passphrase = any(),
                 hostKey = any(),
+                expectedCredentialVersion = any(),
             )
         } coAnswers {
+            managerCalls.add("update")
+            updateFailure?.let { throw it }
             saved.add(
                 Saved(
                     existingId = arg(0),
@@ -208,9 +234,16 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
                     privateKey = arg<ByteArray?>(10)?.decodeToString(),
                     passphrase = arg<CharArray?>(11)?.concatToString(),
                     hostKey = arg(12),
+                    rememberPassphrase = arg(8),
+                    expectedCredentialVersion = arg(13),
                 )
             )
             stored
+        }
+        coEvery { holdPassphrase(any(), any(), any()) } coAnswers {
+            managerCalls.add("hold")
+            holds.add(Hold(arg(0), arg(1), arg<CharArray>(2).concatToString()))
+            holdResult
         }
         coEvery { retrust(any(), any(), any(), any(), any()) } coAnswers {
             retrusts.add(listOf(arg<Uuid>(0), arg<String>(1), arg<Int>(2), arg<Int>(3), arg<TrustedHostKey>(4)))
@@ -218,8 +251,17 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
         }
     }
 
+    private var storedPassphrase: String? = "stored-phrase"
+    private var heldPassphrase: String? = null
+
     private val credentialStore = mockk<SftpCredentialStore>().apply {
         coEvery { resolve(any()) } answers { SftpCredential.Password("darken", "stored-secret".toCharArray()) }
+        coEvery { resolveStoredKey(any(), any()) } answers {
+            val location = firstArg<SftpLocation>()
+            val passphrase = secondArg<CharArray?>()?.concatToString()
+                ?: if (location.asksForPassphrase) heldPassphrase else storedPassphrase
+            SftpCredential.PrivateKey("darken", "STORED-KEY".toByteArray(), passphrase?.toCharArray())
+        }
     }
 
     private val keyReader = mockk<SftpPrivateKeyReader>()
@@ -686,6 +728,241 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
         testCalls.single().trustedKey shouldBe hostKey(1)
         saved.single().password shouldBe "new-secret"
         saved.single().hostKey shouldBe null
+    }
+
+    // endregion
+
+    // region stored key
+
+    private suspend fun kotlinx.coroutines.test.TestScope.submitStoredKey(
+        mode: SftpFormMode,
+        location: SftpLocation,
+        input: SftpLocationFormInput,
+    ): ExplorerDialogController {
+        val dialogs = dialogs()
+        val controller = controller(dialogs)
+        dialogs.show(ExplorerDialogState.SftpLocationForm(mode = mode, existing = location))
+        testResults.add(success())
+        controller.onFormSubmit(input)
+        advanceUntilIdle()
+        return dialogs
+    }
+
+    @Test
+    fun `signing in to a key that asks for its passphrase tests and holds the typed one`() = runTest {
+        heldPassphrase = null
+
+        val dialogs = submitStoredKey(
+            SftpFormMode.SIGN_IN,
+            askingLocation,
+            keyInput(passphrase = "phrase", rememberPassphrase = false),
+        )
+
+        testCalls.single().privateKey shouldBe "STORED-KEY"
+        testCalls.single().passphrase shouldBe "phrase"
+        testCalls.single().trustedKey shouldBe hostKey(1)
+        saved.single() shouldBe Saved(
+            existingId = stored.id,
+            host = "build.lan",
+            port = 22,
+            password = null,
+            privateKey = null,
+            passphrase = null,
+            hostKey = null,
+            rememberPassphrase = false,
+            expectedCredentialVersion = 3,
+        )
+        holds.single() shouldBe Hold(stored.id, 3, "phrase")
+        managerCalls shouldBe listOf("update", "hold")
+        coVerify(exactly = 0) { credentialStore.resolve(any()) }
+        dialogs.current() shouldBe ExplorerDialogState.None
+        coVerify { workspace.navigate(ExplorerNavigation.Refresh) }
+    }
+
+    @Test
+    fun `a sign-in whose location moved to another credential is not saved or held`() = runTest {
+        updateFailure = SftpLocationChangedException(stored.id, 3, 4)
+
+        val dialogs = submitStoredKey(
+            SftpFormMode.SIGN_IN,
+            askingLocation,
+            keyInput(passphrase = "phrase", rememberPassphrase = false),
+        )
+
+        testCalls.size shouldBe 1
+        holds shouldBe emptyList()
+        dialogs.form().isTesting shouldBe false
+        dialogs.form().error shouldNotBe null
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    @Test
+    fun `a refused hold keeps the sign-in form open with an error`() = runTest {
+        holdResult = false
+
+        val dialogs = submitStoredKey(
+            SftpFormMode.SIGN_IN,
+            askingLocation,
+            keyInput(passphrase = "phrase", rememberPassphrase = false),
+        )
+
+        holds.single() shouldBe Hold(stored.id, 3, "phrase")
+        dialogs.form().isTesting shouldBe false
+        dialogs.form().error shouldNotBe null
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    @Test
+    fun `signing in to a key that asks for its passphrase needs one typed`() = runTest {
+        heldPassphrase = "held-phrase"
+
+        val dialogs = submitStoredKey(SftpFormMode.SIGN_IN, askingLocation, keyInput(rememberPassphrase = false))
+
+        testCalls shouldBe emptyList()
+        saved shouldBe emptyList()
+        dialogs.form().error shouldNotBe null
+    }
+
+    @Test
+    fun `editing a key that asks for its passphrase tests with the held one`() = runTest {
+        heldPassphrase = "held-phrase"
+
+        val dialogs = submitStoredKey(SftpFormMode.EDIT, askingLocation, keyInput(rememberPassphrase = false))
+
+        testCalls.single().privateKey shouldBe "STORED-KEY"
+        testCalls.single().passphrase shouldBe "held-phrase"
+        saved.single().privateKey shouldBe null
+        saved.single().passphrase shouldBe null
+        saved.single().rememberPassphrase shouldBe false
+        holds shouldBe emptyList()
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `editing a key that asks for its passphrase with none held needs one`() = runTest {
+        heldPassphrase = null
+
+        val dialogs = submitStoredKey(SftpFormMode.EDIT, askingLocation, keyInput(rememberPassphrase = false))
+
+        testCalls shouldBe emptyList()
+        saved shouldBe emptyList()
+        dialogs.form().isTesting shouldBe false
+        dialogs.form().error shouldNotBe null
+    }
+
+    @Test
+    fun `editing a key with a remembered passphrase tests with it and keeps it`() = runTest {
+        val dialogs = submitStoredKey(SftpFormMode.EDIT, keyLocation, keyInput(rememberPassphrase = true))
+
+        testCalls.single().privateKey shouldBe "STORED-KEY"
+        testCalls.single().passphrase shouldBe "stored-phrase"
+        saved.single().privateKey shouldBe null
+        saved.single().passphrase shouldBe null
+        saved.single().expectedCredentialVersion shouldBe null
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `a new remembered passphrase saves the stored key again`() = runTest {
+        submitStoredKey(SftpFormMode.EDIT, keyLocation, keyInput(passphrase = "new-phrase", rememberPassphrase = true))
+
+        testCalls.single().passphrase shouldBe "new-phrase"
+        saved.single().privateKey shouldBe "STORED-KEY"
+        saved.single().passphrase shouldBe "new-phrase"
+        saved.single().rememberPassphrase shouldBe true
+        holds shouldBe emptyList()
+    }
+
+    @Test
+    fun `no longer remembering a passphrase saves the stored key with the typed one`() = runTest {
+        submitStoredKey(SftpFormMode.EDIT, keyLocation, keyInput(passphrase = "new-phrase", rememberPassphrase = false))
+
+        testCalls.single().privateKey shouldBe "STORED-KEY"
+        testCalls.single().passphrase shouldBe "new-phrase"
+        saved.single().privateKey shouldBe "STORED-KEY"
+        saved.single().passphrase shouldBe "new-phrase"
+        saved.single().rememberPassphrase shouldBe false
+        holds shouldBe emptyList()
+    }
+
+    @Test
+    fun `no longer remembering a passphrase saves the stored key with the stored one`() = runTest {
+        storedPassphrase = "stored-phrase"
+
+        submitStoredKey(SftpFormMode.EDIT, keyLocation, keyInput(rememberPassphrase = false))
+
+        testCalls.single().passphrase shouldBe "stored-phrase"
+        saved.single().privateKey shouldBe "STORED-KEY"
+        saved.single().passphrase shouldBe "stored-phrase"
+        saved.single().rememberPassphrase shouldBe false
+    }
+
+    @Test
+    fun `asking for the passphrase of a key without one saves it without one`() = runTest {
+        storedPassphrase = null
+
+        val dialogs = submitStoredKey(SftpFormMode.EDIT, keyLocation, keyInput(rememberPassphrase = false))
+
+        testCalls.single().privateKey shouldBe "STORED-KEY"
+        testCalls.single().passphrase shouldBe null
+        saved.single().privateKey shouldBe "STORED-KEY"
+        saved.single().passphrase shouldBe null
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `remembering an asked-for passphrase saves the stored key with the typed one`() = runTest {
+        heldPassphrase = null
+
+        submitStoredKey(SftpFormMode.EDIT, askingLocation, keyInput(passphrase = "phrase", rememberPassphrase = true))
+
+        testCalls.single().passphrase shouldBe "phrase"
+        saved.single().privateKey shouldBe "STORED-KEY"
+        saved.single().passphrase shouldBe "phrase"
+        saved.single().rememberPassphrase shouldBe true
+        saved.single().expectedCredentialVersion shouldBe null
+        holds shouldBe emptyList()
+    }
+
+    @Test
+    fun `remembering an asked-for passphrase saves the stored key with the held one`() = runTest {
+        heldPassphrase = "held-phrase"
+
+        submitStoredKey(SftpFormMode.EDIT, askingLocation, keyInput(rememberPassphrase = true))
+
+        testCalls.single().passphrase shouldBe "held-phrase"
+        saved.single().privateKey shouldBe "STORED-KEY"
+        saved.single().passphrase shouldBe "held-phrase"
+        saved.single().rememberPassphrase shouldBe true
+    }
+
+    @Test
+    fun `remembering an asked-for passphrase needs one`() = runTest {
+        heldPassphrase = null
+
+        val dialogs = submitStoredKey(SftpFormMode.EDIT, askingLocation, keyInput(rememberPassphrase = true))
+
+        testCalls shouldBe emptyList()
+        saved shouldBe emptyList()
+        dialogs.form().error shouldNotBe null
+    }
+
+    @Test
+    fun `a picked key file is saved with the chosen passphrase setting`() = runTest {
+        val dialogs = dialogs()
+        val controller = controller(dialogs)
+        dialogs.show(ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.EDIT, existing = keyLocation))
+        pickKey(controller, SftpPrivateKeyReader.Result.Loaded("id_ed25519", "KEY-BYTES".toByteArray()))
+
+        testResults.add(success())
+        controller.onFormSubmit(keyInput(passphrase = "phrase", rememberPassphrase = false))
+        advanceUntilIdle()
+
+        testCalls.single().privateKey shouldBe "KEY-BYTES"
+        saved.single().privateKey shouldBe "KEY-BYTES"
+        saved.single().passphrase shouldBe "phrase"
+        saved.single().rememberPassphrase shouldBe false
+        coVerify(exactly = 0) { credentialStore.resolveStoredKey(any(), any()) }
     }
 
     // endregion

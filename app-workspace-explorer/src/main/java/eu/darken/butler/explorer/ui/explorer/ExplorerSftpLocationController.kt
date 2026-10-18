@@ -27,6 +27,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.SftpFormMode
 import eu.darken.butler.explorer.ui.explorer.dialogs.SftpHostKeyConfirmation
 import eu.darken.butler.explorer.ui.explorer.dialogs.SftpLocationFormInput
 import eu.darken.butler.explorer.ui.explorer.dialogs.SftpRetrustConfirmation
+import eu.darken.butler.explorer.ui.explorer.dialogs.canReuseCredentialFor
 import eu.darken.butler.explorer.ui.explorer.dialogs.keepsCredentialFor
 import eu.darken.butler.explorer.ui.explorer.dialogs.sftpEndpointLabel
 import eu.darken.butler.upgrade.UpgradeRepo
@@ -385,7 +386,7 @@ class ExplorerSftpLocationController(
         }
         val existing = testing.existing
         val label = input.label.trim().takeIf { it.isNotEmpty() }
-        try {
+        val passphraseHeld = try {
             if (existing == null) {
                 locationManager.create(
                     label = label,
@@ -395,12 +396,13 @@ class ExplorerSftpLocationController(
                     basePath = details.basePath,
                     authType = input.authType,
                     rememberCredential = input.rememberCredential,
-                    rememberPassphrase = true,
+                    rememberPassphrase = input.rememberPassphrase,
                     password = secrets.savePassword,
                     privateKey = secrets.saveKey,
                     passphrase = secrets.savePassphrase,
                     hostKey = requireNotNull(acceptedKey) { "A new location needs an accepted host key" },
                 )
+                true
             } else {
                 locationManager.update(
                     id = existing.id,
@@ -411,14 +413,16 @@ class ExplorerSftpLocationController(
                     basePath = details.basePath,
                     authType = input.authType,
                     rememberCredential = input.rememberCredential,
-                    rememberPassphrase = true,
+                    rememberPassphrase = input.rememberPassphrase,
                     password = secrets.savePassword,
                     privateKey = secrets.saveKey,
                     passphrase = secrets.savePassphrase,
                     hostKey = acceptedKey,
+                    expectedCredentialVersion = secrets.keptVersion,
                 )
+                val passphrase = secrets.holdPassphrase
+                passphrase == null || locationManager.holdPassphrase(existing.id, secrets.keptVersion!!, passphrase)
             }
-            log(tag, INFO) { "save(): Saved SFTP location" }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -426,6 +430,12 @@ class ExplorerSftpLocationController(
             fail(testing, e.localizedDescription())
             return
         }
+        if (!passphraseHeld) {
+            log(tag, WARN) { "save(): The location moved to another credential, its passphrase was not held" }
+            fail(testing, R.string.explorer_sftp_form_error_location_changed.toCaString())
+            return
+        }
+        log(tag, INFO) { "save(): Saved SFTP location" }
 
         dialogs.dismissIfCurrent(testing)
         clearSelection()
@@ -506,6 +516,10 @@ class ExplorerSftpLocationController(
         val savePassword: CharArray? = null,
         val saveKey: ByteArray? = null,
         val savePassphrase: CharArray? = null,
+        /** The stored credential generation the test signed in with, which the save must still find. */
+        val keptVersion: Int? = null,
+        /** Held for [keptVersion] once saved, the key stays stored without it. */
+        val holdPassphrase: CharArray? = null,
         val keyGeneration: Int,
         private val stored: SftpCredential? = null,
     ) {
@@ -516,6 +530,7 @@ class ExplorerSftpLocationController(
             savePassword?.fill(Char(0))
             saveKey?.fill(0)
             savePassphrase?.fill(Char(0))
+            holdPassphrase?.fill(Char(0))
             stored?.wipe()
         }
 
@@ -528,7 +543,7 @@ class ExplorerSftpLocationController(
         details: SftpLocationInput.Parsed,
     ): Secrets? {
         val existing = testing.existing
-        val keepsStored = existing?.keepsCredentialFor(details.username, input.authType, input.rememberCredential) == true
+        val keepsStored = existing?.canReuseCredentialFor(details.username, input.authType, input.rememberCredential) == true
         val generation = synchronized(lock) { keyGeneration }
 
         return when (input.authType) {
@@ -548,7 +563,8 @@ class ExplorerSftpLocationController(
                     }
 
                     else -> {
-                        val stored = resolveStored(testing, existing!!) as? SftpCredential.Password ?: return null
+                        val stored = resolveStored(testing) { credentialStore.resolve(existing!!) }
+                        if (stored !is SftpCredential.Password) return null
                         Secrets(testPassword = stored.password, keyGeneration = generation, stored = stored)
                     }
                 }
@@ -574,41 +590,95 @@ class ExplorerSftpLocationController(
                         null
                     }
 
-                    else -> {
-                        val stored = resolveStored(testing, existing!!) as? SftpCredential.PrivateKey
-                        if (stored == null) {
-                            passphrase?.fill(Char(0))
-                            return null
-                        }
-                        when (passphrase) {
-                            null -> Secrets(
-                                testKey = stored.keyBytes,
-                                testPassphrase = stored.passphrase,
-                                keyGeneration = generation,
-                                stored = stored,
-                            )
-                            // A passphrase is stored with its key: a new one saves the stored key again.
-                            else -> Secrets(
-                                testKey = stored.keyBytes,
-                                testPassphrase = passphrase,
-                                saveKey = stored.keyBytes.copyOf(),
-                                savePassphrase = passphrase.copyOf(),
-                                keyGeneration = generation,
-                                stored = stored,
-                            )
-                        }
-                    }
+                    else -> storedKeySecrets(testing, existing!!, input, details, passphrase, generation)
                 }
             }
         }
     }
 
-    /** Nothing typed while editing: the test runs against the stored secret, never against nothing. */
-    private suspend fun resolveStored(
+    /**
+     * No key file picked: the test runs with the stored key and [typed], else the passphrase held or
+     * stored for it. The key is saved again whenever its passphrase is stored anew or no longer stored.
+     */
+    private suspend fun storedKeySecrets(
         testing: ExplorerDialogState.SftpLocationForm,
         location: SftpLocation,
-    ): SftpCredential? = try {
-        credentialStore.resolve(location)
+        input: SftpLocationFormInput,
+        details: SftpLocationInput.Parsed,
+        typed: CharArray?,
+        generation: Int,
+    ): Secrets? {
+        val isTyped = typed != null
+        val stored = try {
+            resolveStored(testing) { credentialStore.resolveStoredKey(location, typed) } ?: return null
+        } finally {
+            typed?.fill(Char(0))
+        }
+        val passphrase = stored.passphrase
+        val keepsGeneration = location.keepsCredentialFor(
+            username = details.username,
+            authType = input.authType,
+            rememberCredential = input.rememberCredential,
+            rememberPassphrase = input.rememberPassphrase,
+        )
+
+        return when {
+            // Remembering a passphrase that was asked for needs one to remember.
+            !keepsGeneration && location.asksForPassphrase && passphrase == null -> {
+                stored.wipe()
+                fail(testing, R.string.explorer_sftp_form_error_passphrase_required.toCaString())
+                null
+            }
+
+            !keepsGeneration -> Secrets(
+                testKey = stored.keyBytes,
+                testPassphrase = passphrase,
+                saveKey = stored.keyBytes.copyOf(),
+                savePassphrase = passphrase?.copyOf(),
+                keyGeneration = generation,
+                stored = stored,
+            )
+
+            location.asksForPassphrase && isTyped -> Secrets(
+                testKey = stored.keyBytes,
+                testPassphrase = passphrase,
+                keptVersion = location.credentialVersion,
+                holdPassphrase = passphrase?.copyOf(),
+                keyGeneration = generation,
+                stored = stored,
+            )
+
+            location.asksForPassphrase && passphrase == null -> {
+                stored.wipe()
+                fail(testing, R.string.explorer_sftp_form_error_passphrase_required.toCaString())
+                null
+            }
+
+            // A remembered passphrase is stored with its key: a new one saves the stored key again.
+            isTyped -> Secrets(
+                testKey = stored.keyBytes,
+                testPassphrase = passphrase,
+                saveKey = stored.keyBytes.copyOf(),
+                savePassphrase = passphrase?.copyOf(),
+                keyGeneration = generation,
+                stored = stored,
+            )
+
+            else -> Secrets(
+                testKey = stored.keyBytes,
+                testPassphrase = passphrase,
+                keyGeneration = generation,
+                stored = stored,
+            )
+        }
+    }
+
+    /** Nothing typed while editing: the test runs against the stored secret, never against nothing. */
+    private suspend fun <T : SftpCredential> resolveStored(
+        testing: ExplorerDialogState.SftpLocationForm,
+        resolve: suspend () -> T,
+    ): T? = try {
+        resolve()
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
