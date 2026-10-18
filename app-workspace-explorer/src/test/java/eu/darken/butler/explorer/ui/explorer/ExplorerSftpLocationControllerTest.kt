@@ -29,6 +29,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -1240,6 +1241,212 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
         dialogs.form().retrustConfirmation shouldBe null
         dialogs.form().error shouldNotBe null
         retrusts shouldBe emptyList()
+    }
+
+    // endregion
+
+    // region unlock
+
+    private val rootTarget = ExplorerNavigation.Target.Directory(LocalPath.build("/srv"))
+
+    private fun ExplorerDialogController.unlockDialog() =
+        current().shouldBeInstanceOf<ExplorerDialogState.SftpUnlock>()
+
+    private suspend fun kotlinx.coroutines.test.TestScope.promptUnlock(
+        openOnUnlock: ExplorerNavigation.Target? = rootTarget,
+    ): Pair<ExplorerDialogController, ExplorerSftpLocationController> {
+        coEvery { locationManager.get(stored.id) } returns askingLocation
+        val dialogs = dialogs()
+        val controller = controller(dialogs)
+        controller.promptSignIn(stored.id, openOnUnlock)
+        advanceUntilIdle()
+        return dialogs to controller
+    }
+
+    @Test
+    fun `signing in to a key that asks for its passphrase opens the unlock dialog`() = runTest {
+        val (dialogs, _) = promptUnlock()
+
+        val dialog = dialogs.unlockDialog()
+        dialog.location shouldBe askingLocation
+        dialog.openOnUnlock shouldBe rootTarget
+        dialog.isUnlocking shouldBe false
+        dialog.error shouldBe null
+    }
+
+    @Test
+    fun `signing in to a key with a remembered passphrase opens the sign-in form`() = runTest {
+        coEvery { locationManager.get(stored.id) } returns keyLocation
+        val dialogs = dialogs()
+
+        controller(dialogs).promptSignIn(stored.id, rootTarget)
+        advanceUntilIdle()
+
+        dialogs.form().mode shouldBe SftpFormMode.SIGN_IN
+        dialogs.form().existing shouldBe keyLocation
+    }
+
+    @Test
+    fun `signing in to a password server opens the sign-in form`() = runTest {
+        val dialogs = dialogs()
+
+        controller(dialogs).promptSignIn(stored.id, rootTarget)
+        advanceUntilIdle()
+
+        dialogs.form().mode shouldBe SftpFormMode.SIGN_IN
+        dialogs.form().existing shouldBe stored
+    }
+
+    @Test
+    fun `unlocking from the network list holds the passphrase and opens the server`() = runTest {
+        val (dialogs, controller) = promptUnlock()
+        val typed = "phrase".toCharArray()
+
+        testResults.add(success())
+        controller.onUnlock(dialogs.unlockDialog().dialogId, typed)
+        advanceUntilIdle()
+
+        testCalls.single() shouldBe TestCall(
+            host = "build.lan",
+            port = 22,
+            password = null,
+            privateKey = "STORED-KEY",
+            passphrase = "phrase",
+            trustedKey = hostKey(1),
+        )
+        holds.single() shouldBe Hold(stored.id, 3, "phrase")
+        managerCalls shouldBe listOf("hold")
+        saved shouldBe emptyList()
+        dialogs.current() shouldBe ExplorerDialogState.None
+        coVerify(exactly = 1) { workspace.navigate(rootTarget) }
+        coVerify(exactly = 0) { workspace.navigate(ExplorerNavigation.Refresh) }
+        typed.all { it == Char(0) } shouldBe true
+    }
+
+    @Test
+    fun `unlocking after a failed load reloads the location`() = runTest {
+        val (dialogs, controller) = promptUnlock(openOnUnlock = null)
+
+        testResults.add(success())
+        controller.onUnlock(dialogs.unlockDialog().dialogId, "phrase".toCharArray())
+        advanceUntilIdle()
+
+        holds.single() shouldBe Hold(stored.id, 3, "phrase")
+        dialogs.current() shouldBe ExplorerDialogState.None
+        coVerify(exactly = 1) { workspace.navigate(ExplorerNavigation.Refresh) }
+    }
+
+    @Test
+    fun `a wrong passphrase keeps the dialog open with an error and holds nothing`() = runTest {
+        val (dialogs, controller) = promptUnlock()
+        val typed = "wrong".toCharArray()
+
+        testResults.add(SftpConnectionTester.Result.KeyPassphraseInvalid)
+        controller.onUnlock(dialogs.unlockDialog().dialogId, typed)
+        advanceUntilIdle()
+
+        val dialog = dialogs.unlockDialog()
+        dialog.isUnlocking shouldBe false
+        dialog.error shouldNotBe null
+        holds shouldBe emptyList()
+        managerCalls shouldBe emptyList()
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+        typed.all { it == Char(0) } shouldBe true
+    }
+
+    @Test
+    fun `a refused hold keeps the unlock dialog open with an error`() = runTest {
+        holdResult = false
+        val (dialogs, controller) = promptUnlock()
+
+        testResults.add(success())
+        controller.onUnlock(dialogs.unlockDialog().dialogId, "phrase".toCharArray())
+        advanceUntilIdle()
+
+        holds.single() shouldBe Hold(stored.id, 3, "phrase")
+        val dialog = dialogs.unlockDialog()
+        dialog.isUnlocking shouldBe false
+        dialog.error shouldNotBe null
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    @Test
+    fun `an unusable stored key keeps the unlock dialog open with an error`() = runTest {
+        coEvery { credentialStore.resolveStoredKey(any(), any()) } throws IllegalStateException("No key stored")
+        val (dialogs, controller) = promptUnlock()
+        val typed = "phrase".toCharArray()
+
+        controller.onUnlock(dialogs.unlockDialog().dialogId, typed)
+        advanceUntilIdle()
+
+        testCalls shouldBe emptyList()
+        holds shouldBe emptyList()
+        val dialog = dialogs.unlockDialog()
+        dialog.isUnlocking shouldBe false
+        dialog.error shouldNotBe null
+        typed.all { it == Char(0) } shouldBe true
+    }
+
+    @Test
+    fun `edit server swaps the unlock dialog for the sign-in form`() = runTest {
+        val (dialogs, controller) = promptUnlock()
+
+        controller.onUnlockEditServer(dialogs.unlockDialog().dialogId)
+
+        val form = dialogs.form()
+        form.mode shouldBe SftpFormMode.SIGN_IN
+        form.existing shouldBe askingLocation
+    }
+
+    @Test
+    fun `an unlock finishing after its dialog was replaced holds nothing`() = runTest {
+        val (dialogs, controller) = promptUnlock()
+        val gate = CompletableDeferred<SftpConnectionTester.Result>()
+        coEvery {
+            tester.test(
+                host = any(),
+                port = any(),
+                username = any(),
+                authType = any(),
+                password = any(),
+                privateKey = any(),
+                passphrase = any(),
+                basePath = any(),
+                trustedKey = any(),
+            )
+        } coAnswers { gate.await() }
+        val typed = "phrase".toCharArray()
+
+        controller.onUnlock(dialogs.unlockDialog().dialogId, typed)
+        advanceUntilIdle()
+        dialogs.unlockDialog().isUnlocking shouldBe true
+
+        val reopened = ExplorerDialogState.SftpUnlock(askingLocation, rootTarget)
+        dialogs.show(reopened)
+        gate.complete(success())
+        advanceUntilIdle()
+
+        holds shouldBe emptyList()
+        dialogs.current() shouldBe reopened
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+        typed.all { it == Char(0) } shouldBe true
+    }
+
+    @Test
+    fun `an unlock for a dialog that is no longer showing is ignored`() = runTest {
+        val (dialogs, controller) = promptUnlock()
+        val stale = dialogs.unlockDialog().dialogId
+        val reopened = ExplorerDialogState.SftpUnlock(askingLocation, rootTarget)
+        dialogs.show(reopened)
+        val typed = "phrase".toCharArray()
+
+        controller.onUnlock(stale, typed)
+        controller.onUnlockEditServer(stale)
+        advanceUntilIdle()
+
+        testCalls shouldBe emptyList()
+        dialogs.current() shouldBe reopened
+        typed.all { it == Char(0) } shouldBe true
     }
 
     // endregion

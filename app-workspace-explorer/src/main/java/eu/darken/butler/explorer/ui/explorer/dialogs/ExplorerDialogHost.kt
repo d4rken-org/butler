@@ -111,6 +111,15 @@ fun ExplorerDialogHost(
             }
         }
 
+        is ExplorerDialogState.SftpUnlock -> {
+            SftpUnlockDialog(
+                state = dialogState,
+                onUnlock = { passphrase -> vm?.onSftpUnlock(dialogState.dialogId, passphrase) },
+                onEditServer = { vm?.onSftpUnlockEditServer(dialogState.dialogId) },
+                onDismiss = { vm?.dismissDialog() },
+            )
+        }
+
         is ExplorerDialogState.WebDavLocationForm -> {
             val fields = rememberWebDavLocationFormFields(dialogState)
             WebDavLocationFormSheet(

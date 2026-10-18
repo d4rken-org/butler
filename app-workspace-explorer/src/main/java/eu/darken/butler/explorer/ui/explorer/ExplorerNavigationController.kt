@@ -65,7 +65,7 @@ class ExplorerNavigationController(
     private val favoritesRepo: ExplorerFavoritesRepo,
     private val upgradeRepo: UpgradeRepo,
     private val onNetworkLocked: () -> Unit,
-    private val showSftpLocationForm: (SftpLocation) -> Unit,
+    private val promptSftpSignIn: (SftpLocation, ExplorerNavigation.Target) -> Unit,
     private val showWebDavLocationForm: (WebDavLocation) -> Unit,
     private val selectedItems: () -> Set<ExplorerItem>,
     private val toggleSelection: (ExplorerItem) -> Unit,
@@ -201,7 +201,7 @@ class ExplorerNavigationController(
                         is NetworkLocation.Smb -> {
                             dialogs.show(ExplorerDialogState.SmbLocationForm(existing = location.location))
                         }
-                        is NetworkLocation.Sftp -> showSftpLocationForm(location.location)
+                        is NetworkLocation.Sftp -> promptSftpSignIn(location.location, item.target)
                         is NetworkLocation.WebDav -> showWebDavLocationForm(location.location)
                     }
 

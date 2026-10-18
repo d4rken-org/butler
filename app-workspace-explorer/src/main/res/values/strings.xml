@@ -426,6 +426,13 @@
     <string name="explorer_sftp_host_key_retrust_message">Only replace the key if you know why %1$s changed it. Butler will trust the presented key from now on.</string>
     <string name="explorer_sftp_host_key_retrust_action">Replace key</string>
 
+    <!-- SFTP Key Unlock -->
+    <string name="explorer_sftp_unlock_title">Unlock %1$s</string>
+    <string name="explorer_sftp_unlock_message">Enter the key\'s passphrase.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Passphrase</string>
+    <string name="explorer_sftp_unlock_edit_action">Edit server</string>
+    <string name="explorer_sftp_unlock_action">Unlock</string>
+
     <!-- WebDAV Server Form -->
     <string name="explorer_webdav_form_add_title">Add WebDAV server</string>
     <string name="explorer_webdav_form_edit_title">Edit WebDAV server</string>

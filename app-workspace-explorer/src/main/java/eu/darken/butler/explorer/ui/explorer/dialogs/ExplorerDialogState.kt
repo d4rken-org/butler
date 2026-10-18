@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.webdav.WebDavCertificateInfo
 import eu.darken.butler.common.files.webdav.WebDavLocationInput
 import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.common.files.archive.CompressionPreset
+import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -79,6 +80,20 @@ sealed interface ExplorerDialogState {
         val hostKeyConfirmation: SftpHostKeyConfirmation? = null,
         val retrustConfirmation: SftpRetrustConfirmation? = null,
         val formId: Uuid = Uuid.random(),
+    ) : ExplorerDialogState
+
+    /**
+     * Asks only for the passphrase of a [SftpLocation.asksForPassphrase] location. [openOnUnlock] is
+     * where to go once it is unlocked; null reloads the current location instead.
+     *
+     * [dialogId] identifies this opening, like [SftpLocationForm.formId].
+     */
+    data class SftpUnlock(
+        val location: SftpLocation,
+        val openOnUnlock: ExplorerNavigation.Target? = null,
+        val isUnlocking: Boolean = false,
+        val error: CaString? = null,
+        val dialogId: Uuid = Uuid.random(),
     ) : ExplorerDialogState
 
     /**

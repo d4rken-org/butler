@@ -364,7 +364,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         favoritesRepo = favoritesRepo,
         upgradeRepo = upgradeRepo,
         onNetworkLocked = { smbLocations.showUpgradeHint(SmbUpgradeHint.Reason.LOCKED) },
-        showSftpLocationForm = { location -> sftpLocations.promptSignIn(location.id) },
+        promptSftpSignIn = { location, target -> sftpLocations.promptSignIn(location.id, target) },
         showWebDavLocationForm = { location -> webDavLocations.promptSignIn(location.id) },
         selectedItems = { selection.selectedItems.value },
         toggleSelection = { selection.toggle(it) },
@@ -1881,6 +1881,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun onSftpLocationFormSubmit(input: SftpLocationFormInput) = sftpLocations.onFormSubmit(input)
 
     fun onPickSftpKeyFile() = sftpLocations.pickKeyFile()
+
+    fun onSftpUnlock(dialogId: Uuid, passphrase: String) = sftpLocations.onUnlock(dialogId, passphrase.toCharArray())
+
+    fun onSftpUnlockEditServer(dialogId: Uuid) = sftpLocations.onUnlockEditServer(dialogId)
 
     fun onSftpHostKeyAccepted(confirmationId: Uuid, input: SftpLocationFormInput) =
         sftpLocations.onHostKeyAccepted(confirmationId, input)

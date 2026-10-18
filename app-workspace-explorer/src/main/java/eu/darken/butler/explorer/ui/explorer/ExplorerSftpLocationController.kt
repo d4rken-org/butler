@@ -84,7 +84,24 @@ class ExplorerSftpLocationController(
 
     fun showEditForm(locationId: Uuid) = showForm(locationId, SftpFormMode.EDIT)
 
-    fun promptSignIn(locationId: Uuid) = showForm(locationId, SftpFormMode.SIGN_IN)
+    /**
+     * A location that asks for its passphrase gets the unlock dialog, everything else the sign-in form.
+     * [openOnUnlock] is opened once unlocked, null reloads the current location.
+     */
+    fun promptSignIn(locationId: Uuid, openOnUnlock: ExplorerNavigation.Target? = null) = doLaunch {
+        log(tag) { "promptSignIn(sftp=$locationId)" }
+        val location = locationManager.get(locationId)
+        if (location == null) {
+            log(tag, ERROR) { "promptSignIn(): Unknown SFTP location $locationId" }
+            return@doLaunch
+        }
+        dialogs.show(
+            when {
+                location.asksForPassphrase -> ExplorerDialogState.SftpUnlock(location, openOnUnlock)
+                else -> ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.SIGN_IN, existing = location)
+            }
+        )
+    }
 
     /** Re-reads the stored details, the selected row may have been drawn from an older listing. */
     private fun showForm(locationId: Uuid, mode: SftpFormMode) = doLaunch {
@@ -124,6 +141,110 @@ class ExplorerSftpLocationController(
             )
         )
     }
+
+    // region unlock
+
+    /** Owns [passphrase] and wipes it, whatever the outcome. */
+    fun onUnlock(dialogId: Uuid, passphrase: CharArray) = doLaunch {
+        try {
+            val dialog = dialogs.current() as? ExplorerDialogState.SftpUnlock
+            if (dialog == null || dialog.dialogId != dialogId || dialog.isUnlocking || passphrase.isEmpty()) {
+                return@doLaunch
+            }
+            val unlocking = dialog.copy(isUnlocking = true, error = null)
+            if (!dialogs.replaceIfCurrent(dialog, unlocking)) return@doLaunch
+            unlock(unlocking, passphrase)
+        } finally {
+            passphrase.fill(Char(0))
+        }
+    }
+
+    private suspend fun unlock(unlocking: ExplorerDialogState.SftpUnlock, passphrase: CharArray) {
+        val location = unlocking.location
+        log(tag) { "unlock(${location.id})" }
+
+        val key = try {
+            credentialStore.resolveStoredKey(location, passphrase)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "unlock(): Stored key unusable: ${e.asLog()}" }
+            unlockFailed(unlocking, e.localizedDescription())
+            return
+        }
+
+        val result = try {
+            connectionTester.test(
+                host = location.host,
+                port = location.port,
+                username = location.username,
+                authType = SftpLocation.AuthType.PRIVATE_KEY,
+                password = null,
+                privateKey = key.keyBytes,
+                passphrase = key.passphrase,
+                basePath = location.basePath,
+                trustedKey = location.hostKey,
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "unlock(): Connection test failed: ${e.asLog()}" }
+            unlockFailed(unlocking, e.localizedDescription())
+            return
+        } finally {
+            key.wipe()
+        }
+        log(tag, INFO) { "unlock(): Test result ${result::class.simpleName}" }
+
+        if (result !is SftpConnectionTester.Result.Success) {
+            unlockFailed(unlocking, result.message(location.host, location.port))
+            return
+        }
+        if (dialogs.current() !== unlocking) {
+            log(tag, WARN) { "unlock(): The dialog moved on while testing, nothing held" }
+            return
+        }
+
+        val held = try {
+            locationManager.holdPassphrase(location.id, location.credentialVersion, passphrase)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "unlock(): Holding the passphrase failed: ${e.asLog()}" }
+            unlockFailed(unlocking, e.localizedDescription())
+            return
+        }
+        if (!held) {
+            log(tag, WARN) { "unlock(): The location moved to another credential, its passphrase was not held" }
+            unlockFailed(unlocking, R.string.explorer_sftp_form_error_location_changed.toCaString())
+            return
+        }
+        log(tag, INFO) { "unlock(): Unlocked ${location.id}" }
+
+        if (!dialogs.dismissIfCurrent(unlocking)) return
+        clearSelection()
+        when (val target = unlocking.openOnUnlock) {
+            null -> refreshUnlessLive()
+            else -> workspace().navigate(target)
+        }
+    }
+
+    private fun unlockFailed(unlocking: ExplorerDialogState.SftpUnlock, error: CaString) {
+        dialogs.showIfCurrent(unlocking, unlocking.copy(isUnlocking = false, error = error))
+    }
+
+    /** Swaps the unlock dialog for the full sign-in form, e.g. to pick another key or re-trust the host. */
+    fun onUnlockEditServer(dialogId: Uuid) {
+        val dialog = dialogs.current() as? ExplorerDialogState.SftpUnlock ?: return
+        if (dialog.dialogId != dialogId || dialog.isUnlocking) return
+        log(tag) { "onUnlockEditServer(${dialog.location.id})" }
+        dialogs.replaceIfCurrent(
+            dialog,
+            ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.SIGN_IN, existing = dialog.location),
+        )
+    }
+
+    // endregion
 
     // region key file
 
@@ -348,7 +469,7 @@ class ExplorerSftpLocationController(
                             testing,
                             testing.copy(
                                 isTesting = false,
-                                error = result.message(details),
+                                error = result.message(details.host, details.port),
                                 retrustConfirmation = SftpRetrustConfirmation(
                                     locationId = existing.id,
                                     host = existing.host,
@@ -362,11 +483,11 @@ class ExplorerSftpLocationController(
                             ),
                         )
                     } else {
-                        fail(testing, result.message(details))
+                        fail(testing, result.message(details.host, details.port))
                     }
                 }
 
-                else -> fail(testing, result.message(details))
+                else -> fail(testing, result.message(details.host, details.port))
             }
         } finally {
             secrets.wipe()
@@ -735,9 +856,9 @@ class ExplorerSftpLocationController(
 
     private fun Throwable.localizedDescription(): CaString = caString { cx -> localized(cx).asText().get(cx) }
 
-    private fun SftpConnectionTester.Result.message(details: SftpLocationInput.Parsed): CaString = when (this) {
+    private fun SftpConnectionTester.Result.message(host: String, port: Int): CaString = when (this) {
         SftpConnectionTester.Result.AuthenticationFailed -> caString {
-            it.getString(R.string.explorer_sftp_form_error_auth, details.host)
+            it.getString(R.string.explorer_sftp_form_error_auth, host)
         }
 
         SftpConnectionTester.Result.KeyFormatInvalid -> R.string.explorer_sftp_form_error_key_format.toCaString()
@@ -750,7 +871,7 @@ class ExplorerSftpLocationController(
             R.string.explorer_sftp_form_error_base_path_denied.toCaString()
 
         is SftpConnectionTester.Result.Unreachable -> caString {
-            it.getString(R.string.explorer_sftp_form_error_unreachable, sftpEndpointLabel(details.host, details.port))
+            it.getString(R.string.explorer_sftp_form_error_unreachable, sftpEndpointLabel(host, port))
         }
 
         is SftpConnectionTester.Result.HostKeyMismatch -> caString {
