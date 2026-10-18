@@ -619,6 +619,7 @@ object MockDataProvider {
         username: String = "darken",
         basePath: String = "/srv/builds",
         authType: SftpLocation.AuthType = SftpLocation.AuthType.PRIVATE_KEY,
+        rememberPassphrase: Boolean = true,
         status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
         id: Uuid = Uuid.parse("66666666-7777-8888-9999-000000000000"),
         endpoint: NetworkEndpointState = NetworkEndpointState(),
@@ -633,6 +634,7 @@ object MockDataProvider {
             basePath = basePath,
             authType = authType,
             rememberCredential = true,
+            rememberPassphrase = rememberPassphrase,
             credentialVersion = 1,
             hostKey = TrustedHostKey(
                 type = "ssh-ed25519",

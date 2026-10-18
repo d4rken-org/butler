@@ -584,10 +584,16 @@ private fun SftpStorageInfo(
             ),
             value = when (item.credentials) {
                 NetworkCredentialAvailability.AVAILABLE -> stringResource(
-                    if (location.rememberCredential) R.string.explorer_info_sftp_credential_stored
-                    else R.string.explorer_info_sftp_credential_session
+                    when {
+                        location.asksForPassphrase -> R.string.explorer_info_sftp_credential_passphrase_session
+                        location.rememberCredential -> R.string.explorer_info_sftp_credential_stored
+                        else -> R.string.explorer_info_sftp_credential_session
+                    }
                 )
-                NetworkCredentialAvailability.MISSING -> stringResource(R.string.explorer_info_network_password_missing)
+                NetworkCredentialAvailability.MISSING -> stringResource(
+                    if (location.asksForPassphrase) R.string.explorer_info_sftp_credential_passphrase_missing
+                    else R.string.explorer_info_network_password_missing
+                )
                 NetworkCredentialAvailability.KEY_UNAVAILABLE -> {
                     stringResource(R.string.explorer_info_network_password_locked)
                 }
@@ -1145,6 +1151,39 @@ private fun ItemInfoBottomSheetPreviewSftpPasswordRelativeSignInRequired() {
         port = 2222,
         basePath = "media",
         authType = SftpLocation.AuthType.PASSWORD,
+        status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
+        endpoint = NetworkEndpointState("192.168.1.20", NetworkEndpointState.Reachability.REACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewSftpAskPassphrase() {
+    val item = MockDataProvider.createMockStorageSftp(
+        rememberPassphrase = false,
+        endpoint = NetworkEndpointState("192.168.1.20", NetworkEndpointState.Reachability.REACHABLE),
+    )
+
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleNetwork(item.location.id, item),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ItemInfoBottomSheetPreviewSftpAskPassphraseSignInRequired() {
+    val item = MockDataProvider.createMockStorageSftp(
+        rememberPassphrase = false,
         status = ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED,
         endpoint = NetworkEndpointState("192.168.1.20", NetworkEndpointState.Reachability.REACHABLE),
     )

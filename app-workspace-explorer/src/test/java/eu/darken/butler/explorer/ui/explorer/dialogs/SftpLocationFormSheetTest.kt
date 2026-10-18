@@ -8,9 +8,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isToggleable
@@ -58,6 +61,9 @@ class SftpLocationFormSheetTest : ComposeTest() {
         updatedAt = Instant.fromEpochMilliseconds(0),
     )
 
+    private val storedKey = stored.copy(authType = SftpLocation.AuthType.PRIVATE_KEY)
+    private val askingKey = storedKey.copy(rememberPassphrase = false)
+
     private fun setSheetContent(state: ExplorerDialogState.SftpLocationForm) {
         composeTestRule.setContent {
             PreviewWrapper {
@@ -80,6 +86,11 @@ class SftpLocationFormSheetTest : ComposeTest() {
         composeTestRule.onNode(isTextField and hasText(label)).performScrollTo()
 
     private fun saveButton() = composeTestRule.onNodeWithText("Test & save").performScrollTo()
+
+    // "Remember credentials" is the first toggleable node, "Remember passphrase" the second
+    private fun passphraseSwitch() = composeTestRule.onAllNodes(isToggleable())[1].performScrollTo()
+
+    private fun text(text: String) = composeTestRule.onNodeWithText(text)
 
     @Test
     fun `saving is blocked until server, username and password are filled in`() {
@@ -238,6 +249,70 @@ class SftpLocationFormSheetTest : ComposeTest() {
             rememberCredential = false,
             rememberPassphrase = false,
         ) shouldBe true
+    }
+
+    @Test
+    fun `the passphrase switch is only offered for a remembered private key`() {
+        setSheetContent(ExplorerDialogState.SftpLocationForm())
+        text("Remember passphrase").assertDoesNotExist()
+
+        text("Private key").performScrollTo().performClick()
+        text("Remember passphrase").performScrollTo().assertIsDisplayed()
+        passphraseSwitch().assertIsOn()
+
+        composeTestRule.onAllNodes(isToggleable())[0].performScrollTo().performClick()
+        text("Remember passphrase").assertDoesNotExist()
+        composeTestRule.onAllNodes(isToggleable()).assertCountEquals(1)
+    }
+
+    @Test
+    fun `the passphrase switch is handed over`() {
+        setSheetContent(ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.EDIT, existing = storedKey))
+
+        passphraseSwitch().assertIsOn().performClick()
+        saveButton().performClick()
+        submitted!!.rememberPassphrase shouldBe false
+
+        passphraseSwitch().performClick()
+        saveButton().performClick()
+        submitted!!.rememberPassphrase shouldBe true
+    }
+
+    @Test
+    fun `turning off only the passphrase keeps the saved key`() {
+        setSheetContent(ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.EDIT, existing = storedKey))
+        text("Leave empty to keep the saved passphrase").performScrollTo().assertIsDisplayed()
+
+        passphraseSwitch().performClick()
+
+        text("Butler asks for it when connecting").performScrollTo().assertIsDisplayed()
+        text("The saved key").performScrollTo().assertIsDisplayed()
+        text("Leave empty to keep the saved passphrase").assertDoesNotExist()
+        saveButton().assertIsEnabled()
+    }
+
+    @Test
+    fun `editing a key that asks for its passphrase offers the one entered this session`() {
+        setSheetContent(ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.EDIT, existing = askingKey))
+
+        passphraseSwitch().assertIsOff()
+        text("Leave empty to keep the saved passphrase").assertDoesNotExist()
+        text("Leave empty to use the passphrase entered since Butler started").performScrollTo().assertIsDisplayed()
+        text("The saved key").performScrollTo().assertIsDisplayed()
+        saveButton().assertIsEnabled()
+    }
+
+    @Test
+    fun `signing in to a key that asks for its passphrase needs only the passphrase`() {
+        setSheetContent(ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.SIGN_IN, existing = askingKey))
+
+        text("Enter the key's passphrase to open this server.").performScrollTo().assertIsDisplayed()
+        text("Choose the private key file again, or enter its passphrase, to open this server.").assertDoesNotExist()
+        text("Leave empty to use the passphrase entered since Butler started").assertDoesNotExist()
+        saveButton().assertIsNotEnabled()
+
+        field("Key passphrase (optional)").performTextInput("correct horse")
+        saveButton().assertIsEnabled()
     }
 
     @Test

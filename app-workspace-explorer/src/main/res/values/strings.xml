@@ -158,6 +158,8 @@
     <string name="explorer_info_sftp_private_key_label">Private key</string>
     <string name="explorer_info_sftp_credential_stored">Stored on this device</string>
     <string name="explorer_info_sftp_credential_session">Kept until Butler closes</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Key stored, passphrase kept until Butler closes</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Key stored, passphrase needed to open</string>
     <string name="explorer_info_sftp_host_key_type_label">Host key type</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Host key fingerprint</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -369,6 +371,7 @@
     <string name="explorer_sftp_form_sign_in_title">Sign in to %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Enter the password again to open this server.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Choose the private key file again, or enter its passphrase, to open this server.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Enter the key\'s passphrase to open this server.</string>
     <string name="explorer_sftp_form_host_hint">build.lan or 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Base path (optional)</string>
     <string name="explorer_sftp_form_base_path_help">Empty: the server\'s start folder. Starting with /: an absolute path. Anything else: relative to the start folder.</string>
@@ -381,7 +384,11 @@
     <string name="explorer_sftp_form_private_key_choose_action">Choose file</string>
     <string name="explorer_sftp_form_passphrase_label">Key passphrase (optional)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Leave empty to keep the saved passphrase</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Leave empty to use the passphrase entered since Butler started</string>
     <string name="explorer_sftp_form_remember_label">Remember credentials</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Remember passphrase</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Stored with the key</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler asks for it when connecting</string>
     <string name="explorer_sftp_form_error_username_malformed">The username cannot contain control characters</string>
     <string name="explorer_sftp_form_error_password_required">Enter the password again to change the username, sign-in method or remember setting</string>
     <string name="explorer_sftp_form_error_key_required">Choose a private key file</string>
