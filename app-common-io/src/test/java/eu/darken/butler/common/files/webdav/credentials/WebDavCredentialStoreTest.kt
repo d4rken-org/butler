@@ -408,4 +408,34 @@ class WebDavCredentialStoreTest : BaseTest() {
         evictions shouldBe listOf(locationId)
         job.cancel()
     }
+
+    @Test
+    fun `ending a session forgets the session credential and emits an eviction`() = runTest {
+        val store = create()
+        store.store(locationId, 1, password("hunter2"), remember = false)
+        val evictions = mutableListOf<Uuid>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            store.evictions.collect { evictions.add(it) }
+        }
+
+        store.endSession(locationId)
+
+        store.availability(location).first() shouldBe WebDavCredentialStore.Availability.MISSING
+        shouldThrow<WebDavCredentialUnavailableException> { store.resolve(location) }
+        evictions shouldBe listOf(locationId)
+        job.cancel()
+    }
+
+    @Test
+    fun `ending a session keeps a remembered credential`() = runTest {
+        val dao = FakeDao()
+        val store = create(dao = dao)
+        store.store(locationId, 1, password("hunter2"), remember = true)
+
+        store.endSession(locationId)
+
+        dao.rows.value.size shouldBe 1
+        store.availability(location).first() shouldBe WebDavCredentialStore.Availability.AVAILABLE
+        store.resolvedPassword(location) shouldBe "hunter2"
+    }
 }
