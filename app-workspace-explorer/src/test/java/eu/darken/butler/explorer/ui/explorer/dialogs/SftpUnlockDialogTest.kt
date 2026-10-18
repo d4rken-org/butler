@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -15,6 +15,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.text.AnnotatedString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.sftp.location.SftpLocation
@@ -69,6 +70,11 @@ class SftpUnlockDialogTest : ComposeTest() {
 
     private fun field() = composeTestRule.onNode(hasSetTextAction())
 
+    private val masked = SemanticsMatcher.expectValue(
+        SemanticsProperties.EditableText,
+        AnnotatedString("•".repeat("hunter2".length)),
+    )
+
     private fun button(label: String) = composeTestRule.onNode(hasClickAction() and hasText(label))
 
     @Test
@@ -115,15 +121,15 @@ class SftpUnlockDialogTest : ComposeTest() {
         setDialogContent()
         field().performTextInput("hunter2")
 
-        composeTestRule.onAllNodes(hasText("hunter2")).assertCountEquals(0)
-        composeTestRule.onNode(hasSetTextAction() and SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
-            .assertIsDisplayed()
+        field().assert(masked).assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
 
         composeTestRule.onNode(hasContentDescription("Show password")).performClick()
 
-        composeTestRule.onNode(hasSetTextAction() and hasText("hunter2")).assertIsDisplayed()
+        field()
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("hunter2")))
+            .assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.Password))
         composeTestRule.onNode(hasContentDescription("Hide password")).performClick()
-        composeTestRule.onAllNodes(hasText("hunter2")).assertCountEquals(0)
+        field().assert(masked).assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
     }
 
     @Test
