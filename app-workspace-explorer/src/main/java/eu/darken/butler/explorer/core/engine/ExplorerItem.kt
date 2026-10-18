@@ -110,6 +110,10 @@ sealed interface ExplorerItem {
                     else -> Status.SIGN_IN_REQUIRED
                 }
 
+            /** A signed-in location whose credential is only held for this session, so it can be ended. */
+            val canDisconnect: Boolean
+                get() = credentials == NetworkCredentialAvailability.AVAILABLE && location.usesSessionCredential
+
             /** Whether the row has something to flag: a credential problem, an absent server, or both. */
             val hasIssue: Boolean
                 get() = status == Status.SIGN_IN_REQUIRED ||

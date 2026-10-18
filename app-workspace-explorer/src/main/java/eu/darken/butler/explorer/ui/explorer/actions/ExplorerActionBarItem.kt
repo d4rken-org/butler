@@ -18,6 +18,7 @@ import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.InstallMobile
+import androidx.compose.material.icons.twotone.LinkOff
 import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.RemoveCircle
@@ -288,6 +289,14 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
         ) : Network {
             override val icon = Icons.TwoTone.Edit
             override val label = R.string.explorer_network_edit_location_action.toCaString()
+        }
+
+        data class DisconnectLocation(
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+        ) : Network {
+            override val icon = Icons.TwoTone.LinkOff
+            override val label = R.string.explorer_network_disconnect_location_action.toCaString()
         }
 
         data class RemoveLocation(

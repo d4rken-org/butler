@@ -221,6 +221,7 @@ class ExplorerPickerHelper @Inject constructor() {
             // Administering network locations, also offered by the empty Network view
             is ExplorerActionBarItem.Network.AddLocation,
             is ExplorerActionBarItem.Network.EditLocation,
+            is ExplorerActionBarItem.Network.DisconnectLocation,
             is ExplorerActionBarItem.Network.RemoveLocation -> allowsNetworkManagementActions(config)
 
             // Analysing where the space went is not part of choosing a path

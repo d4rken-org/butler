@@ -28,6 +28,11 @@ class NetworkActionProvider @Inject constructor() : ExplorerActionProvider {
             }
 
             if (selectedNetworkItems.isNotEmpty()) {
+                if (selectedNetworkItems.size == selectionState.selectedItems.size &&
+                    selectedNetworkItems.all { it.canDisconnect }
+                ) {
+                    actions.add(ExplorerActionBarItem.Network.DisconnectLocation())
+                }
                 actions.add(ExplorerActionBarItem.Network.RemoveLocation())
             }
         } else {
