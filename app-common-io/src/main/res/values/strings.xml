@@ -83,6 +83,10 @@
     <string name="sftp_error_key_format_description">The private key is not in a format Butler can read. OpenSSH, PEM and PKCS#8 key files are supported.</string>
     <string name="sftp_error_key_passphrase_title">Wrong passphrase</string>
     <string name="sftp_error_key_passphrase_description">The private key is protected and the passphrase is wrong or missing.</string>
+    <string name="sftp_error_key_passphrase_required_title">Passphrase needed</string>
+    <string name="sftp_error_key_passphrase_required_description">Enter the private key\'s passphrase to connect to this server.</string>
+    <string name="sftp_error_location_changed_title">Server changed</string>
+    <string name="sftp_error_location_changed_description">This server was changed in the meantime. Try again.</string>
     <string name="sftp_error_access_denied_title">No access to this folder</string>
     <string name="sftp_error_access_denied_description">This account may not open the folder set for \"%1$s\". Check the folder\'s permissions on the server.</string>
     <string name="sftp_error_pro_required_title">SFTP servers require Butler Pro</string>

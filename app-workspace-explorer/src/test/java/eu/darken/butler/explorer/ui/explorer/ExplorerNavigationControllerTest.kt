@@ -153,7 +153,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
     )
 
     private var lockedHints = 0
-    private val sftpForms = mutableListOf<SftpLocation>()
+    private val sftpSignIns = mutableListOf<Pair<SftpLocation, ExplorerNavigation.Target>>()
     private val webDavForms = mutableListOf<WebDavLocation>()
     private val openedInViewer = mutableListOf<ExplorerItem.File>()
     private val openedExternally = mutableListOf<ExplorerItem.File>()
@@ -183,7 +183,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         favoritesRepo = favoritesRepo,
         upgradeRepo = upgradeRepo,
         onNetworkLocked = { lockedHints++ },
-        showSftpLocationForm = { sftpForms.add(it) },
+        promptSftpSignIn = { location, target -> sftpSignIns.add(location to target) },
         showWebDavLocationForm = { webDavForms.add(it) },
         selectedItems = selectedItems,
         toggleSelection = {},
@@ -252,7 +252,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         runCurrent()
 
         lockedHints shouldBe 1
-        sftpForms shouldBe emptyList()
+        sftpSignIns shouldBe emptyList()
         coVerify(exactly = 0) { workspace.navigate(any()) }
     }
 
@@ -266,12 +266,12 @@ class ExplorerNavigationControllerTest : BaseTest() {
         runCurrent()
 
         lockedHints shouldBe 1
-        sftpForms shouldBe emptyList()
+        sftpSignIns shouldBe emptyList()
         dialogs.current() shouldBe ExplorerDialogState.None
     }
 
     @Test
-    fun `a pro user tapping a sign-in required SFTP location is routed to the SFTP form, not the SMB one`() = runTest {
+    fun `a pro user tapping a sign-in required SFTP location is routed to the SFTP sign-in with its target`() = runTest {
         val dialogs = dialogs()
         val workspace = mockWorkspace()
         val controller = controller(workspace = workspace, dialogs = dialogs)
@@ -281,7 +281,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         runCurrent()
 
         lockedHints shouldBe 0
-        sftpForms shouldBe listOf((item.location as NetworkLocation.Sftp).location)
+        sftpSignIns shouldBe listOf((item.location as NetworkLocation.Sftp).location to item.target)
         dialogs.current() shouldBe ExplorerDialogState.None
         coVerify(exactly = 0) { workspace.navigate(any()) }
     }
@@ -312,7 +312,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
 
         lockedHints shouldBe 0
         webDavForms shouldBe listOf((item.location as NetworkLocation.WebDav).location)
-        sftpForms shouldBe emptyList()
+        sftpSignIns shouldBe emptyList()
         dialogs.current() shouldBe ExplorerDialogState.None
         coVerify(exactly = 0) { workspace.navigate(any()) }
     }
@@ -341,7 +341,7 @@ class ExplorerNavigationControllerTest : BaseTest() {
         runCurrent()
 
         lockedHints shouldBe 0
-        sftpForms shouldBe emptyList()
+        sftpSignIns shouldBe emptyList()
         coVerify { workspace.navigate(item.target) }
     }
 

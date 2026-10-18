@@ -4,12 +4,13 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import eu.darken.butler.common.room.InstantConverter
 import eu.darken.butler.common.room.UuidConverter
 
 @Database(
     entities = [SftpLocationEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(
@@ -20,6 +21,12 @@ abstract class SftpLocationDatabase : RoomDatabase() {
     abstract fun sftpLocations(): SftpLocationsDao
 
     companion object {
-        val MIGRATIONS: Array<Migration> = emptyArray()
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE sftp_locations ADD COLUMN rememberPassphrase INTEGER NOT NULL DEFAULT 1")
+            }
+        }
+
+        val MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2)
     }
 }

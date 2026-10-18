@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialUnavailableException
+import eu.darken.butler.common.files.sftp.credentials.SftpKeyPassphraseRequiredException
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.ssh.SshException
@@ -94,7 +95,8 @@ object SftpStatusMapper {
         error is SftpAuthException || error is SftpHostKeyUnknownException ||
         error is SftpHostKeyChangedException || error is SftpKeyFormatException ||
         error is SftpKeyPassphraseException || error is SftpAccessDeniedException ||
-        error is SftpCredentialUnavailableException || error is SftpProRequiredException
+        error is SftpCredentialUnavailableException || error is SftpKeyPassphraseRequiredException ||
+        error is SftpProRequiredException
 
     private fun wrap(message: String, path: APath<*>, cause: Throwable, write: Boolean): Throwable = when {
         write -> WriteException(message, path, cause)

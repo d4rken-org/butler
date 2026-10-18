@@ -23,6 +23,8 @@ interface SftpLocationManager {
     suspend fun get(id: Uuid): SftpLocation?
 
     /**
+     * @param rememberPassphrase only honoured for a remembered key with a passphrase, see
+     * [SftpLocation.asksForPassphrase]; stored as true otherwise
      * @param hostKey the key the user accepted for [host]:[port]
      * @throws IllegalArgumentException if the secret does not match [authType]
      */
@@ -34,6 +36,7 @@ interface SftpLocationManager {
         basePath: String,
         authType: SftpLocation.AuthType,
         rememberCredential: Boolean,
+        rememberPassphrase: Boolean,
         password: CharArray?,
         privateKey: ByteArray?,
         passphrase: CharArray?,
@@ -42,13 +45,17 @@ interface SftpLocationManager {
 
     /**
      * A null secret keeps the stored credential, which is only valid while the username, the
-     * authentication type and the remember setting stay the same. A passphrase alone cannot be
+     * authentication type and both remember settings stay the same. A passphrase alone cannot be
      * changed, it comes with its key.
      *
+     * @param rememberPassphrase normalized as for [create], and compared after that
      * @param hostKey required when [host] or [port] differ from the stored endpoint: the key the user
      * accepted for the NEW endpoint. May be null otherwise, which keeps the current pin.
+     * @param expectedCredentialVersion the generation the edit was based on; an edit that keeps the
+     * stored credential is refused once the location moved on to another one
      * @throws IllegalArgumentException if the endpoint changes without a host key, or the secret is
      * missing or does not match [authType]
+     * @throws SftpLocationChangedException if [expectedCredentialVersion] is no longer current
      */
     suspend fun update(
         id: Uuid,
@@ -59,11 +66,22 @@ interface SftpLocationManager {
         basePath: String,
         authType: SftpLocation.AuthType,
         rememberCredential: Boolean,
+        rememberPassphrase: Boolean,
         password: CharArray?,
         privateKey: ByteArray?,
         passphrase: CharArray?,
         hostKey: TrustedHostKey?,
+        expectedCredentialVersion: Int? = null,
     ): SftpLocation
+
+    /**
+     * Holds the passphrase entered for a location that asks for it, until the app process ends or the
+     * credential changes. [passphrase] stays the caller's to wipe.
+     *
+     * @return false if the location is gone, no longer at [credentialVersion] or does not ask for a
+     * passphrase; nothing is held then
+     */
+    suspend fun holdPassphrase(id: Uuid, credentialVersion: Int, passphrase: CharArray): Boolean
 
     /**
      * Pins [newKey] after the user accepted a changed host key for [expectedHost]:[expectedPort],

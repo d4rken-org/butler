@@ -9,6 +9,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotFocused
@@ -112,13 +113,14 @@ class SftpLocationFormConnectionTestTest : ComposeTest() {
                 basePath = any(),
                 authType = any(),
                 rememberCredential = any(),
+                rememberPassphrase = any(),
                 password = any(),
                 privateKey = any(),
                 passphrase = any(),
                 hostKey = any(),
             )
         } coAnswers {
-            created.add(Created(host = arg(1), port = arg(2), hostKey = arg(10)))
+            created.add(Created(host = arg(1), port = arg(2), hostKey = arg(11)))
             SftpLocation(
                 id = Uuid.random(),
                 label = null,
@@ -129,7 +131,7 @@ class SftpLocationFormConnectionTestTest : ComposeTest() {
                 authType = arg(5),
                 rememberCredential = arg(6),
                 credentialVersion = 1,
-                hostKey = arg(10),
+                hostKey = arg(11),
                 trustRevision = 1,
                 createdAt = Instant.fromEpochMilliseconds(0),
                 updatedAt = Instant.fromEpochMilliseconds(0),
@@ -218,13 +220,14 @@ class SftpLocationFormConnectionTestTest : ComposeTest() {
         composeTestRule.waitForIdle()
     }
 
-    private fun assertNothingEditable(secretField: String) {
+    private fun assertNothingEditable(secretField: String, switches: Int) {
         listOf("Name (optional)", "Server address", "Port", "Username", "Base path (optional)", secretField)
             .forEach { field(it).assertIsNotEnabled() }
         chip("Password").assertIsNotEnabled()
         chip("Private key").assertIsNotEnabled()
-        // "Remember credentials" is the only toggleable node in the form
-        composeTestRule.onNode(isToggleable()).performScrollTo().assertIsNotEnabled()
+        // The form's switches ("Remember credentials", plus "Remember passphrase" for a key)
+        val toggles = composeTestRule.onAllNodes(isToggleable()).assertCountEquals(switches)
+        repeat(switches) { toggles[it].performScrollTo().assertIsNotEnabled() }
     }
 
     @Test
@@ -238,7 +241,7 @@ class SftpLocationFormConnectionTestTest : ComposeTest() {
         submit()
 
         testCalls.single() shouldBe TestCall(host = "build.lan", port = 22, trustedKey = null)
-        assertNothingEditable(secretField = "Password")
+        assertNothingEditable(secretField = "Password", switches = 1)
         created shouldBe emptyList()
     }
 
@@ -259,7 +262,7 @@ class SftpLocationFormConnectionTestTest : ComposeTest() {
         submit()
 
         testCalls.single() shouldBe TestCall(host = "build.lan", port = 22, trustedKey = null)
-        assertNothingEditable(secretField = "Key passphrase (optional)")
+        assertNothingEditable(secretField = "Key passphrase (optional)", switches = 2)
         created shouldBe emptyList()
     }
 

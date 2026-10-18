@@ -66,20 +66,37 @@ data class SftpLocationFormInput(
     val password: String,
     val passphrase: String,
     val rememberCredential: Boolean,
+    val rememberPassphrase: Boolean,
     val revision: Int,
 ) {
     override fun toString(): String = "SftpLocationFormInput($host:$port, $authType, revision=$revision)"
 }
 
 /**
- * Whether a save may keep the stored secret: [eu.darken.butler.common.files.sftp.location.SftpLocationManager.update]
- * only allows that while these stay the same.
+ * Whether the stored secret can still be used, e.g. to test the form or to save the stored key again:
+ * it belongs to this username and sign-in method, and is kept the same way.
+ */
+fun SftpLocation.canReuseCredentialFor(
+    username: String,
+    authType: SftpLocation.AuthType,
+    rememberCredential: Boolean,
+): Boolean = username == this.username && authType == this.authType && rememberCredential == this.rememberCredential
+
+/**
+ * Whether a save without a new secret keeps the stored credential, the rule
+ * [eu.darken.butler.common.files.sftp.location.SftpLocationManager.update] applies: the secret is
+ * reusable and [rememberPassphrase], normalized like [SftpLocation.rememberPassphrase], stays the same.
  */
 fun SftpLocation.keepsCredentialFor(
     username: String,
     authType: SftpLocation.AuthType,
     rememberCredential: Boolean,
-): Boolean = username == this.username && authType == this.authType && rememberCredential == this.rememberCredential
+    rememberPassphrase: Boolean,
+): Boolean {
+    val asksForPassphrase = authType == SftpLocation.AuthType.PRIVATE_KEY && rememberCredential && !rememberPassphrase
+    return canReuseCredentialFor(username, authType, rememberCredential) &&
+        asksForPassphrase == this.asksForPassphrase
+}
 
 /** `build.lan:22`, `[fe80::1]:2222` */
 fun sftpEndpointLabel(host: String, port: Int): String = if (':' in host) "[$host]:$port" else "$host:$port"
@@ -115,6 +132,7 @@ class SftpLocationFormFields(existing: SftpLocation?) {
     var password by Tracked("")
     var passphrase by Tracked("")
     var rememberCredential by Tracked(existing?.rememberCredential ?: true)
+    var rememberPassphrase by Tracked(existing?.rememberPassphrase ?: true)
 
     fun toInput() = SftpLocationFormInput(
         label = label,
@@ -126,6 +144,7 @@ class SftpLocationFormFields(existing: SftpLocation?) {
         password = password,
         passphrase = passphrase,
         rememberCredential = rememberCredential,
+        rememberPassphrase = rememberPassphrase,
         revision = revision,
     )
 }
@@ -151,7 +170,7 @@ fun SftpLocationFormSheet(
     val isBusy = state.isTesting || state.isReadingKey
 
     val usesPassword = fields.authType == SftpLocation.AuthType.PASSWORD
-    val keepsStored = existing?.keepsCredentialFor(
+    val keepsStored = existing?.canReuseCredentialFor(
         username = fields.username.trim(),
         authType = fields.authType,
         rememberCredential = fields.rememberCredential,
@@ -201,8 +220,11 @@ fun SftpLocationFormSheet(
             if (isSignIn) {
                 Text(
                     text = stringResource(
-                        if (usesPassword) R.string.explorer_sftp_form_sign_in_password_hint
-                        else R.string.explorer_sftp_form_sign_in_key_hint
+                        when {
+                            usesPassword -> R.string.explorer_sftp_form_sign_in_password_hint
+                            existing?.asksForPassphrase == true -> R.string.explorer_sftp_form_sign_in_passphrase_hint
+                            else -> R.string.explorer_sftp_form_sign_in_key_hint
+                        }
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -342,9 +364,16 @@ fun SftpLocationFormSheet(
                     value = fields.passphrase,
                     onValueChange = { fields.passphrase = it },
                     label = { Text(stringResource(R.string.explorer_sftp_form_passphrase_label)) },
-                    supportingText = if (keepsStored && state.keyFileName == null && !isSignIn) {
-                        { Text(stringResource(R.string.explorer_sftp_form_passphrase_kept_hint)) }
-                    } else null,
+                    supportingText = when {
+                        !keepsStored || state.keyFileName != null || isSignIn -> null
+                        existing?.asksForPassphrase == true -> {
+                            { Text(stringResource(R.string.explorer_sftp_form_passphrase_session_hint)) }
+                        }
+                        fields.rememberCredential && !fields.rememberPassphrase -> null
+                        else -> {
+                            { Text(stringResource(R.string.explorer_sftp_form_passphrase_kept_hint)) }
+                        }
+                    },
                     enabled = !isBusy,
                     singleLine = true,
                     visualTransformation = secretTransformation,
@@ -375,6 +404,34 @@ fun SftpLocationFormSheet(
                     onCheckedChange = { fields.rememberCredential = it },
                     enabled = !isBusy,
                 )
+            }
+
+            if (!usesPassword && fields.rememberCredential) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.explorer_sftp_form_remember_passphrase_label),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        Text(
+                            text = stringResource(
+                                if (fields.rememberPassphrase) R.string.explorer_sftp_form_remember_passphrase_on_hint
+                                else R.string.explorer_sftp_form_remember_passphrase_off_hint
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(
+                        checked = fields.rememberPassphrase,
+                        onCheckedChange = { fields.rememberPassphrase = it },
+                        enabled = !isBusy,
+                    )
+                }
             }
 
             if (!isPro) {
@@ -458,6 +515,36 @@ private fun SftpLocationFormSheetEditKeyPreview() {
             mode = SftpFormMode.EDIT,
             existing = previewSftpLocation(),
             keyFileName = "id_ed25519",
+        ),
+        onDismiss = {},
+        onSubmit = {},
+        onPickKeyFile = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SftpLocationFormSheetEditAskPassphrasePreview() {
+    SftpLocationFormSheet(
+        state = ExplorerDialogState.SftpLocationForm(
+            mode = SftpFormMode.EDIT,
+            existing = previewSftpLocation().copy(rememberPassphrase = false),
+        ),
+        onDismiss = {},
+        onSubmit = {},
+        onPickKeyFile = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SftpLocationFormSheetSignInAskPassphrasePreview() {
+    SftpLocationFormSheet(
+        state = ExplorerDialogState.SftpLocationForm(
+            mode = SftpFormMode.SIGN_IN,
+            existing = previewSftpLocation().copy(rememberPassphrase = false),
         ),
         onDismiss = {},
         onSubmit = {},

@@ -68,15 +68,19 @@ class NetworkLocationRepoTest : BaseTest() {
         override suspend fun get(id: Uuid) = locations.value.firstOrNull { it.id == id }
         override suspend fun create(
             label: String?, host: String, port: Int, username: String, basePath: String,
-            authType: SftpLocation.AuthType, rememberCredential: Boolean, password: CharArray?,
-            privateKey: ByteArray?, passphrase: CharArray?, hostKey: TrustedHostKey,
+            authType: SftpLocation.AuthType, rememberCredential: Boolean, rememberPassphrase: Boolean,
+            password: CharArray?, privateKey: ByteArray?, passphrase: CharArray?, hostKey: TrustedHostKey,
         ): SftpLocation = throw NotImplementedError()
 
         override suspend fun update(
             id: Uuid, label: String?, host: String, port: Int, username: String, basePath: String,
-            authType: SftpLocation.AuthType, rememberCredential: Boolean, password: CharArray?,
-            privateKey: ByteArray?, passphrase: CharArray?, hostKey: TrustedHostKey?,
+            authType: SftpLocation.AuthType, rememberCredential: Boolean, rememberPassphrase: Boolean,
+            password: CharArray?, privateKey: ByteArray?, passphrase: CharArray?, hostKey: TrustedHostKey?,
+            expectedCredentialVersion: Int?,
         ): SftpLocation = throw NotImplementedError()
+
+        override suspend fun holdPassphrase(id: Uuid, credentialVersion: Int, passphrase: CharArray) =
+            throw NotImplementedError()
 
         override suspend fun retrust(
             id: Uuid,
@@ -301,7 +305,13 @@ class NetworkLocationRepoTest : BaseTest() {
         smbStore.store(sftpLocation.id, 1, "darken", null, "hunter2".toCharArray(), remember = true)
         repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.MISSING
 
-        sftpStore.store(sftpLocation.id, 1, SftpCredential.Password("darken", "hunter2".toCharArray()), remember = true)
+        sftpStore.store(
+            sftpLocation.id,
+            1,
+            SftpCredential.Password("darken", "hunter2".toCharArray()),
+            remember = true,
+            rememberPassphrase = true,
+        )
         repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.AVAILABLE
 
         sftpCipher.keyPresent = false
@@ -360,7 +370,7 @@ class NetworkLocationRepoTest : BaseTest() {
 
         // A credential stored for the SFTP location with the same id must not count
         val sftpCredential = SftpCredential.Password("alice", "hunter2".toCharArray())
-        sftpStore.store(webDavLocation.id, 1, sftpCredential, remember = true)
+        sftpStore.store(webDavLocation.id, 1, sftpCredential, remember = true, rememberPassphrase = true)
         repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.MISSING
 
         val webDavCredential = WebDavCredential.Password("alice", "hunter2".toCharArray())
@@ -406,7 +416,7 @@ class NetworkLocationRepoTest : BaseTest() {
     fun `disconnecting an SFTP location ends its session before evicting its pool`() = runTest {
         val location = NetworkLocation.Sftp(sftpLocation.copy(rememberCredential = false))
         val credential = SftpCredential.Password("darken", "hunter2".toCharArray())
-        sftpStore.store(sftpLocation.id, 1, credential, remember = false)
+        sftpStore.store(sftpLocation.id, 1, credential, remember = false, rememberPassphrase = true)
         repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.AVAILABLE
         var availabilityAtEviction: NetworkCredentialAvailability? = null
         coEvery { sftpPool.evict(sftpLocation.id) } coAnswers {

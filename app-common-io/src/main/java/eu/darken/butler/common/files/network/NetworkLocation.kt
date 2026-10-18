@@ -40,7 +40,8 @@ sealed interface NetworkLocation {
         override val port: Int get() = location.port
         override val createdAt: Instant get() = location.createdAt
         override val lastSeenAt: Instant? get() = location.lastSeenAt
-        override val usesSessionCredential: Boolean get() = !location.rememberCredential
+        override val usesSessionCredential: Boolean
+            get() = !location.rememberCredential || location.asksForPassphrase
     }
 
     data class WebDav(val location: WebDavLocation) : NetworkLocation {

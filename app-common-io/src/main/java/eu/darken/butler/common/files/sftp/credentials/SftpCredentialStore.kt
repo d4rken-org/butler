@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -26,7 +27,8 @@ import kotlin.uuid.Uuid
 
 /**
  * The SFTP credential vault: remembered passwords and keys encrypted at rest, session-only ones in
- * memory.
+ * memory. A key whose passphrase is not remembered ([SftpLocation.asksForPassphrase]) is stored
+ * without it, and the passphrase entered for it is only held in memory.
  *
  * Nothing here ever drops a location. A credential that cannot be produced surfaces as
  * [SftpCredentialUnavailableException] so the user is asked to sign in again.
@@ -46,6 +48,7 @@ class SftpCredentialStore @Inject constructor(
     private val json = Json { ignoreUnknownKeys = true }
 
     private val sessionCredentials = ConcurrentHashMap<SessionKey, SftpCredential>()
+    private val heldPassphrases = ConcurrentHashMap<SessionKey, CharArray>()
     private val sessionRevision = MutableStateFlow(0)
 
     private val evictionEvents = MutableSharedFlow<Uuid>(extraBufferCapacity = 16)
@@ -59,12 +62,50 @@ class SftpCredentialStore @Inject constructor(
      */
     private data class SessionKey(val locationId: Uuid, val credentialVersion: Int)
 
+    private val SftpLocation.sessionKey: SessionKey
+        get() = SessionKey(id, credentialVersion)
+
     /**
      * @throws SftpCredentialUnavailableException if nothing usable is stored for this location
+     * @throws SftpKeyPassphraseRequiredException if the location asks for its passphrase and none is
+     * held
      */
     suspend fun resolve(location: SftpLocation): SftpCredential {
-        sessionCredentials[SessionKey(location.id, location.credentialVersion)]?.let { return it.copy() }
+        sessionCredentials[location.sessionKey]?.let { return it.copy() }
 
+        val stored = decryptStored(location)
+        if (!location.asksForPassphrase) return stored
+
+        val key = stored.asKey(location.id)
+        val held = heldPassphrases[location.sessionKey]?.copyOf()
+        if (held == null) {
+            key.wipe()
+            throw SftpKeyPassphraseRequiredException(location.id)
+        }
+        return key.withPassphrase(held)
+    }
+
+    /**
+     * The key of a [SftpLocation.AuthType.PRIVATE_KEY] location, e.g. to test or re-save it, with a
+     * copy of [passphrase] if given, else of the passphrase held or stored for it, else none. A
+     * missing passphrase is not an error here, and [passphrase] is never kept.
+     *
+     * @throws IllegalArgumentException if [location] signs in with a password
+     * @throws SftpCredentialUnavailableException if no usable key is stored for this location
+     */
+    suspend fun resolveStoredKey(location: SftpLocation, passphrase: CharArray?): SftpCredential.PrivateKey {
+        require(location.authType == SftpLocation.AuthType.PRIVATE_KEY) { "Not a key location: ${location.id}" }
+
+        val key = (sessionCredentials[location.sessionKey]?.copy() ?: decryptStored(location)).asKey(location.id)
+        val effective = when {
+            passphrase != null -> passphrase.copyOf()
+            location.asksForPassphrase -> heldPassphrases[location.sessionKey]?.copyOf()
+            else -> key.passphrase?.copyOf()
+        }
+        return key.withPassphrase(effective)
+    }
+
+    private suspend fun decryptStored(location: SftpLocation): SftpCredential {
         val entity = dao.get(location.id, location.credentialVersion)
             ?: throw SftpCredentialUnavailableException(location.id, "No credential stored for this generation")
 
@@ -92,6 +133,9 @@ class SftpCredentialStore @Inject constructor(
      * Persists (or holds in memory) one generation of a credential and evicts the open sessions.
      * The store keeps its own copy, [credential] stays the caller's to wipe.
      *
+     * A remembered key with [rememberPassphrase] off is persisted without its passphrase, which is
+     * held in memory instead, as if passed to [holdPassphrase].
+     *
      * Called BEFORE the matching location row is written, so a crash in between leaves an unused
      * credential row (cleaned up by [dropOtherGenerations] and [reconcile]) rather than a location
      * nobody can sign in to. Older generations survive this call for exactly that reason.
@@ -101,12 +145,18 @@ class SftpCredentialStore @Inject constructor(
         credentialVersion: Int,
         credential: SftpCredential,
         remember: Boolean,
+        rememberPassphrase: Boolean,
     ) {
-        log(TAG) { "store($locationId, version=$credentialVersion, remember=$remember)" }
-        clearSession(SessionKey(locationId, credentialVersion))
+        log(TAG) {
+            "store($locationId, version=$credentialVersion, remember=$remember, rememberPassphrase=$rememberPassphrase)"
+        }
+        val key = SessionKey(locationId, credentialVersion)
+        clearSession(key)
 
         if (remember) {
-            val plaintext = json.encodeToString(credential.toPayload()).encodeToByteArray()
+            val heldKey = (credential as? SftpCredential.PrivateKey)?.takeIf { !rememberPassphrase }
+            val plaintext = json.encodeToString(credential.toPayload(includePassphrase = heldKey == null))
+                .encodeToByteArray()
             val envelope = try {
                 cipher.encrypt(locationId, SftpCredentialPayload.VERSION, plaintext)
             } finally {
@@ -128,13 +178,28 @@ class SftpCredentialStore @Inject constructor(
                     updatedAt = now,
                 )
             )
+            heldKey?.passphrase?.let { hold(key, it) }
         } else {
             dao.deleteGeneration(locationId, credentialVersion)
-            sessionCredentials[SessionKey(locationId, credentialVersion)] = credential.copy()
-            sessionRevision.value++
+            sessionCredentials[key] = credential.copy()
+            bumpRevision()
         }
 
         evictionEvents.emit(locationId)
+    }
+
+    /**
+     * Keeps a copy of the passphrase entered for a key stored without one, until that generation is
+     * replaced or dropped. [passphrase] stays the caller's to wipe.
+     */
+    fun holdPassphrase(locationId: Uuid, credentialVersion: Int, passphrase: CharArray) {
+        log(TAG) { "holdPassphrase($locationId, version=$credentialVersion)" }
+        hold(SessionKey(locationId, credentialVersion), passphrase)
+    }
+
+    private fun hold(key: SessionKey, passphrase: CharArray) {
+        heldPassphrases.put(key, passphrase.copyOf())?.fill(Char(0))
+        bumpRevision()
     }
 
     suspend fun remove(locationId: Uuid) {
@@ -173,27 +238,21 @@ class SftpCredentialStore @Inject constructor(
         clearSessions { key -> known[key.locationId]?.credentialVersion != key.credentialVersion }
     }
 
-    fun availability(locationId: Uuid): Flow<Availability> = availability(locationId, expectedVersion = null)
-
-    /** A credential from an older generation counts as missing. */
-    fun availability(location: SftpLocation): Flow<Availability> =
-        availability(location.id, location.credentialVersion)
-
-    private fun availability(locationId: Uuid, expectedVersion: Int?): Flow<Availability> = combine(
+    /**
+     * A credential from an older generation counts as missing, and so does the key of a location that
+     * asks for its passphrase while none is held.
+     */
+    fun availability(location: SftpLocation): Flow<Availability> = combine(
         dao.getAll().map { entities ->
-            entities.firstOrNull {
-                it.locationId == locationId && (expectedVersion == null || it.credentialVersion == expectedVersion)
-            }
+            entities.firstOrNull { it.locationId == location.id && it.credentialVersion == location.credentialVersion }
         },
         sessionRevision,
     ) { entity, _ ->
-        val hasSession = sessionCredentials.keys.any {
-            it.locationId == locationId && (expectedVersion == null || it.credentialVersion == expectedVersion)
-        }
         when {
-            hasSession -> Availability.AVAILABLE
+            sessionCredentials.containsKey(location.sessionKey) -> Availability.AVAILABLE
             entity == null -> Availability.MISSING
             !cipher.isKeyAvailable(entity.keyAlias) -> Availability.KEY_UNAVAILABLE
+            location.asksForPassphrase && !heldPassphrases.containsKey(location.sessionKey) -> Availability.MISSING
             else -> Availability.AVAILABLE
         }
     }.distinctUntilChanged()
@@ -202,15 +261,34 @@ class SftpCredentialStore @Inject constructor(
         sessionCredentials.remove(key)?.let {
             log(TAG, VERBOSE) { "Wiping session credential for $key" }
             it.wipe()
-            sessionRevision.value++
+            bumpRevision()
+        }
+        heldPassphrases.remove(key)?.let {
+            log(TAG, VERBOSE) { "Wiping held passphrase for $key" }
+            it.fill(Char(0))
+            bumpRevision()
         }
     }
 
     private fun clearSessions(matching: (SessionKey) -> Boolean) {
-        sessionCredentials.keys.filter(matching).forEach { clearSession(it) }
+        (sessionCredentials.keys + heldPassphrases.keys).filter(matching).forEach { clearSession(it) }
     }
 
-    private fun SftpCredential.toPayload() = when (this) {
+    private fun bumpRevision() = sessionRevision.update { it + 1 }
+
+    private fun SftpCredential.asKey(locationId: Uuid): SftpCredential.PrivateKey {
+        if (this is SftpCredential.PrivateKey) return this
+        wipe()
+        throw SftpCredentialUnavailableException(locationId, "Stored credential is not a key")
+    }
+
+    /** Takes ownership of [passphrase] and wipes the one it replaces. */
+    private fun SftpCredential.PrivateKey.withPassphrase(passphrase: CharArray?): SftpCredential.PrivateKey {
+        this.passphrase?.fill(Char(0))
+        return SftpCredential.PrivateKey(username, keyBytes, passphrase)
+    }
+
+    private fun SftpCredential.toPayload(includePassphrase: Boolean) = when (this) {
         is SftpCredential.Password -> SftpCredentialPayload(
             username = username,
             password = String(password),
@@ -219,7 +297,7 @@ class SftpCredentialStore @Inject constructor(
         is SftpCredential.PrivateKey -> SftpCredentialPayload(
             username = username,
             privateKey = Base64.encode(keyBytes),
-            passphrase = passphrase?.let { String(it) },
+            passphrase = passphrase?.takeIf { includePassphrase }?.let { String(it) },
         )
     }
 

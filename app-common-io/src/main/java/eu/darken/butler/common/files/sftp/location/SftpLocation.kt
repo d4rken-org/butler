@@ -26,6 +26,11 @@ data class SftpLocation(
     val basePath: String = "",
     val authType: AuthType,
     val rememberCredential: Boolean,
+    /**
+     * Whether a remembered key keeps its passphrase. Only false for [asksForPassphrase] locations,
+     * every other location stores it as true.
+     */
+    val rememberPassphrase: Boolean = true,
     val credentialVersion: Int,
     /** Only a key the user accepted for [host]:[port]; a location never exists without one. */
     val hostKey: TrustedHostKey,
@@ -45,6 +50,13 @@ data class SftpLocation(
         PASSWORD,
         PRIVATE_KEY,
     }
+
+    /**
+     * The key is stored, its passphrase is not: it is asked for when the location is opened and only
+     * kept in memory until the app process ends.
+     */
+    val asksForPassphrase: Boolean
+        get() = authType == AuthType.PRIVATE_KEY && rememberCredential && !rememberPassphrase
 
     /** `darken@nas.local` or `darken@nas.local:2222/srv/media`, the subtitle shown under the name. */
     val endpointLabel: String

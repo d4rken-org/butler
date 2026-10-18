@@ -37,6 +37,7 @@ class SftpLocationsDaoTest : BaseTest() {
         basePath = "",
         authType = "PASSWORD",
         rememberCredential = true,
+        rememberPassphrase = true,
         credentialVersion = 1,
         hostKeyType = oldKey.type,
         hostKeyBlob = oldKey.blob,

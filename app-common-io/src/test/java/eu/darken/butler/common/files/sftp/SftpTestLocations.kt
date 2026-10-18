@@ -56,6 +56,7 @@ class FakeSftpLocationManager(initial: Collection<SftpLocation>) : SftpLocationM
         basePath: String,
         authType: SftpLocation.AuthType,
         rememberCredential: Boolean,
+        rememberPassphrase: Boolean,
         password: CharArray?,
         privateKey: ByteArray?,
         passphrase: CharArray?,
@@ -71,11 +72,16 @@ class FakeSftpLocationManager(initial: Collection<SftpLocation>) : SftpLocationM
         basePath: String,
         authType: SftpLocation.AuthType,
         rememberCredential: Boolean,
+        rememberPassphrase: Boolean,
         password: CharArray?,
         privateKey: ByteArray?,
         passphrase: CharArray?,
         hostKey: TrustedHostKey?,
+        expectedCredentialVersion: Int?,
     ): SftpLocation = throw UnsupportedOperationException()
+
+    override suspend fun holdPassphrase(id: Uuid, credentialVersion: Int, passphrase: CharArray): Boolean =
+        throw UnsupportedOperationException()
 
     override suspend fun retrust(
         id: Uuid,
