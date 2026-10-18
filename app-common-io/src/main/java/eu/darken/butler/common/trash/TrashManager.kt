@@ -15,7 +15,9 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.extensions.LocalPathNormalization
 import eu.darken.butler.common.files.extensions.delete
+import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.common.files.extensions.move
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.progress.Progress
@@ -524,11 +526,13 @@ class TrashManager @Inject constructor(
             )
         }
 
-    private suspend fun getTrashRoot(path: APath<*>): APath<*> {
-        // Find the appropriate cache directory for this storage
+    @VisibleForTesting
+    internal fun getTrashRoot(path: APath<*>): APath<*> {
+        val comparable = LocalPathNormalization.comparable(path)
+        // Each entry is <volume>/Android/data/<pkg>
         val cacheDir = storageEnv.ourPublicDirs.firstOrNull { cache ->
-            // Check if path is on the same storage volume
-            path.path.startsWith(cache.parent!!.parent!!.path)
+            val volumeRoot = cache.parent?.parent?.parent ?: return@firstOrNull false
+            comparable.isDescendantOfOrSelf(volumeRoot)
         } ?: storageEnv.ourPublicDirs.first()
 
         return cacheDir.child(".trash")
