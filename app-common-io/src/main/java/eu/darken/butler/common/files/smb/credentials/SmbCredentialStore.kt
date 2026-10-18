@@ -161,6 +161,13 @@ class SmbCredentialStore @Inject constructor(
         evictionEvents.emit(locationId)
     }
 
+    /** Forgets the session-only credentials of a location and evicts its sessions, stored ones stay. */
+    suspend fun endSession(locationId: Uuid) {
+        log(TAG) { "endSession($locationId)" }
+        clearSessions { it.locationId == locationId }
+        evictionEvents.emit(locationId)
+    }
+
     /** Retires the generations a committed location row no longer refers to, stored and in memory. */
     suspend fun dropOtherGenerations(locationId: Uuid, keepVersion: Int) {
         dao.deleteOtherGenerations(locationId, keepVersion)

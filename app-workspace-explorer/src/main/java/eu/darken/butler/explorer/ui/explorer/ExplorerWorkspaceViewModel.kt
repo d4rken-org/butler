@@ -36,6 +36,7 @@ import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.network.NetworkCredentialAvailability
 import eu.darken.butler.common.files.network.NetworkEndpointState
 import eu.darken.butler.common.files.network.NetworkLocation
+import eu.darken.butler.common.files.network.NetworkLocationRepo
 import eu.darken.butler.common.files.sftp.SftpConnectionTester
 import eu.darken.butler.common.files.sftp.SftpHostKeyChangedException
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialStore
@@ -209,6 +210,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val webDavLocationManager: WebDavLocationManager,
     private val webDavCredentialStore: WebDavCredentialStore,
     private val webDavConnectionTester: WebDavConnectionTester,
+    private val networkLocationRepo: NetworkLocationRepo,
     private val trashManager: TrashManager,
     private val trashRepo: TrashRepo,
     private val trashSettings: TrashSettings,
@@ -328,6 +330,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         smbLocationManager = smbLocationManager,
         sftpLocationManager = sftpLocationManager,
         webDavLocationManager = webDavLocationManager,
+        locationRepo = networkLocationRepo,
         dialogs = dialogs,
         workspace = ::getWorkspace,
         currentLocation = { cachedCurrentLocation },
@@ -1456,6 +1459,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     .filterIsInstance<ExplorerItem.Storage.Network>()
                 if (selectedItems.isNotEmpty()) networkLocations.showRemoveConfirmation(selectedItems)
             }
+            is ExplorerActionBarItem.Network.DisconnectLocation -> {
+                val selectedItems = selection.selectedItems.value
+                    .filterIsInstance<ExplorerItem.Storage.Network>()
+                if (selectedItems.isNotEmpty()) networkLocations.showDisconnectConfirmation(selectedItems)
+            }
             is ExplorerActionBarItem.Trash.SelectAll -> {
                 selection.set(stateSnap.selectionState.selectableItems)
             }
@@ -1864,6 +1872,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         } else {
             safLocations.onRemoveLocationConfirmed()
         }
+    }
+
+    fun onDisconnectLocationConfirmed() {
+        val items = (dialogs.current() as? ExplorerDialogState.DisconnectLocationConfirmation)?.items ?: return
+        networkLocations.onDisconnectConfirmed(items)
     }
 
     fun onSmbLocationFormSubmit(input: SmbLocationFormInput) = smbLocations.onFormSubmit(input)

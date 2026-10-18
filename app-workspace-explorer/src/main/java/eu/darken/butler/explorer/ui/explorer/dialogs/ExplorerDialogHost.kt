@@ -65,6 +65,14 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.DisconnectLocationConfirmation -> {
+            DisconnectLocationConfirmationDialog(
+                items = dialogState.items,
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { vm?.onDisconnectLocationConfirmed() },
+            )
+        }
+
         is ExplorerDialogState.SmbLocationForm -> {
             SmbLocationFormSheet(
                 state = dialogState,

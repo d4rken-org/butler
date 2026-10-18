@@ -4,7 +4,9 @@ import android.app.Application
 import android.content.ActivityNotFoundException
 import android.content.ContextWrapper
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
+import android.os.LocaleList
 import androidx.test.core.app.ApplicationProvider
 import io.kotest.matchers.shouldBe
 import org.junit.Test
@@ -13,6 +15,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
+import java.util.Locale
 
 /**
  * The return value is a contract, not a convenience: the FOSS sponsor unlock heuristic only arms
@@ -30,6 +33,19 @@ class WebpageToolTest : BaseTest() {
         WebpageTool(application).open(URL) shouldBe true
 
         shadowOf(application).nextStartedActivity!!.data shouldBe Uri.parse(URL)
+    }
+
+    @Test
+    fun `documentation opens in the configured app language`() {
+        val configuration = Configuration(application.resources.configuration).apply {
+            setLocales(LocaleList(Locale.GERMANY))
+        }
+        val context = application.createConfigurationContext(configuration)
+
+        WebpageTool.open(context, "https://butler.darken.eu/setup#root-access") shouldBe true
+
+        shadowOf(application).nextStartedActivity!!.data shouldBe
+            Uri.parse("https://butler.darken.eu/de/setup#root-access")
     }
 
     @Test

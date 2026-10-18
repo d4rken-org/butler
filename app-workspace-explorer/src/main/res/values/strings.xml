@@ -324,6 +324,13 @@
         <item quantity="other">Remove %1$d network storages?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler forgets the server details and the saved password. Nothing on the server is deleted.</string>
+    <string name="explorer_network_disconnect_location_action">Disconnect</string>
+    <string name="explorer_network_disconnect_confirmation_title">Disconnect %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Disconnect %1$d network storage?</item>
+        <item quantity="other">Disconnect %1$d network storages?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler forgets the sign-in details until you sign in again. The server details stay saved. Transfers to this storage that are still running may fail.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">Add network storage</string>

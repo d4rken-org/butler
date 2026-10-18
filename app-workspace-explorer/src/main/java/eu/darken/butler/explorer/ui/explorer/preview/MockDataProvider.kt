@@ -593,6 +593,8 @@ object MockDataProvider {
         endpoint: NetworkEndpointState = NetworkEndpointState(),
         username: String? = "hoffmann",
         domain: String? = null,
+        authType: SmbLocation.AuthType = SmbLocation.AuthType.PASSWORD,
+        rememberCredential: Boolean = true,
         lastSeenAt: Instant? = null,
     ): ExplorerItem.Storage.Network {
         val location = SmbLocation(
@@ -601,9 +603,9 @@ object MockDataProvider {
             host = host,
             share = share,
             domain = domain,
-            username = username,
-            authType = SmbLocation.AuthType.PASSWORD,
-            rememberCredential = true,
+            username = username.takeIf { authType == SmbLocation.AuthType.PASSWORD },
+            authType = authType,
+            rememberCredential = rememberCredential,
             credentialVersion = 1,
             createdAt = MockTimes.daysAgo(7),
             updatedAt = MockTimes.daysAgo(7),
@@ -619,6 +621,7 @@ object MockDataProvider {
         username: String = "darken",
         basePath: String = "/srv/builds",
         authType: SftpLocation.AuthType = SftpLocation.AuthType.PRIVATE_KEY,
+        rememberCredential: Boolean = true,
         rememberPassphrase: Boolean = true,
         status: ExplorerItem.Storage.Network.Status = ExplorerItem.Storage.Network.Status.AVAILABLE,
         id: Uuid = Uuid.parse("66666666-7777-8888-9999-000000000000"),
@@ -633,7 +636,7 @@ object MockDataProvider {
             username = username,
             basePath = basePath,
             authType = authType,
-            rememberCredential = true,
+            rememberCredential = rememberCredential,
             rememberPassphrase = rememberPassphrase,
             credentialVersion = 1,
             hostKey = TrustedHostKey(

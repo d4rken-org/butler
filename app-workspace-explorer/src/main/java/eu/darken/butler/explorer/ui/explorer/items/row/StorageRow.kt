@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -146,7 +147,8 @@ private fun StorageIcon(item: ExplorerItem.Storage, density: ExplorerViewStyle.D
 @Composable
 private fun NetworkStatusIndicator(item: ExplorerItem.Storage.Network) {
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         // Browsing it is Pro, so a free user learns that before tapping.
         if (!rememberIsPro()) UpgradeBadge()

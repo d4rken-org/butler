@@ -184,6 +184,34 @@ class NetworkLocationLoaderTest : BaseTest() {
         item.status shouldBe ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED
     }
 
+    /** Ending a session writes no location, so the row must follow the credential state on its own. */
+    @Test
+    fun `a credential change without a location change updates the row`() = runTest {
+        val availability = MutableStateFlow(NetworkCredentialAvailability.AVAILABLE)
+        val loader = NetworkLocationLoader(
+            workspaceId = Workspace.Id(),
+            locationRepo = mockk<NetworkLocationRepo>().apply {
+                every { locations } returns flowOf(listOf(NetworkLocation.Smb(location())))
+                every { credentialAvailability(any()) } returns availability
+            },
+            endpointProbe = endpointProbe,
+        )
+        val emissions = mutableListOf<ExplorerLocation>()
+        val collector = launch { loader.loadNetwork().toList(emissions) }
+        runCurrent()
+
+        emissions.last().items!!.single().shouldBeInstanceOf<ExplorerItem.Storage.Network>()
+            .status shouldBe ExplorerItem.Storage.Network.Status.AVAILABLE
+
+        availability.value = NetworkCredentialAvailability.MISSING
+        runCurrent()
+
+        emissions.last().items!!.single().shouldBeInstanceOf<ExplorerItem.Storage.Network>()
+            .status shouldBe ExplorerItem.Storage.Network.Status.SIGN_IN_REQUIRED
+
+        collector.cancel()
+    }
+
     @Test
     fun `the first emission reports progress`() = runTest {
         val emissions = loader(listOf(location())).loadNetwork().take(2).toList()

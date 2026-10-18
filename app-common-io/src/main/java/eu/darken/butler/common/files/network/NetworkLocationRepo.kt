@@ -1,9 +1,14 @@
 package eu.darken.butler.common.files.network
 
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.sftp.SftpConnectionPool
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialStore
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager
+import eu.darken.butler.common.files.smb.SmbConnectionPool
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.files.webdav.WebDavClientPool
 import eu.darken.butler.common.files.webdav.credentials.WebDavCredentialStore
 import eu.darken.butler.common.files.webdav.location.WebDavLocationManager
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +26,9 @@ class NetworkLocationRepo @Inject constructor(
     private val smbCredentialStore: SmbCredentialStore,
     private val sftpCredentialStore: SftpCredentialStore,
     private val webDavCredentialStore: WebDavCredentialStore,
+    private val smbConnectionPool: SmbConnectionPool,
+    private val sftpConnectionPool: SftpConnectionPool,
+    private val webDavClientPool: WebDavClientPool,
 ) {
 
     val locations: Flow<List<NetworkLocation>> = combine(
@@ -58,5 +66,33 @@ class NetworkLocationRepo @Inject constructor(
                 WebDavCredentialStore.Availability.KEY_UNAVAILABLE -> NetworkCredentialAvailability.KEY_UNAVAILABLE
             }
         }
+    }
+
+    /**
+     * Forgets the location's session-only credential and retires its sessions, the location itself
+     * stays. Sessions still leased by running operations close once those finish.
+     */
+    suspend fun disconnect(location: NetworkLocation) {
+        log(TAG) { "disconnect(${location.id})" }
+        when (location) {
+            is NetworkLocation.Smb -> {
+                smbCredentialStore.endSession(location.id)
+                smbConnectionPool.evict(location.id)
+            }
+
+            is NetworkLocation.Sftp -> {
+                sftpCredentialStore.endSession(location.id)
+                sftpConnectionPool.evict(location.id)
+            }
+
+            is NetworkLocation.WebDav -> {
+                webDavCredentialStore.endSession(location.id)
+                webDavClientPool.evict(location.id)
+            }
+        }
+    }
+
+    companion object {
+        private val TAG = logTag("Network", "LocationRepo")
     }
 }

@@ -28,6 +28,7 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 | DI, logging, serialization | `.claude/rules/technical-patterns.md` |
 | Screenshots | `.claude/rules/screenshots.md` |
 | Commit messages | `.claude/rules/commit-guidelines.md` |
+| Docs site, user guides | `.claude/rules/docs.md` |
 
 ## Important File Locations
 

@@ -4,28 +4,41 @@ on:
   push:
     branches: [ main ]
     paths:
-      - _config.yml
-      - _layouts/**
-      - README.md
+      - docs/**
+      - tooling/docs/**
       - CHANGELOG.md
       - PRIVACY_POLICY.md
       - SECURITY.md
       - CNAME
+      - .assets/banner.png
+      - fastlane/metadata/android/en-US/images/**
       - .github/workflows/pages.yml
+  pull_request:
+    paths:
+      - '**/*.kt'
+      - '**/*.md'
+      - '**/*.xml'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '!**/values-*/**'
+      - '!fastlane/metadata/**'
+      - docs/**
+      - tooling/docs/**
+      - CNAME
+      - .assets/banner.png
+      - fastlane/metadata/android/en-US/images/**
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   build:
-    name: Build Jekyll site
+    name: Build and check documentation
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout source code
@@ -33,21 +46,45 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Configure Pages
-        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d #v6.0.0
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b #v1.321.0
+        with:
+          ruby-version: '3.4.1'
+          bundler-cache: true
+          working-directory: docs
+
+      # For local preview, run these copies and Check translations, then from docs/:
+      # bundle exec jekyll serve --strict_front_matter --destination ../_site
+      # Edit canonical root pages, not the ignored copies; repeat preparation after root/source changes.
+      - name: Add the root pages and app images
+        run: |
+          cp CHANGELOG.md PRIVACY_POLICY.md SECURITY.md CNAME docs/
+          cp .assets/banner.png docs/assets/banner.png
+          cp fastlane/metadata/android/en-US/images/icon.png docs/assets/icon.png
+          cp fastlane/metadata/android/en-US/images/tenInchScreenshots/7_multi_pane.png docs/assets/workspaces.png
+          cp fastlane/metadata/android/en-US/images/phoneScreenshots/2_explorer_directory.png docs/assets/explorer.png
+
+      - name: Test documentation checks
+        run: python3 -m unittest discover -s tooling/docs -p 'test_*.py'
+
+      - name: Check translations
+        run: python3 tooling/docs/check_translations.py docs --write-status docs/_data/translation_status.json
 
       - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@44a6e6beabd48582f863aeeb6cb2151cc1716697 #v1.0.13
-        with:
-          source: ./
-          destination: ./_site
+        working-directory: docs
+        run: bundle exec jekyll build --strict_front_matter --destination ../_site
         env:
           JEKYLL_GITHUB_TOKEN: ${{ github.token }}
+          PAGES_REPO_NWO: ${{ github.repository }}
 
-      - name: Sanity-check Jekyll output
-        run: test -f _site/index.html && test -f _site/CNAME
+      - name: Check docs links
+        run: python3 tooling/docs/check_links.py _site .
+
+      - name: Check translated pages
+        run: python3 tooling/docs/check_translations.py docs --site _site
 
       - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 #v5.0.0
         with:
           path: ./_site
@@ -55,8 +92,14 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

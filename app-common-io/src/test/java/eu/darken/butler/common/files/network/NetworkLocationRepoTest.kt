@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.network
 import android.content.Context
 import eu.darken.butler.common.files.credentials.CredentialCipher
 import eu.darken.butler.common.files.extensions.Segments
+import eu.darken.butler.common.files.sftp.SftpConnectionPool
 import eu.darken.butler.common.files.sftp.credentials.SftpCredential
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialCipher
 import eu.darken.butler.common.files.sftp.credentials.SftpCredentialStore
@@ -12,6 +13,7 @@ import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.common.files.sftp.testHostKey
+import eu.darken.butler.common.files.smb.SmbConnectionPool
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialCipher
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.credentials.db.SmbCredentialEntity
@@ -19,6 +21,7 @@ import eu.darken.butler.common.files.smb.credentials.db.SmbCredentialsDao
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.files.webdav.FakeWebDavLocationManager
+import eu.darken.butler.common.files.webdav.WebDavClientPool
 import eu.darken.butler.common.files.webdav.credentials.WebDavCredential
 import eu.darken.butler.common.files.webdav.credentials.WebDavCredentialCipher
 import eu.darken.butler.common.files.webdav.credentials.WebDavCredentialStore
@@ -26,10 +29,15 @@ import eu.darken.butler.common.files.webdav.credentials.db.WebDavCredentialEntit
 import eu.darken.butler.common.files.webdav.credentials.db.WebDavCredentialsDao
 import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -177,6 +185,9 @@ class NetworkLocationRepoTest : BaseTest() {
     private val smbStore = SmbCredentialStore(FakeSmbDao(), smbCipher)
     private val sftpStore = SftpCredentialStore(FakeSftpDao(), sftpCipher)
     private val webDavStore = WebDavCredentialStore(FakeWebDavDao(), webDavCipher)
+    private val smbPool = mockk<SmbConnectionPool>(relaxed = true)
+    private val sftpPool = mockk<SftpConnectionPool>(relaxed = true)
+    private val webDavPool = mockk<WebDavClientPool>(relaxed = true)
 
     private val repo = NetworkLocationRepo(
         smbLocationManager = smbLocations,
@@ -185,6 +196,9 @@ class NetworkLocationRepoTest : BaseTest() {
         smbCredentialStore = smbStore,
         sftpCredentialStore = sftpStore,
         webDavCredentialStore = webDavStore,
+        smbConnectionPool = smbPool,
+        sftpConnectionPool = sftpPool,
+        webDavClientPool = webDavPool,
     )
 
     private val smbLocation = SmbLocation(
@@ -377,5 +391,86 @@ class NetworkLocationRepoTest : BaseTest() {
 
         repo.credentialAvailability(NetworkLocation.WebDav(anonymous)).first() shouldBe
             NetworkCredentialAvailability.AVAILABLE
+    }
+
+    @Test
+    fun `disconnecting an SMB location ends its session before evicting its pool`() = runTest {
+        val location = NetworkLocation.Smb(smbLocation.copy(rememberCredential = false))
+        smbStore.store(smbLocation.id, 1, "darken", null, "hunter2".toCharArray(), remember = false)
+        repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.AVAILABLE
+        var availabilityAtEviction: NetworkCredentialAvailability? = null
+        coEvery { smbPool.evict(smbLocation.id) } coAnswers {
+            availabilityAtEviction = repo.credentialAvailability(location).first()
+        }
+
+        repo.disconnect(location)
+
+        availabilityAtEviction shouldBe NetworkCredentialAvailability.MISSING
+        repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.MISSING
+        coVerify(exactly = 1) { smbPool.evict(smbLocation.id) }
+        coVerify(exactly = 0) { sftpPool.evict(any()) }
+        coVerify(exactly = 0) { webDavPool.evict(any()) }
+    }
+
+    @Test
+    fun `disconnecting an SFTP location ends its session before evicting its pool`() = runTest {
+        val location = NetworkLocation.Sftp(sftpLocation.copy(rememberCredential = false))
+        val credential = SftpCredential.Password("darken", "hunter2".toCharArray())
+        sftpStore.store(sftpLocation.id, 1, credential, remember = false, rememberPassphrase = true)
+        repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.AVAILABLE
+        var availabilityAtEviction: NetworkCredentialAvailability? = null
+        coEvery { sftpPool.evict(sftpLocation.id) } coAnswers {
+            availabilityAtEviction = repo.credentialAvailability(location).first()
+        }
+
+        repo.disconnect(location)
+
+        availabilityAtEviction shouldBe NetworkCredentialAvailability.MISSING
+        repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.MISSING
+        coVerify(exactly = 1) { sftpPool.evict(sftpLocation.id) }
+        coVerify(exactly = 0) { smbPool.evict(any()) }
+        coVerify(exactly = 0) { webDavPool.evict(any()) }
+    }
+
+    @Test
+    fun `disconnecting a WebDAV location ends its session before evicting its pool`() = runTest {
+        val location = NetworkLocation.WebDav(webDavLocation.copy(rememberCredential = false))
+        val credential = WebDavCredential.Password("alice", "hunter2".toCharArray())
+        webDavStore.store(webDavLocation.id, 1, credential, remember = false)
+        repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.AVAILABLE
+        var availabilityAtEviction: NetworkCredentialAvailability? = null
+        coEvery { webDavPool.evict(webDavLocation.id) } coAnswers {
+            availabilityAtEviction = repo.credentialAvailability(location).first()
+        }
+
+        repo.disconnect(location)
+
+        availabilityAtEviction shouldBe NetworkCredentialAvailability.MISSING
+        repo.credentialAvailability(location).first() shouldBe NetworkCredentialAvailability.MISSING
+        coVerify(exactly = 1) { webDavPool.evict(webDavLocation.id) }
+        coVerify(exactly = 0) { smbPool.evict(any()) }
+        coVerify(exactly = 0) { sftpPool.evict(any()) }
+    }
+
+    @Test
+    fun `disconnect returns only once the eviction finished`() = runTest {
+        val released = CompletableDeferred<Unit>()
+        coEvery { smbPool.evict(any()) } coAnswers { released.await() }
+        coEvery { sftpPool.evict(any()) } coAnswers { released.await() }
+        coEvery { webDavPool.evict(any()) } coAnswers { released.await() }
+
+        val disconnects = listOf(
+            NetworkLocation.Smb(smbLocation),
+            NetworkLocation.Sftp(sftpLocation),
+            NetworkLocation.WebDav(webDavLocation),
+        ).map { launch { repo.disconnect(it) } }
+        runCurrent()
+
+        disconnects.map { it.isCompleted } shouldBe listOf(false, false, false)
+
+        released.complete(Unit)
+        runCurrent()
+
+        disconnects.map { it.isCompleted } shouldBe listOf(true, true, true)
     }
 }

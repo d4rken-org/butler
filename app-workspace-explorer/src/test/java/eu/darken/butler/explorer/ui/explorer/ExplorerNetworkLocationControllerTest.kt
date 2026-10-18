@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import eu.darken.butler.common.files.network.NetworkLocation
+import eu.darken.butler.common.files.network.NetworkLocationRepo
 import eu.darken.butler.common.files.sftp.location.SftpLocationManager
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.common.files.webdav.location.WebDavLocation
@@ -69,6 +70,9 @@ class ExplorerNetworkLocationControllerTest : BaseTest() {
         webDavLocationManager: WebDavLocationManager = mockk<WebDavLocationManager>().apply {
             coEvery { delete(any()) } just Runs
         },
+        locationRepo: NetworkLocationRepo = mockk<NetworkLocationRepo>().apply {
+            coEvery { disconnect(any()) } just Runs
+        },
         dialogs: ExplorerDialogController = dialogs(),
         workspace: ExplorerWorkspace = mockk<ExplorerWorkspace>().apply {
             coEvery { navigate(any()) } just Runs
@@ -78,6 +82,7 @@ class ExplorerNetworkLocationControllerTest : BaseTest() {
         smbLocationManager = smbLocationManager,
         sftpLocationManager = sftpLocationManager,
         webDavLocationManager = webDavLocationManager,
+        locationRepo = locationRepo,
         dialogs = dialogs,
         workspace = { workspace },
         currentLocation = { currentLocation },
@@ -94,6 +99,32 @@ class ExplorerNetworkLocationControllerTest : BaseTest() {
         controller(dialogs = dialogs).showRemoveConfirmation(listOf(sftpItem))
 
         dialogs.current() shouldBe ExplorerDialogState.RemoveLocationConfirmation(listOf(sftpItem))
+    }
+
+    @Test
+    fun `disconnecting is confirmed first`() = runTest {
+        val dialogs = dialogs()
+
+        controller(dialogs = dialogs).showDisconnectConfirmation(listOf(smbItem, sftpItem))
+
+        dialogs.current() shouldBe ExplorerDialogState.DisconnectLocationConfirmation(listOf(smbItem, sftpItem))
+    }
+
+    @Test
+    fun `a confirmed disconnect ends every location's session`() = runTest {
+        val repo = mockk<NetworkLocationRepo>().apply { coEvery { disconnect(any()) } just Runs }
+        val dialogs = dialogs().apply {
+            show(ExplorerDialogState.DisconnectLocationConfirmation(listOf(smbItem, sftpItem)))
+        }
+
+        controller(locationRepo = repo, dialogs = dialogs).onDisconnectConfirmed(listOf(smbItem, sftpItem))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repo.disconnect(smbItem.location) }
+        coVerify(exactly = 1) { repo.disconnect(sftpItem.location) }
+        coVerify(exactly = 2) { repo.disconnect(any()) }
+        dialogs.current() shouldBe ExplorerDialogState.None
+        selectionCleared shouldBe 1
     }
 
     @Test

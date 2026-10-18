@@ -297,4 +297,34 @@ class SmbCredentialStoreTest : BaseTest() {
         evictions shouldBe listOf(locationId)
         job.cancel()
     }
+
+    @Test
+    fun `ending a session forgets the session credential and emits an eviction`() = runTest {
+        val store = create()
+        store.store(locationId, 1, "darken", null, "hunter2".toCharArray(), remember = false)
+        val evictions = mutableListOf<Uuid>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            store.evictions.collect { evictions.add(it) }
+        }
+
+        store.endSession(locationId)
+
+        store.availability(location).first() shouldBe SmbCredentialStore.Availability.MISSING
+        shouldThrow<SmbCredentialUnavailableException> { store.resolve(location) }
+        evictions shouldBe listOf(locationId)
+        job.cancel()
+    }
+
+    @Test
+    fun `ending a session keeps a remembered credential`() = runTest {
+        val dao = FakeDao()
+        val store = create(dao = dao)
+        store.store(locationId, 1, "darken", null, "hunter2".toCharArray(), remember = true)
+
+        store.endSession(locationId)
+
+        dao.rows.value.size shouldBe 1
+        store.availability(location).first() shouldBe SmbCredentialStore.Availability.AVAILABLE
+        String(store.resolve(location).password) shouldBe "hunter2"
+    }
 }
