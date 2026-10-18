@@ -81,7 +81,7 @@ fun SupportScreen(
                     icon = Icons.TwoTone.Book,
                     title = stringResource(R.string.settings_support_wiki_label),
                     subtitle = stringResource(R.string.settings_support_wiki_description),
-                    onClick = { onOpenUrl(ButlerLinks.WIKI) },
+                    onClick = { onOpenUrl(ButlerLinks.DOCUMENTATION) },
                 )
                 SettingsDivider()
             }

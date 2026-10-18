@@ -22,7 +22,9 @@ class WebpageTool @Inject constructor(
 
     companion object {
         fun open(context: Context, address: String): Boolean {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(address)).apply {
+            val locales = context.resources.configuration.locales.let { list -> List(list.size()) { list[it] } }
+            val url = DocsUrls.localize(address, locales)
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             return try {

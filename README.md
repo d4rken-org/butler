@@ -5,9 +5,9 @@
 [![API](https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=26)
 [![Code tests & eval](https://img.shields.io/github/actions/workflow/status/d4rken-org/butler/code-checks.yml?logo=githubactions&label=Code%20tests
 )](https://github.com/d4rken-org/butler/actions)
-[![Github Downloads](https://img.shields.io/github/downloads/d4rken-org/butler/total.svg?label=GitHub%20Downloads&logo=github)](https://github.com/d4rken-org/butler/edit/main/README.md#download)
-[![Google Play Downloads](https://img.shields.io/endpoint?color=green&logo=google-play&logoColor=green&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Deu.darken.butler%26l%3DGoogle%2520Play%26m%3D%24totalinstalls)](https://github.com/d4rken-org/butler/edit/main/README.md#download)
-[![⭐](https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Deu.darken.butler%26gl%3DUS%26hl%3Den%26l%3D%25E2%25AD%2590%26m%3D%24rating)](https://github.com/d4rken-org/butler/edit/main/README.md#download)
+[![Github Downloads](https://img.shields.io/github/downloads/d4rken-org/butler/total.svg?label=GitHub%20Downloads&logo=github)](https://github.com/d4rken-org/butler#download)
+[![Google Play Downloads](https://img.shields.io/endpoint?color=green&logo=google-play&logoColor=green&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Deu.darken.butler%26l%3DGoogle%2520Play%26m%3D%24totalinstalls)](https://github.com/d4rken-org/butler#download)
+[![⭐](https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Deu.darken.butler%26gl%3DUS%26hl%3Den%26l%3D%25E2%25AD%2590%26m%3D%24rating)](https://github.com/d4rken-org/butler#download)
 
 [Butler](https://github.com/d4rken-org/butler) is the file explorer for Android I always wanted, so I built it.
 
@@ -49,9 +49,13 @@ sponsor ❤️.
 
 ## Get help
 
-* [Github Discussions](https://github.com/d4rken-org/butler/discussions)
+* [Website and user guide](https://butler.darken.eu/)
+* [Getting started](https://butler.darken.eu/getting-started)
+* [Setup and permissions](https://butler.darken.eu/setup)
+* [FAQ and troubleshooting](https://butler.darken.eu/faq)
+* [Report a problem](https://butler.darken.eu/bugs)
+* [GitHub Discussions](https://github.com/d4rken-org/butler/discussions)
 * [Discord](https://discord.gg/ktMbDBAp4K)
-* [Frequently Asked Question](https://github.com/d4rken-org/butler/wiki/FAQ)
 
 ## Screenshots
 

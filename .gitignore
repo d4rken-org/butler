@@ -23,6 +23,17 @@ app/src/screenshotTest*/reference/
 _site/
 .jekyll-cache/
 vendor/bundle/
+/docs/.bundle/
+/docs/CHANGELOG.md
+/docs/PRIVACY_POLICY.md
+/docs/SECURITY.md
+/docs/CNAME
+/docs/assets/banner.png
+/docs/assets/icon.png
+/docs/assets/workspaces.png
+/docs/assets/explorer.png
+/docs/_data/translation_status.json
+/tooling/docs/__pycache__/
 
 # Play Store screenshots: only the English set is committed, the localized runs are generated
 fastlane/metadata/android/*/images/phoneScreenshots/*.png

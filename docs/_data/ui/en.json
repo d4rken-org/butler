@@ -1,0 +1,23 @@
+{
+  "skip": "Skip to content",
+  "guide": "User guide",
+  "language": "Language",
+  "language_name": "English",
+  "help": "Get help",
+  "security": "Verify downloads",
+  "privacy": "Privacy",
+  "tagline": "A file explorer for Android.",
+  "suggest": "Read this page in English",
+  "dismiss": "Dismiss",
+  "stale": "This translation may be out of date.",
+  "stale_link": "Read the English version.",
+  "sections": {"start": "Start here", "using": "Using Butler", "more": "More"},
+  "nav": {
+    "getting-started": "Getting started",
+    "setup": "Setup & permissions",
+    "files": "Working with files",
+    "faq": "FAQ & troubleshooting",
+    "bugs": "Reporting problems",
+    "changelog": "Changelog"
+  }
+}

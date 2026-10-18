@@ -121,16 +121,7 @@ class SetupViewModel @AssistedInject constructor(
 
     fun openHelp(type: SetupModule.Type) = launch {
         log(tag) { "openHelp(type=$type)" }
-        val helpUrl = getHelpUrl(type)
-        webpageTool.open(helpUrl)
-    }
-
-    private fun getHelpUrl(type: SetupModule.Type): String {
-        return "$WIKI_BASE_URL/${type.helpPath}"
-    }
-
-    companion object {
-        private const val WIKI_BASE_URL = "https://github.com/d4rken-org/butler/wiki"
+        webpageTool.open(type.helpUrl)
     }
 
     data class State(
