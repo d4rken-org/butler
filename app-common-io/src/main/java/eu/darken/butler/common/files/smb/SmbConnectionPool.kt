@@ -87,6 +87,13 @@ class SmbConnectionPool @Inject constructor(
     private val lock = Mutex()
     private val generations = mutableMapOf<Key, Generation>()
 
+    /**
+     * Bumped by [evict] and [close], both under [lock]. A connect that started under an older value
+     * was overtaken by them, so its session is never published.
+     */
+    private val evictionEpochs = mutableMapOf<Uuid, Long>()
+    private var closeEpoch = 0L
+
     init {
         credentialStore.evictions
             .onEach { evict(it) }
@@ -183,9 +190,13 @@ class SmbConnectionPool @Inject constructor(
         }
     }
 
-    /** @return the leased generation, or null if it went stale before it could be leased. */
+    /**
+     * @return the leased generation, or null if it went stale before it could be leased or the
+     * location was evicted while connecting. The caller then connects anew.
+     */
     private suspend fun connect(location: SmbLocation, key: Key): Generation? {
         val endpoint = location.endpointLabel
+        val epoch = lock.withLock { epochOf(location.id) }
 
         val credential = when (location.authType) {
             SmbLocation.AuthType.GUEST -> null
@@ -218,14 +229,25 @@ class SmbConnectionPool @Inject constructor(
                         it.share.connected &&
                         it.location.hasSameEndpoint(location)
                 }
-                if (existing != null) {
-                    // Raced another caller onto the same endpoint, keep theirs
-                    redundant = fresh
-                    existing.takeIf { lease(it) }
-                } else {
-                    displaced = generations.remove(key)
-                    generations[key] = fresh
-                    fresh.takeIf { lease(it) }
+                when {
+                    // Evicted while this session was connecting, e.g. because its credential was forgotten
+                    epochOf(location.id) != epoch -> {
+                        log(TAG, INFO) { "Dropping session to $endpoint, its location was evicted" }
+                        redundant = fresh
+                        null
+                    }
+
+                    existing != null -> {
+                        // Raced another caller onto the same endpoint, keep theirs
+                        redundant = fresh
+                        existing.takeIf { lease(it) }
+                    }
+
+                    else -> {
+                        displaced = generations.remove(key)
+                        generations[key] = fresh
+                        fresh.takeIf { lease(it) }
+                    }
                 }
             }
         } catch (error: Throwable) {
@@ -244,9 +266,12 @@ class SmbConnectionPool @Inject constructor(
         basePath == other.basePath &&
         domain == other.domain
 
+    private fun epochOf(locationId: Uuid): Long = closeEpoch + (evictionEpochs[locationId] ?: 0L)
+
     /** Drops every generation of a location, e.g. after its credential changed. */
     suspend fun evict(locationId: Uuid) {
         val dropped = lock.withLock {
+            evictionEpochs[locationId] = (evictionEpochs[locationId] ?: 0L) + 1
             generations.keys
                 .filter { it.locationId == locationId }
                 .toList()
@@ -262,6 +287,7 @@ class SmbConnectionPool @Inject constructor(
      */
     suspend fun close() {
         val dropped = lock.withLock {
+            closeEpoch++
             generations.values.toList().also { generations.clear() }
         }
         dropped.forEach { markStale(it) }
