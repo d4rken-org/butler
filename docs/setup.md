@@ -15,7 +15,10 @@ For ordinary file management, start with storage access. Root and ADB access are
 ## Storage permissions
 {: #storage-permissions }
 
-Android's **All files access** permission lets Butler manage shared storage, including common folders such as Downloads and Documents. Follow the storage card's action to open the relevant Android settings screen, allow access, then return to Butler.
+Storage access lets Butler manage shared storage, including common folders such as Downloads and Documents. Use the **Manage external storage** card in the permission setup:
+
+- On Android 11 and newer, the card opens Android's **All files access** screen. Allow access, then return to Butler.
+- On Android 8 to 10, Android shows a permission dialog instead. Allow access to files.
 
 “All files” does not mean every file on the device. Android still protects app-private data and some system locations. Restrictions on `Android/data` and `Android/obb` depend on the Android version, system file picker and device software. Do not assume a permission that worked on an older device can unlock the same folder on a newer one.
 
@@ -67,7 +70,7 @@ Butler supports both and prefers Porter when it is available. You do not need to
 1. Install and start your chosen service. Follow [Porter's setup guide](https://porter.darken.eu/setup) or [Shizuku's setup guide](https://shizuku.rikka.app/guide/setup/).
 2. Return to Butler's **Permission setup** screen and enable ADB access.
 3. Approve the service's permission request for Butler.
-4. Check that Butler's setup card reports the connection is ready.
+4. Check that Butler's setup card shows **Connected**.
 
 The service may need to be started again after a reboot. If Butler is waiting for a connection, check the service app first, then confirm that Butler is authorized there.
 

@@ -4,7 +4,7 @@ description: "Installiere Butler, öffne deinen ersten Tab und ordne Werkzeuge i
 permalink: /de/getting-started
 lang: de
 translation_key: getting-started
-source_hash: 6c289a92b13c3f0e
+source_hash: 83898efafab4633e
 ---
 # Erste Schritte
 {: #getting-started }
@@ -35,11 +35,13 @@ Ein **Tab** enthält ein Werkzeug und deinen aktuellen Arbeitsstand darin. Du ka
 
 Ein **Ansichtsbereich** ist ein sichtbarer Teil des Bildschirms. Tabs können geöffnet sein, ohne sichtbar zu sein. Die Ansichtsbereiche bestimmen, wie viele du gleichzeitig siehst.
 
-- Wähle mit **Tab erstellen** ein Werkzeug aus. Auch die Tab-Verwaltung bietet eine Karte zum Erstellen eines neuen Tabs.
-- Wechsle über die Tab-Leiste zwischen geöffneten Tabs. Bei mehreren Ansichtsbereichen kannst du wählen, in welchem Bereich ein Tab angezeigt wird.
+- Öffne das **Butler-Menü** und dann **Neuer Tab**, um ein Werkzeug auszuwählen. Die **Tab-Verwaltung** im selben Menü bietet ebenfalls eine Karte **Neuer Tab**. Ist kein Tab geöffnet, nutze **Tab erstellen**.
+- Auf dem Smartphone wischst du nach links oder rechts, um zwischen geöffneten Tabs zu wechseln. Wischst du über den letzten Tab hinaus, bietet Butler einen neuen an. Anordnungen mit Tab-Leiste zeigen deine Tabs am Rand. Bei mehreren Ansichtsbereichen kannst du wählen, in welchem Bereich ein Tab angezeigt wird.
 - Öffne das **Butler-Menü** und dann **Anordnung**, um die Anordnung zu ändern. Die verfügbaren Anordnungen hängen von der Fenstergröße ab; einige benötigen Pro.
 - Ziehe die Trennlinie zwischen den Bereichen, um einem Werkzeug mehr Platz zu geben.
 - Halte in der Tab-Verwaltung die Titelleiste eines Tabs gedrückt, um ihn zu verschieben. Halte seine Vorschau gedrückt, um mehrere Tabs auszuwählen.
+
+Ohne Pro können bis zu 5 Tabs gleichzeitig geöffnet sein.
 
 Einen Tab zu schließen ist nicht dasselbe wie eine Datei zu löschen. Achte bei Editor-Tabs auf ungespeicherte Änderungen und lies die Bestätigung vor dem Schließen.
 
@@ -59,6 +61,6 @@ Unter [Mit Dateien arbeiten](/de/files) findest du Anleitungen zum Kopieren, Ver
 ## Butler anpassen
 {: #make-it-yours }
 
-Die Einstellungen bieten Optionen für das Aussehen und die Tab-Anordnung. Butler unterstützt helle und dunkle Designs sowie Farben aus deinem Gerätedesign oder eine selbst gewählte Farbe.
+Die Einstellungen bieten Optionen für das Aussehen und die Tab-Anordnung. Ohne Pro folgt Butler dem hellen oder dunklen Modus deines Geräts und nutzt das grüne Standarddesign. Mit Pro wählst du den Designmodus, einen Kontraststil, Material-You-Farben aus deinem Hintergrundbild (ab Android 12) oder eine eigene Farbe.
 
 Wenn eine Funktion ein Upgrade verlangt, lies [Versionen und Upgrades](/de/faq#versions-and-upgrades). Schlägt der Zugriff fehl, prüfe [Einrichtung und Berechtigungen](/de/setup), bevor du weitergehende Rechte erteilst.

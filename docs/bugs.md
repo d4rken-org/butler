@@ -43,7 +43,7 @@ Recording can resume when Butler restarts. If the issue involves startup or stor
 
 > Logs can include file paths, installed-app details and other sensitive information. Share them only with trusted people. Do not attach an unreviewed log to a public issue.
 
-For a private log, email [support@darken.eu](mailto:support@darken.eu) and include the link to your issue so the report and log can be matched. Recordings live in Butler's private storage; use **Share**, rather than looking for them with a file manager.
+To send a log privately, open **Settings**, **Support**, then **Contact developer**. The form emails [support@darken.eu](mailto:support@darken.eu) and can attach a log or record a new one. Include the link to your issue so the report and log can be matched. Use **Share** to export a recording rather than looking for it with a file manager.
 
 ## Crash reports
 {: #crash-reports }

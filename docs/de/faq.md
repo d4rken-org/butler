@@ -4,7 +4,7 @@ description: "Antworten zu Butlers Berechtigungen, Upgrades, nicht zugänglichen
 permalink: /de/faq
 lang: de
 translation_key: faq
-source_hash: 842762161770104d
+source_hash: db529cef8dfa9230
 ---
 # Häufige Fragen und Fehlerbehebung
 {: #faq--troubleshooting }
@@ -39,7 +39,7 @@ Dateien im Papierkorb belegen weiterhin Speicher. Öffne **Papierkorb** im Explo
 ## Kann ich eine gelöschte Datei wiederherstellen?
 {: #can-i-recover-a-deleted-file }
 
-Nur, wenn sie noch in Butlers Papierkorb vorhanden ist. Endgültig gelöschte Elemente, Elemente mit abgelaufener Aufbewahrungsfrist und von Android entfernte Cache-Daten lassen sich mit Butler nicht wiederherstellen. Der Papierkorb ersetzt kein Backup.
+Nur, wenn sie noch in Butlers Papierkorb vorhanden ist. Endgültig gelöschte Elemente, Elemente mit abgelaufener Aufbewahrungsfrist und Dateien, die ohne Papierkorb gelöscht wurden, lassen sich mit Butler nicht wiederherstellen. Der Papierkorb ersetzt kein Backup.
 
 ## Ein Kopier- oder Verschiebevorgang wurde unterbrochen. Soll ich ihn wiederholen?
 {: #a-copy-or-move-stopped-should-i-repeat-it }
@@ -78,7 +78,7 @@ Du kannst die [Entwicklung auch direkt unterstützen](https://github.com/sponsor
 ## Sendet Butler meine Dateien oder Debug-Protokolle automatisch?
 {: #does-butler-send-my-files-or-debug-logs-automatically }
 
-Butler hat kein Tracking und versendet keine Absturzberichte automatisch. Debug-Protokolle und Absturzberichte bleiben auf dem Gerät, solange du sie nicht selbst teilst. Optionale Update-Prüfungen und Mitteilungen kontaktieren GitHub. Details stehen in der [Datenschutzerklärung](/privacy).
+Butler hat kein Tracking und versendet keine Absturzberichte automatisch. Debug-Protokolle und Absturzberichte bleiben auf dem Gerät, solange du sie nicht selbst teilst. Optionale Mitteilungen kontaktieren GitHub, ebenso die Update-Prüfung der GitHub-Version. Details stehen in der [Datenschutzerklärung](/privacy).
 
 Wenn du einen Netzwerkspeicherort verwendest oder eine Datei ausdrücklich teilst, werden Daten an den gewählten Server oder die gewählte App gesendet. Debug-Protokolle können Dateipfade und Angaben zu installierten Apps enthalten. Teile sie daher nur mit Personen, denen du vertraust.
 

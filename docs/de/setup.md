@@ -4,7 +4,7 @@ description: "Butlers Speicherberechtigungen, optionaler App-Zugriff sowie Porte
 permalink: /de/setup
 lang: de
 translation_key: setup
-source_hash: ff29065e245ce76b
+source_hash: 38cee95741fe8f09
 ---
 # Einrichtung und Berechtigungen
 {: #setup--permissions }
@@ -16,7 +16,10 @@ Für die normale Dateiverwaltung genügt zunächst der Speicherzugriff. Root- un
 ## Speicherberechtigungen
 {: #storage-permissions }
 
-Mit Androids Berechtigung **Zugriff auf alle Dateien** kann Butler den gemeinsam genutzten Speicher verwalten, einschließlich üblicher Ordner wie Downloads und Documents. Nutze die Aktion auf der Karte **Externen Speicher verwalten** in der Berechtigungseinrichtung, um die passende Android-Einstellung zu öffnen. Erlaube den Zugriff und kehre zu Butler zurück.
+Mit Speicherzugriff kann Butler den gemeinsam genutzten Speicher verwalten, einschließlich üblicher Ordner wie Downloads und Documents. Nutze die Karte **Externen Speicher verwalten** in der Berechtigungseinrichtung:
+
+- Ab Android 11 öffnet die Karte Androids Einstellung **Zugriff auf alle Dateien**. Erlaube den Zugriff und kehre zu Butler zurück.
+- Unter Android 8 bis 10 zeigt Android stattdessen einen Berechtigungsdialog. Erlaube dort den Zugriff auf Dateien.
 
 „Alle Dateien“ bedeutet nicht jede Datei auf dem Gerät. Android schützt weiterhin private App-Daten und einige Systembereiche. Einschränkungen für `Android/data` und `Android/obb` hängen von der Android-Version, der System-Dateiauswahl und der Gerätesoftware ab. Eine Berechtigung, die auf einem älteren Gerät funktioniert hat, muss auf einem neueren nicht denselben Ordner zugänglich machen.
 
@@ -68,7 +71,7 @@ Butler unterstützt beide und bevorzugt Porter, wenn es verfügbar ist. Du musst
 1. Installiere und starte den gewählten Dienst. Folge der [Einrichtungsanleitung von Porter](https://porter.darken.eu/setup) oder [Shizuku](https://shizuku.rikka.app/guide/setup/).
 2. Kehre in Butler zu **Berechtigungen einrichten** zurück und aktiviere den ADB-Zugriff.
 3. Erlaube dem Dienst den Zugriff für Butler, wenn er danach fragt.
-4. Prüfe, ob Butlers Einrichtungskarte die Verbindung als bereit anzeigt.
+4. Prüfe, ob Butlers Einrichtungskarte **Verbunden** anzeigt.
 
 Nach einem Neustart muss der Dienst möglicherweise erneut gestartet werden. Wartet Butler auf eine Verbindung, prüfe zuerst die Dienst-App und dann, ob Butler dort autorisiert ist.
 

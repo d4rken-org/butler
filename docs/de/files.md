@@ -4,7 +4,7 @@ description: "Dateien in Butler kopieren, verschieben, löschen und wiederherste
 permalink: /de/files
 lang: de
 translation_key: files
-source_hash: 9ea04ba36f84cffc
+source_hash: d3d3ed20321505c4
 ---
 # Mit Dateien arbeiten
 {: #working-with-files }
@@ -40,15 +40,15 @@ Das Abbrechen eines Vorgangs verhindert weitere Arbeit, macht aber bereits abges
 ## Löschen und wiederherstellen
 {: #trash }
 
-Butler hat einen eigenen Papierkorb, der standardmäßig aktiviert ist. Du findest seine Einstellungen unter **Einstellungen**, **Explorer**. Es gibt Grenzen für die Aufbewahrungsdauer und den Speicherplatz, den der Papierkorb belegen darf.
+Butler hat einen eigenen Papierkorb, der standardmäßig aktiviert ist. Du findest seine Einstellungen unter **Einstellungen**, **Explorer-Einstellungen**. Es gibt Grenzen für die Aufbewahrungsdauer und den Speicherplatz, den der Papierkorb belegen darf.
 
-Wenn der Papierkorb aktiviert ist und der Speicherort ihn unterstützt, werden gelöschte Elemente dorthin verschoben, statt sofort endgültig entfernt zu werden. Kann Butler den Papierkorb für ein Element nicht verwenden, lies die Abfrage, bevor du einer endgültigen Löschung zustimmst.
+Wenn der Papierkorb aktiviert ist, werden gelöschte Dateien im eigenen Speicher des Geräts dorthin verschoben, statt endgültig entfernt zu werden. Ordner, die über die System-Dateiauswahl geöffnet wurden, und Netzwerkspeicherorte haben keinen Papierkorb; dort ist das Löschen endgültig. Kann Butler den Papierkorb für ein Element nicht verwenden, lies die Abfrage, bevor du einer endgültigen Löschung zustimmst.
 
 Zum Wiederherstellen öffnest du **Papierkorb** auf der Explorer-Startseite, wählst das Element und dann **Wiederherstellen**. Butler stellt es am ursprünglichen Speicherort wieder her. Dieser muss weiterhin verfügbar und beschreibbar sein. Löse mögliche Namenskonflikte, die die App anzeigt.
 
-> Der Papierkorb ist kein Backup. Butler speichert gelöschte Dateien im Cache. Android kann diesen bei knappem Speicherplatz leeren. Auch abgelaufene Aufbewahrungsfristen, das Leeren des Papierkorbs, das Löschen der App-Daten oder die Deinstallation von Butler können eine Wiederherstellung unmöglich machen.
+> Der Papierkorb ist kein Backup. Gelöschte Dateien liegen in Butlers eigenem App-Ordner. Abgelaufene Aufbewahrungsfristen, das Leeren des Papierkorbs, das Löschen von Butlers Speicher oder die Deinstallation von Butler entfernen sie.
 
-Eine Datei in den Papierkorb zu verschieben gibt ihren Speicherplatz noch nicht frei. Erst die endgültige Löschung aus dem Papierkorb tut dies. Endgültig gelöschte Dateien können mit Butler nicht wiederhergestellt werden.
+Dateien im Papierkorb belegen weiterhin Gerätespeicher, bis du sie dort endgültig löschst. Endgültig gelöschte Dateien können mit Butler nicht wiederhergestellt werden.
 
 ## Suchen und bearbeiten
 {: #search-and-edit }
@@ -60,10 +60,11 @@ Erstelle einen **Suche**-Tab, um Dateien zu finden. Wähle die zu durchsuchenden
 ## Netzwerkspeicher
 {: #network-storage }
 
-Butler unterstützt SMB-Freigaben und SFTP-Server. Füge im Explorer einen Netzwerkspeicherort hinzu und gib die Serverdaten ein, die du von dessen Administration erhalten hast. Hinzufügen und Testen ist kostenlos; das Durchsuchen benötigt Pro.
+Butler unterstützt SMB-Freigaben, SFTP-Server und WebDAV-Server. Füge im Explorer einen Netzwerkspeicherort hinzu und gib die Serverdaten ein, die du von dessen Administration erhalten hast. Hinzufügen und Testen ist kostenlos; das Durchsuchen benötigt Pro.
 
 - **SMB** wird häufig für Windows-Freigaben und NAS-Geräte verwendet.
 - **SFTP** verwendet SSH. Prüfe den Fingerabdruck des Hostschlüssels mit der Serveradministration, bevor du einem neuen oder geänderten Schlüssel vertraust.
+- **WebDAV** wird von Nextcloud, ownCloud und vielen NAS-Geräten verwendet. Ist das Zertifikat des Servers selbst signiert oder vertraut das Gerät ihm nicht, zeigt Butler seinen Fingerabdruck und fragt, bevor es ihm vertraut. Ändert sich ein vertrautes Zertifikat später, bricht Butler ab und fragt erneut. Akzeptiere es nur, wenn du weißt, warum es sich geändert hat.
 
 Dein Gerät muss den Server erreichen können, etwa über dasselbe Netzwerk oder ein geeignetes VPN. Butler macht einen privaten Server nicht über das Internet erreichbar. Gib einen Server nicht öffentlich frei, nur um ein Verbindungsproblem zu beheben.
 

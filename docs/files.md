@@ -39,15 +39,15 @@ Canceling an operation stops further work; it does not undo work that has alread
 ## Delete and restore
 {: #trash }
 
-Butler has its own trash, enabled by default. Review its settings under **Settings**, **Explorer**. There are limits on how long items stay and how much space trash can use.
+Butler has its own trash, enabled by default. Review its settings under **Settings**, **Explorer settings**. There are limits on how long items stay and how much space trash can use.
 
-When trash is enabled and the location supports it, deletion moves items to trash instead of immediately removing them permanently. If Butler cannot use trash for an item, read the prompt before agreeing to permanent deletion.
+When trash is enabled, deleting files on the device's own storage moves them to trash instead of removing them permanently. Folders opened through the system picker and network locations have no trash; deleting there is permanent. If Butler cannot use trash for an item, read the prompt before agreeing to permanent deletion.
 
 To restore an item, open **Trash** from Explorer's home, select it and choose **Restore**. Butler restores it to its original location, which must still be available and writable. Resolve any name conflicts shown by the app.
 
-> Trash is not a backup. Butler uses cache storage for trashed files, and Android may clear it when space is low. Expiration, emptying trash, clearing app data or uninstalling Butler can also remove your recovery option.
+> Trash is not a backup. Trashed files are kept in Butler's own app folder. Expiration, emptying trash, clearing Butler's storage or uninstalling Butler removes them.
 
-Moving a file to trash does not free its storage space yet. Permanently deleting it from trash does. Files deleted permanently cannot be recovered through Butler.
+Trashed files still use device storage until you delete them permanently from trash. Files deleted permanently cannot be recovered through Butler.
 
 ## Search and edit
 {: #search-and-edit }
@@ -59,10 +59,11 @@ Open text in **Editor** when you want to change it. Save your changes before lea
 ## Network locations
 {: #network-storage }
 
-Butler supports SMB shares and SFTP servers. Add a network location from Explorer and enter the server details supplied by its administrator. Adding and testing a location is free; browsing it requires Pro.
+Butler supports SMB shares, SFTP servers and WebDAV servers. Add a network location from Explorer and enter the server details supplied by its administrator. Adding and testing a location is free; browsing it requires Pro.
 
 - **SMB** is commonly used by Windows shares and NAS devices.
 - **SFTP** uses SSH. Check the server's host-key fingerprint with its administrator before trusting a new or changed key.
+- **WebDAV** is used by Nextcloud, ownCloud and many NAS devices. If the server's certificate is self-signed or not trusted by the device, Butler shows its fingerprint and asks before trusting it. If a trusted certificate later changes, Butler stops and asks again; only accept it if you know why it changed.
 
 The device must be able to reach the server, for example through the same network or an appropriate VPN. Butler does not make a private server reachable from the internet. Do not expose a server publicly just to fix a connection problem.
 

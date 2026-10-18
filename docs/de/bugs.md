@@ -4,7 +4,7 @@ description: "Einen Butler-Fehler melden und ein Debug-Protokoll aufzeichnen, oh
 permalink: /de/bugs
 lang: de
 translation_key: bugs
-source_hash: 2fc012b9e5ccc132
+source_hash: 530e820b361c7c5e
 ---
 # Probleme melden
 {: #reporting-problems }
@@ -44,7 +44,7 @@ Die Aufnahme kann nach einem Neustart von Butler fortgesetzt werden. Bei Problem
 
 > Protokolle können Dateipfade, Angaben zu installierten Apps und andere sensible Informationen enthalten. Teile sie nur mit vertrauenswürdigen Personen. Hänge kein ungeprüftes Protokoll an ein öffentliches Issue an.
 
-Sende private Protokolle per E-Mail an [support@darken.eu](mailto:support@darken.eu) und füge den Link zu deinem Issue hinzu, damit Bericht und Protokoll zugeordnet werden können. Aufnahmen liegen in Butlers privatem Speicher. Verwende **Teilen**, statt sie mit einem Dateimanager zu suchen.
+Um ein Protokoll privat zu senden, öffne **Einstellungen**, **Support** und dann **Entwickler kontaktieren**. Das Formular sendet eine E-Mail an [support@darken.eu](mailto:support@darken.eu) und kann ein Protokoll anhängen oder ein neues aufnehmen. Füge den Link zu deinem Issue hinzu, damit Bericht und Protokoll zugeordnet werden können. Verwende **Teilen**, um eine Aufnahme zu exportieren, statt sie mit einem Dateimanager zu suchen.
 
 ## Absturzberichte
 {: #crash-reports }

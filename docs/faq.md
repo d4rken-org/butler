@@ -38,7 +38,7 @@ Files moved to trash still occupy storage. Inspect **Trash** in Explorer and per
 ## Can I recover a deleted file?
 {: #can-i-recover-a-deleted-file }
 
-Only if it is still available in Butler's trash. Permanently deleted items, expired items and cache data removed by Android cannot be restored through Butler. Trash is not a substitute for a backup.
+Only if it is still available in Butler's trash. Permanently deleted items, expired items and files deleted where trash is not available cannot be restored through Butler. Trash is not a substitute for a backup.
 
 ## A copy or move stopped. Should I repeat it?
 {: #a-copy-or-move-stopped-should-i-repeat-it }
@@ -77,7 +77,7 @@ You can also [sponsor development directly](https://github.com/sponsors/d4rken).
 ## Does Butler send my files or debug logs automatically?
 {: #does-butler-send-my-files-or-debug-logs-automatically }
 
-Butler has no tracking or automatic crash-report submission. Debug and crash reports stay on the device unless you choose to share them. Optional update checks and messages contact GitHub; see the [privacy policy](/privacy) for details.
+Butler has no tracking or automatic crash-report submission. Debug and crash reports stay on the device unless you choose to share them. Optional messages contact GitHub, and so do update checks in the GitHub version; see the [privacy policy](/privacy) for details.
 
 Using a network location or sharing a file explicitly sends data to the server or app you selected. Debug logs may contain file paths and installed-app details, so share them only with someone you trust.
 

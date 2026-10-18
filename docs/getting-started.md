@@ -34,11 +34,13 @@ A **tab** holds a tool and what you are doing in it. You can keep several Explor
 
 A **pane** is a visible area of the screen. Tabs can exist without being visible; panes determine how many you see at once.
 
-- Use **Create tab** to choose a tool. The tab manager also has a card for creating a new tab.
-- Use the tab rail to switch between open tabs. In a multi-pane layout, choose which pane should show the tab.
+- Open the **Butler menu**, then **New tab**, to choose a tool. The **Tab manager** in the same menu also has a **New tab** card. With no tabs open, use **Create tab**.
+- On a phone, swipe left or right to move between open tabs; swiping past the last tab offers a new one. Layouts with a tab rail list your tabs on the side. In a multi-pane layout, choose which pane should show the tab.
 - Open the **Butler menu**, then **Layout**, to change the arrangement. Available layouts depend on the window size, and some require Pro.
 - Drag the divider between panes to give one tool more room.
 - In the tab manager, press and hold a tab's title bar to reorder it. Press and hold its preview to select several tabs.
+
+Without Pro, up to 5 tabs can be open at a time.
 
 Closing a tab is different from deleting a file. Take care with an editor tab that has unsaved changes; read the confirmation before closing it.
 
@@ -58,6 +60,6 @@ Start with [Working with files](/files) for copying, moving, deleting and recove
 ## Make it yours
 {: #make-it-yours }
 
-Settings include appearance and tab-layout options. Butler supports light and dark themes and colors based on your device's theme or a color you choose.
+Settings include appearance and tab-layout options. Without Pro, Butler follows your device's light or dark mode with its default green theme. Pro lets you pick the theme mode, a contrast style, Material You colors from your wallpaper (Android 12 and newer), or a color of your own.
 
 If a feature asks for an upgrade, see [Versions and upgrades](/faq#versions-and-upgrades). If access fails, check [Setup & permissions](/setup) before granting broader permissions.
