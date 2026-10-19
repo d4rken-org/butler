@@ -469,6 +469,7 @@
     <string name="workspace_limit_blocker_unavailable">ప్రస్తుతం మూసివేయలేము</string>
     <string name="workspace_limit_stacked_content_desc">ఈ ట్యాబ్‌ను మూసివేస్తే దానిపై పేర్చినవి కూడా మూసివేయబడతాయి</string>
     <string name="workspace_limit_pro_description">మీకు కావాల్సినన్ని ట్యాబ్‌లను తెరవండి.</string>
+    <string name="workspace_app_not_installed_content_desc">యాప్ ఇన్‌స్టాల్ చేయబడలేదు</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

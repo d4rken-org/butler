@@ -429,6 +429,7 @@
     <string name="workspace_limit_blocker_unavailable">ยังปิดไม่ได้ในขณะนี้</string>
     <string name="workspace_limit_stacked_content_desc">การปิดแท็บนี้จะปิดสิ่งที่ซ้อนอยู่บนแท็บนี้ด้วย</string>
     <string name="workspace_limit_pro_description">เปิดแท็บได้มากเท่าที่ต้องการ</string>
+    <string name="workspace_app_not_installed_content_desc">ไม่ได้ติดตั้งแอป</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

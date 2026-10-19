@@ -431,6 +431,7 @@
     <string name="workspace_limit_blocker_unavailable">Nu poate fi închisă momentan</string>
     <string name="workspace_limit_stacked_content_desc">Închiderea acestei file închide și conținutul suprapus peste ea</string>
     <string name="workspace_limit_pro_description">Deschide câte file vrei.</string>
+    <string name="workspace_app_not_installed_content_desc">Aplicația nu este instalată</string>
     <plurals name="workspace_drag_decoration_items">
         <item quantity="one">%1$d element</item>
         <item quantity="few">%1$d elemente</item>

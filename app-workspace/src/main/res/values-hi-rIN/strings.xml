@@ -404,6 +404,7 @@
     <string name="workspace_limit_blocker_unavailable">अभी बंद नहीं किया जा सकता</string>
     <string name="workspace_limit_stacked_content_desc">यह टैब बंद करने पर इसके ऊपर खुले कार्यक्षेत्र भी बंद होते हैं</string>
     <string name="workspace_limit_pro_description">जितने चाहें उतने टैब खोलें।</string>
+    <string name="workspace_app_not_installed_content_desc">ऐप इंस्टॉल नहीं है</string>
     <plurals name="workspace_drag_decoration_items">
         <item quantity="one">%1$d आइटम</item>
         <item quantity="other">%1$d आइटम</item>

@@ -100,6 +100,7 @@ class SearcherInstallActionTest {
             appInstallLauncher = appInstallLauncher,
             apiLevel = mockk(relaxed = true),
             errorIncidentStore = recordingIncidentStore(),
+            appAttributor = noAppAttributions(),
             itemSorterFactory = mockk {
                 every { create(any()) } returns mockk(relaxed = true)
             },

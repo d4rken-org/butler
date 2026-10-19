@@ -124,6 +124,7 @@ class SearcherSelectionShareTest {
             appInstallLauncher = mockk(relaxed = true),
             apiLevel = mockk(relaxed = true),
             errorIncidentStore = recordingIncidentStore(),
+            appAttributor = noAppAttributions(),
             itemSorterFactory = mockk {
                 every { create(any()) } returns mockk<SearchItemSorter> {
                     every { sortItems(any(), any()) } answers { firstArg() }

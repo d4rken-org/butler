@@ -429,6 +429,7 @@
     <string name="workspace_limit_blocker_unavailable">当前无法关闭</string>
     <string name="workspace_limit_stacked_content_desc">关闭此标签页也会关闭叠放在其上的内容</string>
     <string name="workspace_limit_pro_description">随心所欲地打开标签页。</string>
+    <string name="workspace_app_not_installed_content_desc">应用未安装</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

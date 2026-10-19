@@ -455,6 +455,7 @@
     <string name="workspace_limit_blocker_unavailable">Kann gerade nicht geschlossen werden</string>
     <string name="workspace_limit_stacked_content_desc">Beim Schließen dieses Tabs werden auch die darauf gestapelten Inhalte geschlossen</string>
     <string name="workspace_limit_pro_description">Öffne so viele Tabs, wie Du möchtest.</string>
+    <string name="workspace_app_not_installed_content_desc">App nicht installiert</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

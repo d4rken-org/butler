@@ -469,6 +469,7 @@
     <string name="workspace_limit_blocker_unavailable">এখন বন্ধ করা যায় না</string>
     <string name="workspace_limit_stacked_content_desc">এই ট্যাব বন্ধ করলে এর ওপর স্তূপ করা বিষয়বস্তুও বন্ধ হবে</string>
     <string name="workspace_limit_pro_description">যত খুশি ট্যাব খুলুন।</string>
+    <string name="workspace_app_not_installed_content_desc">অ্যাপ ইনস্টল করা নেই</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

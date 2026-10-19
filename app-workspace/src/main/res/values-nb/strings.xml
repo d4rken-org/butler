@@ -469,6 +469,7 @@
     <string name="workspace_limit_blocker_unavailable">Kan ikke lukkes akkurat nå</string>
     <string name="workspace_limit_stacked_content_desc">Når du lukker denne fanen, lukkes også det som er lagt oppå den</string>
     <string name="workspace_limit_pro_description">Åpne så mange faner du vil.</string>
+    <string name="workspace_app_not_installed_content_desc">Appen er ikke installert</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

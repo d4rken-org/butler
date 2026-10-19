@@ -46,6 +46,9 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.util.getEllipsizedMatchLine
+import eu.darken.butler.workspace.core.appattribution.AppAttribution
+import eu.darken.butler.workspace.ui.common.AppAttributionBadge
+import eu.darken.butler.workspace.ui.common.CornerBadgeBox
 import eu.darken.butler.workspace.ui.common.withLocationNames
 
 /**
@@ -82,6 +85,7 @@ fun SelectableFileRow(
     onClick: () -> Unit,
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier,
+    appAttribution: AppAttribution? = null,
 ) {
     val backgroundColor = if (isSelected) {
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -102,16 +106,23 @@ fun SelectableFileRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Leading content - either checkbox OR icon
-        Box(
-            modifier = Modifier.size(density.rowIconSize),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (isSelectionMode) {
+        if (isSelectionMode) {
+            Box(
+                modifier = Modifier.size(density.rowIconSize),
+                contentAlignment = Alignment.Center,
+            ) {
                 Checkbox(
                     checked = isSelected,
                     onCheckedChange = { onClick() },
                 )
-            } else {
+            }
+        } else {
+            CornerBadgeBox(
+                modifier = Modifier.size(density.rowIconSize),
+                bottomStart = appAttribution?.let { attribution ->
+                    { AppAttributionBadge(attribution = attribution, size = density.rowAppBadgeSize) }
+                },
+            ) {
                 TintedAsyncImage(
                     model = result.lookup,
                     contentDescription = result.fileType.name,

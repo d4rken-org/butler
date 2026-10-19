@@ -455,6 +455,7 @@
     <string name="workspace_limit_blocker_unavailable">Şu anda kapatılamaz</string>
     <string name="workspace_limit_stacked_content_desc">Bu sekmeyi kapatmak, üzerine yığılmış olanları da kapatır</string>
     <string name="workspace_limit_pro_description">İstediğiniz kadar sekme açın.</string>
+    <string name="workspace_app_not_installed_content_desc">Uygulama yüklü değil</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

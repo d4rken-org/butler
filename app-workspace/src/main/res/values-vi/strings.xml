@@ -429,6 +429,7 @@
     <string name="workspace_limit_blocker_unavailable">Không thể đóng lúc này</string>
     <string name="workspace_limit_stacked_content_desc">Đóng thẻ này cũng đóng luôn những gì xếp chồng trên đó</string>
     <string name="workspace_limit_pro_description">Mở bao nhiêu thẻ tùy thích.</string>
+    <string name="workspace_app_not_installed_content_desc">Ứng dụng chưa được cài đặt</string>
 
     <!-- Kéo và thả -->
     <plurals name="workspace_drag_decoration_items">

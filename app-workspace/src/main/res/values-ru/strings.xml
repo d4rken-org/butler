@@ -523,6 +523,7 @@
     <string name="workspace_limit_blocker_unavailable">Сейчас нельзя закрыть</string>
     <string name="workspace_limit_stacked_content_desc">Закрытие этой вкладки также закроет то, что открыто поверх неё</string>
     <string name="workspace_limit_pro_description">Открывайте сколько угодно вкладок.</string>
+    <string name="workspace_app_not_installed_content_desc">Приложение не установлено</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

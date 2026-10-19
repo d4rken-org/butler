@@ -73,6 +73,8 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.explorer.core.FileTypeFilter
+import eu.darken.butler.workspace.core.appattribution.AppAttribution
+import eu.darken.butler.workspace.core.appattribution.AppAttributor
 import eu.darken.butler.workspace.core.preview.FolderPreviewObserver
 import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import eu.darken.butler.explorer.core.FilterState
@@ -156,6 +158,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -230,6 +233,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val appInstallLauncher: AppInstallLauncher,
     private val json: Json,
     private val errorIncidentStore: ErrorIncidentStore,
+    private val appAttributor: AppAttributor,
     private val archivePasswordStore: ArchivePasswordStore,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
@@ -727,6 +731,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val emptyRecovery: EmptyRecovery? = null,
         val favorites: List<FavoriteItem> = emptyList(),
         val favoritePaths: List<APath<*>> = emptyList(),
+        /** App badges for package-named folders, keyed by item id. */
+        val appAttributions: Map<String, AppAttribution> = emptyMap(),
         /** Favorites selected in the Home section; never populated together with [selectionState]. */
         val favoriteSelection: Set<APath<*>> = emptySet(),
         val showHomeFavoritesSection: Boolean = false,
@@ -830,6 +836,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val processedItemsFlow: Flow<List<ExplorerItem>?> = processedListingFlow.map { it?.items }
 
+    // Held at VM level: the state combine is rebuilt on every workspace state, and a fresh collection
+    // would publish a badge-less state first.
+    private val appAttributions: StateFlow<Map<String, AppAttribution>> = appAttributor.attributionsFor(
+        processedItemsFlow.map { items ->
+            items.orEmpty()
+                .filterIsInstance<ExplorerItem.RegularDirectory>()
+                .associate { it.id to it.lookup.lookedUp }
+        },
+    ).stateIn(vmScope, SharingStarted.Lazily, emptyMap())
+
     init {
         // Keep the focus controller's item count in sync so wrap-around math and
         // shrink-clamping always see the same list the page renders.
@@ -890,7 +906,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     favoritesController.feedback,
                     directorySizes,
                     favoritesSelection.selection,
-                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, openFilesOnTap, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection ->
+                    appAttributions,
+                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, openFilesOnTap, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection, appAttributions ->
                     val items = listing?.items
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
@@ -991,6 +1008,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             && wsStateInner.currentLocation is ExplorerLocation.Home
                             && favorites.isNotEmpty(),
                         favoriteFeedback = favoriteFeedback,
+                        appAttributions = appAttributions,
                         directorySizesScannedAt = sizesScannedAt,
                         isCalculatingSizes = isCalculatingSizes,
                         largestDirectorySize = items

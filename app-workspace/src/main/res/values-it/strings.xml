@@ -469,6 +469,7 @@
     <string name="workspace_limit_blocker_unavailable">Non può essere chiusa adesso</string>
     <string name="workspace_limit_stacked_content_desc">La chiusura di questa scheda chiude anche ciò che vi è impilato sopra</string>
     <string name="workspace_limit_pro_description">Apri tutte le schede che vuoi.</string>
+    <string name="workspace_app_not_installed_content_desc">App non installata</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

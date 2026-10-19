@@ -455,6 +455,7 @@
     <string name="workspace_limit_blocker_unavailable">Não pode ser fechada agora</string>
     <string name="workspace_limit_stacked_content_desc">Fechar esta aba também fecha o que está empilhado nela</string>
     <string name="workspace_limit_pro_description">Abra quantas abas quiser.</string>
+    <string name="workspace_app_not_installed_content_desc">App não instalado</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">
