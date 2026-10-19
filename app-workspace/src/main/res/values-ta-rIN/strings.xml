@@ -469,6 +469,7 @@
     <string name="workspace_limit_blocker_unavailable">இப்போது மூட முடியாது</string>
     <string name="workspace_limit_stacked_content_desc">இந்தத் தாவலை மூடினால் அதன் மேல் அடுக்கப்பட்டுள்ளவையும் மூடப்படும்</string>
     <string name="workspace_limit_pro_description">விரும்பும் அளவு தாவல்களைத் திறக்கலாம்.</string>
+    <string name="workspace_app_not_installed_content_desc">ஆப்ஸ் நிறுவப்படவில்லை</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

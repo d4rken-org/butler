@@ -469,6 +469,7 @@
     <string name="workspace_limit_blocker_unavailable">Kan nu niet worden gesloten</string>
     <string name="workspace_limit_stacked_content_desc">Dit tabblad sluiten sluit ook wat erop gestapeld is</string>
     <string name="workspace_limit_pro_description">Open zoveel tabbladen als je wilt.</string>
+    <string name="workspace_app_not_installed_content_desc">App niet geïnstalleerd</string>
 
     <!-- Slepen en neerzetten -->
     <plurals name="workspace_drag_decoration_items">

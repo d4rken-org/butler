@@ -51,6 +51,7 @@ dependencies {
 
     implementation(project(":app-common"))
     implementation(project(":app-common-io"))
+    implementation(project(":app-common-pkgs"))
 
     addAndroidCore()
     addAndroidUI()

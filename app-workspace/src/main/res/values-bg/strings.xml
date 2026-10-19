@@ -469,6 +469,7 @@
     <string name="workspace_limit_blocker_unavailable">Не може да се затвори в момента</string>
     <string name="workspace_limit_stacked_content_desc">Затварянето на този раздел затваря и съдържанието, насложено върху него</string>
     <string name="workspace_limit_pro_description">Отваряй толкова раздели, колкото искаш.</string>
+    <string name="workspace_app_not_installed_content_desc">Приложението не е инсталирано</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

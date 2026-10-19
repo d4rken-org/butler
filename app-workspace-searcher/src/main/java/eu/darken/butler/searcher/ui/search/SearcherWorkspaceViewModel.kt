@@ -61,6 +61,8 @@ import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
 import eu.darken.butler.workspace.core.NoAppForFileException
+import eu.darken.butler.workspace.core.appattribution.AppAttribution
+import eu.darken.butler.workspace.core.appattribution.AppAttributor
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.OpenSelectionMode
 import eu.darken.butler.workspace.core.OpenWithIntentUseCase
@@ -127,6 +129,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val appInstallLauncher: AppInstallLauncher,
     private val apiLevel: ApiLevel,
     private val errorIncidentStore: ErrorIncidentStore,
+    private val appAttributor: AppAttributor,
     itemSorterFactory: SearchItemSorter.Factory,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
@@ -198,6 +201,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val workspaceSearchState: Flow<SearcherWorkspace.State> = workspaceSource
         .filterNotNull()
         .flatMapLatest { it.state }
+
+    private val appAttributions: Flow<Map<String, AppAttribution>> = appAttributor.attributionsFor(
+        workspaceSearchState
+            .map { it.results }
+            // Same identity memo as displayResultsCache below.
+            .distinctUntilChanged { old, new -> old === new }
+            .map { results ->
+                results
+                    .filter { it.fileType == FileType.DIRECTORY }
+                    .associate { it.resultKey to it.path }
+            },
+    )
 
     // Results arrive already deduplicated by normalized path from the workspace's
     // ResultAccumulator (which also resolves source-rank replacements); this layer only sorts.
@@ -437,7 +452,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         currentSortSettings,
         viewStyleFlow,
         trashSettings.enabled.flow,
-    ) { filenameQ: String, contentQ: String, fnOptions: FilenameQuery, ctOptions: ContentQuery, contentSearchOn: Boolean, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchFilter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean ->
+        appAttributions,
+    ) { filenameQ: String, contentQ: String, fnOptions: FilenameQuery, ctOptions: ContentQuery, contentSearchOn: Boolean, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchFilter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean, appAttributions: Map<String, AppAttribution> ->
         val sortedResults = displayResults(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -498,6 +514,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             viewStyle = viewStyle,
             sortSettings = sortSettings,
             trashEnabled = trashEnabled,
+            appAttributions = appAttributions,
             addableMediaCollections = SearchTarget.MediaStore.Collection.entries.filter { collection ->
                 apiLevel.has(collection.minApiLevel) &&
                     workspaceState.searchTargets.none { it.identity == collection }
@@ -1133,6 +1150,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             val sortSettings: SearchSortSettings = SearchSortSettings(),
             val trashEnabled: Boolean = false,
             val addableMediaCollections: List<SearchTarget.MediaStore.Collection> = emptyList(),
+            /** App badges for package-named folders, keyed by result key. */
+            val appAttributions: Map<String, AppAttribution> = emptyMap(),
         ) : State {
             val isSearching: Boolean
                 get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING

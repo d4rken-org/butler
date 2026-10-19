@@ -315,10 +315,10 @@ private fun decorationsFor(
 ): ItemDecorations = when (item) {
     is ExplorerItem.Lookup -> ItemDecorations(
         isFavorite = state.favoritePaths.any { it.matches(item.lookup.lookedUp) },
+        appAttribution = state.appAttributions[item.id],
     )
     is ExplorerItem.Storage -> ItemDecorations(
         isFavorite = state.favoritePaths.any { it.matches(item.target.path) },
     )
     else -> ItemDecorations()
 }
-

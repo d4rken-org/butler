@@ -455,6 +455,7 @@
     <string name="workspace_limit_blocker_unavailable">No se puede cerrar en este momento</string>
     <string name="workspace_limit_stacked_content_desc">Cerrar esta pestaña también cierra lo que está apilado sobre ella</string>
     <string name="workspace_limit_pro_description">Abre tantas pestañas como quieras.</string>
+    <string name="workspace_app_not_installed_content_desc">Aplicación no instalada</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

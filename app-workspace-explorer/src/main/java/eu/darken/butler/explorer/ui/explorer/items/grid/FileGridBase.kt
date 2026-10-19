@@ -68,6 +68,8 @@ internal fun FileGridBase(
     tertiaryIsPath: Boolean = false,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     previewContent: @Composable (() -> Unit)? = null,
+    /** Centered on the thumbnail, above [previewContent] and below the bars. */
+    thumbnailBadge: @Composable (() -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     /** Composed below the tile's text lines, e.g. a size proportion bar. */
     bottomContent: (@Composable () -> Unit)? = null,
@@ -130,6 +132,8 @@ internal fun FileGridBase(
             if (previewContent != null) {
                 previewContent()
             }
+
+            thumbnailBadge?.let { Box(modifier = Modifier.align(Alignment.Center)) { it() } }
 
             // Top bar with icon and size
             Row(

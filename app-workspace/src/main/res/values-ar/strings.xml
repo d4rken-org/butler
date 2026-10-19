@@ -559,6 +559,7 @@
     <string name="workspace_limit_blocker_unavailable">لا يمكن إغلاقها الآن</string>
     <string name="workspace_limit_stacked_content_desc">إغلاق علامة التبويب هذه يغلق أيضًا ما هو مكدّس عليها</string>
     <string name="workspace_limit_pro_description">افتح أكبر عدد تريده من علامات التبويب.</string>
+    <string name="workspace_app_not_installed_content_desc">التطبيق غير مثبت</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

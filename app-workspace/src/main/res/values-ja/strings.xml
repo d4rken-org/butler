@@ -442,6 +442,7 @@
     <string name="workspace_limit_blocker_unavailable">今は閉じられません</string>
     <string name="workspace_limit_stacked_content_desc">このタブを閉じると、上に重なっているワークスペースも閉じます</string>
     <string name="workspace_limit_pro_description">好きなだけタブを開けます。</string>
+    <string name="workspace_app_not_installed_content_desc">アプリはインストールされていません</string>
 
     <!-- ドラッグ＆ドロップ -->
     <plurals name="workspace_drag_decoration_items">

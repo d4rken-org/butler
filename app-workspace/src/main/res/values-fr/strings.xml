@@ -455,6 +455,7 @@
     <string name="workspace_limit_blocker_unavailable">Ne peut pas être fermé pour le moment</string>
     <string name="workspace_limit_stacked_content_desc">Fermer cet onglet ferme aussi ce qui y est empilé</string>
     <string name="workspace_limit_pro_description">Ouvrez autant d’onglets que vous le souhaitez.</string>
+    <string name="workspace_app_not_installed_content_desc">Application non installée</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

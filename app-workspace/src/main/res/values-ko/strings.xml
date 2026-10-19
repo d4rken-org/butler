@@ -429,6 +429,7 @@
     <string name="workspace_limit_blocker_unavailable">지금은 닫을 수 없음</string>
     <string name="workspace_limit_stacked_content_desc">이 탭을 닫으면 그 위에 쌓인 항목도 함께 닫힙니다</string>
     <string name="workspace_limit_pro_description">원하는 만큼 탭을 여세요.</string>
+    <string name="workspace_app_not_installed_content_desc">앱이 설치되어 있지 않음</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

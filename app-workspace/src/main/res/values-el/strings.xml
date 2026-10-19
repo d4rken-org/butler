@@ -455,6 +455,7 @@
     <string name="workspace_limit_blocker_unavailable">Δεν μπορεί να κλείσει αυτή τη στιγμή</string>
     <string name="workspace_limit_stacked_content_desc">Το κλείσιμο αυτής της καρτέλας κλείνει επίσης ό,τι είναι στοιβαγμένο πάνω της</string>
     <string name="workspace_limit_pro_description">Ανοίξτε όσες καρτέλες θέλετε.</string>
+    <string name="workspace_app_not_installed_content_desc">Η εφαρμογή δεν είναι εγκατεστημένη</string>
 
     <!-- Μεταφορά και απόθεση -->
     <plurals name="workspace_drag_decoration_items">

@@ -47,6 +47,7 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.ui.explorer.items.LeadingIconSlot
+import eu.darken.butler.explorer.ui.explorer.items.rowAppBadgeSize
 import eu.darken.butler.explorer.ui.explorer.items.rowBadgeSize
 import eu.darken.butler.explorer.ui.explorer.items.rowIconGap
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
@@ -300,6 +301,7 @@ internal fun FileRowBase(
                 modifier = Modifier.size(density.rowIconSize),
                 decorations = decorations,
                 badgeSize = density.rowBadgeSize,
+                appBadgeSize = density.rowAppBadgeSize,
             ) {
                 leadingContent()
             }

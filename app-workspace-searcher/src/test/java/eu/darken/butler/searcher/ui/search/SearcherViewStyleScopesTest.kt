@@ -114,6 +114,7 @@ class SearcherViewStyleScopesTest {
             appInstallLauncher = mockk(relaxed = true),
             apiLevel = mockk(relaxed = true),
             errorIncidentStore = recordingIncidentStore(),
+            appAttributor = noAppAttributions(),
             itemSorterFactory = mockk {
                 every { create(any()) } returns mockk(relaxed = true)
             },
