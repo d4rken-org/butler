@@ -36,6 +36,14 @@ val ExplorerViewStyle.Density.rowBadgeSize: Dp
         ExplorerViewStyle.Density.DETAILED -> 18.dp
     }
 
+/** Larger than [rowBadgeSize]: a launcher icon has to stay recognizable, a glyph only visible. */
+val ExplorerViewStyle.Density.rowAppBadgeSize: Dp
+    get() = when (this) {
+        ExplorerViewStyle.Density.COMPACT -> 14.dp
+        ExplorerViewStyle.Density.COMFORTABLE -> 18.dp
+        ExplorerViewStyle.Density.DETAILED -> 26.dp
+    }
+
 val ExplorerViewStyle.Density.rowPadding: Dp
     get() = when (this) {
         ExplorerViewStyle.Density.COMPACT -> 6.dp
@@ -115,6 +123,13 @@ val ExplorerViewStyle.Density.gridBadgeSize: Dp
         ExplorerViewStyle.Density.DETAILED -> 12.dp
     }
 
+/** App badge on a grid tile, sized against the tile rather than [gridIconSize]. */
+val ExplorerViewStyle.Density.gridAppBadgeSize: Dp
+    get() = when (this) {
+        ExplorerViewStyle.Density.COMPACT -> 28.dp
+        ExplorerViewStyle.Density.COMFORTABLE -> 36.dp
+        ExplorerViewStyle.Density.DETAILED -> 48.dp
+    }
 
 /**
  * Tile width threshold. `GridCells.Adaptive` only sets a column count, so two steps can land on the

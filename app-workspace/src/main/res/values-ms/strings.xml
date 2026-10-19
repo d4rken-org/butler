@@ -377,6 +377,7 @@
     <string name="workspace_limit_blocker_unavailable">Tidak boleh ditutup buat masa ini</string>
     <string name="workspace_limit_stacked_content_desc">Menutup tab ini juga menutup apa yang ditindan di atasnya</string>
     <string name="workspace_limit_pro_description">Buka sebanyak tab yang kamu mahu.</string>
+    <string name="workspace_app_not_installed_content_desc">Apl tidak dipasang</string>
     <plurals name="workspace_drag_decoration_items">
         <item quantity="other">%1$d item</item>
     </plurals>

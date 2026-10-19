@@ -507,6 +507,7 @@
     <string name="workspace_limit_blocker_unavailable">Nyní ji nelze zavřít</string>
     <string name="workspace_limit_stacked_content_desc">Zavřením této karty se zavře i vše, co je na ní navrstveno</string>
     <string name="workspace_limit_pro_description">Otevřete si tolik karet, kolik chcete.</string>
+    <string name="workspace_app_not_installed_content_desc">Aplikace není nainstalována</string>
 
     <!-- Přetažení -->
     <plurals name="workspace_drag_decoration_items">

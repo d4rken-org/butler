@@ -458,6 +458,7 @@
     <string name="workspace_limit_blocker_unavailable">אי אפשר לסגור כרגע</string>
     <string name="workspace_limit_stacked_content_desc">סגירת הלשונית הזו סוגרת גם את מה שמונח מעליה</string>
     <string name="workspace_limit_pro_description">אפשר לפתוח כמה לשוניות שרוצים.</string>
+    <string name="workspace_app_not_installed_content_desc">האפליקציה לא מותקנת</string>
     <plurals name="workspace_drag_decoration_items">
         <item quantity="one">%1$d פריט</item>
         <item quantity="two">%1$d פריטים</item>

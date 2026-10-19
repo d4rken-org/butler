@@ -29,6 +29,7 @@ import eu.darken.butler.explorer.ui.explorer.items.showsDatesOnOwnLine
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.items.showsFileAttributes
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.core.appattribution.AppAttribution
 
 @Composable
 internal fun DirectoryRow(
@@ -127,6 +128,21 @@ private fun DirectoryRowPreview() {
         onToggleSelection = {},
         onClick = {},
         showSelection = false
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun DirectoryRowAppGhostPreview() {
+    DirectoryRow(
+        item = MockDataProvider.createMockDirectory("com.example.gone", 3),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false,
+        decorations = ItemDecorations(appAttribution = AppAttribution.Ghost("com.example.gone")),
     )
 }
 

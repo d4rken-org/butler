@@ -29,10 +29,13 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.sizes.DirectorySize
+import eu.darken.butler.explorer.ui.explorer.items.gridAppBadgeSize
 import eu.darken.butler.explorer.ui.explorer.items.gridDateStyle
 import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
 import eu.darken.butler.explorer.ui.explorer.items.showsTileMetadata
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.core.appattribution.AppAttribution
+import eu.darken.butler.workspace.ui.common.AppAttributionBadge
 import eu.darken.butler.workspace.ui.preview.FolderPreviewCollage
 import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.workspace.ui.preview.rememberFolderPreviewChildren
@@ -83,6 +86,9 @@ internal fun DirectoryGrid(
                 lookup = item.lookup,
                 previewsSettled = previewsSettled,
             )
+        },
+        thumbnailBadge = decorations.appAttribution?.let { attribution ->
+            { AppAttributionBadge(attribution = attribution, size = density.gridAppBadgeSize) }
         },
         icon = {
             Icon(
@@ -227,6 +233,21 @@ private fun DirectoryGridPartialSizePreview() {
         onClick = {},
         showSelection = false,
         sizeFraction = 0.3f,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun DirectoryGridAppGhostPreview() {
+    DirectoryGrid(
+        item = MockDataProvider.createMockDirectory("com.example.gone", 3),
+        density = ExplorerViewStyle.Density.COMFORTABLE,
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false,
+        decorations = ItemDecorations(appAttribution = AppAttribution.Ghost("com.example.gone")),
     )
 }
 

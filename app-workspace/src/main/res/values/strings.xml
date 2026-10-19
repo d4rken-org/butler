@@ -470,6 +470,9 @@
     <string name="workspace_limit_stacked_content_desc">Closing this tab also closes what is stacked on it</string>
     <string name="workspace_limit_pro_description">Open as many tabs as you like.</string>
 
+    <!-- Folder app badges -->
+    <string name="workspace_app_not_installed_content_desc">App not installed</string>
+
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">
         <item quantity="one">%1$d item</item>

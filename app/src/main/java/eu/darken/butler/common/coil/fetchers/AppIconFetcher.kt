@@ -19,6 +19,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.io.R
 import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.features.Installed
 import eu.darken.butler.common.pkgs.getIcon2
 import javax.inject.Inject
 
@@ -30,22 +31,33 @@ class AppIconFetcher @Inject constructor(
 
     override suspend fun fetch(): FetchResult {
         log(TAG) { "Fetching $data" }
-        val baseIcon = ipcFunnel.use {
-            data.icon?.get(options.context) ?: packageManager.getIcon2(data.id)
+        // For an installed package only the package manager's icon counts as artwork; whatever else
+        // its icon property yields is a glyph, tinted at draw time so it follows the current theme.
+        val (artwork, glyph) = ipcFunnel.use {
+            if (data is Installed) {
+                val artwork = packageManager.getIcon2(data.id)
+                artwork to if (artwork == null) data.icon?.get(options.context) else null
+            } else {
+                (data.icon?.get(options.context) ?: packageManager.getIcon2(data.id)) to null
+            }
         }
 
-        val image = if (baseIcon != null) {
-            baseIcon.toShareableImage()
-        } else {
-            val drawable = AppCompatResources.getDrawable(options.context, R.drawable.ic_default_app_icon_24)!!
-            drawable.setTintList(null) // Strip XML tint, let TintedAsyncImage apply theme-aware tint
-            drawable.asImage()
+        if (artwork != null) {
+            return ImageFetchResult(
+                image = artwork.toShareableImage(),
+                isSampled = false,
+                dataSource = DataSource.DISK,
+            )
         }
 
+        val drawable = glyph?.constantState?.newDrawable()?.mutate()
+            ?: AppCompatResources.getDrawable(options.context, R.drawable.ic_default_app_icon_24)!!
+        drawable.setTintList(null) // Strip XML tint, let TintedAsyncImage apply theme-aware tint
         return ImageFetchResult(
-            image = image,
+            image = drawable.asImage(),
             isSampled = false,
-            dataSource = DataSource.DISK
+            // Marks the glyph for tinting; counterpart: TintedAsyncImage.shouldTint
+            dataSource = DataSource.MEMORY,
         )
     }
 

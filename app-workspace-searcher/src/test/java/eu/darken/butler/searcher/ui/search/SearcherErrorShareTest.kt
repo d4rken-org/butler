@@ -92,6 +92,7 @@ class SearcherErrorShareTest {
             appInstallLauncher = mockk(relaxed = true),
             apiLevel = mockk(relaxed = true),
             errorIncidentStore = incidentStore,
+            appAttributor = noAppAttributions(),
             itemSorterFactory = mockk {
                 every { create(any()) } returns mockk(relaxed = true)
             },

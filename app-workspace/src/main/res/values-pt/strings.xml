@@ -496,6 +496,7 @@
     <string name="workspace_limit_blocker_unavailable">Não pode ser fechado neste momento</string>
     <string name="workspace_limit_stacked_content_desc">Fechar este separador também fecha o que está sobre ele</string>
     <string name="workspace_limit_pro_description">Abre tantos separadores quantos quiseres.</string>
+    <string name="workspace_app_not_installed_content_desc">Aplicação não instalada</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

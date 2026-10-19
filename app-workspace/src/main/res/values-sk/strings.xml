@@ -523,6 +523,7 @@
     <string name="workspace_limit_blocker_unavailable">Teraz sa nedá zavrieť</string>
     <string name="workspace_limit_stacked_content_desc">Zavretím tejto karty sa zavrie aj obsah otvorený nad ňou</string>
     <string name="workspace_limit_pro_description">Otvor si toľko kariet, koľko chceš.</string>
+    <string name="workspace_app_not_installed_content_desc">Aplikácia nie je nainštalovaná</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

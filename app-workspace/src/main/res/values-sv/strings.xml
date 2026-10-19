@@ -469,6 +469,7 @@
     <string name="workspace_limit_blocker_unavailable">Kan inte stängas just nu</string>
     <string name="workspace_limit_stacked_content_desc">Om du stänger den här fliken stängs även det som ligger ovanpå den</string>
     <string name="workspace_limit_pro_description">Öppna så många flikar du vill.</string>
+    <string name="workspace_app_not_installed_content_desc">Appen är inte installerad</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

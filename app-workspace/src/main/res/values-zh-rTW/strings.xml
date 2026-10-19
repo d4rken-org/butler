@@ -429,6 +429,7 @@
     <string name="workspace_limit_blocker_unavailable">目前無法關閉</string>
     <string name="workspace_limit_stacked_content_desc">關閉這個分頁，也會一併關閉堆疊在其上的內容</string>
     <string name="workspace_limit_pro_description">開啟任意數量的分頁。</string>
+    <string name="workspace_app_not_installed_content_desc">應用程式未安裝</string>
 
     <!-- 拖放 -->
     <plurals name="workspace_drag_decoration_items">

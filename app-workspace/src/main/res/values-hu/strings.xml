@@ -404,6 +404,7 @@
     <string name="workspace_limit_blocker_unavailable">Most nem zárható be</string>
     <string name="workspace_limit_stacked_content_desc">A lap bezárása a rá rétegezett tartalmat is bezárja</string>
     <string name="workspace_limit_pro_description">Nyiss annyi lapot, amennyit csak szeretnél.</string>
+    <string name="workspace_app_not_installed_content_desc">Az alkalmazás nincs telepítve</string>
     <plurals name="workspace_drag_decoration_items">
         <item quantity="one">%1$d elem</item>
         <item quantity="other">%1$d elem</item>

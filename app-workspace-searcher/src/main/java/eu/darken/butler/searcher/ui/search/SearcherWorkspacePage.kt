@@ -392,6 +392,7 @@ fun SearcherWorkspacePage(
                                             modifier = dragSource?.modifier ?: Modifier,
                                             result = item.searchItem,
                                             density = currentState.viewStyle.density,
+                                            appAttribution = currentState.appAttributions[item.searchItem.resultKey],
                                             isSelected = currentState.selectionState.isSelected(item.searchItem),
                                             isSelectionMode = currentState.selectionState.isSelectionMode,
                                             onClick = {
@@ -522,6 +523,7 @@ fun SearcherWorkspacePage(
                                     modifier = dragSource?.modifier ?: Modifier,
                                     result = item.searchItem,
                                     density = currentState.viewStyle.density,
+                                    appAttribution = currentState.appAttributions[item.searchItem.resultKey],
                                     isSelected = currentState.selectionState.isSelected(item.searchItem),
                                     isSelectionMode = currentState.selectionState.isSelectionMode,
                                     onClick = {

@@ -469,6 +469,7 @@
     <string name="workspace_limit_blocker_unavailable">اس وقت بند نہیں کیا جا سکتا</string>
     <string name="workspace_limit_stacked_content_desc">یہ ٹیب بند کرنے سے اس کے اوپر کھلا مواد بھی بند ہو جاتا ہے</string>
     <string name="workspace_limit_pro_description">جتنے چاہیں ٹیب کھولیں۔</string>
+    <string name="workspace_app_not_installed_content_desc">ایپ انسٹال نہیں ہے</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

@@ -87,6 +87,22 @@ val SearcherViewStyle.Density.gridIconSize: Dp
         SearcherViewStyle.Density.DETAILED -> 24.dp
     }
 
+/** Larger than a glyph badge: a launcher icon has to stay recognizable. */
+val SearcherViewStyle.Density.rowAppBadgeSize: Dp
+    get() = when (this) {
+        SearcherViewStyle.Density.COMPACT -> 14.dp
+        SearcherViewStyle.Density.COMFORTABLE -> 18.dp
+        SearcherViewStyle.Density.DETAILED -> 26.dp
+    }
+
+/** App badge on a grid tile, sized against the tile rather than [gridIconSize]. */
+val SearcherViewStyle.Density.gridAppBadgeSize: Dp
+    get() = when (this) {
+        SearcherViewStyle.Density.COMPACT -> 28.dp
+        SearcherViewStyle.Density.COMFORTABLE -> 36.dp
+        SearcherViewStyle.Density.DETAILED -> 48.dp
+    }
+
 /** A compact tile carries the name alone; the metadata overlays need room to read as text. */
 val SearcherViewStyle.Density.showsTileMetadata: Boolean
     get() = this != SearcherViewStyle.Density.COMPACT

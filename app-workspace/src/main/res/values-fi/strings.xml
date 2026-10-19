@@ -469,6 +469,7 @@
     <string name="workspace_limit_blocker_unavailable">Ei voi sulkea juuri nyt</string>
     <string name="workspace_limit_stacked_content_desc">Tämän välilehden sulkeminen sulkee myös sen päälle pinotun sisällön</string>
     <string name="workspace_limit_pro_description">Avaa niin monta välilehteä kuin haluat.</string>
+    <string name="workspace_app_not_installed_content_desc">Sovellusta ei ole asennettu</string>
 
     <!-- Drag and drop -->
     <plurals name="workspace_drag_decoration_items">

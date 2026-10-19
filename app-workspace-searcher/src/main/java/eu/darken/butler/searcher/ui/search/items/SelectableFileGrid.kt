@@ -51,6 +51,8 @@ import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
+import eu.darken.butler.workspace.core.appattribution.AppAttribution
+import eu.darken.butler.workspace.ui.common.AppAttributionBadge
 import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.preview.FolderPreviewCollage
 import eu.darken.butler.workspace.ui.preview.rememberFolderPreviewChildren
@@ -70,6 +72,7 @@ fun SelectableFileGrid(
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier,
     previewsSettled: State<Boolean> = PREVIEWS_ALWAYS_SETTLED,
+    appAttribution: AppAttribution? = null,
 ) {
     // Type-specific background color (match Explorer's transparency)
     val backgroundColor = when (result.fileType) {
@@ -132,6 +135,14 @@ fun SelectableFileGrid(
                         .fillMaxSize()
                         .testTag(TEST_TAG_SEARCHER_GRID_THUMBNAIL),
                     contentScale = ContentScale.Crop,
+                )
+            }
+
+            appAttribution?.let { attribution ->
+                AppAttributionBadge(
+                    modifier = Modifier.align(Alignment.Center),
+                    attribution = attribution,
+                    size = density.gridAppBadgeSize,
                 )
             }
 
