@@ -35,6 +35,7 @@
     <string name="path_action_archive_password_title">पासवर्ड आवश्यक है</string>
     <string name="path_action_archive_password_description">\"%1$s\" एन्क्रिप्टेड है। इसकी सामग्री पढ़ने के लिए पासवर्ड दर्ज करें।</string>
     <string name="path_action_archive_password_wrong_description">\"%1$s\" का पासवर्ड गलत था। फिर कोशिश करें।</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" अनलॉक नहीं हो सका: या तो पासवर्ड गलत है या आर्काइव खराब है। पासवर्ड जाँचें और फिर कोशिश करें।</string>
     <string name="smb_error_unreachable_title">सर्वर तक नहीं पहुँच सके</string>
     <string name="smb_error_unreachable_description">Butler \"%1$s\" तक नहीं पहुँच सका। जाँचें कि डिवाइस उसी नेटवर्क पर है और सर्वर चालू है।</string>
     <string name="smb_error_auth_title">साइन इन विफल हुआ</string>

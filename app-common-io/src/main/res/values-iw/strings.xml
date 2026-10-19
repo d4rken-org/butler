@@ -35,6 +35,7 @@
     <string name="path_action_archive_password_title">נדרשת סיסמה</string>
     <string name="path_action_archive_password_description">\"%1$s\" מוצפן. יש להזין את הסיסמה כדי לקרוא את התוכן שלו.</string>
     <string name="path_action_archive_password_wrong_description">הסיסמה עבור \"%1$s\" הייתה שגויה. אפשר לנסות שוב.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">לא ניתן לבטל את הנעילה של \"%1$s\": הסיסמה שגויה או שהארכיון פגום. כדאי לבדוק את הסיסמה ולנסות שוב.</string>
     <string name="smb_error_unreachable_title">השרת אינו נגיש</string>
     <string name="smb_error_unreachable_description">Butler לא הצליח להגיע אל \"%1$s\". יש לבדוק שהמכשיר נמצא באותה רשת ושהשרת מופעל.</string>
     <string name="smb_error_auth_title">הכניסה נכשלה</string>

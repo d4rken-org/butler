@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">需要密碼</string>
     <string name="path_action_archive_password_description">\"%1$s\"已加密。輸入密碼以讀取其內容。</string>
     <string name="path_action_archive_password_wrong_description">\"%1$s\"的密碼不正確。請重試。</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">無法解鎖\"%1$s\"：密碼不正確，或壓縮檔已損毀。請檢查密碼後重試。</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">無法連接伺服器</string>

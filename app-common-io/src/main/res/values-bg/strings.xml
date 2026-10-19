@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Нужна е парола</string>
     <string name="path_action_archive_password_description">\"%1$s\" е шифрован. Въведи паролата, за да прочетеш съдържанието му.</string>
     <string name="path_action_archive_password_wrong_description">Паролата за \"%1$s\" е неправилна. Опитай отново.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" не може да се отключи: или паролата е грешна, или архивът е повреден. Провери паролата и опитай отново.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Сървърът е недостъпен</string>

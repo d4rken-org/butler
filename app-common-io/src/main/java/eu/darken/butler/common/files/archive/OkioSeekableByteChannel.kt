@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.archive
 
 import okio.FileHandle
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.NonWritableChannelException
 import java.nio.channels.SeekableByteChannel
@@ -17,6 +18,14 @@ internal class OkioSeekableByteChannel(
     private var position = 0L
     private var open = true
 
+    /**
+     * The last storage failure of a read or size query, rethrown unchanged. Lets a caller tell a
+     * failing container apart from the decoder rejecting bytes that were read fine.
+     */
+    @Volatile
+    var lastReadFailure: IOException? = null
+        private set
+
     override fun isOpen(): Boolean = open
 
     override fun close() {
@@ -28,7 +37,12 @@ internal class OkioSeekableByteChannel(
     @Synchronized
     override fun read(dst: ByteBuffer): Int {
         val buffer = ByteArray(dst.remaining())
-        val read = handle.read(position, buffer, 0, buffer.size)
+        val read = try {
+            handle.read(position, buffer, 0, buffer.size)
+        } catch (e: IOException) {
+            lastReadFailure = e
+            throw e
+        }
         if (read > 0) {
             dst.put(buffer, 0, read)
             position += read
@@ -47,7 +61,12 @@ internal class OkioSeekableByteChannel(
         position = newPosition
     }
 
-    override fun size(): Long = handle.size()
+    override fun size(): Long = try {
+        handle.size()
+    } catch (e: IOException) {
+        lastReadFailure = e
+        throw e
+    }
 
     override fun truncate(size: Long): SeekableByteChannel = throw NonWritableChannelException()
 }

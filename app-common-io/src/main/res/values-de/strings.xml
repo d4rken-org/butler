@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Passwort erforderlich</string>
     <string name="path_action_archive_password_description">\"%1$s\" ist verschlüsselt. Gib das Passwort ein, um den Inhalt zu lesen.</string>
     <string name="path_action_archive_password_wrong_description">Das Passwort für \"%1$s\" war falsch. Versuche es erneut.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" konnte nicht entsperrt werden: Entweder ist das Passwort falsch oder das Archiv ist beschädigt. Prüfe das Passwort und versuche es erneut.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Server nicht erreichbar</string>

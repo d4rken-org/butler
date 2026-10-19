@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Parola gerekli</string>
     <string name="path_action_archive_password_description">\"%1$s\" şifrelenmiş. İçeriğini okumak için parolayı girin.</string>
     <string name="path_action_archive_password_wrong_description">\"%1$s\" için parola yanlış. Tekrar deneyin.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" kilidi açılamadı: ya parola yanlış ya da arşiv hasarlı. Parolayı kontrol edip tekrar deneyin.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Sunucu erişilemez</string>

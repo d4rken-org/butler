@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Wachtwoord vereist</string>
     <string name="path_action_archive_password_description">\"%1$s\" is versleuteld. Voer het wachtwoord in om de inhoud ervan te lezen.</string>
     <string name="path_action_archive_password_wrong_description">Het wachtwoord voor \"%1$s\" was onjuist. Probeer opnieuw.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" kon niet worden ontgrendeld: het wachtwoord is onjuist of het archief is beschadigd. Controleer het wachtwoord en probeer opnieuw.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Server onbereikbaar</string>

@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Adgangskode påkrævet</string>
     <string name="path_action_archive_password_description">\"%1$s\" er krypteret. Indtast adgangskoden for at læse indholdet.</string>
     <string name="path_action_archive_password_wrong_description">Adgangskoden til \"%1$s\" var forkert. Prøv igen.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" kunne ikke låses op: enten er adgangskoden forkert, eller arkivet er beskadiget. Tjek adgangskoden, og prøv igen.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Kan ikke nå serveren</string>

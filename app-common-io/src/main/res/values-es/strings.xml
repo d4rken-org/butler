@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Se requiere contraseña</string>
     <string name="path_action_archive_password_description">\"%1$s\" está cifrado. Introduce la contraseña para leer su contenido.</string>
     <string name="path_action_archive_password_wrong_description">La contraseña de \"%1$s\" era incorrecta. Inténtalo de nuevo.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">No se pudo desbloquear \"%1$s\": la contraseña es incorrecta o el archivo comprimido está dañado. Comprueba la contraseña e inténtalo de nuevo.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Servidor no disponible</string>

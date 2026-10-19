@@ -35,6 +35,7 @@
     <string name="path_action_archive_password_title">Jelszó szükséges</string>
     <string name="path_action_archive_password_description">A(z) \"%1$s\" titkosított. A tartalom olvasásához add meg a jelszót.</string>
     <string name="path_action_archive_password_wrong_description">A(z) \"%1$s\" jelszava helytelen volt. Próbáld újra.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">A(z) \"%1$s\" nem oldható fel: vagy hibás a jelszó, vagy sérült az archívum. Ellenőrizd a jelszót, és próbáld újra.</string>
     <string name="smb_error_unreachable_title">A kiszolgáló nem érhető el</string>
     <string name="smb_error_unreachable_description">A Butler nem érte el ezt: \"%1$s\". Ellenőrizd, hogy az eszköz ugyanazon a hálózaton van-e, és a kiszolgáló be van-e kapcsolva.</string>
     <string name="smb_error_auth_title">Sikertelen bejelentkezés</string>

@@ -35,6 +35,7 @@
     <string name="path_action_archive_password_title">Kata laluan diperlukan</string>
     <string name="path_action_archive_password_description">\"%1$s\" disulitkan. Masukkan kata laluan untuk membaca kandungannya.</string>
     <string name="path_action_archive_password_wrong_description">Kata laluan untuk \"%1$s\" tidak betul. Cuba lagi.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" tidak dapat dibuka kunci: sama ada kata laluan salah atau arkib rosak. Semak kata laluan dan cuba lagi.</string>
     <string name="smb_error_unreachable_title">Pelayan tidak dapat dihubungi</string>
     <string name="smb_error_unreachable_description">Butler tidak dapat menghubungi \"%1$s\". Pastikan peranti berada pada rangkaian yang sama dan pelayan dihidupkan.</string>
     <string name="smb_error_auth_title">Log masuk gagal</string>

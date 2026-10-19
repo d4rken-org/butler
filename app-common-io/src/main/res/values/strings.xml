@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Password required</string>
     <string name="path_action_archive_password_description">\"%1$s\" is encrypted. Enter the password to read its contents.</string>
     <string name="path_action_archive_password_wrong_description">The password for \"%1$s\" was incorrect. Try again.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" couldn\'t be unlocked: either the password is wrong or the archive is damaged. Check the password and try again.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Server unreachable</string>

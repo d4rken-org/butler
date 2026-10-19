@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Passord kreves</string>
     <string name="path_action_archive_password_description">\"%1$s\" er kryptert. Skriv inn passordet for å lese innholdet.</string>
     <string name="path_action_archive_password_wrong_description">Passordet for \"%1$s\" var feil. Prøv igjen.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" kunne ikke låses opp: enten er passordet feil, eller arkivet er skadet. Sjekk passordet og prøv igjen.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Serveren kan ikke nås</string>

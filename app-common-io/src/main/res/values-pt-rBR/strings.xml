@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Senha obrigatória</string>
     <string name="path_action_archive_password_description">\"%1$s\" está criptografado. Digite a senha para ler seu conteúdo.</string>
     <string name="path_action_archive_password_wrong_description">A senha de \"%1$s\" estava incorreta. Tente novamente.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">Não foi possível desbloquear \"%1$s\": a senha está incorreta ou o arquivo compactado está danificado. Verifique a senha e tente novamente.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Servidor inacessível</string>

@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">رمز عبور مورد نیاز است</string>
     <string name="path_action_archive_password_description">\"%1$s\" رمزگذاری شده است. برای خواندن محتویات آن رمز عبور را وارد کنید.</string>
     <string name="path_action_archive_password_wrong_description">رمز عبور برای \"%1$s\" نادرست بود. دوباره تلاش کنید.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">قفل \"%1$s\" باز نشد: یا رمز عبور نادرست است یا بایگانی آسیب دیده است. رمز عبور را بررسی کنید و دوباره تلاش کنید.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">سرور در دسترس نیست</string>

@@ -148,6 +148,7 @@ class TransferErrorHandler {
                 PathActionIssue.ArchivePasswordRequired(
                     container = passwordError.container,
                     attemptFailed = passwordError.attemptFailed,
+                    mayBeDamaged = passwordError.mayBeDamaged,
                 )
             )
             when (resolution) {

@@ -131,12 +131,19 @@ sealed interface PathActionIssue : Issue {
         val container: APath<*>,
         val attemptFailed: Boolean = false,
         val canSkip: Boolean = true,
+        /** See [eu.darken.butler.common.files.archive.ArchivePasswordRequiredException.mayBeDamaged]. */
+        val mayBeDamaged: Boolean = false,
     ) : PathActionIssue {
         override val title: CaString = caString {
             getString(eu.darken.butler.common.io.R.string.path_action_archive_password_title)
         }
         override val description: CaString = caString {
-            if (attemptFailed) {
+            if (attemptFailed && mayBeDamaged) {
+                getString(
+                    eu.darken.butler.common.io.R.string.path_action_archive_password_wrong_or_damaged_description,
+                    container.name,
+                )
+            } else if (attemptFailed) {
                 getString(
                     eu.darken.butler.common.io.R.string.path_action_archive_password_wrong_description,
                     container.name,

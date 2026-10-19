@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Salasana tarvitaan</string>
     <string name="path_action_archive_password_description">\"%1$s\" on salattu. Anna salasana lukeaksesi sen sisällön.</string>
     <string name="path_action_archive_password_wrong_description">Kohteen \"%1$s\" salasana oli väärä. Yritä uudelleen.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">Kohteen \"%1$s\" lukitusta ei voitu avata: joko salasana on väärä tai arkisto on vioittunut. Tarkista salasana ja yritä uudelleen.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Palvelinta ei tavoiteta</string>
