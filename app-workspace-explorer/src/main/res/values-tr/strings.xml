@@ -735,6 +735,7 @@
     <string name="explorer_aborted_dialog_message">Herhangi bir şey gösterilmeden önce yükleme iptal edildi.</string>
     <string name="explorer_archive_unbrowsable_title">Arşiv burada görüntülenemiyor</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" yalnızca sıralı okumayı destekleyen bir depolama alanında, ancak bir arşive göz atmak rastgele erişim gerektirir. Arşivi buraya çıkartın veya göz atmak için yerel bir kopyasını indirin.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" yalnızca sıralı okumayı destekleyen bir depolama alanında, ancak bu arşiv biçimine göz atmak veya onu çıkartmak rastgele erişim gerektirir. Bunun yerine yerel bir kopyasını indirin.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Arşivi çıkart</string>
     <string name="explorer_archive_unbrowsable_download_action">Yerel kopya indir</string>
 

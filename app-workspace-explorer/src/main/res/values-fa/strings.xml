@@ -738,6 +738,7 @@
     <string name="explorer_aborted_dialog_message">بارگذاری پیش از نمایش هر چیزی لغو شد.</string>
     <string name="explorer_archive_unbrowsable_title">این بایگانی در اینجا قابل مرور نیست</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" روی حافظه‌ای است که فقط از خواندن ترتیبی پشتیبانی می‌کند، اما مرور یک بایگانی به دسترسی تصادفی نیاز دارد. بایگانی را اینجا استخراج کنید یا یک کپی محلی برای مرور آن دانلود کنید.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" روی حافظه‌ای است که فقط از خواندن ترتیبی پشتیبانی می‌کند، اما مرور یا استخراج این قالب بایگانی به دسترسی تصادفی نیاز دارد. به‌جای آن یک کپی محلی دانلود کنید.</string>
     <string name="explorer_archive_unbrowsable_extract_action">استخراج بایگانی</string>
     <string name="explorer_archive_unbrowsable_download_action">دانلود کپی محلی</string>
 

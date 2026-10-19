@@ -739,6 +739,7 @@
     <string name="explorer_aborted_dialog_message">Das Laden wurde abgebrochen, bevor etwas angezeigt werden konnte.</string>
     <string name="explorer_archive_unbrowsable_title">Archiv kann hier nicht durchsucht werden</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" befindet sich auf einem Speicher, der nur sequenzielles Lesen unterstützt. Das Durchsuchen eines Archivs erfordert jedoch wahlfreien Zugriff. Entpacke das Archiv hier oder lade eine lokale Kopie herunter, um es zu durchsuchen.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" befindet sich auf einem Speicher, der nur sequenzielles Lesen unterstützt. Dieses Archivformat erfordert zum Durchsuchen und Entpacken jedoch wahlfreien Zugriff. Lade stattdessen eine lokale Kopie herunter.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Archiv entpacken</string>
     <string name="explorer_archive_unbrowsable_download_action">Lokale Kopie herunterladen</string>
 

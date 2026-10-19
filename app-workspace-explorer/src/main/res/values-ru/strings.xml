@@ -801,6 +801,7 @@
     <string name="explorer_aborted_dialog_message">Загрузка была отменена до того, как что-либо успело отобразиться.</string>
     <string name="explorer_archive_unbrowsable_title">Архив нельзя просмотреть здесь</string>
     <string name="explorer_archive_unbrowsable_msg">«%1$s» находится в хранилище, которое поддерживает только последовательное чтение, а для просмотра архива требуется произвольный доступ. Извлеките архив здесь или скачайте локальную копию, чтобы просмотреть его.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">«%1$s» находится в хранилище, которое поддерживает только последовательное чтение, а для просмотра или извлечения архива в этом формате требуется произвольный доступ. Вместо этого скачайте локальную копию.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Извлечь архив</string>
     <string name="explorer_archive_unbrowsable_download_action">Скачать локальную копию</string>
 

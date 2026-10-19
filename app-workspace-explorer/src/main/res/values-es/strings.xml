@@ -738,6 +738,7 @@
     <string name="explorer_aborted_dialog_message">La carga se canceló antes de que se pudiera mostrar algo.</string>
     <string name="explorer_archive_unbrowsable_title">El archivo comprimido no se puede explorar aquí</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" está en un almacenamiento que solo admite lectura secuencial, pero explorar un archivo comprimido requiere acceso aleatorio. Extrae el archivo comprimido aquí o descarga una copia local para explorarlo.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" está en un almacenamiento que solo admite lectura secuencial, pero este formato de archivo comprimido requiere acceso aleatorio para explorarlo o extraerlo. Descarga una copia local en su lugar.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Extraer archivo comprimido</string>
     <string name="explorer_archive_unbrowsable_download_action">Descargar copia local</string>
 

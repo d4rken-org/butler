@@ -706,6 +706,7 @@
     <string name="explorer_aborted_dialog_message">화면에 표시되기 전에 불러오기가 취소되었습니다.</string>
     <string name="explorer_archive_unbrowsable_title">여기서는 압축 파일을 찾아볼 수 없습니다</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" 파일은 순차 읽기만 지원하는 저장공간에 있지만, 압축 파일을 찾아보려면 임의 접근이 필요합니다. 여기서 압축을 풀거나 로컬 사본을 다운로드해 찾아보세요.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" 파일은 순차 읽기만 지원하는 저장공간에 있지만, 이 압축 형식은 찾아보거나 압축을 풀려면 임의 접근이 필요합니다. 대신 로컬 사본을 다운로드하세요.</string>
     <string name="explorer_archive_unbrowsable_extract_action">압축 풀기</string>
     <string name="explorer_archive_unbrowsable_download_action">로컬 사본 다운로드</string>
 

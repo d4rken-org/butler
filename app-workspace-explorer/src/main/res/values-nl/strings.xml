@@ -738,6 +738,7 @@
     <string name="explorer_aborted_dialog_message">Het laden is geannuleerd voordat er iets kon worden getoond.</string>
     <string name="explorer_archive_unbrowsable_title">Archief kan hier niet worden doorbladerd</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" staat op opslag die alleen opeenvolgend lezen ondersteunt, maar het doorbladeren van een archief vereist willekeurige toegang. Pak het archief hier uit, of download een lokale kopie om het te doorbladeren.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" staat op opslag die alleen opeenvolgend lezen ondersteunt, maar dit archiefformaat vereist willekeurige toegang om te doorbladeren of uit te pakken. Download in plaats daarvan een lokale kopie.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Archief uitpakken</string>
     <string name="explorer_archive_unbrowsable_download_action">Lokale kopie downloaden</string>
 

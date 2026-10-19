@@ -35,13 +35,14 @@ import eu.darken.butler.common.R as CommonR
 /**
  * Shown when an archive can't be browsed in place (forward-only storage, no random access).
  * Offers the two explicit ways out: streaming extraction, or an explicit local copy to browse.
+ * [onExtract] is null for formats that can't be extracted without random access either.
  */
 @Composable
 fun ArchiveAccessErrorCard(
     modifier: Modifier = Modifier,
     archiveName: String,
     busy: Boolean,
-    onExtract: () -> Unit,
+    onExtract: (() -> Unit)?,
     onDownloadCopy: () -> Unit,
     onRetry: () -> Unit,
     onDismiss: () -> Unit,
@@ -77,7 +78,11 @@ fun ArchiveAccessErrorCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = stringResource(R.string.explorer_archive_unbrowsable_msg, archiveName),
+                text = if (onExtract != null) {
+                    stringResource(R.string.explorer_archive_unbrowsable_msg, archiveName)
+                } else {
+                    stringResource(R.string.explorer_archive_unbrowsable_copy_only_msg, archiveName)
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -88,18 +93,20 @@ fun ArchiveAccessErrorCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                FilledTonalButton(
-                    modifier = Modifier.weight(1f),
-                    enabled = !busy,
-                    onClick = onExtract,
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Unarchive,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Spacer(modifier = Modifier.size(6.dp))
-                    Text(text = stringResource(R.string.explorer_archive_unbrowsable_extract_action))
+                if (onExtract != null) {
+                    FilledTonalButton(
+                        modifier = Modifier.weight(1f),
+                        enabled = !busy,
+                        onClick = onExtract,
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Unarchive,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.size(6.dp))
+                        Text(text = stringResource(R.string.explorer_archive_unbrowsable_extract_action))
+                    }
                 }
                 FilledTonalButton(
                     modifier = Modifier.weight(1f),
@@ -158,6 +165,20 @@ private fun ArchiveAccessErrorCardBusyPreview() {
         archiveName = "backup-2026.zip",
         busy = true,
         onExtract = {},
+        onDownloadCopy = {},
+        onRetry = {},
+        onDismiss = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ArchiveAccessErrorCardCopyOnlyPreview() {
+    ArchiveAccessErrorCard(
+        archiveName = "photos.7z",
+        busy = false,
+        onExtract = null,
         onDownloadCopy = {},
         onRetry = {},
         onDismiss = {},

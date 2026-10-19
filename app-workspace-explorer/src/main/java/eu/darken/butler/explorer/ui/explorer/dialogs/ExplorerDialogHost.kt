@@ -3,10 +3,12 @@ package eu.darken.butler.explorer.ui.explorer.dialogs
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
+import eu.darken.butler.workspace.ui.dialogs.ArchiveUnlockDialog
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.FileInfo
 import eu.darken.butler.workspace.ui.dialogs.FileInfoBottomSheet
@@ -45,6 +47,18 @@ fun ExplorerDialogHost(
                 onConfirm = { items, forcePermDelete ->
                     vm?.onDeleteConfirmed(items, forcePermDelete)
                 },
+            )
+        }
+
+        is ExplorerDialogState.ArchiveUnlock -> {
+            ArchiveUnlockDialog(
+                issue = PathActionIssue.ArchivePasswordRequired(
+                    container = dialogState.container,
+                    attemptFailed = dialogState.attemptFailed,
+                    mayBeDamaged = dialogState.mayBeDamaged,
+                ),
+                onDismiss = { vm?.dismissDialog() },
+                onUnlock = { password -> vm?.onArchiveUnlock(dialogState, password) },
             )
         }
 

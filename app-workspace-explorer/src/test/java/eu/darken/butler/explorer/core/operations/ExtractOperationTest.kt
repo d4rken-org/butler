@@ -483,6 +483,139 @@ class ExtractOperationTest : BaseTest() {
     }
 
     @Test
+    fun `an encrypted entry list prompts before indexing and extracts after unlock`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { archiveService.index(archivePath) } throws
+            ArchivePasswordRequiredException(archivePath) andThen indexOf(meta("a.txt"))
+        val issues = mutableListOf<PathActionIssue.ArchivePasswordRequired>()
+        coEvery { issueHandler.handleIssue(any(), any()) } answers {
+            issues += secondArg<PathActionIssue.ArchivePasswordRequired>()
+            PathActionIssue.ArchivePasswordRequired.Resolution.Submit("secret")
+        }
+
+        val completed = operation(command()).perform(context()).toList().completed()
+
+        completed.error.shouldBeNull()
+        issues.map { it.attemptFailed } shouldBe listOf(false)
+        (completed.report as ExtractOperationReport).extractedFiles shouldBe 1
+    }
+
+    @Test
+    fun `a wrong password for an encrypted entry list prompts again as a failed attempt`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { archiveService.index(archivePath) } throws
+            ArchivePasswordRequiredException(archivePath) andThenThrows
+            ArchivePasswordRequiredException(archivePath, attemptFailed = true) andThen
+            indexOf(meta("a.txt"))
+        val issues = mutableListOf<PathActionIssue.ArchivePasswordRequired>()
+        coEvery { issueHandler.handleIssue(any(), any()) } answers {
+            issues += secondArg<PathActionIssue.ArchivePasswordRequired>()
+            PathActionIssue.ArchivePasswordRequired.Resolution.Submit("secret")
+        }
+
+        operation(command()).perform(context()).toList().completed().error.shouldBeNull()
+
+        issues.map { it.attemptFailed } shouldBe listOf(false, true)
+    }
+
+    @Test
+    fun `dismissing the prompt for an encrypted entry list writes nothing`() = runTest2 {
+        coEvery { archiveService.index(archivePath) } throws ArchivePasswordRequiredException(archivePath)
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
+
+        val completed = operation(command()).perform(context()).toList().completed()
+
+        completed.error.shouldBeNull()
+        (completed.report as ExtractOperationReport).subjectPath shouldBe archivePath
+        writtenStreams shouldBe emptyMap()
+        coVerify(exactly = 0) { archiveService.useEntryStreams(any(), any(), any()) }
+    }
+
+    /** First pass delivers `a.txt`, then the password fails; the next pass gets whatever was not delivered. */
+    private fun mockPasswordFailingAfterFirstEntry(): MutableList<List<String>> {
+        val passes = mutableListOf<List<String>>()
+        coEvery { archiveService.useEntryStreams(archivePath, any(), any()) } coAnswers {
+            val entries = secondArg<Collection<ArchiveEntryMeta>>().toList()
+            val action = thirdArg<suspend (ArchiveEntryMeta, InputStream) -> Unit>()
+            passes += entries.map { it.rawName }
+            entries.forEach { meta ->
+                if (passes.size == 1 && meta.rawName != "a.txt") {
+                    throw ArchivePasswordRequiredException(archivePath, attemptFailed = true, mayBeDamaged = true)
+                }
+                action(meta, ByteArrayInputStream("data-${meta.rawName}".toByteArray()))
+            }
+        }
+        return passes
+    }
+
+    @Test
+    fun `a password failing mid-extraction re-prompts and resumes with what is left`() = runTest2 {
+        mockSeekable(meta("a.txt"), meta("b.txt"))
+        val passes = mockPasswordFailingAfterFirstEntry()
+        val issues = mutableListOf<PathActionIssue.ArchivePasswordRequired>()
+        coEvery { issueHandler.handleIssue(any(), any()) } answers {
+            issues += secondArg<PathActionIssue.ArchivePasswordRequired>()
+            PathActionIssue.ArchivePasswordRequired.Resolution.Submit("secret")
+        }
+
+        val completed = operation(command()).perform(context()).toList().completed()
+
+        completed.error.shouldBeNull()
+        passes shouldBe listOf(listOf("a.txt", "b.txt"), listOf("b.txt"))
+        issues.single().attemptFailed shouldBe true
+        issues.single().mayBeDamaged shouldBe true
+        val report = completed.report as ExtractOperationReport
+        report.extractedFiles shouldBe 2
+        moves.count { it.second.path.endsWith("/a.txt") } shouldBe 1
+    }
+
+    @Test
+    fun `dismissing the mid-extraction prompt reports the entries left behind`() = runTest2 {
+        mockSeekable(meta("a.txt"), meta("b.txt"))
+        mockPasswordFailingAfterFirstEntry()
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
+
+        val completed = operation(command()).perform(context()).toList().completed()
+
+        completed.error.shouldBeNull()
+        val report = completed.report as ExtractOperationReport
+        report.extractedFiles shouldBe 1
+        report.skippedEntries shouldContain "b.txt"
+        report.partialErrorCount shouldBe 1
+    }
+
+    @Test
+    fun `a failed re-index during the up-front check keeps its flags`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { archiveService.requiresPassword(archivePath) } throws
+            ArchivePasswordRequiredException(archivePath, attemptFailed = true, mayBeDamaged = true) andThen false
+        val issues = mutableListOf<PathActionIssue.ArchivePasswordRequired>()
+        coEvery { issueHandler.handleIssue(any(), any()) } answers {
+            issues += secondArg<PathActionIssue.ArchivePasswordRequired>()
+            PathActionIssue.ArchivePasswordRequired.Resolution.Submit("secret")
+        }
+
+        operation(command()).perform(context()).toList().completed().error.shouldBeNull()
+
+        issues.single().attemptFailed shouldBe true
+        issues.single().mayBeDamaged shouldBe true
+    }
+
+    @Test
+    fun `a non-seekable 7z fails instead of taking the zip fallback`() = runTest2 {
+        val sevenZ = LocalPath.build("/test/source/archive.7z")
+        coEvery { archiveService.index(sevenZ) } throws ArchiveNotSeekableException(sevenZ)
+
+        shouldThrow<ArchiveNotSeekableException> {
+            operation(command().copy(archive = sevenZ)).perform(context()).toList()
+        }
+
+        coVerify(exactly = 0) { archiveService.extractZipSequential(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
     fun `the path plan targets the archive and lands in the destination folder`() {
         val plan = operation(command()).metadata.pathPlan!!
 

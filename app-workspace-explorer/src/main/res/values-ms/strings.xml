@@ -628,6 +628,7 @@
     <string name="explorer_aborted_dialog_message">Pemuatan dibatalkan sebelum apa-apa dapat ditunjukkan.</string>
     <string name="explorer_archive_unbrowsable_title">Arkib tidak dapat dilayari di sini</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" berada pada storan yang hanya menyokong bacaan berjujukan, tetapi melayari arkib memerlukan akses rawak. Ekstrak arkib di sini, atau muat turun salinan setempat untuk melayarinya.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" berada pada storan yang hanya menyokong bacaan berjujukan, tetapi format arkib ini memerlukan akses rawak untuk dilayari atau diekstrak. Sebaliknya, muat turun salinan setempat.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Ekstrak arkib</string>
     <string name="explorer_archive_unbrowsable_download_action">Muat turun salinan setempat</string>
     <string name="explorer_saf_location_android_data_label">Android/data (akses khas)</string>

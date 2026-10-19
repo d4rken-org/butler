@@ -740,6 +740,7 @@
     <string name="explorer_aborted_dialog_message">Il caricamento è stato annullato prima che si potesse mostrare qualcosa.</string>
     <string name="explorer_archive_unbrowsable_title">Impossibile sfogliare l’archivio qui</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" si trova su un’archiviazione che supporta solo la lettura sequenziale, ma sfogliare un archivio richiede accesso casuale. Estrai qui l’archivio, oppure scarica una copia locale per sfogliarlo.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" si trova su un’archiviazione che supporta solo la lettura sequenziale, ma questo formato di archivio richiede accesso casuale per essere sfogliato o estratto. Scarica invece una copia locale.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Estrai archivio</string>
     <string name="explorer_archive_unbrowsable_download_action">Scarica copia locale</string>
 

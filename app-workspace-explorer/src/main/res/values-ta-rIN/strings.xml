@@ -740,6 +740,7 @@
     <string name="explorer_aborted_dialog_message">எதையும் காட்டுவதற்கு முன்பே ஏற்றுதல் ரத்துசெய்யப்பட்டது.</string>
     <string name="explorer_archive_unbrowsable_title">காப்பகத்தை இங்கே உலாவ முடியாது</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" இருக்கும் சேமிப்பகம் வரிசையாக வாசிப்பதை மட்டுமே ஆதரிக்கிறது; ஆனால் காப்பகத்தை உலாவ எந்த இடத்தையும் நேரடியாக அணுகும் வசதி தேவை. காப்பகத்தை இங்கே பிரித்தெடுக்கவும் அல்லது அதை உலாவ உள்ளூர் நகலைப் பதிவிறக்கவும்.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" இருக்கும் சேமிப்பகம் வரிசையாக வாசிப்பதை மட்டுமே ஆதரிக்கிறது; ஆனால் இந்தக் காப்பக வடிவத்தை உலாவ அல்லது பிரித்தெடுக்க எந்த இடத்தையும் நேரடியாக அணுகும் வசதி தேவை. அதற்குப் பதிலாக உள்ளூர் நகலைப் பதிவிறக்கவும்.</string>
     <string name="explorer_archive_unbrowsable_extract_action">காப்பகத்தைப் பிரித்தெடு</string>
     <string name="explorer_archive_unbrowsable_download_action">உள்ளூர் நகலைப் பதிவிறக்கு</string>
 

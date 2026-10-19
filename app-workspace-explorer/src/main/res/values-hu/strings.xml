@@ -660,6 +660,7 @@
     <string name="explorer_aborted_dialog_message">A betöltés megszakadt, mielőtt bármi megjelenhetett volna.</string>
     <string name="explorer_archive_unbrowsable_title">Az archívum itt nem böngészhető</string>
     <string name="explorer_archive_unbrowsable_msg">A(z) \"%1$s\" olyan tárhelyen van, amely csak soros olvasást támogat, de az archívum böngészéséhez véletlen hozzáférés szükséges. Csomagold ki az archívumot itt, vagy tölts le egy helyi másolatot a böngészéshez.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">A(z) \"%1$s\" olyan tárhelyen van, amely csak soros olvasást támogat, de ennek az archívumformátumnak a böngészéséhez vagy kicsomagolásához véletlen hozzáférés szükséges. Tölts le helyette egy helyi másolatot.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Archívum kicsomagolása</string>
     <string name="explorer_archive_unbrowsable_download_action">Helyi másolat letöltése</string>
     <string name="explorer_saf_location_android_data_label">Android/data (speciális hozzáférés)</string>

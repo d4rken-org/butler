@@ -740,6 +740,7 @@
     <string name="explorer_aborted_dialog_message">Зареждането беше отменено, преди да може да се покаже нещо.</string>
     <string name="explorer_archive_unbrowsable_title">Архивът не може да се разглежда тук</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" е в хранилище, което поддържа само последователно четене, а разглеждането на архив изисква произволен достъп. Разархивирай архива тук или изтегли локално копие, за да го разгледаш.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" е в хранилище, което поддържа само последователно четене, а този формат на архив изисква произволен достъп, за да бъде разгледан или разархивиран. Вместо това изтегли локално копие.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Разархивирай архива</string>
     <string name="explorer_archive_unbrowsable_download_action">Изтегли локално копие</string>
 

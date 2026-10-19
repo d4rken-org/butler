@@ -735,6 +735,7 @@
     <string name="explorer_aborted_dialog_message">Le chargement a été annulé avant que quoi que ce soit ne puisse être affiché.</string>
     <string name="explorer_archive_unbrowsable_title">Impossible de parcourir l’archive ici</string>
     <string name="explorer_archive_unbrowsable_msg">« %1$s » se trouve sur un stockage qui ne prend en charge que la lecture séquentielle, mais parcourir une archive nécessite un accès aléatoire. Extrayez l’archive ici, ou téléchargez une copie locale pour la parcourir.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">« %1$s » se trouve sur un stockage qui ne prend en charge que la lecture séquentielle, mais ce format d’archive nécessite un accès aléatoire pour être parcouru ou extrait. Téléchargez plutôt une copie locale.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Extraire l’archive</string>
     <string name="explorer_archive_unbrowsable_download_action">Télécharger une copie locale</string>
 

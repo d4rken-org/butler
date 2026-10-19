@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.ArchiveNotSeekableException
 import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.explorer.R
@@ -158,7 +159,13 @@ internal fun ExplorerReadyContent(
                         .padding(horizontal = WorkspacePaddings.BarHorizontal),
                     archiveName = error.container.name,
                     busy = archiveBusy,
-                    onExtract = { vm?.extractUnbrowsableArchive(error.container) },
+                    onExtract = if (
+                        ArchiveFormat.fromFileName(error.container.name)?.supportsSequentialExtractionFallback == true
+                    ) {
+                        { vm?.extractUnbrowsableArchive(error.container) }
+                    } else {
+                        null
+                    },
                     onDownloadCopy = { vm?.downloadArchiveCopy(error.container) },
                     onRetry = { vm?.retryNavigation() },
                     onDismiss = { vm?.dismissNavigationError() },

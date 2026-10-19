@@ -796,6 +796,7 @@
     <string name="explorer_aborted_dialog_message">Načítavanie bolo zrušené skôr, než sa mohlo niečo zobraziť.</string>
     <string name="explorer_archive_unbrowsable_title">Archív tu nemožno prehliadať</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" je na úložisku, ktoré podporuje len sekvenčné čítanie, ale prehliadanie archívu vyžaduje náhodný prístup. Rozbaľ archív tu alebo si stiahni miestnu kópiu na prehliadanie.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" je na úložisku, ktoré podporuje len sekvenčné čítanie, ale tento formát archívu vyžaduje na prehliadanie aj rozbalenie náhodný prístup. Namiesto toho si stiahni miestnu kópiu.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Rozbaliť archív</string>
     <string name="explorer_archive_unbrowsable_download_action">Stiahnuť miestnu kópiu</string>
 

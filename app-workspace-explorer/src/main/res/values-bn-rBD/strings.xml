@@ -743,6 +743,7 @@
     <string name="explorer_aborted_dialog_message">কিছু দেখানোর আগেই লোড বাতিল করা হয়েছে।</string>
     <string name="explorer_archive_unbrowsable_title">এখানে আর্কাইভ ব্রাউজ করা যায় না</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" এমন স্টোরেজে আছে যা শুধু ধারাবাহিকভাবে পড়তে দেয়, কিন্তু আর্কাইভ ব্রাউজ করতে যেকোনো অবস্থান থেকে পড়ার সুবিধা প্রয়োজন। এখানে আর্কাইভ বের করুন, অথবা ব্রাউজ করার জন্য স্থানীয় কপি ডাউনলোড করুন।</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" এমন স্টোরেজে আছে যা শুধু ধারাবাহিকভাবে পড়তে দেয়, কিন্তু এই আর্কাইভ ফরম্যাট ব্রাউজ বা বের করতে যেকোনো অবস্থান থেকে পড়ার সুবিধা প্রয়োজন। এর বদলে স্থানীয় কপি ডাউনলোড করুন।</string>
     <string name="explorer_archive_unbrowsable_extract_action">আর্কাইভ বের করুন</string>
     <string name="explorer_archive_unbrowsable_download_action">স্থানীয় কপি ডাউনলোড করুন</string>
 

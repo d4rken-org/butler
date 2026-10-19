@@ -724,6 +724,7 @@
     <string name="explorer_aborted_dialog_message">הטעינה בוטלה לפני שניתן היה להציג דבר.</string>
     <string name="explorer_archive_unbrowsable_title">אי אפשר לעיין בארכיון כאן</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" נמצא באחסון שתומך רק בקריאה רציפה, אך עיון בארכיון דורש גישה אקראית. אפשר לחלץ את הארכיון כאן או להוריד עותק מקומי כדי לעיין בו.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" נמצא באחסון שתומך רק בקריאה רציפה, אך פורמט הארכיון הזה דורש גישה אקראית כדי לעיין בו או לחלץ אותו. במקום זאת אפשר להוריד עותק מקומי.</string>
     <string name="explorer_archive_unbrowsable_extract_action">חילוץ הארכיון</string>
     <string name="explorer_archive_unbrowsable_download_action">הורדת עותק מקומי</string>
     <string name="explorer_saf_location_android_data_label">Android/data (גישה מיוחדת)</string>

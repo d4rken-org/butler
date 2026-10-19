@@ -17,6 +17,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorIncidentStore
+import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LookupOptions
@@ -26,6 +27,8 @@ import eu.darken.butler.common.storage.saf.StorageProviderSuggester
 import eu.darken.butler.common.storage.saf.StorageProviderSuggestion
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.archive.ArchivePasswordRequiredException
+import eu.darken.butler.common.files.archive.ArchivePasswordStore
 import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -162,6 +165,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -226,6 +230,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val appInstallLauncher: AppInstallLauncher,
     private val json: Json,
     private val errorIncidentStore: ErrorIncidentStore,
+    private val archivePasswordStore: ArchivePasswordStore,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
@@ -472,6 +477,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Volatile private var cachedUseRegexPatterns: Boolean = explorerSettings.useRegexPatterns.valueBlocking
     @Volatile private var cachedCurrentLocation: ExplorerLocation? = null
 
+    /** Archives a password was submitted for whose listing has not opened since. */
+    private val unlockAttempts: MutableSet<APath<*>> = ConcurrentHashMap.newKeySet()
+
     // SaveAs filename (only used in SaveAs picker mode)
     private val saveAsFilenameFlow: Flow<String> = workspaceSource.flatMapLatest { ws ->
         ws?.saveAsFilename ?: flowOf("")
@@ -515,6 +523,32 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     is NetworkSignInRequest.Sftp -> sftpLocations.promptSignIn(request.locationId)
                     is NetworkSignInRequest.WebDav -> webDavLocations.promptSignIn(request.locationId)
                     null -> Unit
+                }
+                val request = state?.error?.archivePasswordRequest()
+                val opened = ((state?.currentLocation as? ExplorerLocation.Directory)?.path as? ArchivePath)?.container
+                when {
+                    // Never over another dialog; a prompt skipped that way is not queued, the error card stays.
+                    request != null -> {
+                        // A retry can fail more than once and only one failure carries the wrong-password
+                        // flags, so a submitted attempt decides what the prompt says.
+                        val attempted = request.container in unlockAttempts
+                        val mayBeDamaged = request.mayBeDamaged ||
+                            (attempted && ArchiveFormat.fromFileName(request.container.name) == ArchiveFormat.SEVEN_Z)
+                        dialogs.showIfCurrent(
+                            ExplorerDialogState.None,
+                            ExplorerDialogState.ArchiveUnlock(
+                                request.container,
+                                request.attemptFailed || attempted,
+                                mayBeDamaged,
+                            ),
+                        )
+                    }
+                    // The archive opened: a prompt raised by an earlier failure of the same retry is stale.
+                    state?.error == null && opened != null && unlockAttempts.remove(opened) -> {
+                        (dialogs.state.value as? ExplorerDialogState.ArchiveUnlock)
+                            ?.takeIf { it.container == opened }
+                            ?.let { dialogs.dismissIfCurrent(it) }
+                    }
                 }
             }
             .launchInViewModel()
@@ -2563,6 +2597,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun retryNavigation() = navigation.retryNavigation()
+
+    /** Caches the password, then retries only if the navigation still fails on that same archive. */
+    fun onArchiveUnlock(dialog: ExplorerDialogState.ArchiveUnlock, password: String) = launch {
+        if (!dialogs.dismissIfCurrent(dialog)) return@launch
+        log(tag, INFO) { "onArchiveUnlock(${dialog.container})" }
+        unlockAttempts += dialog.container
+        archivePasswordStore.set(dialog.container, password.toCharArray())
+        val pending = workspaceReadyState.first()?.error?.archivePasswordRequest()
+        if (pending?.container == dialog.container) navigation.retryNavigation()
+    }
+
+    private fun Throwable.archivePasswordRequest(): ArchivePasswordRequiredException? =
+        causeChain.filterIsInstance<ArchivePasswordRequiredException>().firstOrNull()
 
     /**
      * Pull-to-refresh entry point. Unlike [retryNavigation], which the error card's retry button

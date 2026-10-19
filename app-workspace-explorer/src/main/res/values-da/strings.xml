@@ -740,6 +740,7 @@
     <string name="explorer_aborted_dialog_message">Indlæsningen blev annulleret, før noget kunne vises.</string>
     <string name="explorer_archive_unbrowsable_title">Arkivet kan ikke gennemses her</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" ligger på et lager, der kun understøtter sekventiel læsning, men det kræver vilkårlig adgang at gennemse et arkiv. Pak arkivet ud her, eller download en lokal kopi for at gennemse det.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" ligger på et lager, der kun understøtter sekventiel læsning, men dette arkivformat kræver vilkårlig adgang for at blive gennemset eller pakket ud. Download i stedet en lokal kopi.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Pak arkiv ud</string>
     <string name="explorer_archive_unbrowsable_download_action">Download lokal kopi</string>
 

@@ -708,6 +708,7 @@
     <string name="explorer_aborted_dialog_message">加载在显示任何内容之前已被取消。</string>
     <string name="explorer_archive_unbrowsable_title">无法在此浏览压缩包</string>
     <string name="explorer_archive_unbrowsable_msg">“%1$s”位于仅支持顺序读取的存储上，但浏览压缩包需要随机访问。请在此解压压缩包，或下载本地副本以浏览它。</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">“%1$s”位于仅支持顺序读取的存储上，但浏览或解压此格式的压缩包需要随机访问。请改为下载本地副本。</string>
     <string name="explorer_archive_unbrowsable_extract_action">解压压缩包</string>
     <string name="explorer_archive_unbrowsable_download_action">下载本地副本</string>
 

@@ -660,6 +660,7 @@
     <string name="explorer_aborted_dialog_message">कुछ दिखने से पहले ही लोड करना रद्द हो गया।</string>
     <string name="explorer_archive_unbrowsable_title">यहाँ आर्काइव ब्राउज़ नहीं कर सकते</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" ऐसे स्टोरेज पर है जो केवल क्रम से पढ़ने का समर्थन करता है, लेकिन आर्काइव ब्राउज़ करने के लिए रैंडम ऐक्सेस चाहिए। आर्काइव यहाँ निकालें या ब्राउज़ करने के लिए स्थानीय कॉपी डाउनलोड करें।</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" ऐसे स्टोरेज पर है जो केवल क्रम से पढ़ने का समर्थन करता है, लेकिन इस आर्काइव फ़ॉर्मैट को ब्राउज़ करने या निकालने के लिए रैंडम ऐक्सेस चाहिए। इसके बजाय स्थानीय कॉपी डाउनलोड करें।</string>
     <string name="explorer_archive_unbrowsable_extract_action">आर्काइव निकालें</string>
     <string name="explorer_archive_unbrowsable_download_action">स्थानीय कॉपी डाउनलोड करें</string>
     <string name="explorer_saf_location_android_data_label">Android/data (विशेष पहुँच)</string>

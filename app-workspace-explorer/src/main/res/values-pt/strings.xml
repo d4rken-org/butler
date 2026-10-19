@@ -775,6 +775,7 @@
     <string name="explorer_aborted_dialog_message">O carregamento foi cancelado antes de se poder mostrar qualquer conteúdo.</string>
     <string name="explorer_archive_unbrowsable_title">Não é possível explorar o arquivo aqui</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" está num local de armazenamento que só permite leitura sequencial, mas explorar um arquivo exige acesso aleatório. Extrai o arquivo aqui ou descarrega uma cópia local para o explorar.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" está num local de armazenamento que só permite leitura sequencial, mas este formato de arquivo exige acesso aleatório para ser explorado ou extraído. Em vez disso, descarrega uma cópia local.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Extrair arquivo</string>
     <string name="explorer_archive_unbrowsable_download_action">Descarregar cópia local</string>
 

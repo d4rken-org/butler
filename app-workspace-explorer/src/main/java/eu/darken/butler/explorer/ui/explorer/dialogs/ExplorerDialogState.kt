@@ -37,6 +37,13 @@ sealed interface ExplorerDialogState {
 
     data class DisconnectLocationConfirmation(val items: List<ExplorerItem.Storage.Network>) : ExplorerDialogState
 
+    /** Browsing into [container] failed because its entry list needs a password. */
+    data class ArchiveUnlock(
+        val container: APath<*>,
+        val attemptFailed: Boolean,
+        val mayBeDamaged: Boolean,
+    ) : ExplorerDialogState
+
     /**
      * The selection as it was when "Open" was tapped, in display order. The chosen mode opens this
      * snapshot, not the live selection. [viewerPaths] is empty unless [viewerModesAvailable].

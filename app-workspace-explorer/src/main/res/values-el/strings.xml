@@ -738,6 +738,7 @@
     <string name="explorer_aborted_dialog_message">Η φόρτωση ακυρώθηκε πριν προλάβει να εμφανιστεί οτιδήποτε.</string>
     <string name="explorer_archive_unbrowsable_title">Δεν είναι δυνατή η περιήγηση σε αυτή την αρχειοθήκη εδώ</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" βρίσκεται σε αποθηκευτικό χώρο που υποστηρίζει μόνο διαδοχική ανάγνωση, αλλά η περιήγηση σε αρχειοθήκη απαιτεί τυχαία πρόσβαση. Εξάγετε την αρχειοθήκη εδώ, ή κατεβάστε ένα τοπικό αντίγραφο για να την περιηγηθείτε.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" βρίσκεται σε αποθηκευτικό χώρο που υποστηρίζει μόνο διαδοχική ανάγνωση, αλλά αυτή η μορφή αρχειοθήκης απαιτεί τυχαία πρόσβαση για περιήγηση ή εξαγωγή. Κατεβάστε αντί αυτού ένα τοπικό αντίγραφο.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Εξαγωγή αρχειοθήκης</string>
     <string name="explorer_archive_unbrowsable_download_action">Λήψη τοπικού αντιγράφου</string>
 

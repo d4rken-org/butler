@@ -18,6 +18,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.archive.ArchiveEntryMeta
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.ArchiveIndex
 import eu.darken.butler.common.files.archive.ArchiveNotSeekableException
@@ -80,13 +81,66 @@ class ExtractOperation @AssistedInject constructor(
         send(State.Active(startedAt = operationContext.startedAt))
 
         val index = try {
-            archiveService.index(command.archive)
+            unlockedIndex(operationContext)
         } catch (e: ArchiveNotSeekableException) {
+            if (ArchiveFormat.fromFileName(command.archive.name)?.supportsSequentialExtractionFallback != true) throw e
             log(tag, INFO) { "Container is not seekable, extracting sequentially" }
-            null
-        }
-        if (index != null) performIndexed(operationContext, index) else performSequential(operationContext)
+            performSequential(operationContext)
+            return@channelFlow
+        } ?: return@channelFlow
+        performIndexed(operationContext, index)
     }
+
+    /**
+     * Indexes the archive, prompting when the entry list itself is encrypted (7z). Returns null after
+     * completing the operation if the prompt was dismissed.
+     */
+    private suspend fun ProducerScope<State>.unlockedIndex(ctx: Operation.Context): ArchiveIndex? {
+        var attemptFailed = false
+        while (true) {
+            try {
+                return archiveService.index(command.archive)
+            } catch (e: ArchivePasswordRequiredException) {
+                if (!promptForPassword(ctx, attemptFailed || e.attemptFailed, e.mayBeDamaged)) {
+                    log(tag, INFO) { "Password prompt dismissed before indexing, aborting extract" }
+                    completeEmpty(ctx)
+                    return null
+                }
+                attemptFailed = true
+            }
+        }
+    }
+
+    /** True if a password was submitted; the issue handler has cached it by then. */
+    private suspend fun promptForPassword(
+        ctx: Operation.Context,
+        attemptFailed: Boolean,
+        mayBeDamaged: Boolean,
+    ): Boolean = issueHandler.handleIssue(
+        ctx.id,
+        PathActionIssue.ArchivePasswordRequired(
+            container = command.archive,
+            attemptFailed = attemptFailed,
+            mayBeDamaged = mayBeDamaged,
+        ),
+    ) is PathActionIssue.ArchivePasswordRequired.Resolution.Submit
+
+    /**
+     * The password problem to prompt for, or null if the cached password works. A failure while
+     * re-indexing carries its own flags, e.g. a wrong password for an encrypted entry list.
+     */
+    private suspend fun pendingPassword(): ArchivePasswordRequiredException? = try {
+        if (archiveService.requiresPassword(command.archive)) ArchivePasswordRequiredException(command.archive) else null
+    } catch (e: ArchivePasswordRequiredException) {
+        e
+    }
+
+    private suspend fun ProducerScope<State>.completeEmpty(ctx: Operation.Context) = send(
+        State.Completed(
+            startedAt = ctx.startedAt,
+            report = ExtractOperationReport.Builder(command.archive).build(),
+        ),
+    )
 
     private suspend fun ProducerScope<State>.performIndexed(ctx: Operation.Context, index: ArchiveIndex) {
         var stateActive = State.Active(startedAt = ctx.startedAt)
@@ -94,25 +148,16 @@ class ExtractOperation @AssistedInject constructor(
             if (meta.isDirectory || meta.isSymlink) return@filter false
             command.entries?.any { requested -> meta.segments.startsWithList(requested) } ?: true
         }
+        // See ArchivePasswordRequiredException.mayBeDamaged.
+        val mayBeDamaged = index.format == ArchiveFormat.SEVEN_Z
 
         // Prompt for the password up front so we never write a half-decrypted tree.
         var attemptFailed = false
-        while (archiveService.requiresPassword(command.archive)) {
-            val resolution = issueHandler.handleIssue(
-                ctx.id,
-                PathActionIssue.ArchivePasswordRequired(
-                    container = command.archive,
-                    attemptFailed = attemptFailed,
-                ),
-            )
-            if (resolution !is PathActionIssue.ArchivePasswordRequired.Resolution.Submit) {
+        while (true) {
+            val pending = pendingPassword() ?: break
+            if (!promptForPassword(ctx, attemptFailed || pending.attemptFailed, mayBeDamaged || pending.mayBeDamaged)) {
                 log(tag, INFO) { "Password prompt dismissed, aborting extract" }
-                send(
-                    State.Completed(
-                        startedAt = ctx.startedAt,
-                        report = ExtractOperationReport.Builder(command.archive).build(),
-                    ),
-                )
+                completeEmpty(ctx)
                 return
             }
             attemptFailed = true // any subsequent loop means the previous attempt didn't verify
@@ -121,39 +166,35 @@ class ExtractOperation @AssistedInject constructor(
         val session = createSession(command.entries == null)
         var processedBytes = 0L
         val totalBytes = wanted.sumOf { it.size ?: 0L }
+        // The up-front check reads only so far, so a wrong password can still surface mid-way. Then
+        // the user is asked again and the pass resumes with what is left; finished entries stay.
+        val remaining = LinkedHashSet(wanted)
 
         try {
-            archiveService.useEntryStreams(command.archive, wanted) { meta, input ->
-                currentCoroutineContext().ensureActive()
-                val outcome = writeEntry(session, meta.segments, input) { existing ->
-                    val resolution = issueHandler.handleIssue(
-                        ctx.id,
-                        PathActionIssue.PathAlreadyExists(
-                            destination = existing,
-                            canSkip = true,
-                            canOverwrite = true,
-                        ),
-                    )
-                    when (resolution) {
-                        is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> ConflictDecision.OVERWRITE
-                        is PathActionIssue.PathAlreadyExists.Resolution.Cancel ->
-                            throw CancellationException("User cancelled")
-                        else -> ConflictDecision.SKIP
+            while (true) {
+                try {
+                    extractEntries(ctx, session, remaining.toList()) { meta, outcome ->
+                        remaining.remove(meta)
+                        if (outcome !is WriteOutcome.Written) return@extractEntries
+                        processedBytes += outcome.bytes
+                        stateActive = stateActive.copy(
+                            primaryProgress = Progress.Data(
+                                primary = outcome.destPath.userReadableName,
+                                secondary = command.archive.userReadablePath,
+                                count = Progress.Count.Size(current = processedBytes, max = totalBytes),
+                            ),
+                        )
+                        send(stateActive)
+                    }
+                    break
+                } catch (e: ArchivePasswordRequiredException) {
+                    log(tag, WARN) { "Password failed mid-extraction, ${remaining.size} entries left" }
+                    if (!promptForPassword(ctx, attemptFailed = true, mayBeDamaged = e.mayBeDamaged)) {
+                        log(tag, INFO) { "Password prompt dismissed mid-extraction, keeping what was written" }
+                        remaining.forEach { session.reportBuilder.addSkipped(it.segments.joinToString("/")) }
+                        break
                     }
                 }
-                if (outcome !is WriteOutcome.Written) return@useEntryStreams
-                session.reportBuilder.addExtracted(outcome.destPath, outcome.bytes)
-                outcome.lookup?.let { session.addedLookups.add(it) }
-
-                processedBytes += outcome.bytes
-                stateActive = stateActive.copy(
-                    primaryProgress = Progress.Data(
-                        primary = outcome.destPath.userReadableName,
-                        secondary = command.archive.userReadablePath,
-                        count = Progress.Count.Size(current = processedBytes, max = totalBytes),
-                    ),
-                )
-                send(stateActive)
             }
         } catch (e: CancellationException) {
             throw e
@@ -163,6 +204,38 @@ class ExtractOperation @AssistedInject constructor(
             return
         }
         finish(ctx, session, error = null)
+    }
+
+    private suspend fun extractEntries(
+        ctx: Operation.Context,
+        session: ExtractSession,
+        entries: List<ArchiveEntryMeta>,
+        onEntry: suspend (ArchiveEntryMeta, WriteOutcome) -> Unit,
+    ) {
+        archiveService.useEntryStreams(command.archive, entries) { meta, input ->
+            currentCoroutineContext().ensureActive()
+            val outcome = writeEntry(session, meta.segments, input) { existing ->
+                val resolution = issueHandler.handleIssue(
+                    ctx.id,
+                    PathActionIssue.PathAlreadyExists(
+                        destination = existing,
+                        canSkip = true,
+                        canOverwrite = true,
+                    ),
+                )
+                when (resolution) {
+                    is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> ConflictDecision.OVERWRITE
+                    is PathActionIssue.PathAlreadyExists.Resolution.Cancel ->
+                        throw CancellationException("User cancelled")
+                    else -> ConflictDecision.SKIP
+                }
+            }
+            if (outcome is WriteOutcome.Written) {
+                session.reportBuilder.addExtracted(outcome.destPath, outcome.bytes)
+                outcome.lookup?.let { session.addedLookups.add(it) }
+            }
+            onEntry(meta, outcome)
+        }
     }
 
     private suspend fun ProducerScope<State>.performSequential(ctx: Operation.Context) {
@@ -327,6 +400,7 @@ class ExtractOperation @AssistedInject constructor(
                         PathActionIssue.ArchivePasswordRequired(
                             container = command.archive,
                             attemptFailed = attemptFailed,
+                            mayBeDamaged = e.mayBeDamaged,
                         ),
                     )
                     if (resolution !is PathActionIssue.ArchivePasswordRequired.Resolution.Submit) {

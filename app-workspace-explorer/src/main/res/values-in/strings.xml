@@ -703,6 +703,7 @@
     <string name="explorer_aborted_dialog_message">Pemuatan dibatalkan sebelum ada yang dapat ditampilkan.</string>
     <string name="explorer_archive_unbrowsable_title">Arsip tidak dapat dijelajahi di sini</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" berada di penyimpanan yang hanya mendukung pembacaan berurutan, tetapi menjelajahi arsip memerlukan akses acak. Ekstrak arsip di sini, atau unduh salinan lokal untuk menjelajahinya.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" berada di penyimpanan yang hanya mendukung pembacaan berurutan, tetapi format arsip ini memerlukan akses acak untuk dijelajahi atau diekstrak. Sebagai gantinya, unduh salinan lokal.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Ekstrak arsip</string>
     <string name="explorer_archive_unbrowsable_download_action">Unduh salinan lokal</string>
 
