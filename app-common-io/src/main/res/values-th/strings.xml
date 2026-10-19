@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">ต้องการรหัสผ่าน</string>
     <string name="path_action_archive_password_description">\"%1$s\" เข้ารหัส ป้อนรหัสผ่านเพื่ออ่านเนื้อหา</string>
     <string name="path_action_archive_password_wrong_description">รหัสผ่านของ \"%1$s\" ไม่ถูกต้อง ลองใหม่</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">ปลดล็อก \"%1$s\" ไม่ได้ รหัสผ่านไม่ถูกต้องหรือไฟล์บีบอัดเสียหาย ตรวจสอบรหัสผ่านแล้วลองใหม่</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">เซิร์ฟเวอร์ไม่สามารถเข้าถึงได้</string>

@@ -692,6 +692,7 @@
     <string name="explorer_aborted_dialog_message">Încărcarea a fost anulată înainte să poată fi afișat ceva.</string>
     <string name="explorer_archive_unbrowsable_title">Arhiva nu poate fi explorată aici</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" se află pe o stocare care permite doar citirea secvențială, dar explorarea unei arhive necesită acces aleatoriu. Extrage arhiva aici sau descarcă o copie locală pentru a o explora.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" se află pe o stocare care permite doar citirea secvențială, dar acest format de arhivă necesită acces aleatoriu pentru a fi explorat sau extras. Descarcă în schimb o copie locală.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Extrage arhiva</string>
     <string name="explorer_archive_unbrowsable_download_action">Descarcă o copie locală</string>
     <string name="explorer_saf_location_android_data_label">Android/data (acces special)</string>

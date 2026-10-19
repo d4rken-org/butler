@@ -772,6 +772,7 @@
     <string name="explorer_aborted_dialog_message">Učitavanje je otkazano prije nego što se išta moglo prikazati.</string>
     <string name="explorer_archive_unbrowsable_title">Arhivu ovdje nije moguće pregledavati</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" nalazi se na pohrani koja podržava samo slijedno čitanje, ali pregledavanje arhive zahtijeva nasumičan pristup. Raspakiraj arhivu ovdje ili preuzmi lokalnu kopiju da je pregledavaš.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" nalazi se na pohrani koja podržava samo slijedno čitanje, ali ovaj format arhive zahtijeva nasumičan pristup za pregledavanje ili raspakiravanje. Umjesto toga preuzmi lokalnu kopiju.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Raspakiraj arhivu</string>
     <string name="explorer_archive_unbrowsable_download_action">Preuzmi lokalnu kopiju</string>
 

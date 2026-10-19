@@ -740,6 +740,7 @@
     <string name="explorer_aborted_dialog_message">Lataaminen peruutettiin ennen kuin mitään voitiin näyttää.</string>
     <string name="explorer_archive_unbrowsable_title">Arkistoa ei voi selata täällä</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" on tallennustilassa, joka tukee vain peräkkäistä lukemista, mutta arkiston selaaminen vaatii satunnaisen lukupääsyn. Pura arkisto täällä tai lataa paikallinen kopio selaamista varten.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" on tallennustilassa, joka tukee vain peräkkäistä lukemista, mutta tämän arkistomuodon selaaminen tai purkaminen vaatii satunnaisen lukupääsyn. Lataa sen sijaan paikallinen kopio.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Pura arkisto</string>
     <string name="explorer_archive_unbrowsable_download_action">Lataa paikallinen kopio</string>
 

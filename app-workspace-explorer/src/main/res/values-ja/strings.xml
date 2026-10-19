@@ -706,6 +706,7 @@
     <string name="explorer_aborted_dialog_message">何も表示されないうちに読み込みがキャンセルされました。</string>
     <string name="explorer_archive_unbrowsable_title">ここではアーカイブを閲覧できません</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" は順次読み取りのみに対応したストレージ上にありますが、アーカイブの閲覧にはランダムアクセスが必要です。ここでアーカイブを展開するか、ローカルコピーをダウンロードして閲覧してください。</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" は順次読み取りのみに対応したストレージ上にありますが、このアーカイブ形式の閲覧や展開にはランダムアクセスが必要です。代わりにローカルコピーをダウンロードしてください。</string>
     <string name="explorer_archive_unbrowsable_extract_action">アーカイブを展開</string>
     <string name="explorer_archive_unbrowsable_download_action">ローカルコピーをダウンロード</string>
 

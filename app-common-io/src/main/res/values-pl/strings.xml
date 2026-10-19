@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Wymagane hasło</string>
     <string name="path_action_archive_password_description">\"%1$s\" jest szyfrowany. Wpisz hasło, aby przeczytać jego zawartość.</string>
     <string name="path_action_archive_password_wrong_description">Hasło do \"%1$s\" było nieprawidłowe. Spróbuj ponownie.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">Nie udało się odblokować \"%1$s\": hasło jest nieprawidłowe albo archiwum jest uszkodzone. Sprawdź hasło i spróbuj ponownie.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Serwer niedostępny</string>

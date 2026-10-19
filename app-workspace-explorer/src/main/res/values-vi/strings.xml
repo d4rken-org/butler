@@ -706,6 +706,7 @@
     <string name="explorer_aborted_dialog_message">Quá trình tải đã bị hủy trước khi có thể hiển thị bất kỳ nội dung nào.</string>
     <string name="explorer_archive_unbrowsable_title">Không thể duyệt tệp nén này ở đây</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" nằm trên bộ nhớ chỉ hỗ trợ đọc tuần tự, nhưng duyệt tệp nén cần truy cập ngẫu nhiên. Hãy giải nén tại đây, hoặc tải một bản sao cục bộ để duyệt.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" nằm trên bộ nhớ chỉ hỗ trợ đọc tuần tự, nhưng định dạng tệp nén này cần truy cập ngẫu nhiên để duyệt hoặc giải nén. Thay vào đó, hãy tải một bản sao cục bộ.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Giải nén</string>
     <string name="explorer_archive_unbrowsable_download_action">Tải bản sao cục bộ</string>
 

@@ -863,6 +863,7 @@
     <string name="explorer_aborted_dialog_message">تم إلغاء التحميل قبل أن يظهر أي شيء.</string>
     <string name="explorer_archive_unbrowsable_title">لا يمكن تصفح الأرشيف هنا</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" موجود على تخزين يدعم القراءة التسلسلية فقط، لكن تصفح أرشيف يتطلب وصولًا عشوائيًا. استخرج الأرشيف هنا، أو نزّل نسخة محلية لتصفحه.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" موجود على تخزين يدعم القراءة التسلسلية فقط، لكن صيغة هذا الأرشيف تتطلب وصولًا عشوائيًا لتصفحه أو استخراجه. نزّل نسخة محلية بدلًا من ذلك.</string>
     <string name="explorer_archive_unbrowsable_extract_action">استخراج الأرشيف</string>
     <string name="explorer_archive_unbrowsable_download_action">تنزيل نسخة محلية</string>
 

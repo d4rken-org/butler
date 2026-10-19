@@ -31,7 +31,16 @@ class PdfPreviewLoader @Inject constructor(
      */
     private val renderMutex = Mutex()
 
-    suspend fun pageCount(source: ViewerSource): Int? = openPfd(source)?.let { pdfPreviewGenerator.pageCount(it) }
+    /** Null when the document cannot be rendered; a missing archive password is thrown instead. */
+    suspend fun pageCount(source: ViewerSource): Int? = try {
+        contentReader.openReadPfd(source)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        e.archivePasswordFailure()?.let { throw it }
+        log(TAG, WARN) { "No descriptor for $source: ${e.asLog()}" }
+        null
+    }?.let { pdfPreviewGenerator.pageCount(it) }
 
     suspend fun page(source: ViewerSource, pageIndex: Int): Bitmap? = renderMutex.withLock {
         openPfd(source)?.let {

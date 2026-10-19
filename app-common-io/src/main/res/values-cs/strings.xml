@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Vyžaduje se heslo</string>
     <string name="path_action_archive_password_description">\"%1$s\" je zašifrováno. Zadejte heslo pro čtení jeho obsahu.</string>
     <string name="path_action_archive_password_wrong_description">Heslo pro \"%1$s\" bylo nesprávné. Zkuste to znovu.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" se nepodařilo odemknout: buď je heslo nesprávné, nebo je archiv poškozený. Zkontrolujte heslo a zkuste to znovu.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Server je nedostupný</string>

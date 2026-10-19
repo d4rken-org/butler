@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Cần mật khẩu</string>
     <string name="path_action_archive_password_description">\"%1$s\" được mã hóa. Nhập mật khẩu để đọc nội dung của nó.</string>
     <string name="path_action_archive_password_wrong_description">Mật khẩu cho \"%1$s\" không chính xác. Hãy thử lại.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">Không thể mở khóa \"%1$s\": mật khẩu không chính xác hoặc tệp nén bị hỏng. Hãy kiểm tra mật khẩu và thử lại.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Không thể kết nối với máy chủ</string>

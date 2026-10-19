@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">パスワードが必要です</string>
     <string name="path_action_archive_password_description">\"%1$s\" は暗号化されています。内容を読むにはパスワードを入力してください。</string>
     <string name="path_action_archive_password_wrong_description">\"%1$s\" のパスワードが正しくありません。もう一度試してください。</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" のロックを解除できませんでした。パスワードが間違っているか、アーカイブが破損しています。パスワードを確認してもう一度試してください。</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">サーバーに到達できません</string>

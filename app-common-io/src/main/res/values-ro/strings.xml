@@ -35,6 +35,7 @@
     <string name="path_action_archive_password_title">Este necesară o parolă</string>
     <string name="path_action_archive_password_description">\"%1$s\" este criptat. Introdu parola pentru a-i citi conținutul.</string>
     <string name="path_action_archive_password_wrong_description">Parola pentru \"%1$s\" a fost incorectă. Încearcă din nou.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" nu a putut fi deblocat: fie parola este greșită, fie arhiva este deteriorată. Verifică parola și încearcă din nou.</string>
     <string name="smb_error_unreachable_title">Server inaccesibil</string>
     <string name="smb_error_unreachable_description">Butler nu a putut contacta \"%1$s\". Verifică dacă dispozitivul este în aceeași rețea și dacă serverul este pornit.</string>
     <string name="smb_error_auth_title">Autentificarea a eșuat</string>

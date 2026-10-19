@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Palavra-passe necessária</string>
     <string name="path_action_archive_password_description">\"%1$s\" está cifrado. Introduz a palavra-passe para ler o seu conteúdo.</string>
     <string name="path_action_archive_password_wrong_description">A palavra-passe de \"%1$s\" estava incorreta. Tenta novamente.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">Não foi possível desbloquear \"%1$s\": a palavra-passe está incorreta ou o arquivo está danificado. Verifica a palavra-passe e tenta novamente.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Servidor inacessível</string>

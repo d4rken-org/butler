@@ -802,6 +802,7 @@
     <string name="explorer_aborted_dialog_message">Завантаження скасовано, перш ніж щось вдалося показати.</string>
     <string name="explorer_archive_unbrowsable_title">Архів не можна переглянути тут</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" міститься в сховищі, що підтримує лише послідовне читання, а перегляд архіву потребує довільного доступу. Розпакуйте архів тут або завантажте локальну копію, щоб переглянути його.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" міститься в сховищі, що підтримує лише послідовне читання, а для перегляду чи розпакування архіву цього формату потрібен довільний доступ. Натомість завантажте локальну копію.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Розпакувати архів</string>
     <string name="explorer_archive_unbrowsable_download_action">Завантажити локальну копію</string>
 

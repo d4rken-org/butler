@@ -54,6 +54,7 @@
     <string name="path_action_archive_password_title">Password richiesta</string>
     <string name="path_action_archive_password_description">\"%1$s\" è crittografato. Immetti la password per leggerne il contenuto.</string>
     <string name="path_action_archive_password_wrong_description">La password per \"%1$s\" era scorretta. Riprova.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">Impossibile sbloccare \"%1$s\": la password è errata oppure l’archivio è danneggiato. Controlla la password e riprova.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Server non raggiungibile</string>

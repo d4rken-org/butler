@@ -49,7 +49,20 @@ class ArchiveFormatTest : BaseTest() {
         ArchiveFormat.fromFileName("song.mp3") shouldBe null
         ArchiveFormat.fromFileName("noextension") shouldBe null
         ArchiveFormat.fromFileName("archive.rar") shouldBe null
-        ArchiveFormat.fromFileName("archive.7z") shouldBe null
+    }
+
+    @Test
+    fun `detect 7z as a read-only format`() {
+        ArchiveFormat.fromFileName("photos.7z") shouldBe ArchiveFormat.SEVEN_Z
+        ArchiveFormat.fromFileName("PHOTOS.7Z") shouldBe ArchiveFormat.SEVEN_Z
+        ArchiveFormat.stemOf("photos.7z") shouldBe "photos"
+        ArchiveFormat.SEVEN_Z.isWritable shouldBe false
+        ArchiveFormat.entries.filter { it != ArchiveFormat.SEVEN_Z }.all { it.isWritable } shouldBe true
+    }
+
+    @Test
+    fun `only zip has a sequential extraction fallback`() {
+        ArchiveFormat.entries.filter { it.supportsSequentialExtractionFallback } shouldBe listOf(ArchiveFormat.ZIP)
     }
 
     @Test

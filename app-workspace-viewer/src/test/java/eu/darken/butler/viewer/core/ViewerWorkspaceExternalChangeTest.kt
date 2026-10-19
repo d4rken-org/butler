@@ -1,5 +1,6 @@
 package eu.darken.butler.viewer.core
 
+import eu.darken.butler.common.files.archive.ArchivePasswordStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.Existence
@@ -108,6 +109,7 @@ class ViewerWorkspaceExternalChangeTest : BaseTest() {
         operationsManager = mockk(relaxed = true),
         issueHandler = mockk(relaxed = true),
         deleteOperationFactory = mockk(relaxed = true),
+        archivePasswordStore = ArchivePasswordStore(),
     )
 
     /** A loaded image workspace, i.e. one that has a baseline to compare against. */

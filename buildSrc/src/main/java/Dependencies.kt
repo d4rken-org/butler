@@ -100,6 +100,8 @@ fun Project.addIO() {
 fun Project.addArchive() {
     add("implementation", "commons-compress")
     add("implementation", "zip4j")
+    // LZMA/LZMA2 codecs for 7z, an optional dependency of commons-compress.
+    add("implementation", "xz")
 }
 
 fun Project.addRetrofit() {

@@ -54,6 +54,7 @@
     <string name="path_action_archive_password_title">పాస్‌వర్డ్ అవసరం</string>
     <string name="path_action_archive_password_description">\"%1$s\" ఎన్‌క్రిప్ట్ చేయబడింది. దానిలోని కంటెంట్‌ను చదవడానికి పాస్‌వర్డ్‌ను నమోదు చేయండి.</string>
     <string name="path_action_archive_password_wrong_description">\"%1$s\" కోసం ఇచ్చిన పాస్‌వర్డ్ తప్పు. మళ్లీ ప్రయత్నించండి.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\"ను అన్‌లాక్ చేయలేకపోయాం: పాస్‌వర్డ్ తప్పు లేదా ఆర్కైవ్ దెబ్బతిన్నది. పాస్‌వర్డ్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">సర్వర్‌ను చేరుకోలేము</string>

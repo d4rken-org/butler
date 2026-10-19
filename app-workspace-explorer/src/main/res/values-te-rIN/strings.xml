@@ -743,6 +743,7 @@
     <string name="explorer_aborted_dialog_message">ఏదైనా చూపేలోపు లోడింగ్ రద్దయింది.</string>
     <string name="explorer_archive_unbrowsable_title">ఆర్కైవ్‌ను ఇక్కడ బ్రౌజ్ చేయలేము</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" ఉన్న నిల్వలో వరుసగా చదవడం మాత్రమే సాధ్యం, కానీ ఆర్కైవ్‌ను బ్రౌజ్ చేయడానికి ఏ స్థానాన్నైనా నేరుగా యాక్సెస్ చేయగలగాలి. ఆర్కైవ్‌ను ఇక్కడ ఎక్స్‌ట్రాక్ట్ చేయండి లేదా బ్రౌజ్ చేయడానికి స్థానిక కాపీని డౌన్‌లోడ్ చేయండి.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" ఉన్న నిల్వలో వరుసగా చదవడం మాత్రమే సాధ్యం, కానీ ఈ ఆర్కైవ్ ఫార్మాట్‌ను బ్రౌజ్ చేయడానికి లేదా ఎక్స్‌ట్రాక్ట్ చేయడానికి ఏ స్థానాన్నైనా నేరుగా యాక్సెస్ చేయగలగాలి. బదులుగా స్థానిక కాపీని డౌన్‌లోడ్ చేయండి.</string>
     <string name="explorer_archive_unbrowsable_extract_action">ఆర్కైవ్‌ను ఎక్స్‌ట్రాక్ట్ చేయండి</string>
     <string name="explorer_archive_unbrowsable_download_action">స్థానిక కాపీని డౌన్‌లోడ్ చేయండి</string>
 

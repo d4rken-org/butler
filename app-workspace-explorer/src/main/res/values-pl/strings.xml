@@ -799,6 +799,7 @@
     <string name="explorer_aborted_dialog_message">Wczytywanie zostało anulowane, zanim cokolwiek mogło się wyświetlić.</string>
     <string name="explorer_archive_unbrowsable_title">Nie można przeglądać tego archiwum tutaj</string>
     <string name="explorer_archive_unbrowsable_msg">„%1$s” znajduje się w pamięci obsługującej tylko odczyt sekwencyjny, a przeglądanie archiwum wymaga dostępu swobodnego. Rozpakuj archiwum tutaj lub pobierz lokalną kopię, aby je przeglądać.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">„%1$s” znajduje się w pamięci obsługującej tylko odczyt sekwencyjny, a przeglądanie lub rozpakowanie archiwum w tym formacie wymaga dostępu swobodnego. Zamiast tego pobierz lokalną kopię.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Rozpakuj archiwum</string>
     <string name="explorer_archive_unbrowsable_download_action">Pobierz lokalną kopię</string>
 

@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">كلمة مرور مطلوبة</string>
     <string name="path_action_archive_password_description">\"%1$s\" مشفر. أدخل كلمة المرور لقراءة محتوياته.</string>
     <string name="path_action_archive_password_wrong_description">كلمة المرور لـ \"%1$s\" غير صحيحة. حاول مرة أخرى.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">تعذّر فتح \"%1$s\": إما أن كلمة المرور غير صحيحة أو أن الأرشيف تالف. تحقق من كلمة المرور وحاول مرة أخرى.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">الخادم غير متوفر</string>

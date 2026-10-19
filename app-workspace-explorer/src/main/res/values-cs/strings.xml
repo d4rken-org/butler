@@ -802,6 +802,7 @@
     <string name="explorer_aborted_dialog_message">Načítání bylo zrušeno dříve, než se stihlo cokoli zobrazit.</string>
     <string name="explorer_archive_unbrowsable_title">Tento archiv zde nelze procházet</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" se nachází na úložišti, které podporuje pouze sekvenční čtení, ale procházení archivu vyžaduje náhodný přístup. Rozbalte archiv zde, nebo si stáhněte místní kopii a procházejte ji.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" se nachází na úložišti, které podporuje pouze sekvenční čtení, ale tento formát archivu vyžaduje k procházení i rozbalení náhodný přístup. Místo toho si stáhněte místní kopii.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Rozbalit archiv</string>
     <string name="explorer_archive_unbrowsable_download_action">Stáhnout místní kopii</string>
 

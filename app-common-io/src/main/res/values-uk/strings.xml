@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Потрібен пароль</string>
     <string name="path_action_archive_password_description">\"%1$s\" зашифрований. Введіть пароль, щоб прочитати його вміст.</string>
     <string name="path_action_archive_password_wrong_description">Пароль для \"%1$s\" був неправильний. Спробуйте ще раз.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">Не вдалося розблокувати \"%1$s\": пароль неправильний або архів пошкоджено. Перевірте пароль і спробуйте ще раз.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Сервер недоступний</string>

@@ -54,6 +54,7 @@
     <string name="path_action_archive_password_title">پاس ورڈ درکار ہے</string>
     <string name="path_action_archive_password_description">\"%1$s\" انکرپٹ شدہ ہے۔ اس کا مواد پڑھنے کے لیے پاس ورڈ درج کریں۔</string>
     <string name="path_action_archive_password_wrong_description">\"%1$s\" کا پاس ورڈ غلط تھا۔ دوبارہ کوشش کریں۔</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" کو ان لاک نہیں کیا جا سکا: یا تو پاس ورڈ غلط ہے یا آرکائیو خراب ہے۔ پاس ورڈ چیک کریں اور دوبارہ کوشش کریں۔</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">سرور تک رسائی ممکن نہیں ہے</string>

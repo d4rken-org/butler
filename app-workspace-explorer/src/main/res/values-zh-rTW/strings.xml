@@ -706,6 +706,7 @@
     <string name="explorer_aborted_dialog_message">在顯示任何內容之前，載入已被取消。</string>
     <string name="explorer_archive_unbrowsable_title">無法在此瀏覽壓縮檔</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" 位於僅支援循序讀取的儲存空間，但瀏覽壓縮檔需要隨機存取。請在此解壓縮，或下載本機副本以進行瀏覽。</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" 位於僅支援循序讀取的儲存空間，但瀏覽或解壓縮此格式的壓縮檔需要隨機存取。請改為下載本機副本。</string>
     <string name="explorer_archive_unbrowsable_extract_action">解壓縮</string>
     <string name="explorer_archive_unbrowsable_download_action">下載本機副本</string>
 

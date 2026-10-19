@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
+import androidx.compose.material.icons.twotone.LockOpen
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.viewer.R
+import eu.darken.butler.workspace.R as WorkspaceR
 
 /**
  * Shown for content the viewer has no renderer for.
@@ -33,6 +36,8 @@ import eu.darken.butler.viewer.R
  * [isStreamed] decides the way out, and it has to: "Open with" needs a FileProvider URI, so for
  * content another app streamed to us it is a button that does nothing at all. That content has to
  * be written somewhere first, which is what "Save a copy" does.
+ *
+ * [onUnlock] is set for an archive entry read with a password that may be wrong.
  */
 @Composable
 fun UnsupportedFilePlaceholder(
@@ -41,6 +46,7 @@ fun UnsupportedFilePlaceholder(
     isStreamed: Boolean = false,
     onOpenWith: () -> Unit = {},
     onSaveCopy: () -> Unit = {},
+    onUnlock: (() -> Unit)? = null,
     onToggleChrome: (() -> Unit)? = null,
 ) {
     Box(
@@ -89,6 +95,19 @@ fun UnsupportedFilePlaceholder(
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }
+            if (onUnlock != null) {
+                OutlinedButton(onClick = onUnlock) {
+                    Icon(
+                        imageVector = Icons.TwoTone.LockOpen,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        text = stringResource(WorkspaceR.string.workspace_issue_archive_password_unlock),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+            }
         }
     }
 }
@@ -110,6 +129,17 @@ private fun UnsupportedFilePlaceholderUnknownTypePreview() {
     UnsupportedFilePlaceholder(
         mimeType = "application/octet-stream",
         onOpenWith = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun UnsupportedFilePlaceholderRelockablePreview() {
+    UnsupportedFilePlaceholder(
+        mimeType = "text/plain",
+        onOpenWith = {},
+        onUnlock = {},
     )
 }
 

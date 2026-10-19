@@ -740,6 +740,7 @@
     <string name="explorer_aborted_dialog_message">Lastingen ble avbrutt før noe kunne vises.</string>
     <string name="explorer_archive_unbrowsable_title">Kan ikke bla gjennom arkivet her</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" ligger på et lagringssted som bare støtter sekvensiell lesing, men det å bla gjennom et arkiv krever direkte tilgang til vilkårlige deler av filen. Pakk ut arkivet her, eller last ned en lokal kopi for å bla gjennom det.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" ligger på et lagringssted som bare støtter sekvensiell lesing, men dette arkivformatet krever direkte tilgang til vilkårlige deler av filen for å kunne blas gjennom eller pakkes ut. Last ned en lokal kopi i stedet.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Pakk ut arkiv</string>
     <string name="explorer_archive_unbrowsable_download_action">Last ned lokal kopi</string>
 

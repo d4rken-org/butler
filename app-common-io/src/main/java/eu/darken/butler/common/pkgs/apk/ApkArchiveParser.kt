@@ -16,7 +16,9 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.archive.ArchivePasswordRequiredException
 import eu.darken.butler.common.files.local.LocalFileMaterializer
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.hasApiLevel
@@ -48,9 +50,15 @@ class ApkArchiveParser @Inject constructor(
 
     /**
      * Parses [path] into an [ApkArchiveInfo], or null if the file is not a readable package archive.
-     * Set [includeIcon] to false to skip the rasterization when the caller renders no icon.
+     * Set [includeIcon] to false to skip the rasterization when the caller renders no icon. With
+     * [rethrowArchivePassword], an APK inside an archive that needs a (different) password throws
+     * [ArchivePasswordRequiredException] instead of returning null.
      */
-    suspend fun parseFile(path: APath<*>, includeIcon: Boolean = true): ApkArchiveInfo? = try {
+    suspend fun parseFile(
+        path: APath<*>,
+        includeIcon: Boolean = true,
+        rethrowArchivePassword: Boolean = false,
+    ): ApkArchiveInfo? = try {
         withContext(dispatcherProvider.IO) {
             localFileMaterializer.useLocalFile(path) { file ->
                 if (!file.exists()) return@useLocalFile null
@@ -91,6 +99,9 @@ class ApkArchiveParser @Inject constructor(
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
+        if (rethrowArchivePassword) {
+            e.causeChain.filterIsInstance<ArchivePasswordRequiredException>().firstOrNull()?.let { throw it }
+        }
         log(TAG, WARN) { "parseFile($path) failed: ${e.asLog()}" }
         null
     }

@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">পাসওয়ার্ড প্রয়োজন</string>
     <string name="path_action_archive_password_description">\"%1$s\" এনক্রিপ্ট করা। এর বিষয়বস্তু পড়তে পাসওয়ার্ড দিন।</string>
     <string name="path_action_archive_password_wrong_description">\"%1$s\"-এর পাসওয়ার্ড ভুল ছিল। আবার চেষ্টা করুন।</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" আনলক করা যায়নি: হয় পাসওয়ার্ড ভুল, নয়তো আর্কাইভটি ক্ষতিগ্রস্ত। পাসওয়ার্ড যাচাই করে আবার চেষ্টা করুন।</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">সার্ভারে পৌঁছানো যাচ্ছে না</string>

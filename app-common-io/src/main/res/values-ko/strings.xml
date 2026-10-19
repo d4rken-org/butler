@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">암호 필요</string>
     <string name="path_action_archive_password_description">\"%1$s\" 파일은 암호화되어 있습니다. 암호를 입력하여 내용을 읽으십시오.</string>
     <string name="path_action_archive_password_wrong_description">\"%1$s\"의 암호가 잘못되었습니다. 다시 시도하십시오.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\"의 잠금을 해제할 수 없습니다. 암호가 잘못되었거나 압축 파일이 손상되었습니다. 암호를 확인하고 다시 시도하십시오.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">서버에 연결할 수 없습니다</string>

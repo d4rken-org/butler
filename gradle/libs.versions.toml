@@ -19,6 +19,7 @@ bouncycastle-pkix = "1.85"
 sshj = "0.41.1"
 commons-compress = "1.28.0"
 zip4j = "2.11.6"
+xz = "1.10"
 retrofit = "2.11.0"
 retrofit-kotlinx-converter = "1.0.0"
 okhttp = "5.4.0"
@@ -107,6 +108,7 @@ bouncycastle-pkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = 
 sshj = { module = "com.hierynomus:sshj", version.ref = "sshj" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
+xz = { module = "org.tukaani:xz", version.ref = "xz" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
 retrofit-serialization-converter = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter", version.ref = "retrofit-kotlinx-converter" }

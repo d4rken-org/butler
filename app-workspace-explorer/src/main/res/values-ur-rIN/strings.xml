@@ -741,6 +741,7 @@
     <string name="explorer_aborted_dialog_message">کچھ دکھائے جانے سے پہلے ہی لوڈنگ منسوخ کر دی گئی۔</string>
     <string name="explorer_archive_unbrowsable_title">آرکائیو یہاں براؤز نہیں کیا جا سکتا</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" ایسے اسٹوریج پر ہے جو صرف ترتیب وار پڑھنے کی سہولت دیتا ہے، مگر آرکائیو براؤز کرنے کے لیے کسی بھی مقام تک براہ راست رسائی درکار ہے۔ آرکائیو کو یہاں نکالیں، یا اسے براؤز کرنے کے لیے مقامی کاپی ڈاؤن لوڈ کریں۔</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" ایسے اسٹوریج پر ہے جو صرف ترتیب وار پڑھنے کی سہولت دیتا ہے، مگر اس آرکائیو فارمیٹ کو براؤز کرنے یا نکالنے کے لیے کسی بھی مقام تک براہ راست رسائی درکار ہے۔ اس کے بجائے مقامی کاپی ڈاؤن لوڈ کریں۔</string>
     <string name="explorer_archive_unbrowsable_extract_action">آرکائیو نکالیں</string>
     <string name="explorer_archive_unbrowsable_download_action">مقامی کاپی ڈاؤن لوڈ کریں</string>
 

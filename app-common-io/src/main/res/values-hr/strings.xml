@@ -53,6 +53,7 @@
     <string name="path_action_archive_password_title">Potrebna je lozinka</string>
     <string name="path_action_archive_password_description">Arhiva \"%1$s\" je šifrirana. Unesi lozinku za čitanje sadržaja.</string>
     <string name="path_action_archive_password_wrong_description">Lozinka za \"%1$s\" nije bila ispravna. Pokušaj ponovno.</string>
+    <string name="path_action_archive_password_wrong_or_damaged_description">\"%1$s\" nije moguće otključati: ili je lozinka pogrešna ili je arhiva oštećena. Provjeri lozinku i pokušaj ponovno.</string>
 
     <!-- Network storage errors -->
     <string name="smb_error_unreachable_title">Poslužitelj nije dostupan</string>

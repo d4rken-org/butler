@@ -740,6 +740,7 @@
     <string name="explorer_aborted_dialog_message">Kinansela ang pag-load bago may maipakita.</string>
     <string name="explorer_archive_unbrowsable_title">Hindi ma-browse ang archive dito</string>
     <string name="explorer_archive_unbrowsable_msg">Nasa storage ang \"%1$s\" na sunod-sunod na pagbasa lang ang sinusuportahan, pero kailangan ng random access para ma-browse ang archive. I-extract ang archive dito, o mag-download ng lokal na kopya para ma-browse ito.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">Nasa storage ang \"%1$s\" na sunod-sunod na pagbasa lang ang sinusuportahan, pero kailangan ng random access para ma-browse o ma-extract ang ganitong format ng archive. Mag-download na lang ng lokal na kopya.</string>
     <string name="explorer_archive_unbrowsable_extract_action">I-extract ang archive</string>
     <string name="explorer_archive_unbrowsable_download_action">Mag-download ng lokal na kopya</string>
 

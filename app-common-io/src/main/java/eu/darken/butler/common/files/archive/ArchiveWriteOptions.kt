@@ -12,6 +12,7 @@ class ArchiveWriteOptions(
     val password: CharArray? = null,
 ) {
     init {
+        require(format.isWritable) { "$format archives cannot be created" }
         require(password == null || password.isNotEmpty()) { "Password must be null or non-empty" }
         require(password == null || format == ArchiveFormat.ZIP) { "Encryption is only supported for ZIP" }
     }

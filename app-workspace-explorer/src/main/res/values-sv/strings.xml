@@ -740,6 +740,7 @@
     <string name="explorer_aborted_dialog_message">Inläsningen avbröts innan något kunde visas.</string>
     <string name="explorer_archive_unbrowsable_title">Det går inte att bläddra i arkivet här</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" finns på lagring som bara stöder sekventiell läsning, men för att bläddra i ett arkiv krävs direkt åtkomst till valfria delar. Packa upp arkivet här eller hämta en lokal kopia för att bläddra i det.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" finns på lagring som bara stöder sekventiell läsning, men det här arkivformatet kräver direkt åtkomst till valfria delar för att kunna bläddras i eller packas upp. Hämta en lokal kopia i stället.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Packa upp arkivet</string>
     <string name="explorer_archive_unbrowsable_download_action">Hämta lokal kopia</string>
 

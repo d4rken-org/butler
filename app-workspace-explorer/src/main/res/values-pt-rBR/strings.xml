@@ -735,6 +735,7 @@
     <string name="explorer_aborted_dialog_message">O carregamento foi cancelado antes que algo pudesse ser exibido.</string>
     <string name="explorer_archive_unbrowsable_title">O arquivo compactado não pode ser navegado aqui</string>
     <string name="explorer_archive_unbrowsable_msg">\"%1$s\" está em um armazenamento que só suporta leitura sequencial, mas navegar em um arquivo compactado requer acesso aleatório. Extraia o arquivo compactado aqui, ou baixe uma cópia local para navegá-lo.</string>
+    <string name="explorer_archive_unbrowsable_copy_only_msg">\"%1$s\" está em um armazenamento que só suporta leitura sequencial, mas este formato de arquivo compactado requer acesso aleatório para ser navegado ou extraído. Baixe uma cópia local em vez disso.</string>
     <string name="explorer_archive_unbrowsable_extract_action">Extrair arquivo compactado</string>
     <string name="explorer_archive_unbrowsable_download_action">Baixar cópia local</string>
 
