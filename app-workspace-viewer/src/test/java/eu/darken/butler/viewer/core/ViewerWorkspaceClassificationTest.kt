@@ -1,5 +1,6 @@
 package eu.darken.butler.viewer.core
 
+import eu.darken.butler.common.files.archive.ArchivePasswordStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
@@ -7,6 +8,7 @@ import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.archive.ArchivePasswordRequiredException
 import eu.darken.butler.common.files.archive.ArchivePathLookup
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
@@ -26,6 +28,7 @@ import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
@@ -62,7 +65,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
 
     private fun setupApk(info: ApkArchiveInfo? = apkInfo) {
         setupGateway(apkPath.path to lookup(apkPath))
-        coEvery { apkArchiveParser.parseFile(any(), any()) } returns info
+        coEvery { apkArchiveParser.parseFile(any(), any(), any()) } returns info
         coEvery { userManager2.currentUser() } returns UserProfile2(handle = UserHandle2(0), label = "Owner")
         every { pkgRepo.data } returns flowOf(PkgRepo.PkgData())
     }
@@ -108,6 +111,8 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         coEvery { imageProbe.probe(any()) } returns ProbeResult.Probed(4032, 3024, "image/jpeg")
     }
 
+    private val archivePasswordStore = ArchivePasswordStore()
+
     private fun workspace(path: APath<*> = imagePath) = ViewerWorkspace(
         id = Workspace.Id(),
         creationArguments = ViewerArguments.Default(filePath = path),
@@ -124,9 +129,139 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         operationsManager = mockk(relaxed = true),
         issueHandler = mockk(relaxed = true),
         deleteOperationFactory = mockk(relaxed = true),
+        archivePasswordStore = archivePasswordStore,
     )
 
     private val textPath = LocalPath.build("/storage/emulated/0/Documents/notes.txt")
+
+    private val secretContainer = LocalPath.build("/storage/emulated/0/Download/secret.7z")
+    private val secretEntry = ArchivePath(container = secretContainer, segments = listOf("notes.txt"))
+
+    private fun setupEncryptedEntry() {
+        setupGateway(
+            secretEntry.path to ArchivePathLookup(
+                lookedUp = secretEntry,
+                fileType = FileType.FILE,
+                size = 1024L,
+                modifiedAt = null,
+                isEncrypted = true,
+            ),
+        )
+        coEvery { textPreviewLoader.probe(any()) } returns true
+    }
+
+    @Test
+    fun `an encrypted entry without a password resolves to Locked before any probe`() = runTest2 {
+        setupEncryptedEntry()
+
+        val content = workspace(secretEntry).state.first().content.shouldBeInstanceOf<ViewerContent.Locked>()
+
+        content.container shouldBe secretContainer
+        content.attemptFailed shouldBe false
+        coVerify(exactly = 0) { textPreviewLoader.probe(any()) }
+    }
+
+    @Test
+    fun `a probe read failing on the cached password resolves to a failed attempt`() = runTest2 {
+        setupEncryptedEntry()
+        archivePasswordStore.set(secretContainer, "wrong".toCharArray())
+        coEvery { textPreviewLoader.probe(any()) } throws
+            ArchivePasswordRequiredException(secretContainer, attemptFailed = true, mayBeDamaged = true)
+
+        val content = workspace(secretEntry).state.first().content.shouldBeInstanceOf<ViewerContent.Locked>()
+
+        content.attemptFailed shouldBe true
+        content.mayBeDamaged shouldBe true
+    }
+
+    @Test
+    fun `an image probe failing on the password resolves to Locked, not Failed`() = runTest2 {
+        val secretImage = ArchivePath(container = secretContainer, segments = listOf("photo.jpg"))
+        setupGateway(
+            secretImage.path to ArchivePathLookup(
+                lookedUp = secretImage,
+                fileType = FileType.FILE,
+                size = 1024L,
+                modifiedAt = null,
+                isEncrypted = true,
+            ),
+        )
+        archivePasswordStore.set(secretContainer, "wrong".toCharArray())
+        coEvery { imageProbe.probe(any()) } returns
+            ProbeResult.ProbeFailed(ReadException("wrapped", cause = ArchivePasswordRequiredException(secretContainer, attemptFailed = true)))
+
+        workspace(secretImage).state.first().content.shouldBeInstanceOf<ViewerContent.Locked>()
+            .attemptFailed shouldBe true
+    }
+
+    @Test
+    fun `an encrypted entry with a cached password renders normally`() = runTest2 {
+        setupEncryptedEntry()
+        archivePasswordStore.set(secretContainer, "secret".toCharArray())
+
+        workspace(secretEntry).state.first().content.shouldBeInstanceOf<ViewerContent.Text>()
+    }
+
+    @Test
+    fun `content read with a password that looks unsupported can be relocked`() = runTest2 {
+        setupEncryptedEntry()
+        archivePasswordStore.set(secretContainer, "maybe-wrong".toCharArray())
+        coEvery { textPreviewLoader.probe(any()) } returns false
+        val workspace = workspace(secretEntry)
+
+        val state = workspace.state.first()
+        state.content.shouldBeInstanceOf<ViewerContent.Unsupported>()
+        state.relockableArchive shouldBe secretContainer
+
+        workspace.relock()
+
+        workspace.state.value.content.shouldBeInstanceOf<ViewerContent.Locked>().attemptFailed shouldBe true
+    }
+
+    @Test
+    fun `a plain archive entry is not relockable`() = runTest2 {
+        val plainContainer = LocalPath.build("/storage/emulated/0/Download/plain.zip")
+        val plainEntry = ArchivePath(container = plainContainer, segments = listOf("notes.txt"))
+        setupGateway(
+            plainEntry.path to ArchivePathLookup(
+                lookedUp = plainEntry,
+                fileType = FileType.FILE,
+                size = 1024L,
+                modifiedAt = null,
+            ),
+        )
+        coEvery { textPreviewLoader.probe(any()) } returns false
+
+        workspace(plainEntry).state.first().relockableArchive shouldBe null
+    }
+
+    @Test
+    fun `an apk inside an archive whose password fails resolves to Locked`() = runTest2 {
+        val secretApk = ArchivePath(container = secretContainer, segments = listOf("app.apk"))
+        setupGateway(
+            secretApk.path to ArchivePathLookup(
+                lookedUp = secretApk,
+                fileType = FileType.FILE,
+                size = 1024L,
+                modifiedAt = null,
+                isEncrypted = true,
+            ),
+        )
+        archivePasswordStore.set(secretContainer, "wrong".toCharArray())
+        coEvery { apkArchiveParser.parseFile(any(), any(), true) } throws
+            ArchivePasswordRequiredException(secretContainer, attemptFailed = true, mayBeDamaged = true)
+
+        workspace(secretApk).state.first().content.shouldBeInstanceOf<ViewerContent.Locked>()
+            .mayBeDamaged shouldBe true
+    }
+
+    @Test
+    fun `an encrypted entry list resolves to Locked instead of an error`() = runTest2 {
+        setupGateway(secretEntry.path to ArchivePasswordRequiredException(secretContainer))
+
+        workspace(secretEntry).state.first().content.shouldBeInstanceOf<ViewerContent.Locked>()
+            .container shouldBe secretContainer
+    }
 
     @Test
     fun `a readable text file resolves to Text`() = runTest2 {
@@ -365,6 +500,7 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
             operationsManager = mockk(relaxed = true),
             issueHandler = mockk(relaxed = true),
             deleteOperationFactory = mockk(relaxed = true),
+            archivePasswordStore = ArchivePasswordStore(),
         )
 
         workspace.state.first().fileInfo?.sharedCaption shouldBe "look at this"

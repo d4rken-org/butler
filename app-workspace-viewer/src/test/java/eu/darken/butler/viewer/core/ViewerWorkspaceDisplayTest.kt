@@ -2,6 +2,7 @@ package eu.darken.butler.viewer.core
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.common.files.archive.ArchivePasswordStore
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
@@ -72,6 +73,7 @@ class ViewerWorkspaceDisplayTest {
             operationsManager = mockk(relaxed = true),
             issueHandler = mockk(relaxed = true),
             deleteOperationFactory = mockk(relaxed = true),
+            archivePasswordStore = ArchivePasswordStore(),
         )
         val derived = deriveViewerDisplay(arguments)
 

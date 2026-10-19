@@ -47,6 +47,8 @@ class TextPreviewLoader @Inject constructor(
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
+        // A missing or wrong archive password is not a verdict on the content.
+        e.archivePasswordFailure()?.let { throw it }
         log(TAG, WARN) { "Cannot probe $source as text: ${e.asLog()}" }
         false
     }

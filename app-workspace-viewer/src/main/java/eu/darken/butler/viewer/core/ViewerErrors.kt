@@ -5,9 +5,15 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.error.HasLocalizedError
 import eu.darken.butler.common.error.LocalizedError
 import eu.darken.butler.common.error.LocalizedErrorContext
+import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.archive.ArchivePasswordRequiredException
 import eu.darken.butler.common.files.errors.PathGoneError
 import eu.darken.butler.viewer.R
+
+/** A read that failed for want of a working archive password, however deep the gateway wrapped it. */
+internal fun Throwable.archivePasswordFailure(): ArchivePasswordRequiredException? =
+    causeChain.filterIsInstance<ArchivePasswordRequiredException>().firstOrNull()
 
 class ViewerNotAFileException(
     val path: APath<*>,

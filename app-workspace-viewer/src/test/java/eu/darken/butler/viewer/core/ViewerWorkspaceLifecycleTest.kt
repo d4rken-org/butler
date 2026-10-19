@@ -1,5 +1,6 @@
 package eu.darken.butler.viewer.core
 
+import eu.darken.butler.common.files.archive.ArchivePasswordStore
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
@@ -50,6 +51,7 @@ class ViewerWorkspaceLifecycleTest : BaseTest() {
         operationsManager = mockk(relaxed = true),
         issueHandler = mockk(relaxed = true),
         deleteOperationFactory = mockk(relaxed = true),
+        archivePasswordStore = ArchivePasswordStore(),
     )
 
     @Test

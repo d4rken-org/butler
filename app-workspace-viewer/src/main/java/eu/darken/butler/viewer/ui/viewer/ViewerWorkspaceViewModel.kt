@@ -400,6 +400,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             neighbours = neighbours,
             neighboursPending = neighboursPending,
             swipeToStep = swipeToStep,
+            relockableArchive = workspaceState.relockableArchive,
         ) as State
     }
         .catch { error ->
@@ -561,6 +562,32 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
      */
     suspend fun checkExternalChange() {
         workspaceSource.first().checkExternalChange()
+    }
+
+    /** The lock the user dismissed the prompt for; a new load is a new instance and prompts again. */
+    private val dismissedLock = MutableStateFlow<ViewerContent.Locked?>(null)
+
+    val unlockPrompt: StateFlow<ViewerContent.Locked?> = combine(
+        workspaceSource.flatMapLatest { it.state }.map { it.content as? ViewerContent.Locked },
+        dismissedLock,
+    ) { locked, dismissed -> locked?.takeIf { it !== dismissed } }
+        .stateIn(vmScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun dismissUnlock() {
+        dismissedLock.value = unlockPrompt.value
+    }
+
+    fun requestUnlock() {
+        dismissedLock.value = null
+    }
+
+    fun requestRelock() = launch { workspaceSource.first().relock() }
+
+    fun unlock(locked: ViewerContent.Locked, password: String) = launch {
+        val workspace = workspaceSource.first()
+        // A prompt answered after the viewer moved to another file must not unlock that one.
+        if (workspace.state.value.content !== locked) return@launch
+        workspace.unlock(locked, password.toCharArray())
     }
 
     fun retry() = launch {
@@ -1289,6 +1316,7 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
             ),
             val externalChange: ViewerExternalChange? = null,
             val swipeToStep: Boolean = true,
+            val relockableArchive: APath<*>? = null,
         ) : State
     }
 

@@ -7,9 +7,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.openPrivacyPolicy
 import eu.darken.butler.viewer.core.ViewerContent
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.dialogs.ArchiveUnlockDialog
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
 import eu.darken.butler.workspace.ui.error.ErrorShareConsentDialog
 import eu.darken.butler.workspace.ui.insets.paneInsets
@@ -35,6 +37,7 @@ fun ViewerWorkspaceOverlaysHost(
     val iconPreview by vm.iconPreview.collectAsState()
     val pendingOverwrite by vm.pendingIconOverwrite.collectAsState()
     val deleteRequest by vm.deleteRequest.collectAsState()
+    val unlockPrompt by vm.unlockPrompt.collectAsState()
     val trashEnabled by vm.trashEnabled.collectAsState()
     val issue by vm.issueState.collectAsState()
     val pendingErrorShare by vm.pendingErrorShare.collectAsState()
@@ -61,6 +64,18 @@ fun ViewerWorkspaceOverlaysHost(
             fileName = pending.target.name,
             onConfirm = { vm.confirmIconOverwrite() },
             onDismiss = { vm.dismissIconOverwrite() },
+        )
+    }
+
+    unlockPrompt?.let { locked ->
+        ArchiveUnlockDialog(
+            issue = PathActionIssue.ArchivePasswordRequired(
+                container = locked.container,
+                attemptFailed = locked.attemptFailed,
+                mayBeDamaged = locked.mayBeDamaged,
+            ),
+            onDismiss = { vm.dismissUnlock() },
+            onUnlock = { password -> vm.unlock(locked, password) },
         )
     }
 

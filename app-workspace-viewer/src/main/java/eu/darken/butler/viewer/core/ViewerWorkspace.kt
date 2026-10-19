@@ -21,6 +21,9 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.archive.ArchivePasswordRequiredException
+import eu.darken.butler.common.files.archive.ArchivePasswordStore
+import eu.darken.butler.common.files.archive.ArchivePathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
@@ -81,6 +84,7 @@ class ViewerWorkspace @AssistedInject constructor(
     private val operationsManager: OperationsManager,
     private val issueHandler: IssueHandler,
     private val deleteOperationFactory: DeleteOperation.Factory,
+    private val archivePasswordStore: ArchivePasswordStore,
 ) : Workspace<ViewerArguments> {
 
     private val tag = logTag("Viewer", "Workspace", id.shortTag)
@@ -328,6 +332,14 @@ class ViewerWorkspace @AssistedInject constructor(
             throw e
         } catch (e: Exception) {
             log(tag, WARN) { "Lookup failed for $filePath: ${e.asLog()}" }
+            // A 7z entry list can be encrypted, e.g. after a restart cleared the cached password.
+            val locked = e.archivePasswordFailure()
+            if (locked != null) {
+                stateFlow.value = State(
+                    content = ViewerContent.Locked(locked.container, locked.attemptFailed, locked.mayBeDamaged),
+                )
+                return
+            }
             // A file deleted behind the viewer's back surfaces as a gateway permission error, which
             // would send the user looking for an access problem that does not exist.
             val error = if (isGone(filePath)) ViewerFileGoneException(filePath, e) else e
@@ -358,12 +370,56 @@ class ViewerWorkspace @AssistedInject constructor(
             return
         }
 
-        classify(
-            mime = MimeInfo.fromFileName(lookup.name),
-            fileInfo = fileInfo,
-            lookup = lookup,
-            contentLookup = (validation as Validation.Accepted).contentLookup,
-        )
+        val contentLookup = (validation as Validation.Accepted).contentLookup
+        fun showLocked(locked: ViewerContent.Locked) {
+            log(tag, INFO) { "$filePath is encrypted, waiting for a password (attemptFailed=${locked.attemptFailed})" }
+            stateFlow.value = State(
+                content = locked,
+                fileInfo = fileInfo,
+                lookup = lookup,
+                contentLookup = contentLookup,
+            )
+        }
+
+        // Only whether a password is cached at all: the probes' reads below are what prove it right.
+        val encryptedIn = (lookup as? ArchivePathLookup)?.takeIf { it.isEncrypted }?.lookedUp?.container
+        if (encryptedIn != null && archivePasswordStore.get(encryptedIn)?.also { it.fill(Char.MIN_VALUE) } == null) {
+            showLocked(ViewerContent.Locked(encryptedIn, attemptFailed = false, mayBeDamaged = false))
+            return
+        }
+
+        try {
+            classify(
+                mime = MimeInfo.fromFileName(lookup.name),
+                fileInfo = fileInfo,
+                lookup = lookup,
+                contentLookup = contentLookup,
+            )
+        } catch (e: ArchivePasswordRequiredException) {
+            showLocked(ViewerContent.Locked(e.container, e.attemptFailed, e.mayBeDamaged))
+            return
+        }
+        // Mixed 7z archives index later encrypted entries as plain, hence the cached-password case.
+        val readWithPassword = (lookup as? ArchivePathLookup)?.lookedUp?.container?.takeIf { container ->
+            encryptedIn != null || archivePasswordStore.get(container)?.also { it.fill(Char.MIN_VALUE) } != null
+        }
+        if (readWithPassword != null) stateFlow.update { it.copy(relockableArchive = readWithPassword) }
+    }
+
+    /** Caches [password] for the archive this viewer is locked on and loads the entry again. */
+    fun unlock(locked: ViewerContent.Locked, password: CharArray) {
+        log(tag, INFO) { "unlock(${locked.container})" }
+        archivePasswordStore.set(locked.container, password)
+        reload()
+    }
+
+    /** Asks for the archive's password again, for content that a wrong key may have garbled. */
+    fun relock() {
+        stateFlow.update { current ->
+            val container = current.relockableArchive ?: return@update current
+            log(tag, INFO) { "relock($container)" }
+            current.copy(content = ViewerContent.Locked(container, attemptFailed = true, mayBeDamaged = true))
+        }
     }
 
     private suspend fun classify(
@@ -514,6 +570,7 @@ class ViewerWorkspace @AssistedInject constructor(
             }
 
             is ProbeResult.ProbeFailed -> {
+                probe.error.archivePasswordFailure()?.let { throw it }
                 // A stream that cannot be opened or read is a real failure for any format.
                 log(tag, WARN) { "Probing $source failed: ${probe.error.asLog()}" }
                 stateFlow.value = State(
@@ -541,7 +598,7 @@ class ViewerWorkspace @AssistedInject constructor(
         lookup: APathLookup<*>?,
         contentLookup: APathLookup<*>?,
     ) {
-        val apkInfo = apkArchiveParser.parseFile(filePath)
+        val apkInfo = apkArchiveParser.parseFile(filePath, rethrowArchivePassword = true)
         if (apkInfo == null) {
             val error = ViewerApkParseException(filePath)
             log(tag, WARN) { "Rejecting $filePath: $error" }
@@ -783,6 +840,11 @@ class ViewerWorkspace @AssistedInject constructor(
         val contentLookup: APathLookup<*>? = null,
         /** What the last probe found on disk, or null while the file still matches what was loaded. */
         val externalChange: ViewerExternalChange? = null,
+        /**
+         * The archive whose password this entry was read with. A wrong key can decrypt to bytes that
+         * raise no error and merely look unsupported or damaged, so the page offers to [relock].
+         */
+        val relockableArchive: APath<*>? = null,
     )
 
     @AssistedFactory

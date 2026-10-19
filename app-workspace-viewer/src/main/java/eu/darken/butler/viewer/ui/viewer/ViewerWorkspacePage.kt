@@ -31,8 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.ApkInstallState
@@ -134,6 +136,8 @@ fun ViewerWorkspacePageHost(
             onOpenWith = { vm.openWith() },
             onSaveCopy = { vm.saveCopy() },
             onBrowseArchive = { vm.browseArchive() },
+            onUnlock = { vm.requestUnlock() },
+            onRelock = { vm.requestRelock() },
             onOpenInEditor = { vm.openInEditor() },
             onRetry = { vm.retry() },
             onShareError = { error -> vm.shareError(error) },
@@ -171,6 +175,8 @@ fun ViewerWorkspacePage(
     onOpenWith: () -> Unit = {},
     onSaveCopy: () -> Unit = {},
     onBrowseArchive: () -> Unit = {},
+    onUnlock: () -> Unit = {},
+    onRelock: () -> Unit = {},
     onOpenInEditor: () -> Unit = {},
     onRetry: () -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
@@ -336,6 +342,8 @@ fun ViewerWorkspacePage(
                     onOpenWith = onOpenWith,
                     onSaveCopy = onSaveCopy,
                     onBrowseArchive = onBrowseArchive,
+                    onUnlock = onUnlock,
+                    onRelock = onRelock,
                     onOpenInEditor = onOpenInEditor,
                     onRetry = onRetry,
                     onShareError = onShareError,
@@ -518,6 +526,8 @@ private fun ViewerContentArea(
     onOpenWith: () -> Unit,
     onSaveCopy: () -> Unit = {},
     onBrowseArchive: () -> Unit = {},
+    onUnlock: () -> Unit = {},
+    onRelock: () -> Unit = {},
     onOpenInEditor: () -> Unit = {},
     onRetry: () -> Unit,
     onShareError: (Throwable) -> Unit,
@@ -599,13 +609,36 @@ private fun ViewerContentArea(
                     onToggleChrome = onToggleChrome,
                 )
 
+                is ViewerContent.Locked -> LockedEntryPlaceholder(
+                    issue = PathActionIssue.ArchivePasswordRequired(
+                        container = content.container,
+                        attemptFailed = content.attemptFailed,
+                        mayBeDamaged = content.mayBeDamaged,
+                    ),
+                    onUnlock = onUnlock,
+                    onToggleChrome = onToggleChrome,
+                )
+
                 is ViewerContent.Unsupported -> UnsupportedFilePlaceholder(
                     mimeType = content.mime.rawType,
                     isStreamed = state.source is ViewerSource.Streamed,
                     onOpenWith = onOpenWith,
                     onSaveCopy = onSaveCopy,
+                    onUnlock = onRelock.takeIf { state.relockableArchive != null },
                     onToggleChrome = onToggleChrome,
                 )
+
+                // Read with an archive password, the failure may just be what a wrong key decrypts to.
+                is ViewerContent.Failed if state.relockableArchive != null && content.error !is PathGoneError ->
+                    LockedEntryPlaceholder(
+                        issue = PathActionIssue.ArchivePasswordRequired(
+                            container = state.relockableArchive,
+                            attemptFailed = true,
+                            mayBeDamaged = true,
+                        ),
+                        onUnlock = onRelock,
+                        onToggleChrome = onToggleChrome,
+                    )
 
                 // A file that is simply gone is not a fault to report or retry, so it gets the shared
                 // "path is gone" treatment rather than an error card with a dead retry button.
@@ -742,6 +775,22 @@ private fun ViewerWorkspacePageArchivePreview() {
             ),
             fileInfo = ViewerFileInfo(size = 12_004_311L, modifiedAt = Clock.System.now()),
             source = source,
+            imageSource = null,
+        ),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ViewerWorkspacePageLockedPreview() {
+    val container = LocalPath.build("/storage/emulated/0/Download/photos.7z")
+    ViewerWorkspacePage(
+        workspaceId = Workspace.Id(),
+        state = ViewerWorkspaceViewModel.State.Ready(
+            content = ViewerContent.Locked(container = container, attemptFailed = false, mayBeDamaged = false),
+            fileInfo = ViewerFileInfo(size = 2_404_311L, modifiedAt = Clock.System.now()),
+            source = ViewerSource.Stored(ArchivePath(container, listOf("IMG_0042.jpg"))),
             imageSource = null,
         ),
     )

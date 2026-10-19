@@ -1,5 +1,6 @@
 package eu.darken.butler.viewer.core
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
@@ -75,6 +76,22 @@ sealed interface ViewerContent {
     }
 
     data class Unsupported(val mime: MimeInfo) : ViewerContent
+
+    /**
+     * An encrypted archive entry with no working password for its [container]: none is cached, or a
+     * read failed with the cached one ([attemptFailed]).
+     *
+     * Deliberately not a data class. Each load is its own prompt, so two equal-looking locks from
+     * consecutive loads must stay distinct for the dismiss and unlock bookkeeping.
+     */
+    class Locked(
+        val container: APath<*>,
+        val attemptFailed: Boolean,
+        val mayBeDamaged: Boolean,
+    ) : ViewerContent {
+        override fun toString(): String =
+            "Locked(container=$container, attemptFailed=$attemptFailed, mayBeDamaged=$mayBeDamaged)"
+    }
 
     data class Failed(val error: Throwable) : ViewerContent
 }
