@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -18,6 +19,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.ui.apps.AppsPageAction
 import eu.darken.butler.apps.ui.apps.AppsWorkspaceViewModel
+import eu.darken.butler.apps.ui.details.AppInfoErrorCard
 import eu.darken.butler.apps.ui.apps.items.AppGridItem
 import eu.darken.butler.apps.ui.apps.items.AppListItem
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
@@ -35,6 +37,7 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarContentPadding
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import java.io.IOException
 
 /**
  * The Apps page's scrolling content: pull-to-refresh plus the list and grid branches.
@@ -94,6 +97,13 @@ internal fun AppsReadyContent(
                     verticalArrangement = Arrangement.spacedBy(state.viewStyle.density.listGap),
                 ) {
                     when {
+                        state.error != null -> item {
+                            AppInfoErrorCard(
+                                error = state.error,
+                                onRetry = { onPageAction(AppsPageAction.Apps.Refresh) },
+                            )
+                        }
+
                         state.isLoading && state.apps.isEmpty() -> {
                             item {
                                 AppsLoadingContent()
@@ -150,6 +160,13 @@ internal fun AppsReadyContent(
                     verticalArrangement = Arrangement.spacedBy(WorkspacePaddings.GridGutter),
                 ) {
                     when {
+                        state.error != null -> item(span = { GridItemSpan(maxLineSpan) }) {
+                            AppInfoErrorCard(
+                                error = state.error,
+                                onRetry = { onPageAction(AppsPageAction.Apps.Refresh) },
+                            )
+                        }
+
                         state.isLoading && state.apps.isEmpty() -> {
                             item {
                                 AppsLoadingContent()
@@ -226,6 +243,25 @@ private fun AppsReadyContentGridPreview() {
                 ),
                 viewStyle = AppsViewStyle(mode = AppsViewStyle.Mode.GRID),
                 isLoading = false,
+            ),
+            listState = rememberLazyListState(),
+            gridState = rememberLazyGridState(),
+            topBarStackState = rememberFloatingBarStackState(position = BarPosition.TOP),
+            bottomBarStackState = rememberFloatingBarStackState(position = BarPosition.BOTTOM),
+            onPageAction = {},
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun AppsReadyContentErrorPreview() {
+    PreviewWrapper {
+        AppsReadyContent(
+            state = AppsWorkspaceViewModel.State.Ready(
+                isLoading = false,
+                error = IOException("Package manager query timed out"),
             ),
             listState = rememberLazyListState(),
             gridState = rememberLazyGridState(),

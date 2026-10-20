@@ -15,7 +15,6 @@ import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.common.pkgs.features.Installed
-import eu.darken.butler.common.pkgs.pkgs
 import eu.darken.butler.common.user.UserManager2
 import eu.darken.butler.common.user.UserProfile2
 import eu.darken.butler.workspace.contracts.apps.SortSettings
@@ -65,14 +64,26 @@ class AppsEngine @AssistedInject constructor(
         // Expensive package processing pipeline. Kept independent of the refresh indicator so a
         // refresh toggle never re-runs mapping/filtering/sorting (and can't miss the visible window).
         val processedState = combine(
-            pkgRepo.pkgs(),
+            pkgRepo.data,
             userManager.users,
             _filterConfig,
             _sortSettings,
             _searchQuery,
             _selectedAppIds,
             appSizeCache.snapshot,
-        ) { packages, userProfiles, filterConfig, sortSettings, searchQuery, selectedAppIds, sizes ->
+        ) { pkgData, userProfiles, filterConfig, sortSettings, searchQuery, selectedAppIds, sizes ->
+            pkgData.error?.let { e ->
+                log(tag, ERROR) { "Package data has an error: ${e.asLog()}" }
+                return@combine AppsState(
+                    filterConfig = filterConfig,
+                    sortSettings = sortSettings,
+                    searchQuery = searchQuery,
+                    selectedAppIds = selectedAppIds,
+                    isLoading = false,
+                    error = e,
+                )
+            }
+            val packages = pkgData.pkgs
             log(tag, DEBUG) { "Processing ${packages.size} packages" }
 
             // Build a map of user handles to profiles for efficient lookup

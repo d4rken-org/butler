@@ -15,6 +15,7 @@ import eu.darken.butler.setup.core.SetupStateProvider
 import eu.darken.butler.workspace.contracts.apps.SortSettings
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -57,8 +58,10 @@ class AppsEngineTest : BaseTest() {
         label = "Test App",
     )
 
+    private val pkgData = MutableStateFlow(PkgRepo.PkgData.from(listOf(installed)))
+
     private val pkgRepo = mockk<PkgRepo>().also {
-        every { it.data } returns MutableStateFlow(PkgRepo.PkgData.from(listOf(installed)))
+        every { it.data } returns pkgData
         every { it.revision } returns pkgRevision
     }
 
@@ -176,5 +179,27 @@ class AppsEngineTest : BaseTest() {
         gate.complete(Unit)
         advanceUntilIdle()
         engine.state.value.filteredApps.single().appSize shouldBe null
+    }
+
+    @Test
+    fun `the app list recovers when package data loads again after an error`() = runTest {
+        val engine = createEngine()
+
+        pkgData.value = PkgRepo.PkgData(error = IllegalStateException("reload failed"))
+        advanceUntilIdle()
+
+        engine.state.value.apply {
+            error.shouldBeInstanceOf<IllegalStateException>()
+            error.message shouldBe "reload failed"
+            isLoading shouldBe false
+        }
+
+        pkgData.value = PkgRepo.PkgData.from(listOf(installed))
+        advanceUntilIdle()
+
+        engine.state.value.apply {
+            error shouldBe null
+            filteredApps.single().pkg.installId shouldBe installed.installId
+        }
     }
 }
