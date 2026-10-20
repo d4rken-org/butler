@@ -340,8 +340,18 @@ class ExplorerNavigationController(
         }
     }
 
-    fun revealItems(paths: List<APath<*>>, highlight: Boolean = true) = doLaunch {
-        revealItemsNow(paths, highlight)
+    fun revealItems(
+        paths: List<APath<*>>,
+        highlight: Boolean = true,
+        destination: String? = null,
+        awaitDestinationLoad: Boolean = false,
+    ) = doLaunch {
+        revealItemsNow(
+            paths = paths,
+            highlight = highlight,
+            destination = destination,
+            awaitDestinationLoad = awaitDestinationLoad,
+        )
     }
 
     /**
@@ -428,6 +438,7 @@ class ExplorerNavigationController(
             ExplorerWorkspaceViewModel.RevealRequest.Scope.Items,
         highlightOwner: String? = null,
         destination: String? = null,
+        awaitDestinationLoad: Boolean = false,
     ) {
         if (paths.isEmpty()) return
         log(tag) { "revealItems(${paths.map { it.path }}, highlight=$highlight, scope=$scope)" }
@@ -437,6 +448,7 @@ class ExplorerNavigationController(
                 highlight = highlight,
                 scope = scope,
                 destination = destination,
+                awaitDestinationLoad = awaitDestinationLoad,
             )
         )
         if (highlight) {

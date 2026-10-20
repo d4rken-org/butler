@@ -434,6 +434,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
          * Compared against [State.listingLocationId], not [State.locationId].
          */
         val destination: String? = null,
+        /**
+         * Keep waiting while [destination] is the current location and still loading, instead of
+         * giving up after the usual short window. Only meaningful with a [destination].
+         */
+        val awaitDestinationLoad: Boolean = false,
     ) {
         /** Which part of the page content holds the reveal target. */
         enum class Scope { Items, Favorites }
@@ -1660,8 +1665,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             val completed = getWorkspace().execute(
                 ExplorerCommand.Extract(archive = archive, destinationDir = destinationDir, entries = null)
             )
-            if (completed.error == null) {
-                (completed.report as? Operation.Report.Paths)?.affectedPaths?.map { it.path }?.let { revealItems(it) }
+            extractReveal(completed, destinationDir, destinationArrived = true)?.let { reveal ->
+                revealItems(
+                    paths = listOf(reveal.path),
+                    destination = reveal.destination,
+                    awaitDestinationLoad = reveal.awaitDestinationLoad,
+                )
             }
         }
     }
@@ -1678,19 +1687,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             val destinationDir = container.parent
                 ?: throw WriteException("Archive has no parent directory", container)
             getWorkspace().navigate(ExplorerNavigation.Target.Directory(destinationDir))
-            withTimeoutOrNull(NAVIGATION_AWAIT_MS) {
+            val arrived = withTimeoutOrNull(NAVIGATION_AWAIT_MS) {
                 state.filterNotNull().first { current ->
                     (current.currentLocation as? ExplorerLocation.Directory)?.path == destinationDir
                 }
-            } ?: log(tag, WARN) { "Timed out waiting for navigation to $destinationDir" }
+            }
+            if (arrived == null) log(tag, WARN) { "Timed out waiting for navigation to $destinationDir" }
             val completed = getWorkspace().execute(
                 ExplorerCommand.Extract(archive = container, destinationDir = destinationDir, entries = null),
             )
-            if (completed.error == null) {
-                // Whole-archive extraction lands in the archive-named base dir; reveal that, not
-                // the individual (possibly deeply nested) extracted files.
-                val baseDir = destinationDir.child(ArchiveFormat.stemOf(container.name))
-                navigation.revealItems(listOf(baseDir))
+            extractReveal(completed, destinationDir, destinationArrived = arrived != null)?.let { reveal ->
+                revealItems(
+                    paths = listOf(reveal.path),
+                    destination = reveal.destination,
+                    awaitDestinationLoad = reveal.awaitDestinationLoad,
+                )
             }
         } finally {
             _archiveActionBusy.value = false
@@ -2735,7 +2746,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun goBack() = navigation.goBack()
 
-    fun revealItems(paths: List<APath<*>>, highlight: Boolean = true) = navigation.revealItems(paths, highlight)
+    fun revealItems(
+        paths: List<APath<*>>,
+        highlight: Boolean = true,
+        destination: String? = null,
+        awaitDestinationLoad: Boolean = false,
+    ) = navigation.revealItems(
+        paths = paths,
+        highlight = highlight,
+        destination = destination,
+        awaitDestinationLoad = awaitDestinationLoad,
+    )
 
     @AssistedFactory
     interface Factory {
