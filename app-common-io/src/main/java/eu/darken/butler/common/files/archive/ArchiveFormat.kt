@@ -19,10 +19,17 @@ enum class ArchiveFormat(val displayExtension: String) {
     @SerialName("seven_z") SEVEN_Z("7z"),
     ;
 
-    val isWritable: Boolean get() = this != SEVEN_Z
+    val capabilities: ArchiveCapabilities
+        get() = when (this) {
+            ZIP -> ZipArchiveHandler.CAPABILITIES
+            TAR, TAR_GZ, TAR_BZ2 -> TarArchiveHandler.CAPABILITIES
+            SEVEN_Z -> SevenZArchiveHandler.CAPABILITIES
+        }
+
+    val isWritable: Boolean get() = capabilities.writable
 
     /** Can be extracted front to back when the storage offers no random access. */
-    val supportsSequentialExtractionFallback: Boolean get() = this == ZIP
+    val supportsSequentialExtractionFallback: Boolean get() = capabilities.sequentialExtractionFallback
 
     companion object {
         fun fromFileName(fileName: String): ArchiveFormat? {

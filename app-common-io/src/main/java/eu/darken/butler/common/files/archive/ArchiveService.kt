@@ -12,6 +12,12 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.COPY_BUFFER_SIZE
+import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.MAX_ENTRIES
+import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.SPECIAL_UNIX_TYPES
+import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.UNIX_TYPE_MASK
+import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.UNIX_TYPE_SYMLINK
+import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.VERIFY_DRAIN_LIMIT
 import eu.darken.butler.common.files.errors.ReadException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
@@ -33,15 +39,8 @@ import org.apache.commons.compress.MemoryLimitException
 import org.apache.commons.compress.PasswordRequiredException
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipFile
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
-import org.apache.commons.compress.compressors.gzip.GzipParameters
-import okio.FileHandle
 import java.io.ByteArrayInputStream
 import java.io.Closeable
 import java.io.File
@@ -75,6 +74,9 @@ class ArchiveService @Inject constructor(
 ) {
 
     private val gatewaySwitch: GatewaySwitch get() = gatewaySwitchLazy.get()
+
+    private val handlerContext = ArchiveHandlerContext(gatewaySwitchLazy, passwordStore)
+    private val tarHandler = TarArchiveHandler(handlerContext)
 
     private val cacheMutex = Mutex()
     private val indexCache = object : LinkedHashMap<APath<*>, ArchiveIndex>(MAX_CACHED_INDEXES, 0.75f, true) {}
@@ -196,7 +198,7 @@ class ArchiveService @Inject constructor(
                 if (meta.isEncrypted) openEncryptedZipEntry(path.container, meta)
                 else openZipEntry(path.container, meta)
             ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2 ->
-                openTarEntry(path.container, index.format, meta)
+                tarHandler.openEntry(path.container, index, meta)
             ArchiveFormat.SEVEN_Z -> openSevenZEntry(path.container, index, meta)
         }
     }
@@ -217,7 +219,7 @@ class ArchiveService @Inject constructor(
         when (index.format) {
             ArchiveFormat.ZIP -> useZipEntryStreams(container, files, action)
             ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2 ->
-                useTarEntryStreams(container, index.format, files, action)
+                tarHandler.useEntryStreams(container, index, files, action)
             ArchiveFormat.SEVEN_Z -> useSevenZEntryStreams(container, index, files, action)
         }
     }
@@ -413,15 +415,18 @@ class ArchiveService @Inject constructor(
      */
     suspend fun verifyPassword(container: APath<*>, password: CharArray): Boolean =
         withContext(dispatcherProvider.IO) {
-            if (requireSupported(container) == ArchiveFormat.SEVEN_Z) {
-                return@withContext verifySevenZPassword(container, password)
+            when (requireSupported(container)) {
+                ArchiveFormat.SEVEN_Z -> return@withContext verifySevenZPassword(container, password)
+                ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2 ->
+                    return@withContext tarHandler.verifyPassword(container, password) { index(container) }
+                ArchiveFormat.ZIP -> Unit
             }
             val index = index(container)
             val probe = index.entriesBySegments.values
                 .filter { it.isEncrypted && !it.isDirectory && !it.isSymlink }
                 .minByOrNull { it.compressedSize ?: it.size ?: Long.MAX_VALUE }
                 ?: return@withContext true
-            val handle = openSeekableHandle(container)
+            val handle = handlerContext.openSeekableHandle(container)
             try {
                 Zip4jPositionedStream.open(handle, container, probe, password).use { stream ->
                     if ((probe.compressedSize ?: Long.MAX_VALUE) <= VERIFY_DRAIN_LIMIT) {
@@ -474,7 +479,7 @@ class ArchiveService @Inject constructor(
             when (options.format) {
                 ArchiveFormat.ZIP -> writeZipEntries(rawOut, options, entries, onEntry)
                 ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2 ->
-                    writeTarEntries(rawOut, options, entries, onEntry)
+                    tarHandler.writer.write(rawOut, options, entries, onEntry)
                 // ArchiveWriteOptions refuses read-only formats, so no output is ever opened for one.
                 ArchiveFormat.SEVEN_Z -> throw IllegalArgumentException("7z archives cannot be created")
             }
@@ -506,7 +511,7 @@ class ArchiveService @Inject constructor(
             entries.forEach { entry ->
                 currentCoroutineContext().ensureActive()
                 zip.putNextEntry(buildZipParameters(entry, options))
-                val written = if (entry.isDirectory) 0L else pumpSource(entry, zip)
+                val written = if (entry.isDirectory) 0L else handlerContext.pumpSource(entry, zip)
                 if (!entry.isDirectory) {
                     // zip4j doesn't verify the declared size against the bytes written, and derives
                     // the ZIP64 local layout from it up front. Abort (discarding the temp) rather than
@@ -547,77 +552,11 @@ class ArchiveService @Inject constructor(
         }
     }
 
-    private suspend fun writeTarEntries(
-        rawOut: java.io.OutputStream,
-        options: ArchiveWriteOptions,
-        entries: List<WriteEntry>,
-        onEntry: suspend (WriteEntry, Long) -> Unit,
-    ) {
-        val compressed = when (options.format) {
-            ArchiveFormat.TAR_GZ -> GzipCompressorOutputStream(
-                rawOut,
-                GzipParameters().apply { compressionLevel = options.preset.toGzipLevel() },
-            )
-            ArchiveFormat.TAR_BZ2 -> BZip2CompressorOutputStream(rawOut, options.preset.toBzip2BlockSize())
-            else -> rawOut
-        }
-        org.apache.commons.compress.archivers.tar.TarArchiveOutputStream(compressed).use { tar ->
-            tar.setLongFileMode(
-                org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX
-            )
-            entries.forEach { entry ->
-                currentCoroutineContext().ensureActive()
-                val tarEntry = org.apache.commons.compress.archivers.tar.TarArchiveEntry(
-                    entry.name + if (entry.isDirectory) "/" else ""
-                )
-                if (!entry.isDirectory) {
-                    // Tar headers need the exact size up front; resolve it now if enumeration didn't.
-                    tarEntry.size = entry.size
-                        ?: entry.takeIf { it.openStream == null }
-                            ?.let { gatewaySwitch.lookup(it.source, LookupOptions(fetchSize = true)).size }
-                        ?: throw WriteException("Size unknown for tar entry", entry.source)
-                }
-                tar.putArchiveEntry(tarEntry)
-                val written = if (entry.isDirectory) 0L else pumpSource(entry, tar)
-                tar.closeArchiveEntry()
-                onEntry(entry, written)
-            }
-        }
-    }
-
     private fun CompressionPreset.toZip4jLevel(): CompressionLevel = when (this) {
         CompressionPreset.FAST -> CompressionLevel.FASTEST
         // HIGHER is deflate 6, the java.util.zip default.
         CompressionPreset.NORMAL -> CompressionLevel.HIGHER
         CompressionPreset.BEST -> CompressionLevel.ULTRA
-    }
-
-    private fun CompressionPreset.toGzipLevel(): Int = when (this) {
-        CompressionPreset.FAST -> 1
-        CompressionPreset.NORMAL -> 6
-        CompressionPreset.BEST -> 9
-    }
-
-    private fun CompressionPreset.toBzip2BlockSize(): Int = when (this) {
-        CompressionPreset.FAST -> 1
-        CompressionPreset.NORMAL -> 5
-        CompressionPreset.BEST -> 9
-    }
-
-    private suspend fun pumpSource(entry: WriteEntry, out: java.io.OutputStream): Long {
-        var count = 0L
-        val stream = entry.openStream?.invoke() ?: gatewaySwitch.openInputStream(entry.source)
-        stream.use { input ->
-            val buffer = ByteArray(COPY_BUFFER_SIZE)
-            while (true) {
-                currentCoroutineContext().ensureActive()
-                val read = input.read(buffer)
-                if (read == -1) break
-                out.write(buffer, 0, read)
-                count += read
-            }
-        }
-        return count
     }
 
     // region index building
@@ -635,7 +574,7 @@ class ArchiveService @Inject constructor(
         log(TAG) { "buildIndex($container, $format)" }
         val collected = when (format) {
             ArchiveFormat.ZIP -> scanZip(container)
-            ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2 -> scanTar(container, format)
+            ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2 -> tarHandler.scan(container, format)
             ArchiveFormat.SEVEN_Z -> scanSevenZ(container)
         }
         val (bySegments, children) = buildIndexMaps(collected.entries)
@@ -657,19 +596,11 @@ class ArchiveService @Inject constructor(
         }
     }
 
-    private class ScanResult(
-        val entries: List<ArchiveEntryMeta>,
-        val skippedUnsafe: Int,
-        val skippedSpecial: Int,
-        val headerEncrypted: Boolean = false,
-        val passwordGeneration: Int? = null,
-    )
-
     private suspend fun scanZip(container: APath<*>): ScanResult {
         var skippedUnsafe = 0
         var skippedSpecial = 0
         val metas = ArrayList<ArchiveEntryMeta>()
-        openContainerChannel(container).use { channel ->
+        handlerContext.openContainerChannel(container).use { channel ->
             ZipFile.builder().setSeekableByteChannel(channel).get().use { zip ->
                 for (entry in zip.entries) {
                     currentCoroutineContext().ensureActive()
@@ -711,96 +642,9 @@ class ArchiveService @Inject constructor(
         )
     }
 
-    private suspend fun scanTar(container: APath<*>, format: ArchiveFormat): ScanResult {
-        var skippedUnsafe = 0
-        var skippedSpecial = 0
-        val metas = ArrayList<ArchiveEntryMeta>()
-        // Tar is forward-only, so entry streaming (openTarEntry / useTarEntryStreams) resolves a
-        // duplicate name to its FIRST occurrence. Keep the index consistent with that by taking the
-        // first occurrence here too, so reported metadata (size/date) matches the bytes actually read.
-        val seenNames = HashSet<String>()
-        gatewaySwitch.openInputStream(container).use { raw ->
-            val limited = LimitedInputStream(decompress(raw, format), MAX_TAR_SCAN_BYTES, container)
-            TarArchiveInputStream(limited).use { tar ->
-                while (true) {
-                    currentCoroutineContext().ensureActive()
-                    val entry = tar.nextEntry ?: break
-                    if (metas.size >= MAX_ENTRIES) {
-                        throw ReadException("Archive has too many entries (limit $MAX_ENTRIES)", container)
-                    }
-                    when {
-                        entry.isLink || entry.isFIFO() || entry.isCharacterDevice || entry.isBlockDevice -> {
-                            skippedSpecial++
-                            continue
-                        }
-                    }
-                    val segments = ArchiveEntrySafety.parseEntryName(entry.name)
-                    if (segments == null) {
-                        skippedUnsafe++
-                        continue
-                    }
-                    if (!seenNames.add(entry.name)) continue
-                    metas += ArchiveEntryMeta(
-                        segments = segments,
-                        rawName = entry.name,
-                        isDirectory = entry.isDirectory,
-                        size = entry.size.takeIf { it >= 0 && !entry.isSymbolicLink },
-                        modifiedAt = entry.lastModifiedDate?.time
-                            ?.takeIf { it > 0 }
-                            ?.let { Instant.fromEpochMilliseconds(it) },
-                        isSymlink = entry.isSymbolicLink,
-                        linkTarget = entry.linkName.takeIf { entry.isSymbolicLink && it.isNotEmpty() },
-                    )
-                }
-            }
-        }
-        return ScanResult(metas, skippedUnsafe, skippedSpecial)
-    }
-
-    private fun decompress(raw: InputStream, format: ArchiveFormat): InputStream = when (format) {
-        ArchiveFormat.TAR -> raw
-        ArchiveFormat.TAR_GZ -> GzipCompressorInputStream(raw)
-        ArchiveFormat.TAR_BZ2 -> BZip2CompressorInputStream(raw)
-        ArchiveFormat.ZIP, ArchiveFormat.SEVEN_Z ->
-            throw IllegalArgumentException("$format is not stream-decompressed")
-    }
-
     // endregion
 
     // region container access
-
-    /**
-     * Opens the container through the gateway and verifies positioned reads actually work via a
-     * probe read at the last byte. Only a failed probe on a successfully opened handle classifies
-     * as [ArchiveNotSeekableException] — open failures (permissions, offline, vanished files)
-     * propagate untouched so callers/UI don't mistake them for a capability limitation.
-     */
-    private suspend fun openSeekableHandle(container: APath<*>): FileHandle {
-        val handle = gatewaySwitch.file(container, readWrite = false)
-        try {
-            // Any positioned read that completes proves seekability - including -1 (EOF) at
-            // offset 0 of an empty file, which is invalid as an archive but not stream-only.
-            // Pipe-backed descriptors fail the pread itself (and report size -1).
-            val size = handle.size()
-            val probe = ByteArray(1)
-            handle.read(if (size > 0) size - 1 else 0L, probe, 0, 1)
-            return handle
-        } catch (e: CancellationException) {
-            runCatching { handle.close() }
-            throw e
-        } catch (e: Exception) {
-            log(TAG, WARN) { "openSeekableHandle($container): probe failed: ${e.asLog()}" }
-            runCatching { handle.close() }
-            throw ArchiveNotSeekableException(container, e)
-        }
-    }
-
-    /**
-     * Random access to the container bytes over the gateway's [okio.FileHandle]. Forward-only
-     * backends throw [ArchiveNotSeekableException] — there is deliberately no local-copy fallback.
-     */
-    private suspend fun openContainerChannel(container: APath<*>): SeekableByteChannel =
-        OkioSeekableByteChannel(openSeekableHandle(container))
 
     private suspend fun File.copyFromStream(input: InputStream) {
         outputStream().use { output ->
@@ -820,7 +664,7 @@ class ArchiveService @Inject constructor(
     // region entry streams
 
     private suspend fun openZipEntry(container: APath<*>, meta: ArchiveEntryMeta): InputStream {
-        val channel = openContainerChannel(container)
+        val channel = handlerContext.openContainerChannel(container)
         val zip = try {
             ZipFile.builder().setSeekableByteChannel(channel).get()
         } catch (e: Exception) {
@@ -863,7 +707,7 @@ class ArchiveService @Inject constructor(
 
     private suspend fun openEncryptedZipEntry(container: APath<*>, meta: ArchiveEntryMeta): InputStream {
         val password = passwordStore.get(container) ?: throw ArchivePasswordRequiredException(container)
-        val handle = openSeekableHandle(container)
+        val handle = handlerContext.openSeekableHandle(container)
         val stream = try {
             // The adapter copies the password for zip4j; our store-derived copy is wiped either way.
             Zip4jPositionedStream.open(handle, container, meta, password)
@@ -894,32 +738,6 @@ class ArchiveService @Inject constructor(
         }
     }
 
-    private suspend fun openTarEntry(
-        container: APath<*>,
-        format: ArchiveFormat,
-        meta: ArchiveEntryMeta,
-    ): InputStream {
-        val raw = gatewaySwitch.openInputStream(container)
-        try {
-            val tar = TarArchiveInputStream(decompress(raw, format))
-            while (true) {
-                currentCoroutineContext().ensureActive()
-                val entry = tar.nextEntry ?: break
-                if (entry.name == meta.rawName && !entry.isDirectory) {
-                    // TarArchiveInputStream scopes read() to the current entry (EOF at entry end).
-                    return object : FilterInputStream(tar) {
-                        override fun close() = tar.close()
-                    }
-                }
-            }
-            tar.close()
-            throw ReadException("Entry vanished from archive: ${meta.rawName}", container)
-        } catch (e: Exception) {
-            runCatching { raw.close() }
-            throw e
-        }
-    }
-
     private suspend fun useZipEntryStreams(
         container: APath<*>,
         entries: Collection<ArchiveEntryMeta>,
@@ -927,7 +745,7 @@ class ArchiveService @Inject constructor(
     ) {
         val (encrypted, plain) = entries.partition { it.isEncrypted }
         if (plain.isNotEmpty()) {
-            openContainerChannel(container).use { channel ->
+            handlerContext.openContainerChannel(container).use { channel ->
                 ZipFile.builder().setSeekableByteChannel(channel).get().use { zip ->
                     plain.forEach { meta ->
                         currentCoroutineContext().ensureActive()
@@ -944,7 +762,7 @@ class ArchiveService @Inject constructor(
         if (encrypted.isNotEmpty()) {
             val password = passwordStore.get(container) ?: throw ArchivePasswordRequiredException(container)
             // One probed handle serves all encrypted entries; each entry gets its own positioned stream.
-            val handle = openSeekableHandle(container)
+            val handle = handlerContext.openSeekableHandle(container)
             try {
                 encrypted.forEach { meta ->
                     currentCoroutineContext().ensureActive()
@@ -958,34 +776,6 @@ class ArchiveService @Inject constructor(
                 runCatching { handle.close() }
                 password.fill(Char.MIN_VALUE)
             }
-        }
-    }
-
-    private suspend fun useTarEntryStreams(
-        container: APath<*>,
-        format: ArchiveFormat,
-        entries: Collection<ArchiveEntryMeta>,
-        action: suspend (ArchiveEntryMeta, InputStream) -> Unit,
-    ) {
-        val wanted = entries.associateBy { it.rawName }.toMutableMap()
-        if (wanted.isEmpty()) return
-        gatewaySwitch.openInputStream(container).use { raw ->
-            TarArchiveInputStream(decompress(raw, format)).use { tar ->
-                while (wanted.isNotEmpty()) {
-                    currentCoroutineContext().ensureActive()
-                    val entry = tar.nextEntry ?: break
-                    val meta = wanted.remove(entry.name) ?: continue
-                    if (entry.isDirectory) continue
-                    action(meta, object : FilterInputStream(tar) {
-                        override fun close() {
-                            // Shield: the shared tar stream continues to the next entry.
-                        }
-                    })
-                }
-            }
-        }
-        if (wanted.isNotEmpty()) {
-            throw ReadException("Entries vanished from archive: ${wanted.keys.take(3)}", container)
         }
     }
 
@@ -1015,7 +805,7 @@ class ArchiveService @Inject constructor(
         headerEncrypted: Boolean = false,
         evictOnFailure: Boolean = true,
     ): SevenZHandle {
-        val channel = OkioSeekableByteChannel(openSeekableHandle(container))
+        val channel = OkioSeekableByteChannel(handlerContext.openSeekableHandle(container))
         try {
             val file = SevenZFile.builder()
                 .setSeekableByteChannel(channel)
@@ -1328,27 +1118,6 @@ class ArchiveService @Inject constructor(
 
     // endregion
 
-    /** Guards tar-family index scans against decompression bombs. */
-    private class LimitedInputStream(
-        wrapped: InputStream,
-        private val limit: Long,
-        private val container: APath<*>,
-    ) : FilterInputStream(wrapped) {
-        private var count = 0L
-
-        override fun read(): Int = super.read().also { if (it != -1) bump(1) }
-
-        override fun read(b: ByteArray, off: Int, len: Int): Int =
-            super.read(b, off, len).also { if (it > 0) bump(it.toLong()) }
-
-        override fun skip(n: Long): Long = super.skip(n).also { if (it > 0) bump(it) }
-
-        private fun bump(n: Long) {
-            count += n
-            if (count > limit) throw IOException("Archive scan limit exceeded ($limit bytes) for $container")
-        }
-    }
-
     data class ContainerStat(
         val size: Long?,
         val modifiedAt: Instant?,
@@ -1365,20 +1134,10 @@ class ArchiveService @Inject constructor(
         private const val MAX_CACHED_INDEXES = 8
         private const val COMMIT_LOCK_STRIPES = 16
         private const val ZIP64_SIZE_LIMIT = 0xFFFFFFFFL
-        private const val MAX_ENTRIES = 50_000
-        private const val MAX_TAR_SCAN_BYTES = 4L * 1024 * 1024 * 1024
-        private const val COPY_BUFFER_SIZE = 64 * 1024
-        private const val UNIX_TYPE_MASK = 0xF000
-        private const val UNIX_TYPE_SYMLINK = 0xA000
-        // FIFO, character device, block device, socket.
-        private val SPECIAL_UNIX_TYPES = setOf(0x1000, 0x2000, 0x6000, 0xC000)
         // commons-compress 1.28 reports an unknown 7z coder (e.g. PPMd) only through this message.
         private const val SEVEN_Z_UNSUPPORTED_METHOD = "Unsupported compression method"
         // Per-reader decoder budget; larger dictionaries fail as "not enough memory" instead of an OOM.
         private const val SEVEN_Z_MAX_MEMORY_BYTES = 256L * 1024 * 1024
-        // Full-drain limit for password verification: below this the probe entry is read to EOF so
-        // the cipher's MAC/CRC check runs; above it only the header verifier is consulted.
-        private const val VERIFY_DRAIN_LIMIT = 1L * 1024 * 1024
         // Prefixes live in ArchiveDiskCache, which sweeps them all on startup so no materialized
         // archive cache survives a process restart (stale content or decrypted plaintext).
         private val PREFIX_ENTRY = ArchiveDiskCache.PREFIX_ENTRY
