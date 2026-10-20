@@ -21,6 +21,12 @@ internal class FakeHostingRemote : WorkspaceRemote {
     /** When set, a Create suspends on it before the workspace exists. */
     var createGate: CompletableDeferred<Unit>? = null
 
+    /** When set, the next Create fails with it instead of creating anything. */
+    var createFailure: Exception? = null
+
+    /** When set, the next Create returns it instead of creating anything. */
+    var createRefusal: WorkspaceAction.Create.Result? = null
+
     /** When true, Close leaves the workspace open, like a busy one. */
     var refuseClose = false
 
@@ -41,6 +47,8 @@ internal class FakeHostingRemote : WorkspaceRemote {
         return when (action) {
             is WorkspaceAction.Create -> {
                 createGate?.await()
+                createFailure?.let { createFailure = null; throw it }
+                createRefusal?.let { createRefusal = null; return it }
                 val arguments = action.arguments as ExplorerArguments.Picker
                 val id = action.id!!
                 infos.update {
