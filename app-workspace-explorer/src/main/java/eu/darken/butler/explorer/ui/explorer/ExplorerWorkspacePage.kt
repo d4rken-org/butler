@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -153,7 +154,7 @@ fun ExplorerWorkspacePage(
         gridState = gridState,
     )
     ExplorerRevealEffect(
-        vm = vm,
+        revealRequests = vm?.revealRequests,
         mainStateSource = mainStateSource,
         listState = listState,
         gridState = gridState,
@@ -385,18 +386,20 @@ private fun ScrollToFocusedItem(
 
 // Handle reveal requests (scroll to and highlight item)
 @Composable
-private fun ExplorerRevealEffect(
-    vm: ExplorerWorkspaceViewModel?,
+internal fun ExplorerRevealEffect(
+    revealRequests: Flow<ExplorerWorkspaceViewModel.RevealRequest>?,
     mainStateSource: Flow<ExplorerWorkspaceViewModel.State?>,
     listState: LazyListState,
     gridState: LazyGridState,
 ) {
-    LaunchedEffect(vm) {
+    val currentListState by rememberUpdatedState(listState)
+    val currentGridState by rememberUpdatedState(gridState)
+    LaunchedEffect(revealRequests) {
         val tag = logTag("Explorer", "Page", "Reveal")
         log(tag) { "LaunchedEffect started, collecting revealRequests" }
         // The newest reveal wins: it cancels an older one that is still waiting or scrolling, even
         // when the newer one then finds no row.
-        vm?.revealRequests?.collectLatest { request ->
+        revealRequests?.collectLatest { request ->
             log(tag) { "Received reveal request for path: ${request.path.path} (${request.scope})" }
             val result = when (val outcome = awaitReveal(mainStateSource, request)) {
                 is RevealOutcome.Found -> outcome.index to outcome.state.viewStyle.mode
@@ -415,7 +418,7 @@ private fun ExplorerRevealEffect(
 
             when (currentMode) {
                 ExplorerViewStyle.Mode.GRID -> {
-                    val layoutInfo = gridState.layoutInfo
+                    val layoutInfo = currentGridState.layoutInfo
                     val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
                     val avgItemHeight = layoutInfo.visibleItemsInfo
                         .takeIf { it.isNotEmpty() }
@@ -423,10 +426,10 @@ private fun ExplorerRevealEffect(
                         ?: 0
                     val centerOffset = if (avgItemHeight > 0) -(viewportHeight - avgItemHeight) / 2 else 0
                     log(tag) { "Grid: viewportHeight=$viewportHeight, avgItemHeight=$avgItemHeight, centerOffset=$centerOffset" }
-                    gridState.animateScrollToItem(targetIndex, centerOffset)
+                    currentGridState.animateScrollToItem(targetIndex, centerOffset)
                 }
                 ExplorerViewStyle.Mode.LIST -> {
-                    val layoutInfo = listState.layoutInfo
+                    val layoutInfo = currentListState.layoutInfo
                     val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
                     val avgItemHeight = layoutInfo.visibleItemsInfo
                         .takeIf { it.isNotEmpty() }
@@ -434,7 +437,7 @@ private fun ExplorerRevealEffect(
                         ?: 0
                     val centerOffset = if (avgItemHeight > 0) -(viewportHeight - avgItemHeight) / 2 else 0
                     log(tag) { "List: viewportHeight=$viewportHeight, avgItemHeight=$avgItemHeight, centerOffset=$centerOffset" }
-                    listState.animateScrollToItem(targetIndex, centerOffset)
+                    currentListState.animateScrollToItem(targetIndex, centerOffset)
                 }
             }
             log(tag) { "Scroll completed" }
