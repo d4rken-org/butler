@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.core.hosted
 
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.contracts.picker.HostedPickerRequests
 import eu.darken.butler.workspace.contracts.picker.HostedPickerRequests.Outcome
@@ -233,5 +234,39 @@ class HostedPickerCoordinatorTest : BaseTest() {
 
         coordinator.awaitOutcome(ticket) shouldBe Outcome.Cancelled
         coordinator.attach(ticket.token).first() shouldBe null
+    }
+
+    @Test
+    fun `a picker that could not be created cancels the request`() = runTest(UnconfinedTestDispatcher()) {
+        val coordinator = coordinator()
+
+        remote.createRefusal = WorkspaceAction.Create.Result.LimitReached
+        val refused = coordinator.register(HostedPickerRequests.Request())
+        coordinator.attach(refused.token).first()
+        coordinator.awaitOutcome(refused) shouldBe Outcome.Cancelled
+
+        remote.createFailure = IllegalStateException("boom")
+        val failed = coordinator.register(HostedPickerRequests.Request())
+        coordinator.attach(failed.token).first()
+        coordinator.awaitOutcome(failed) shouldBe Outcome.Cancelled
+
+        remote.infos.value shouldBe emptyList()
+    }
+
+    @Test
+    fun `two open requests only see their own picker`() = runTest(UnconfinedTestDispatcher()) {
+        val coordinator = coordinator()
+        val (first, firstPicker) = coordinator.open()
+        val (second, secondPicker) = coordinator.open()
+        val secondHost = remote.actions.filterIsInstance<WorkspaceAction.Create>()
+            .map { it.arguments as ExplorerArguments.Picker }[1].callerWorkspaceId
+        val other = LocalPath.build("/storage/emulated/0/Pictures")
+
+        remote.eventFlow.emit(WorkspaceEvent.PickerResult(secondPicker, secondHost, listOf(other)))
+        remote.execute(WorkspaceAction.Close(secondPicker))
+
+        coordinator.awaitOutcome(second) shouldBe Outcome.Picked(listOf(other))
+        coordinator.attach(first.token).first()?.phase shouldBe Phase.OPEN
+        remote.infos.value.map { it.id } shouldBe listOf(firstPicker)
     }
 }

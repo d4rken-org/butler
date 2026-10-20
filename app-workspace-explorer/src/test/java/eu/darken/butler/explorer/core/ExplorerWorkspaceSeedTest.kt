@@ -128,6 +128,27 @@ class ExplorerWorkspaceSeedTest {
         }
     }
 
+    @Test
+    fun `a hosted picker stays hosted once the live info replaces the seed`() = runTest {
+        val host = Workspace.Id()
+        val workspace = testExplorerWorkspace(
+            ExplorerArguments.Picker(
+                startPath = LocalPath.build("/sdcard/Download"),
+                callerWorkspaceId = host,
+                isHostedByNavigation = true,
+            ),
+            UnconfinedTestDispatcher(testScheduler),
+        )
+
+        try {
+            workspace.info.value.lifecycleState shouldBe Workspace.LifecycleState.Ready
+            workspace.info.value.isHosted shouldBe true
+            workspace.info.value.callerWorkspaceId shouldBe host
+        } finally {
+            workspace.release()
+        }
+    }
+
     /** A restore of this tab, right now, must show what the tab is showing. */
     private suspend fun ExplorerWorkspace.assertRestoreMatchesLive() {
         val live = info.value
