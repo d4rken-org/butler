@@ -226,16 +226,12 @@ class OperationFgsCoordinator @Inject constructor(
 
     fun onServiceTimeout(service: Service) {
         // dataSync budget exhausted; release foreground but leave operations running unprotected.
+        // Suppress before stopping, so a reconcile queued behind onDestroy can't restart the service.
+        fgsSuppressed = true
         ServiceCompat.stopForeground(service, ServiceCompat.STOP_FOREGROUND_REMOVE)
         service.stopSelf()
-        appScope.launch {
-            mutex.withLock {
-                serviceRequested.set(false)
-                // Don't try to re-acquire the FGS until operations drain (doStop clears this).
-                fgsSuppressed = true
-                clearAllOpNotifications()
-            }
-        }
+        // stopForeground removed the summary; repost it and the op notifications without the FGS.
+        appScope.launch { mutex.withLock { reconcile(lastOngoing) } }
     }
 
     fun onServiceDestroyed() {
