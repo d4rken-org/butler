@@ -29,14 +29,16 @@ class OperationFgsService : Service2() {
         return START_NOT_STICKY
     }
 
-    /** Android 15 (API 35) cumulative dataSync timeout. Stop gracefully; the operation itself
-     *  continues in its app-scoped coroutine (unprotected, same as if no FGS were running). */
+    /** Android 14 (API 34) shortService timeout. Kept so a timeout is handled the same whichever
+     *  overload the platform invokes. */
     override fun onTimeout(startId: Int) {
         log(TAG, WARN) { "onTimeout($startId): dataSync FGS time budget exhausted" }
         coordinator.get().onServiceTimeout(this)
     }
 
-    /** Android 16 (API 36) delivers the per-type timeout via this overload. */
+    /** Android 15 (API 35) delivers the cumulative dataSync timeout via this overload. Stop
+     *  gracefully; the operation itself continues in its app-scoped coroutine (unprotected, same as
+     *  if no FGS were running). */
     override fun onTimeout(startId: Int, fgsType: Int) {
         log(TAG, WARN) { "onTimeout($startId, type=$fgsType): FGS time budget exhausted" }
         coordinator.get().onServiceTimeout(this)
