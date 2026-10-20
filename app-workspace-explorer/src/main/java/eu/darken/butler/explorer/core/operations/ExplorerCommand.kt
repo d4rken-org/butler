@@ -110,7 +110,9 @@ sealed interface ExplorerCommand {
         val archive: APath<*>,
         val destinationDir: APath<*>,
         val entries: Set<List<String>>? = null,
-    ) : ExplorerCommand
+    ) : ExplorerCommand {
+        val wholeArchiveDir: APath<*> get() = destinationDir.child(ArchiveFormat.stemOf(archive.name))
+    }
 
     /**
      * Copies [source] (an archive on a forward-only backend) to [destinationDir] as an explicit,

@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.core.engine
 
+import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -12,6 +13,8 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.operations.Operation
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
@@ -286,6 +289,15 @@ class BrowsingEngineTest : BaseTest() {
         private fun CoroutineScope.newEngine(dispatcher: CoroutineDispatcher): BrowsingEngine {
             val directoryLoader = mockk<DirectoryLocationLoader>().apply {
                 every { loadDirectory(any()) } answers { runs.removeFirst() }
+                coEvery { classifyLookups(any()) } answers {
+                    firstArg<Collection<APathLookup<*>>>().map { lookup ->
+                        if (lookup.fileType == FileType.DIRECTORY) {
+                            ExplorerItem.RegularDirectory(lookup = lookup)
+                        } else {
+                            ExplorerItem.RegularFile(lookup = lookup, mimeType = MimeInfo("text/plain"))
+                        }
+                    }
+                }
             }
             return BrowsingEngine(
                 workspaceId = Workspace.Id(),
@@ -760,6 +772,62 @@ class BrowsingEngineTest : BaseTest() {
                 engine.cancelLoad() shouldBe BrowsingEngine.CancelResult.NavigationRestored(target)
                 advanceUntilIdle()
                 engine.location.value.location?.items shouldBe listOf(entry("a"))
+            }
+
+        @Test
+        fun `an added folder in the open directory shows up without a reload`() =
+            runTest(UnconfinedTestDispatcher()) {
+                val dispatcher = UnconfinedTestDispatcher(testScheduler)
+                val initial = newRun()
+                val engine = backgroundScope.newEngine(dispatcher)
+
+                engine.setTarget(target)
+                initial.publish(loaded(entry("a")))
+                advanceUntilIdle()
+
+                engine.hint(
+                    FileSystemEvent.Added(
+                        operationId = Operation.Id(),
+                        paths = setOf(entry("extracted").lookup),
+                    )
+                )
+                advanceUntilIdle()
+
+                engine.location.value.run {
+                    target shouldBe this@RefreshWiringTests.target
+                    refreshId shouldBe 0
+                    location?.items shouldBe listOf(entry("a"), entry("extracted"))
+                }
+            }
+
+        @Test
+        fun `a file replaced by a folder of the same name leaves a single folder row`() =
+            runTest(UnconfinedTestDispatcher()) {
+                val dispatcher = UnconfinedTestDispatcher(testScheduler)
+                val initial = newRun()
+                val engine = backgroundScope.newEngine(dispatcher)
+                val file = ExplorerItem.RegularFile(
+                    lookup = LocalPathLookup(
+                        lookedUp = path.child("x"),
+                        fileType = FileType.FILE,
+                        size = 4L,
+                        modifiedAt = null,
+                    ),
+                    mimeType = MimeInfo("text/plain"),
+                )
+
+                engine.setTarget(target)
+                initial.publish(loaded(entry("a"), file))
+                advanceUntilIdle()
+
+                engine.hint(FileSystemEvent.Removed(operationId = Operation.Id(), paths = setOf(file.lookup)))
+                engine.hint(FileSystemEvent.Added(operationId = Operation.Id(), paths = setOf(entry("x").lookup)))
+                advanceUntilIdle()
+
+                val items = engine.location.value.location?.items.orEmpty()
+                items.filterIsInstance<ExplorerItem.Path>().single { it.path == path.child("x") }
+                    .shouldBeInstanceOf<ExplorerItem.RegularDirectory>()
+                items shouldBe listOf(entry("a"), entry("x"))
             }
 
         @Test

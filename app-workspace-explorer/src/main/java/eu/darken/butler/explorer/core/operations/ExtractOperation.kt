@@ -244,7 +244,7 @@ class ExtractOperation @AssistedInject constructor(
             throw ReadException("Cannot extract a selection from a non-seekable archive", command.archive)
         }
         var stateActive = State.Active(startedAt = ctx.startedAt)
-        val baseDir = command.destinationDir.child(ArchiveFormat.stemOf(command.archive.name))
+        val baseDir = command.wholeArchiveDir
 
         // Pre-existing collisions are only possible below an existing base dir. Deciding the policy
         // once, before the container stream opens, keeps suspending prompts away from a live (and
@@ -281,6 +281,7 @@ class ExtractOperation @AssistedInject constructor(
                     if (!gatewaySwitch.delete(baseDir)) {
                         throw WriteException("Failed to replace existing file", baseDir)
                     }
+                    fileSystemHinter.trackPathsRemoved(ctx.id, listOf(existing))
                 } else {
                     log(tag, INFO) { "Base path is a file and merge was declined, aborting" }
                     send(
@@ -313,7 +314,6 @@ class ExtractOperation @AssistedInject constructor(
         }
         // Ordinals handled across all passes; raw names may repeat, ordinals are the identity.
         val processed = mutableSetOf<Int>()
-        val expectedFingerprint = archiveService.statContainer(command.archive).fingerprint
 
         var currentEntry: String? = null
         var lastProgressAt = 0L
@@ -336,6 +336,7 @@ class ExtractOperation @AssistedInject constructor(
         }
 
         try {
+            val expectedFingerprint = archiveService.statContainer(command.archive).fingerprint
             var attemptFailed = false
             while (true) {
                 try {
@@ -428,11 +429,7 @@ class ExtractOperation @AssistedInject constructor(
     private suspend fun createSession(wholeArchive: Boolean): ExtractSession {
         // Whole-archive extraction lands in an archive-named subdirectory; selection extraction
         // writes entries at their in-archive paths directly under the destination.
-        val baseDir = if (wholeArchive) {
-            command.destinationDir.child(ArchiveFormat.stemOf(command.archive.name))
-        } else {
-            command.destinationDir
-        }
+        val baseDir = if (wholeArchive) command.wholeArchiveDir else command.destinationDir
         gatewaySwitch.createDir(baseDir, createParents = true)
         // Canonical base used to reject entries whose real (symlink-resolved) parent escapes the
         // destination - lexical segment sanitization alone can't catch a pre-existing symlink at the
@@ -442,7 +439,12 @@ class ExtractOperation @AssistedInject constructor(
             baseDir = baseDir,
             canonicalBase = canonicalBase,
             reportBuilder = ExtractOperationReport.Builder(command.archive),
-        )
+        ).apply {
+            if (wholeArchive) {
+                topLevelPaths += baseDir
+                reportBuilder.setOutputDir(baseDir)
+            }
+        }
     }
 
     private suspend fun ProducerScope<State>.finish(
@@ -450,7 +452,20 @@ class ExtractOperation @AssistedInject constructor(
         session: ExtractSession,
         error: Throwable?,
     ) {
-        fileSystemHinter.trackPathsAdded(ctx.id, session.addedLookups)
+        val topLevelLookups = session.topLevelPaths.mapNotNull { path ->
+            try {
+                gatewaySwitch.lookup(path, LookupOptions())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(tag, WARN) { "Failed to look up extracted path $path: ${e.asLog()}" }
+                null
+            }
+        }
+        if (session.removedLookups.isNotEmpty()) {
+            fileSystemHinter.trackPathsRemoved(ctx.id, session.removedLookups)
+        }
+        fileSystemHinter.trackPathsAdded(ctx.id, topLevelLookups + session.addedLookups)
         send(
             State.Completed(
                 startedAt = ctx.startedAt,
@@ -465,6 +480,8 @@ class ExtractOperation @AssistedInject constructor(
         val canonicalBase: APath<*>,
         val reportBuilder: ExtractOperationReport.Builder,
         val addedLookups: MutableList<APathLookup<*>> = mutableListOf(),
+        val removedLookups: MutableList<APathLookup<*>> = mutableListOf(),
+        val topLevelPaths: MutableSet<APath<*>> = linkedSetOf(),
     )
 
     private enum class ConflictDecision { OVERWRITE, SKIP }
@@ -493,6 +510,9 @@ class ExtractOperation @AssistedInject constructor(
     ): WriteOutcome {
         val destPath = session.baseDir.child(*segments.toTypedArray())
         val destParent = destPath.parent
+        if (command.entries != null && segments.size > 1) {
+            session.topLevelPaths += command.destinationDir.child(segments.first())
+        }
         destParent?.let { gatewaySwitch.createDir(it, createParents = true) }
 
         // Reject a destination whose real parent resolved outside the extraction root (zip-slip
@@ -504,11 +524,11 @@ class ExtractOperation @AssistedInject constructor(
             return WriteOutcome.Skipped
         }
 
-        var overwriteAuthorized = false
+        var authorizedReplacement: APathLookup<*>? = null
         if (gatewaySwitch.exists(destPath)) {
             val destLookup = gatewaySwitch.lookup(destPath, LookupOptions())
             when (onExistingConflict(destLookup)) {
-                ConflictDecision.OVERWRITE -> overwriteAuthorized = true
+                ConflictDecision.OVERWRITE -> authorizedReplacement = destLookup
                 ConflictDecision.SKIP -> {
                     session.reportBuilder.addSkipped(segments.joinToString("/"))
                     return WriteOutcome.Skipped
@@ -543,14 +563,14 @@ class ExtractOperation @AssistedInject constructor(
             // can't interleave their delete/move steps.
             archiveService.withOutputCommitLock(destPath) {
                 if (gatewaySwitch.exists(destPath)) {
-                    if (!overwriteAuthorized) {
-                        // Appeared after the conflict check - never delete what the user
-                        // didn't authorize us to replace.
-                        throw WriteException("Destination appeared during extraction", destPath)
-                    }
+                    // Appeared after the conflict check - never delete what the user
+                    // didn't authorize us to replace.
+                    val replaced = authorizedReplacement
+                        ?: throw WriteException("Destination appeared during extraction", destPath)
                     if (!gatewaySwitch.delete(destPath)) {
                         throw WriteException("Could not replace existing file", destPath)
                     }
+                    session.removedLookups += replaced
                     destructiveBoundaryCrossed = true
                 }
                 if (gatewaySwitch.move(tempPath, destPath) !is MoveOutcome.Moved || !gatewaySwitch.exists(destPath)) {

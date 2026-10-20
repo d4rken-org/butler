@@ -15,6 +15,8 @@ data class ExtractOperationReport(
     val extractedFiles: Int,
     val skippedEntries: Collection<String>,
     val extractedBytes: Long,
+    /** The archive-named folder a whole-archive extraction created; null for a selection. */
+    val outputDir: APath<*>?,
     override val performanceHistory: PerformanceHistory?,
 ) : ExplorerOperation.Report {
 
@@ -53,6 +55,7 @@ data class ExtractOperationReport(
         private val skipped = mutableListOf<String>()
         private var extractedFiles = 0
         private var extractedBytes = 0L
+        private var outputDir: APath<*>? = null
         private var performanceHistory: PerformanceHistory? = null
 
         fun addExtracted(path: APath<*>, bytes: Long) {
@@ -65,6 +68,10 @@ data class ExtractOperationReport(
             skipped.add(entry)
         }
 
+        fun setOutputDir(dir: APath<*>) {
+            outputDir = dir
+        }
+
         fun setPerformanceHistory(history: PerformanceHistory?) {
             performanceHistory = history
         }
@@ -75,6 +82,7 @@ data class ExtractOperationReport(
             extractedFiles = extractedFiles,
             skippedEntries = skipped,
             extractedBytes = extractedBytes,
+            outputDir = outputDir,
             performanceHistory = performanceHistory,
         )
     }
