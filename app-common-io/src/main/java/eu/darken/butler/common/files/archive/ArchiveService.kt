@@ -174,10 +174,9 @@ class ArchiveService @Inject constructor(
     }
 
     /**
-     * Streams multiple entries with shared handles: one zip open (plus one zip4j open if
-     * encrypted entries are requested), or a SINGLE sequential pass for tar-family formats and 7z.
-     * Tar and 7z entries are delivered in archive order, not request order. The streams passed to
-     * [action] are only valid inside that invocation.
+     * Streams multiple entries with shared handles, opened by the format's handler. Delivery order
+     * is the handler's: formats read in a single pass deliver entries in archive order, not request
+     * order. The streams passed to [action] are only valid inside that invocation.
      */
     suspend fun useEntryStreams(
         container: APath<*>,
