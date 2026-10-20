@@ -66,14 +66,10 @@ import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun ExplorerWorkspacePage(
@@ -398,22 +394,20 @@ private fun ExplorerRevealEffect(
     LaunchedEffect(vm) {
         val tag = logTag("Explorer", "Page", "Reveal")
         log(tag) { "LaunchedEffect started, collecting revealRequests" }
-        vm?.revealRequests?.collect { request ->
+        // The newest reveal wins: it cancels an older one that is still waiting or scrolling, even
+        // when the newer one then finds no row.
+        vm?.revealRequests?.collectLatest { request ->
             log(tag) { "Received reveal request for path: ${request.path.path} (${request.scope})" }
-            val result = mainStateSource
-                .mapNotNull { emittedState ->
-                    emittedState ?: return@mapNotNull null
-                    val index = emittedState.revealIndexFor(request)
-                    log(tag) { "State emission: ${emittedState.items?.size ?: 0} items, index=$index" }
-                    index?.let { it to emittedState.viewStyle.mode }
+            val result = when (val outcome = awaitReveal(mainStateSource, request)) {
+                is RevealOutcome.Found -> outcome.index to outcome.state.viewStyle.mode
+                RevealOutcome.Abandoned -> {
+                    log(tag) { "Reveal abandoned, location changed" }
+                    return@collectLatest
                 }
-                .timeout(2.seconds)
-                .catch { e -> log(tag) { "Timeout or error waiting for item: $e" } }
-                .firstOrNull()
-
-            if (result == null) {
-                log(tag) { "Target index is null, skipping scroll" }
-                return@collect
+                RevealOutcome.NotFound -> {
+                    log(tag) { "Target index is null, skipping scroll" }
+                    return@collectLatest
+                }
             }
 
             val (targetIndex, currentMode) = result

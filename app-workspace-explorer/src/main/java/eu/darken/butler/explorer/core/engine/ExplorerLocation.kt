@@ -96,7 +96,7 @@ sealed interface ExplorerLocation {
         val parent: ExplorerNavigation.Target? = null,
     ) : ExplorerLocation {
 
-        override val locationId: String get() = "location://directory/${path.path}"
+        override val locationId: String get() = locationIdOf(path)
 
         data class Info(
             val fileCount: Int? = null,
@@ -107,6 +107,10 @@ sealed interface ExplorerLocation {
             val isWritable: Boolean = false,
             val isReadable: Boolean = true,
         ) : LocationInfo
+
+        companion object {
+            fun locationIdOf(path: APath<*>): String = "location://directory/${path.path}"
+        }
     }
 
     sealed interface Trash : ExplorerLocation {
