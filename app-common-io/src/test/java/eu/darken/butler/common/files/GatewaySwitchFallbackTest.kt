@@ -10,6 +10,9 @@ import eu.darken.butler.common.files.saf.SAFPathLookup
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -140,6 +143,34 @@ class GatewaySwitchFallbackTest : BaseTest() {
         shouldThrow<ReadException> {
             gatewaySwitch.lookup(localPath, LookupOptions.BASE, GatewaySwitch.Type.CURRENT)
         } shouldBe original
+    }
+
+    @Test
+    fun `an unreadable archive path keeps its failure on AUTO and demotes the missing alternative`() = runTest {
+        val archivePath = ArchivePath(localPath, listOf("entry.txt"))
+        val original = ReadException(message = "Failed to open archive", path = archivePath)
+        coEvery { archiveGateway.lookup(any(), any()) } throws original
+
+        val thrown = shouldThrow<ReadException> {
+            gatewaySwitch.lookup(archivePath, LookupOptions.BASE, GatewaySwitch.Type.AUTO)
+        }
+        thrown shouldBeSameInstanceAs original
+        thrown.suppressed.size shouldBe 1
+        val alternative = thrown.suppressed.single().shouldBeInstanceOf<ReadException>()
+        alternative.message!! shouldContain "No alternative mapping for archive paths"
+    }
+
+    @Test
+    fun `an unreadable archive path on CURRENT rethrows its failure untouched`() = runTest {
+        val archivePath = ArchivePath(localPath, listOf("entry.txt"))
+        val original = ReadException(message = "Failed to open archive", path = archivePath)
+        coEvery { archiveGateway.lookup(any(), any()) } throws original
+
+        val thrown = shouldThrow<ReadException> {
+            gatewaySwitch.lookup(archivePath, LookupOptions.BASE, GatewaySwitch.Type.CURRENT)
+        }
+        thrown shouldBeSameInstanceAs original
+        thrown.suppressed.size shouldBe 0
     }
 
     @Test

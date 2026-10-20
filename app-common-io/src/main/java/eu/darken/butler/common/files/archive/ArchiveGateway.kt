@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.LookupOptions
@@ -17,6 +18,7 @@ import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.PathException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileSystem
@@ -58,8 +60,19 @@ class ArchiveGateway @Inject constructor(
     private suspend fun <T> runIO(block: suspend () -> T): T =
         withContext(dispatcherProvider.IO) { block() }
 
+    /** Raw parser failures from a damaged container (e.g. ZipException) surface as [ReadException]. */
+    private suspend fun indexOf(container: APath<*>): ArchiveIndex = try {
+        service.index(container)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: PathException) {
+        throw e
+    } catch (e: Exception) {
+        throw ReadException("Failed to open archive", container, e)
+    }
+
     override suspend fun lookup(path: ArchivePath, options: LookupOptions): ArchivePathLookup = runIO {
-        val index = service.index(path.container)
+        val index = indexOf(path.container)
         if (path.segments.isEmpty()) {
             val stat = service.statContainer(path.container)
             ArchivePathLookup(
@@ -80,7 +93,7 @@ class ArchiveGateway @Inject constructor(
         lookupFiles(path, LookupOptions()).map { it.lookedUp }
 
     override suspend fun lookupFiles(path: ArchivePath, options: LookupOptions): List<ArchivePathLookup> = runIO {
-        val index = service.index(path.container)
+        val index = indexOf(path.container)
         if (path.segments.isNotEmpty()) {
             val meta = index.entriesBySegments[path.segments]
                 ?: throw ReadException("Entry not found in archive", path)
@@ -91,7 +104,7 @@ class ArchiveGateway @Inject constructor(
 
     override suspend fun exists(path: ArchivePath): Boolean = runIO {
         try {
-            val index = service.index(path.container)
+            val index = indexOf(path.container)
             path.segments.isEmpty() || index.entriesBySegments.containsKey(path.segments)
         } catch (e: ReadException) {
             false
@@ -143,7 +156,7 @@ class ArchiveGateway @Inject constructor(
             emit(start)
             return@flow
         }
-        val index = service.index(path.container)
+        val index = indexOf(path.container)
         val queue = LinkedList(listOf(start.lookedUp.segments))
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
@@ -161,7 +174,7 @@ class ArchiveGateway @Inject constructor(
         path: ArchivePath,
         options: APathGateway.DuOptions<ArchivePath, ArchivePathLookup>,
     ): Long = runIO {
-        val index = service.index(path.container)
+        val index = indexOf(path.container)
         when {
             path.segments.isEmpty() -> index.entriesBySegments.values.sumOf { it.size ?: 0L }
             else -> {
@@ -193,7 +206,7 @@ class ArchiveGateway @Inject constructor(
     override suspend fun canonicalize(path: ArchivePath): ArchivePath = path
 
     override suspend fun readSymbolicLink(linkPath: ArchivePath): ArchivePath = runIO {
-        val index = service.index(linkPath.container)
+        val index = indexOf(linkPath.container)
         val meta = index.entriesBySegments[linkPath.segments]
             ?: throw ReadException("Entry not found in archive", linkPath)
         resolveLinkTarget(index, meta) ?: throw ReadException("Unresolvable link target", linkPath)
