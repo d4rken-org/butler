@@ -541,8 +541,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         // A retry can fail more than once and only one failure carries the wrong-password
                         // flags, so a submitted attempt decides what the prompt says.
                         val attempted = request.container in unlockAttempts
-                        val mayBeDamaged = request.mayBeDamaged ||
-                            (attempted && ArchiveFormat.fromFileName(request.container.name) == ArchiveFormat.SEVEN_Z)
+                        val distinguishable = ArchiveFormat.fromFileName(request.container.name)
+                            ?.capabilities
+                            ?.wrongPasswordDistinguishable
+                        val mayBeDamaged = request.mayBeDamaged || (attempted && distinguishable == false)
                         dialogs.showIfCurrent(
                             ExplorerDialogState.None,
                             ExplorerDialogState.ArchiveUnlock(
