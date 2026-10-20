@@ -7,6 +7,11 @@
     <string name="explorer_settings_filter_regex_title">Potrivire avansată cu metacaractere</string>
     <string name="explorer_settings_filter_regex_desc">Folosește expresii regulate în filtrele de includere/excludere.</string>
     <string name="explorer_settings_navigation">Navigare</string>
+    <string name="explorer_settings_start_location_title">Locație de pornire</string>
+    <string name="explorer_settings_start_location_desc">Unde se deschid filele noi ale exploratorului</string>
+    <string name="explorer_settings_start_location_home_default">Pornire (implicit)</string>
+    <string name="explorer_settings_start_location_folder_label">Dosar</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Alege dosarul…</string>
     <string name="explorer_settings_back_button_title">Navigare cu butonul Înapoi</string>
     <string name="explorer_settings_back_button_desc">Navighează prin istoric cu butonul/gestul Înapoi.</string>
     <string name="explorer_settings_trash_category">Coș</string>
@@ -163,7 +168,8 @@
     <string name="explorer_info_device_storage_used_label">Utilizat</string>
     <string name="explorer_info_device_storage_free_label">Liber</string>
     <string name="explorer_navigation_home">Pornire</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Setează ca locație de pornire</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Setează ca locație de pornire</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Filele noi se vor deschide aici</string>
     <string name="explorer_breadcrumb_copy_path_action">Copiază calea</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Cale copiată în clipboard</string>
     <string name="explorer_navigation_device">Dispozitiv</string>

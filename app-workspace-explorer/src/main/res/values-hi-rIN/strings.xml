@@ -7,6 +7,11 @@
     <string name="explorer_settings_filter_regex_title">उन्नत वाइल्डकार्ड मिलान</string>
     <string name="explorer_settings_filter_regex_desc">शामिल/बाहर रखने वाले फ़िल्टर में रेगुलर एक्सप्रेशन पैटर्न इस्तेमाल करें।</string>
     <string name="explorer_settings_navigation">नेविगेशन</string>
+    <string name="explorer_settings_start_location_title">शुरुआती स्थान</string>
+    <string name="explorer_settings_start_location_desc">नए एक्सप्लोरर टैब कहाँ खुलेंगे</string>
+    <string name="explorer_settings_start_location_home_default">होम (डिफ़ॉल्ट)</string>
+    <string name="explorer_settings_start_location_folder_label">फ़ोल्डर</string>
+    <string name="explorer_settings_start_location_choose_folder_action">फ़ोल्डर चुनें…</string>
     <string name="explorer_settings_back_button_title">वापस बटन से नेविगेशन</string>
     <string name="explorer_settings_back_button_desc">वापस बटन/जेस्चर से इतिहास में जाएँ।</string>
     <string name="explorer_settings_trash_category">कूड़ेदान</string>
@@ -159,7 +164,8 @@
     <string name="explorer_info_device_storage_used_label">इस्तेमाल हुआ</string>
     <string name="explorer_info_device_storage_free_label">खाली</string>
     <string name="explorer_navigation_home">होम</string>
-    <string name="explorer_breadcrumb_set_as_home_action">होम बनाएँ</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">शुरुआती स्थान के रूप में सेट करें</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">नए टैब यहाँ खुलेंगे</string>
     <string name="explorer_breadcrumb_copy_path_action">पथ कॉपी करें</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">पथ क्लिपबोर्ड में कॉपी हुआ</string>
     <string name="explorer_navigation_device">डिवाइस</string>

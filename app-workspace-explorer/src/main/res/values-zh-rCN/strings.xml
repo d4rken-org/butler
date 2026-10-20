@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">高级通配符匹配</string>
     <string name="explorer_settings_filter_regex_desc">在包含/排除过滤器中使用正则表达式模式。</string>
     <string name="explorer_settings_navigation">导航</string>
+    <string name="explorer_settings_start_location_title">起始位置</string>
+    <string name="explorer_settings_start_location_desc">新文件管理器标签页的打开位置</string>
+    <string name="explorer_settings_start_location_home_default">主页（默认）</string>
+    <string name="explorer_settings_start_location_folder_label">文件夹</string>
+    <string name="explorer_settings_start_location_choose_folder_action">选择文件夹…</string>
     <string name="explorer_settings_back_button_title">返回按钮导航</string>
     <string name="explorer_settings_back_button_desc">使用返回按钮/手势浏览历史记录。</string>
     <string name="explorer_settings_trash_category">回收站</string>
@@ -175,7 +180,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">主页</string>
-    <string name="explorer_breadcrumb_set_as_home_action">设为主页</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">设为起始位置</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">新标签页将在这里打开</string>
     <string name="explorer_breadcrumb_copy_path_action">复制路径</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">路径已复制到剪贴板</string>
     <string name="explorer_navigation_device">设备</string>

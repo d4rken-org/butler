@@ -73,6 +73,22 @@ class NavigationController @Inject constructor() {
         }
     }
 
+    /** See [NavEvent.Dismiss]. Keeps the back stack from becoming empty, like [up]. */
+    fun dismiss(destination: NavigationDestination): Boolean {
+        val index = backStack.indexOfLast { it == destination }
+        if (index < 0) {
+            log(TAG) { "dismiss($destination) not in backstack" }
+            return false
+        }
+        if (backStack.size <= 1) {
+            log(TAG) { "dismiss($destination) prevented removing the last element in backstack" }
+            return false
+        }
+        backStack.removeAt(index)
+        log(TAG) { "dismiss($destination) removed at $index" }
+        return true
+    }
+
     fun replace(destination: NavigationDestination) {
         backStack.removeLastOrNull()
         backStack.add(destination)

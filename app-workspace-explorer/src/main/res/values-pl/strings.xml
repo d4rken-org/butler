@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Zaawansowane dopasowywanie wzorców</string>
     <string name="explorer_settings_filter_regex_desc">Używaj wyrażeń regularnych w filtrach dołączania/wykluczania.</string>
     <string name="explorer_settings_navigation">Nawigacja</string>
+    <string name="explorer_settings_start_location_title">Lokalizacja startowa</string>
+    <string name="explorer_settings_start_location_desc">Gdzie otwierają się nowe karty Eksploratora</string>
+    <string name="explorer_settings_start_location_home_default">Start (domyślnie)</string>
+    <string name="explorer_settings_start_location_folder_label">Folder</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Wybierz folder…</string>
     <string name="explorer_settings_back_button_title">Nawigacja przyciskiem Wstecz</string>
     <string name="explorer_settings_back_button_desc">Poruszaj się po historii za pomocą przycisku/gestu Wstecz.</string>
     <string name="explorer_settings_trash_category">Kosz</string>
@@ -185,7 +190,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Start</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Ustaw jako start</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Ustaw jako lokalizację startową</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Nowe karty będą otwierać się tutaj</string>
     <string name="explorer_breadcrumb_copy_path_action">Kopiuj ścieżkę</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Ścieżka skopiowana do schowka</string>
     <string name="explorer_navigation_device">Urządzenie</string>

@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Advanced wildcard matching</string>
     <string name="explorer_settings_filter_regex_desc">Use regex patterns in filters in include/exclude filters.</string>
     <string name="explorer_settings_navigation">Navigation</string>
+    <string name="explorer_settings_start_location_title">Start location</string>
+    <string name="explorer_settings_start_location_desc">Where new Explorer tabs open</string>
+    <string name="explorer_settings_start_location_home_default">Home (default)</string>
+    <string name="explorer_settings_start_location_folder_label">Folder</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Choose folder…</string>
     <string name="explorer_settings_back_button_title">Back button navigation</string>
     <string name="explorer_settings_back_button_desc">Navigate through history with back button/gesture.</string>
     <string name="explorer_settings_open_on_tap_title">Open files on tap</string>
@@ -191,7 +196,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Home</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Set as home</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Set as start location</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">New tabs will open here</string>
     <string name="explorer_breadcrumb_copy_path_action">Copy path</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Path copied to clipboard</string>
     <string name="explorer_navigation_device">Device</string>

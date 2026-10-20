@@ -7,6 +7,11 @@
     <string name="explorer_settings_filter_regex_title">Padanan kad bebas lanjutan</string>
     <string name="explorer_settings_filter_regex_desc">Gunakan corak regex dalam penapis sertakan/kecualikan.</string>
     <string name="explorer_settings_navigation">Navigasi</string>
+    <string name="explorer_settings_start_location_title">Lokasi permulaan</string>
+    <string name="explorer_settings_start_location_desc">Tempat tab penjelajah baharu dibuka</string>
+    <string name="explorer_settings_start_location_home_default">Utama (lalai)</string>
+    <string name="explorer_settings_start_location_folder_label">Folder</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Pilih folder…</string>
     <string name="explorer_settings_back_button_title">Navigasi butang kembali</string>
     <string name="explorer_settings_back_button_desc">Navigasi melalui sejarah dengan butang/gerak isyarat kembali.</string>
     <string name="explorer_settings_trash_category">Tong sampah</string>
@@ -155,7 +160,8 @@
     <string name="explorer_info_device_storage_used_label">Digunakan</string>
     <string name="explorer_info_device_storage_free_label">Kosong</string>
     <string name="explorer_navigation_home">Utama</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Tetapkan sebagai utama</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Tetapkan sebagai lokasi permulaan</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Tab baharu akan dibuka di sini</string>
     <string name="explorer_breadcrumb_copy_path_action">Salin laluan</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Laluan disalin ke papan keratan</string>
     <string name="explorer_navigation_device">Peranti</string>

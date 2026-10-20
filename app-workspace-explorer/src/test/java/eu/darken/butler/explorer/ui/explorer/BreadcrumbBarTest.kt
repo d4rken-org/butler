@@ -478,13 +478,13 @@ class BreadcrumbBarTest : ComposeTest() {
 
         composeTestRule.onNodeWithText("Home").performTouchInput { longClick() }
 
-        composeTestRule.onNodeWithText("Set as home").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Set as start location").assertIsDisplayed()
         composeTestRule.onNodeWithText("Add to favorites").assertDoesNotExist()
         composeTestRule.onNodeWithText("Remove from favorites").assertDoesNotExist()
     }
 
     @Test
-    fun `set as home from context menu fires callback and closes menu`() {
+    fun `set as start location from context menu fires callback and closes menu`() {
         var homeTarget: ExplorerNavigation.Target? = null
 
         composeTestRule.setContent {
@@ -502,10 +502,10 @@ class BreadcrumbBarTest : ComposeTest() {
         }
 
         composeTestRule.onNodeWithText("Device").performTouchInput { longClick() }
-        composeTestRule.onNodeWithText("Set as home").performClick()
+        composeTestRule.onNodeWithText("Set as start location").performClick()
 
         homeTarget shouldBe ExplorerNavigation.Target.Device
-        composeTestRule.onNodeWithText("Set as home").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Set as start location").assertDoesNotExist()
     }
 
     @Test

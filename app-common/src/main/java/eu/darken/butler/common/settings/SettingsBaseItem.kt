@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
@@ -42,6 +43,7 @@ fun SettingsBaseItem(
     iconSize: Dp = 24.dp,
     subtitle: String? = null,
     value: String? = null,
+    valueStyle: TextStyle? = null,
     enabled: Boolean = true,
     requiresUpgrade: Boolean = false,
     onLongClick: (() -> Unit)? = null,
@@ -115,7 +117,7 @@ fun SettingsBaseItem(
             if (value != null) {
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = valueStyle ?: MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary.copy(alpha = contentAlpha),
                     modifier = Modifier.padding(top = 2.dp),
                 )

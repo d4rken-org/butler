@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Gelişmiş joker karakter eşleştirme</string>
     <string name="explorer_settings_filter_regex_desc">Dahil etme/hariç tutma filtrelerinde regex desenleri kullanın.</string>
     <string name="explorer_settings_navigation">Gezinme</string>
+    <string name="explorer_settings_start_location_title">Başlangıç konumu</string>
+    <string name="explorer_settings_start_location_desc">Yeni Gezgin sekmelerinin açıldığı yer</string>
+    <string name="explorer_settings_start_location_home_default">Ana sayfa (varsayılan)</string>
+    <string name="explorer_settings_start_location_folder_label">Klasör</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Klasör seç…</string>
     <string name="explorer_settings_back_button_title">Geri düğmesiyle gezinme</string>
     <string name="explorer_settings_back_button_desc">Geri düğmesi/hareketiyle geçmişte gezinin.</string>
     <string name="explorer_settings_trash_category">Çöp kutusu</string>
@@ -177,7 +182,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Ana sayfa</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Ana sayfa olarak ayarla</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Başlangıç konumu olarak ayarla</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Yeni sekmeler burada açılacak</string>
     <string name="explorer_breadcrumb_copy_path_action">Yolu kopyala</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Yol panoya kopyalandı</string>
     <string name="explorer_navigation_device">Cihaz</string>

@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">అధునాతన వైల్డ్‌కార్డ్ సరిపోలిక</string>
     <string name="explorer_settings_filter_regex_desc">చేర్చే/మినహాయించే ఫిల్టర్‌లలో regex నమూనాలను ఉపయోగించండి.</string>
     <string name="explorer_settings_navigation">నావిగేషన్</string>
+    <string name="explorer_settings_start_location_title">ప్రారంభ స్థానం</string>
+    <string name="explorer_settings_start_location_desc">కొత్త ఎక్స్‌ప్లోరర్ ట్యాబ్‌లు ఎక్కడ తెరుచుకుంటాయి</string>
+    <string name="explorer_settings_start_location_home_default">హోమ్ (డిఫాల్ట్)</string>
+    <string name="explorer_settings_start_location_folder_label">ఫోల్డర్</string>
+    <string name="explorer_settings_start_location_choose_folder_action">ఫోల్డర్‌ను ఎంచుకోండి…</string>
     <string name="explorer_settings_back_button_title">వెనుకకు బటన్‌తో నావిగేషన్</string>
     <string name="explorer_settings_back_button_desc">వెనుకకు బటన్/సంజ్ఞతో చరిత్రలోని స్థానాలకు వెళ్లండి.</string>
     <string name="explorer_settings_trash_category">ట్రాష్</string>
@@ -182,7 +187,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">హోమ్</string>
-    <string name="explorer_breadcrumb_set_as_home_action">హోమ్‌గా సెట్ చేయండి</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">ప్రారంభ స్థానంగా సెట్ చేయండి</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">కొత్త ట్యాబ్‌లు ఇక్కడ తెరుచుకుంటాయి</string>
     <string name="explorer_breadcrumb_copy_path_action">పాత్‌ను కాపీ చేయండి</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">పాత్ క్లిప్‌బోర్డ్‌కు కాపీ చేయబడింది</string>
     <string name="explorer_navigation_device">పరికరం</string>

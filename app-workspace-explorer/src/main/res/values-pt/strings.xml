@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Correspondência avançada com caracteres universais</string>
     <string name="explorer_settings_filter_regex_desc">Usar expressões regulares nos filtros de inclusão e exclusão.</string>
     <string name="explorer_settings_navigation">Navegação</string>
+    <string name="explorer_settings_start_location_title">Localização inicial</string>
+    <string name="explorer_settings_start_location_desc">Onde abrem os novos separadores do explorador</string>
+    <string name="explorer_settings_start_location_home_default">Início (predefinição)</string>
+    <string name="explorer_settings_start_location_folder_label">Pasta</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Escolher pasta…</string>
     <string name="explorer_settings_back_button_title">Navegação com o botão Voltar</string>
     <string name="explorer_settings_back_button_desc">Navegar pelo histórico com o botão ou gesto de voltar.</string>
     <string name="explorer_settings_trash_category">Lixo</string>
@@ -186,7 +191,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Início</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Definir como início</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Definir como localização inicial</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Os novos separadores vão abrir aqui</string>
     <string name="explorer_breadcrumb_copy_path_action">Copiar caminho</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Caminho copiado para a área de transferência</string>
     <string name="explorer_navigation_device">Dispositivo</string>

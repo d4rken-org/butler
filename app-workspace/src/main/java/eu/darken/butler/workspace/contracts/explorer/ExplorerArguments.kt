@@ -60,5 +60,6 @@ sealed interface ExplorerArguments : Workspace.Arguments {
         /** Pane-scoped by default; a caller needing the whole screen asks for it explicitly. */
         override val modalPresentation: Workspace.ModalPresentationMode =
             Workspace.ModalPresentationMode.PANE_LOCAL,
+        override val isHostedByNavigation: Boolean = false,
     ) : ExplorerArguments, Workspace.ArgumentsForResult
 }

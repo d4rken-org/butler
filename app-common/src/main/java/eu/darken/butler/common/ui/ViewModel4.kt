@@ -42,6 +42,11 @@ abstract class ViewModel4(
         navEvents.tryEmit(NavEvent.Up)
     }
 
+    fun navDismiss(destination: NavigationDestination) {
+        log(tag) { "navDismiss($destination)" }
+        navEvents.tryEmit(NavEvent.Dismiss(destination))
+    }
+
     /**
      * Collect a render-state flow in [vmScope] and convert upstream failures into explicit fallback
      * UI state plus an [errorEvents] emission. Cancellation is never converted into UI state.

@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.stateIn
  * Builds the initial [Workspace.Info] used to seed [stateInWorkspace].
  *
  * The static relationship fields ([Workspace.Info.callerWorkspaceId],
- * [Workspace.Info.modalPresentation], [Workspace.Info.pausableAsChild],
+ * [Workspace.Info.modalPresentation], [Workspace.Info.pausableAsChild], [Workspace.Info.isHosted],
  * [Workspace.Info.contentPath]) are extracted from [arguments] so they are correct before the first
  * real emission — WorkspaceRepo reads them synchronously for lifecycle decisions (child cleanup,
  * sub-workspace limit exclusion, unit pausing, per-path open dedup).
@@ -39,6 +39,7 @@ fun Workspace<*>.initialInfo(
         callerWorkspaceId = withCaller?.callerWorkspaceId,
         modalPresentation = withCaller?.modalPresentation ?: Workspace.ModalPresentationMode.PANE_LOCAL,
         pausableAsChild = arguments.isPausableAsChild,
+        isHosted = withCaller?.isHostedByNavigation == true,
         contentPath = (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath,
         isPersistable = arguments.isPersistable,
     )

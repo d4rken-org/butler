@@ -19,6 +19,7 @@ class WorkspaceInfoExtensionsTest : BaseTest() {
         override val callerWorkspaceId: Workspace.Id?,
         override val modalPresentation: Workspace.ModalPresentationMode =
             Workspace.ModalPresentationMode.PANE_LOCAL,
+        override val isHostedByNavigation: Boolean = false,
     ) : Workspace.ArgumentsForResult {
         override fun describeContents(): Int = 0
         override fun writeToParcel(dest: Parcel, flags: Int) = Unit
@@ -37,6 +38,19 @@ class WorkspaceInfoExtensionsTest : BaseTest() {
         override val id = Workspace.Id()
         override val info = MutableStateFlow(Workspace.Info(id, type, "stub".toCaString()))
         override suspend fun createArguments(): Workspace.Arguments = FakeArguments(type)
+    }
+
+    @Test
+    fun `initialInfo projects the hosted flag only from arguments that ask for it`() {
+        val workspace = FakeWorkspace()
+        val caller = Workspace.Id()
+
+        fun seed(arguments: Workspace.Arguments) =
+            workspace.initialInfo(title = "title".toCaString(), arguments = arguments)
+
+        seed(FakePickerArguments(Workspace.Type.EXPLORER, caller, isHostedByNavigation = true)).isHosted shouldBe true
+        seed(FakePickerArguments(Workspace.Type.EXPLORER, caller)).isHosted shouldBe false
+        seed(FakeArguments(Workspace.Type.EXPLORER)).isHosted shouldBe false
     }
 
     @Test

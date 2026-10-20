@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Coincidencia avanzada de comodines</string>
     <string name="explorer_settings_filter_regex_desc">Usa patrones de expresiones regulares en los filtros de inclusión y exclusión.</string>
     <string name="explorer_settings_navigation">Navegación</string>
+    <string name="explorer_settings_start_location_title">Ubicación de inicio</string>
+    <string name="explorer_settings_start_location_desc">Dónde se abren las nuevas pestañas del explorador</string>
+    <string name="explorer_settings_start_location_home_default">Inicio (predeterminado)</string>
+    <string name="explorer_settings_start_location_folder_label">Carpeta</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Elegir carpeta…</string>
     <string name="explorer_settings_back_button_title">Navegación con el botón Atrás</string>
     <string name="explorer_settings_back_button_desc">Navega por el historial con el botón o gesto Atrás.</string>
     <string name="explorer_settings_trash_category">Papelera</string>
@@ -180,7 +185,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Inicio</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Establecer como inicio</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Establecer como ubicación de inicio</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Las nuevas pestañas se abrirán aquí</string>
     <string name="explorer_breadcrumb_copy_path_action">Copiar ruta</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Ruta copiada al portapapeles</string>
     <string name="explorer_navigation_device">Dispositivo</string>

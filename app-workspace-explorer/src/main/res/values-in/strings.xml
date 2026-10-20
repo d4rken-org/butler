@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Pencocokan wildcard lanjutan</string>
     <string name="explorer_settings_filter_regex_desc">Gunakan pola regex pada filter sertakan/kecualikan.</string>
     <string name="explorer_settings_navigation">Navigasi</string>
+    <string name="explorer_settings_start_location_title">Lokasi awal</string>
+    <string name="explorer_settings_start_location_desc">Tempat tab Explorer baru dibuka</string>
+    <string name="explorer_settings_start_location_home_default">Beranda (default)</string>
+    <string name="explorer_settings_start_location_folder_label">Folder</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Pilih folder…</string>
     <string name="explorer_settings_back_button_title">Navigasi tombol kembali</string>
     <string name="explorer_settings_back_button_desc">Menjelajahi riwayat dengan tombol/gestur kembali.</string>
     <string name="explorer_settings_trash_category">Sampah</string>
@@ -173,7 +178,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Beranda</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Jadikan beranda</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Jadikan lokasi awal</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Tab baru akan dibuka di sini</string>
     <string name="explorer_breadcrumb_copy_path_action">Salin jalur</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Jalur disalin ke papan klip</string>
     <string name="explorer_navigation_device">Perangkat</string>

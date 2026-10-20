@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">மேம்பட்ட வைல்ட்கார்டு பொருத்தம்</string>
     <string name="explorer_settings_filter_regex_desc">சேர்க்கும்/விலக்கும் வடிகட்டிகளில் regex வடிவங்களைப் பயன்படுத்துங்கள்.</string>
     <string name="explorer_settings_navigation">வழிசெலுத்தல்</string>
+    <string name="explorer_settings_start_location_title">தொடக்க இடம்</string>
+    <string name="explorer_settings_start_location_desc">புதிய கோப்பு உலாவி தாவல்கள் எங்கே திறக்கும்</string>
+    <string name="explorer_settings_start_location_home_default">முகப்பு (இயல்பு)</string>
+    <string name="explorer_settings_start_location_folder_label">கோப்புறை</string>
+    <string name="explorer_settings_start_location_choose_folder_action">கோப்புறையைத் தேர்ந்தெடுங்கள்…</string>
     <string name="explorer_settings_back_button_title">பின் செல்லும் பொத்தான் வழிசெலுத்தல்</string>
     <string name="explorer_settings_back_button_desc">பின் செல்லும் பொத்தான்/சைகை மூலம் வரலாற்றில் வழிசெல்லுங்கள்.</string>
     <string name="explorer_settings_trash_category">குப்பைத்தொட்டி</string>
@@ -179,7 +184,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">முகப்பு</string>
-    <string name="explorer_breadcrumb_set_as_home_action">முகப்பாக அமை</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">தொடக்க இடமாக அமை</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">புதிய தாவல்கள் இங்கே திறக்கும்</string>
     <string name="explorer_breadcrumb_copy_path_action">பாதையை நகலெடு</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">பாதை கிளிப்போர்டுக்கு நகலெடுக்கப்பட்டது</string>
     <string name="explorer_navigation_device">சாதனம்</string>

@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Avancerad matchning med jokertecken</string>
     <string name="explorer_settings_filter_regex_desc">Använd reguljära uttryck i filter för inkludering och exkludering.</string>
     <string name="explorer_settings_navigation">Navigering</string>
+    <string name="explorer_settings_start_location_title">Startplats</string>
+    <string name="explorer_settings_start_location_desc">Var nya flikar i filutforskaren öppnas</string>
+    <string name="explorer_settings_start_location_home_default">Hem (standard)</string>
+    <string name="explorer_settings_start_location_folder_label">Mapp</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Välj mapp…</string>
     <string name="explorer_settings_back_button_title">Navigering med bakåtknappen</string>
     <string name="explorer_settings_back_button_desc">Navigera genom historiken med bakåtknappen eller bakåtgesten.</string>
     <string name="explorer_settings_trash_category">Papperskorg</string>
@@ -179,7 +184,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Hem</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Ange som hem</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Ange som startplats</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Nya flikar öppnas här</string>
     <string name="explorer_breadcrumb_copy_path_action">Kopiera sökväg</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Sökvägen har kopierats till urklipp</string>
     <string name="explorer_navigation_device">Enhet</string>

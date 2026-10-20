@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Розширений пошук за шаблоном</string>
     <string name="explorer_settings_filter_regex_desc">Використовувати регулярні вирази у фільтрах включення/виключення.</string>
     <string name="explorer_settings_navigation">Навігація</string>
+    <string name="explorer_settings_start_location_title">Початкове розташування</string>
+    <string name="explorer_settings_start_location_desc">Де відкриваються нові вкладки Провідника</string>
+    <string name="explorer_settings_start_location_home_default">Головна (за замовчуванням)</string>
+    <string name="explorer_settings_start_location_folder_label">Папка</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Вибрати папку…</string>
     <string name="explorer_settings_back_button_title">Навігація кнопкою «Назад»</string>
     <string name="explorer_settings_back_button_desc">Переміщення історією за допомогою кнопки або жесту «Назад».</string>
     <string name="explorer_settings_trash_category">Кошик</string>
@@ -188,7 +193,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Головна</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Зробити головною</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Зробити початковим розташуванням</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Нові вкладки відкриватимуться тут</string>
     <string name="explorer_breadcrumb_copy_path_action">Копіювати шлях</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Шлях скопійовано в буфер обміну</string>
     <string name="explorer_navigation_device">Пристрій</string>

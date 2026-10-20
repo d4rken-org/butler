@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">การจับคู่ไวลด์การ์ดขั้นสูง</string>
     <string name="explorer_settings_filter_regex_desc">ใช้รูปแบบ regex ในตัวกรองรวมและตัวกรองยกเว้น</string>
     <string name="explorer_settings_navigation">การนำทาง</string>
+    <string name="explorer_settings_start_location_title">ตำแหน่งเริ่มต้น</string>
+    <string name="explorer_settings_start_location_desc">ตำแหน่งที่แท็บใหม่ของตัวจัดการไฟล์จะเปิด</string>
+    <string name="explorer_settings_start_location_home_default">หน้าแรก (ค่าเริ่มต้น)</string>
+    <string name="explorer_settings_start_location_folder_label">โฟลเดอร์</string>
+    <string name="explorer_settings_start_location_choose_folder_action">เลือกโฟลเดอร์…</string>
     <string name="explorer_settings_back_button_title">การนำทางด้วยปุ่มย้อนกลับ</string>
     <string name="explorer_settings_back_button_desc">ย้อนกลับตามประวัติด้วยปุ่มหรือท่าทางย้อนกลับ</string>
     <string name="explorer_settings_trash_category">ถังขยะ</string>
@@ -176,7 +181,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">หน้าแรก</string>
-    <string name="explorer_breadcrumb_set_as_home_action">ตั้งเป็นหน้าแรก</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">ตั้งเป็นตำแหน่งเริ่มต้น</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">แท็บใหม่จะเปิดที่นี่</string>
     <string name="explorer_breadcrumb_copy_path_action">คัดลอกเส้นทาง</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">คัดลอกเส้นทางไปยังคลิปบอร์ดแล้ว</string>
     <string name="explorer_navigation_device">อุปกรณ์</string>

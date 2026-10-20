@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Avansert matching med jokertegn</string>
     <string name="explorer_settings_filter_regex_desc">Bruk regulære uttrykk i filtrene for inkludering og ekskludering.</string>
     <string name="explorer_settings_navigation">Navigasjon</string>
+    <string name="explorer_settings_start_location_title">Startplassering</string>
+    <string name="explorer_settings_start_location_desc">Hvor nye faner i filutforskeren åpnes</string>
+    <string name="explorer_settings_start_location_home_default">Hjem (standard)</string>
+    <string name="explorer_settings_start_location_folder_label">Mappe</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Velg mappe…</string>
     <string name="explorer_settings_back_button_title">Navigasjon med tilbakeknappen</string>
     <string name="explorer_settings_back_button_desc">Naviger gjennom historikken med tilbakeknappen eller tilbakebevegelsen.</string>
     <string name="explorer_settings_trash_category">Papirkurv</string>
@@ -179,7 +184,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Hjem</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Sett som hjem</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Angi som startplassering</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Nye faner åpnes her</string>
     <string name="explorer_breadcrumb_copy_path_action">Kopier sti</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Sti kopiert til utklippstavlen</string>
     <string name="explorer_navigation_device">Enhet</string>

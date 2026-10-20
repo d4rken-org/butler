@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">高度なワイルドカードマッチング</string>
     <string name="explorer_settings_filter_regex_desc">含める・除外するフィルターで正規表現パターンを使用します。</string>
     <string name="explorer_settings_navigation">ナビゲーション</string>
+    <string name="explorer_settings_start_location_title">開始場所</string>
+    <string name="explorer_settings_start_location_desc">新しいエクスプローラーのタブを開く場所</string>
+    <string name="explorer_settings_start_location_home_default">ホーム（デフォルト）</string>
+    <string name="explorer_settings_start_location_folder_label">フォルダ</string>
+    <string name="explorer_settings_start_location_choose_folder_action">フォルダを選択…</string>
     <string name="explorer_settings_back_button_title">戻るボタンでのナビゲーション</string>
     <string name="explorer_settings_back_button_desc">戻るボタン・ジェスチャーで履歴を移動します。</string>
     <string name="explorer_settings_trash_category">ゴミ箱</string>
@@ -176,7 +181,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">ホーム</string>
-    <string name="explorer_breadcrumb_set_as_home_action">ホームに設定</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">開始場所に設定</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">新しいタブはここで開きます</string>
     <string name="explorer_breadcrumb_copy_path_action">パスをコピー</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">パスをクリップボードにコピーしました</string>
     <string name="explorer_navigation_device">端末</string>

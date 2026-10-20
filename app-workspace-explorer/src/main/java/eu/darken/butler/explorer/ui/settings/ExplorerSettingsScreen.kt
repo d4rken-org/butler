@@ -12,11 +12,13 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.DeveloperMode
 import androidx.compose.material.icons.twotone.FilterList
+import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.QuestionMark
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.TouchApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -28,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -40,7 +43,15 @@ import eu.darken.butler.common.settings.SettingsSwitchItem
 import eu.darken.butler.common.ui.DurationInputDialog
 import eu.darken.butler.common.ui.SizeInputDialog
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.asPathStyle
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.DefaultStartLocation
+import eu.darken.butler.explorer.core.SortSettings
 import kotlin.time.Duration.Companion.days
 
 @Composable
@@ -56,7 +67,13 @@ fun ExplorerSettingsScreen(
     onAutoDeleteDaysChanged: (Int) -> Unit,
     onMaxSizeChanged: (Long) -> Unit,
     onClearFolderSortRules: () -> Unit,
+    onOpenStartLocation: () -> Unit,
+    onSelectStartLocation: (DefaultStartLocation) -> Unit,
+    onChooseStartFolder: () -> Unit,
+    onConfirmStartLocation: () -> Unit,
+    onDismissStartLocation: () -> Unit,
 ) {
+    val context = LocalContext.current
     var showEnableTrashDialog by remember { mutableStateOf(false) }
     var showAutoDeleteDialog by remember { mutableStateOf(false) }
     var showMaxSizeDialog by remember { mutableStateOf(false) }
@@ -87,6 +104,23 @@ fun ExplorerSettingsScreen(
         ) {
             item {
                 SettingsCategoryHeader(text = stringResource(R.string.explorer_settings_navigation))
+            }
+
+            item {
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.Home,
+                    title = stringResource(R.string.explorer_settings_start_location_title),
+                    subtitle = stringResource(R.string.explorer_settings_start_location_desc),
+                    value = when (val location = state.startLocation) {
+                        DefaultStartLocation.Home -> stringResource(R.string.explorer_navigation_home)
+                        DefaultStartLocation.Device -> stringResource(R.string.explorer_navigation_device)
+                        is DefaultStartLocation.Directory -> location.path.shownPath.get(context)
+                    },
+                    valueStyle = MaterialTheme.typography.bodyMedium
+                        .asPathStyle()
+                        .takeIf { state.startLocation is DefaultStartLocation.Directory },
+                    onClick = onOpenStartLocation,
+                )
             }
 
             item {
@@ -211,6 +245,16 @@ fun ExplorerSettingsScreen(
         }
     }
 
+    state.startLocationDialog?.takeIf { !it.picking }?.let { dialog ->
+        StartLocationDialog(
+            dialog = dialog,
+            onSelect = onSelectStartLocation,
+            onChooseFolder = onChooseStartFolder,
+            onConfirm = onConfirmStartLocation,
+            onDismiss = onDismissStartLocation,
+        )
+    }
+
     if (showClearFolderSortRulesDialog) {
         AlertDialog(
             onDismissRequest = { showClearFolderSortRulesDialog = false },
@@ -298,6 +342,34 @@ fun ExplorerSettingsScreen(
     }
 }
 
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerSettingsScreenPreview() {
+    ExplorerSettingsScreen(
+        state = ExplorerSettingsViewModel.State(
+            sortSettings = SortSettings(),
+            useRegexPatterns = false,
+            useBackButtonForNavigation = true,
+            startLocation = DefaultStartLocation.Directory(LocalPath.build("/storage/emulated/0/Download")),
+        ),
+        onNavigateUp = {},
+        onToggleRegexPatterns = {},
+        onToggleBackButtonNavigation = {},
+        onToggleOpenFilesOnTap = {},
+        onToggleShowSystemLocations = {},
+        onToggleTrash = {},
+        onToggleConfirmTrashMove = {},
+        onAutoDeleteDaysChanged = {},
+        onMaxSizeChanged = {},
+        onClearFolderSortRules = {},
+        onOpenStartLocation = {},
+        onSelectStartLocation = {},
+        onChooseStartFolder = {},
+        onConfirmStartLocation = {},
+        onDismissStartLocation = {},
+    )
+}
 
 @Composable
 fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) {
@@ -319,6 +391,11 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
             onAutoDeleteDaysChanged = { vm.setTrashAutoDeleteDays(it) },
             onMaxSizeChanged = { vm.setTrashMaxSizeMB(it) },
             onClearFolderSortRules = { vm.clearFolderSortRules() },
+            onOpenStartLocation = { vm.openStartLocationDialog() },
+            onSelectStartLocation = { vm.selectStartLocation(it) },
+            onChooseStartFolder = { vm.chooseStartFolder() },
+            onConfirmStartLocation = { vm.confirmStartLocation() },
+            onDismissStartLocation = { vm.dismissStartLocationDialog() },
         )
     }
 }

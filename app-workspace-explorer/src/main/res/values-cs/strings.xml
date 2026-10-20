@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Pokročilé zástupné vzory</string>
     <string name="explorer_settings_filter_regex_desc">Použít regulární výrazy ve filtrech pro zahrnutí/vyloučení.</string>
     <string name="explorer_settings_navigation">Navigace</string>
+    <string name="explorer_settings_start_location_title">Výchozí umístění</string>
+    <string name="explorer_settings_start_location_desc">Kde se otevírají nové karty Průzkumníka</string>
+    <string name="explorer_settings_start_location_home_default">Domů (výchozí)</string>
+    <string name="explorer_settings_start_location_folder_label">Složka</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Vybrat složku…</string>
     <string name="explorer_settings_back_button_title">Navigace tlačítkem zpět</string>
     <string name="explorer_settings_back_button_desc">Procházet historii tlačítkem nebo gestem zpět.</string>
     <string name="explorer_settings_trash_category">Koš</string>
@@ -188,7 +193,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Domů</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Nastavit jako domovskou</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Nastavit jako výchozí umístění</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Nové karty se otevřou tady</string>
     <string name="explorer_breadcrumb_copy_path_action">Kopírovat cestu</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Cesta zkopírována do schránky</string>
     <string name="explorer_navigation_device">Zařízení</string>
