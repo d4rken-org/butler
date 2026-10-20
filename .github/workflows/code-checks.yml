@@ -472,6 +472,79 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  rar-library:
+    name: RAR library
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          persist-credentials: false
+      - name: Setup project and build environment
+        uses: ./.github/actions/common-setup
+
+      # Kover's report runs only the test task; rarSweep, rarFuzz and rarPerf stay local.
+      - name: Run RAR unit and hostile-input tests with coverage
+        run: ./gradlew :lib-rar:koverXmlReport :lib-rar:koverHtmlReport
+
+      - name: Require executed test suites and summarize coverage
+        run: |
+          python3 <<'PY'
+          import os
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          results = Path("lib-rar/build/test-results/test")
+          expected = (
+              "DecodedDataTest",
+              "EncryptionTest",
+              "VolumeSetTest",
+              "SolidStreamTest",
+              "MemoryBudgetTest",
+              "MutationSweepTest",
+              "LibarchiveRegressionTest",
+              "RarReaderFuzzTest",
+          )
+          for name in expected:
+              if not (results / f"TEST-eu.darken.rar.{name}.xml").is_file():
+                  raise SystemExit(f"Missing test report for {name}")
+          summary = ["## RAR library", "", "| Suite | Passed |", "| --- | ---: |"]
+          for path in sorted(results.glob("TEST-*.xml")):
+              result = ET.parse(path).getroot()
+              count = int(result.attrib["tests"])
+              if count == 0 or any(int(result.attrib[key]) for key in ("failures", "errors", "skipped")):
+                  raise SystemExit(f"{path.name} did not run successfully without skips: {result.attrib}")
+              summary.append(f"| {result.attrib['name'].removeprefix('eu.darken.rar.')} | {count} |")
+
+          report = ET.parse("lib-rar/build/reports/kover/report.xml").getroot()
+          counters = {counter.attrib["type"]: counter for counter in report.findall("counter")}
+          summary += ["", "Coverage of lib-rar production code from the unit and hostile-input tests:"]
+          for kind in ("LINE", "BRANCH"):
+              counter = counters[kind]
+              covered = int(counter.attrib["covered"])
+              total = covered + int(counter.attrib["missed"])
+              if total == 0:
+                  raise SystemExit(f"Missing {kind} coverage")
+              summary.append(f"- {kind.title()}: {covered}/{total} ({covered / total:.1%})")
+          text = "\n".join(summary) + "\n"
+          print(text)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as output:
+              output.write(text)
+          PY
+
+      - name: Upload RAR test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: rar-library-reports
+          path: |
+            lib-rar/build/test-results/test/**/*.xml
+            lib-rar/build/reports/tests/test/**
+            lib-rar/build/reports/kover/**
+          if-no-files-found: error
+          retention-days: 14
+
   check-release-tooling:
     name: Release tooling
     runs-on: ubuntu-24.04

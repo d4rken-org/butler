@@ -1,0 +1,4574 @@
+{
+ "rar": "RAR 7.23   Copyright (c) 1993-2026 Alexander Roshal   27 Jun 2026",
+ "mtimeNs": 1700000000123456789,
+ "fixtures": {
+  "stored.rar": {
+   "files": [
+    "stored.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "basic",
+     "command": "rar a -idq -m0 -ts+ stored.rar hello.txt docs empty.txt emptydir unicode"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "79C6EA4C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "docs/lorem.txt",
+     "type": "file",
+     "size": 12000,
+     "sha256": "ff61e78b68d307aeb3dab8d73427cb3c10d01d87cce87ebd1aa4aa693d315811",
+     "crc32": "65920132",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12000,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "65920132"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "docs/numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 8893,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "5AF99DA9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "empty.txt",
+     "type": "file",
+     "size": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "crc32": "00000000",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "unicode/عربى.txt",
+     "type": "file",
+     "size": 24,
+     "sha256": "da5ecd001dc6760e3f0f259e147a565dec03b41f340a5bf5b3cfec2953274575",
+     "crc32": "98ed59c6",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 24,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "98ED59C6"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 5,
+     "continuation": false,
+     "name": "unicode/emoji 😀🎉.txt",
+     "type": "file",
+     "size": 30,
+     "sha256": "68644bba2466c985beaf95eaa93686534eafd5404bad7f6bfe99eb3a369b97c6",
+     "crc32": "8f58bbd5",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 30,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "8F58BBD5"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 6,
+     "continuation": false,
+     "name": "unicode/русский/файл.txt",
+     "type": "file",
+     "size": 39,
+     "sha256": "3596821d2193a017a8c92dbba3de66291e3f11db44df1a1d1fbce4cee47a2192",
+     "crc32": "39283ab3",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 39,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "39283AB3"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 7,
+     "continuation": false,
+     "name": "unicode/Ελληνικά.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "f1238ec3863458316dd699b9353abba3d5b7d4ea8eec64c8cc00248cc6039368",
+     "crc32": "6e64b8cf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "6E64B8CF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 8,
+     "continuation": false,
+     "name": "unicode/日本語のファイル.txt",
+     "type": "file",
+     "size": 40,
+     "sha256": "488d3039279ca7d40fa0d977249940a21f5a599abad6270728c0348e0d05317d",
+     "crc32": "c4a16bcf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 40,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "C4A16BCF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 9,
+     "continuation": false,
+     "name": "unicode/русский",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 10,
+     "continuation": false,
+     "name": "docs",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 11,
+     "continuation": false,
+     "name": "emptydir",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 12,
+     "continuation": false,
+     "name": "unicode",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: stored.rar\nDetails: RAR 5\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 12\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 79C6EA4C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: docs/lorem.txt\n        Type: File\n        Size: 12000\n Packed size: 12000\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 65920132\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: docs/numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 8893\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 5AF99DA9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: empty.txt\n        Type: File\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/عربى.txt\n        Type: File\n        Size: 24\n Packed size: 24\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 98ED59C6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/emoji 😀🎉.txt\n        Type: File\n        Size: 30\n Packed size: 30\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 8F58BBD5\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/русский/файл.txt\n        Type: File\n        Size: 39\n Packed size: 39\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 39283AB3\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/Ελληνικά.txt\n        Type: File\n        Size: 32\n Packed size: 32\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 6E64B8CF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/日本語のファイル.txt\n        Type: File\n        Size: 40\n Packed size: 40\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: C4A16BCF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/русский\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: docs\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: emptydir\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: unicode\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n       ctime: 2026-10-20 13:47:47,407221837\n       atime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n"
+   ]
+  },
+  "m1.rar": {
+   "files": [
+    "m1.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "basic",
+     "command": "rar a -idq -m1 m1.rar hello.txt docs empty.txt emptydir unicode"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [],
+    "count": 0
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "79C6EA4C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "docs/lorem.txt",
+     "type": "file",
+     "size": 12000,
+     "sha256": "ff61e78b68d307aeb3dab8d73427cb3c10d01d87cce87ebd1aa4aa693d315811",
+     "crc32": "65920132",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 3324,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "65920132"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m1 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "docs/numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 3778,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "5AF99DA9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m1 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "empty.txt",
+     "type": "file",
+     "size": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "crc32": "00000000",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "unicode/عربى.txt",
+     "type": "file",
+     "size": 24,
+     "sha256": "da5ecd001dc6760e3f0f259e147a565dec03b41f340a5bf5b3cfec2953274575",
+     "crc32": "98ed59c6",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 24,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "98ED59C6"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 5,
+     "continuation": false,
+     "name": "unicode/emoji 😀🎉.txt",
+     "type": "file",
+     "size": 30,
+     "sha256": "68644bba2466c985beaf95eaa93686534eafd5404bad7f6bfe99eb3a369b97c6",
+     "crc32": "8f58bbd5",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 30,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "8F58BBD5"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 6,
+     "continuation": false,
+     "name": "unicode/русский/файл.txt",
+     "type": "file",
+     "size": 39,
+     "sha256": "3596821d2193a017a8c92dbba3de66291e3f11db44df1a1d1fbce4cee47a2192",
+     "crc32": "39283ab3",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 39,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "39283AB3"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 7,
+     "continuation": false,
+     "name": "unicode/Ελληνικά.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "f1238ec3863458316dd699b9353abba3d5b7d4ea8eec64c8cc00248cc6039368",
+     "crc32": "6e64b8cf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "6E64B8CF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 8,
+     "continuation": false,
+     "name": "unicode/日本語のファイル.txt",
+     "type": "file",
+     "size": 40,
+     "sha256": "488d3039279ca7d40fa0d977249940a21f5a599abad6270728c0348e0d05317d",
+     "crc32": "c4a16bcf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 40,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "C4A16BCF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 9,
+     "continuation": false,
+     "name": "unicode/русский",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 10,
+     "continuation": false,
+     "name": "docs",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 11,
+     "continuation": false,
+     "name": "emptydir",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 12,
+     "continuation": false,
+     "name": "unicode",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: m1.rar\nDetails: RAR 5\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 12\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 79C6EA4C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: docs/lorem.txt\n        Type: File\n        Size: 12000\n Packed size: 3324\n       Ratio: 27%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 65920132\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m1 -md=128k\n\n        Name: docs/numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 3778\n       Ratio: 42%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 5AF99DA9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m1 -md=128k\n\n        Name: empty.txt\n        Type: File\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/عربى.txt\n        Type: File\n        Size: 24\n Packed size: 24\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 98ED59C6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/emoji 😀🎉.txt\n        Type: File\n        Size: 30\n Packed size: 30\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 8F58BBD5\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/русский/файл.txt\n        Type: File\n        Size: 39\n Packed size: 39\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 39283AB3\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/Ελληνικά.txt\n        Type: File\n        Size: 32\n Packed size: 32\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 6E64B8CF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/日本語のファイル.txt\n        Type: File\n        Size: 40\n Packed size: 40\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: C4A16BCF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/русский\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: docs\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: emptydir\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: unicode\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n"
+   ]
+  },
+  "m3.rar": {
+   "files": [
+    "m3.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "basic",
+     "command": "rar a -idq -m3 m3.rar hello.txt docs empty.txt emptydir unicode"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [
+     0
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "79C6EA4C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "docs/lorem.txt",
+     "type": "file",
+     "size": 12000,
+     "sha256": "ff61e78b68d307aeb3dab8d73427cb3c10d01d87cce87ebd1aa4aa693d315811",
+     "crc32": "65920132",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 2822,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "65920132"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "docs/numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1078,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "5AF99DA9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "empty.txt",
+     "type": "file",
+     "size": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "crc32": "00000000",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "unicode/عربى.txt",
+     "type": "file",
+     "size": 24,
+     "sha256": "da5ecd001dc6760e3f0f259e147a565dec03b41f340a5bf5b3cfec2953274575",
+     "crc32": "98ed59c6",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 24,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "98ED59C6"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 5,
+     "continuation": false,
+     "name": "unicode/emoji 😀🎉.txt",
+     "type": "file",
+     "size": 30,
+     "sha256": "68644bba2466c985beaf95eaa93686534eafd5404bad7f6bfe99eb3a369b97c6",
+     "crc32": "8f58bbd5",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 30,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "8F58BBD5"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 6,
+     "continuation": false,
+     "name": "unicode/русский/файл.txt",
+     "type": "file",
+     "size": 39,
+     "sha256": "3596821d2193a017a8c92dbba3de66291e3f11db44df1a1d1fbce4cee47a2192",
+     "crc32": "39283ab3",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 39,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "39283AB3"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 7,
+     "continuation": false,
+     "name": "unicode/Ελληνικά.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "f1238ec3863458316dd699b9353abba3d5b7d4ea8eec64c8cc00248cc6039368",
+     "crc32": "6e64b8cf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "6E64B8CF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 8,
+     "continuation": false,
+     "name": "unicode/日本語のファイル.txt",
+     "type": "file",
+     "size": 40,
+     "sha256": "488d3039279ca7d40fa0d977249940a21f5a599abad6270728c0348e0d05317d",
+     "crc32": "c4a16bcf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 40,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "C4A16BCF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 9,
+     "continuation": false,
+     "name": "unicode/русский",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 10,
+     "continuation": false,
+     "name": "docs",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 11,
+     "continuation": false,
+     "name": "emptydir",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 12,
+     "continuation": false,
+     "name": "unicode",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: m3.rar\nDetails: RAR 5\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 12\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 79C6EA4C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: docs/lorem.txt\n        Type: File\n        Size: 12000\n Packed size: 2822\n       Ratio: 23%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 65920132\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: docs/numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1078\n       Ratio: 12%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 5AF99DA9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: empty.txt\n        Type: File\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/عربى.txt\n        Type: File\n        Size: 24\n Packed size: 24\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 98ED59C6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/emoji 😀🎉.txt\n        Type: File\n        Size: 30\n Packed size: 30\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 8F58BBD5\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/русский/файл.txt\n        Type: File\n        Size: 39\n Packed size: 39\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 39283AB3\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/Ελληνικά.txt\n        Type: File\n        Size: 32\n Packed size: 32\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 6E64B8CF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/日本語のファイル.txt\n        Type: File\n        Size: 40\n Packed size: 40\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: C4A16BCF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/русский\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: docs\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: emptydir\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: unicode\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n"
+   ]
+  },
+  "m5.rar": {
+   "files": [
+    "m5.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "basic",
+     "command": "rar a -idq -m5 m5.rar hello.txt docs empty.txt emptydir unicode"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [
+     0
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "79C6EA4C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "docs/lorem.txt",
+     "type": "file",
+     "size": 12000,
+     "sha256": "ff61e78b68d307aeb3dab8d73427cb3c10d01d87cce87ebd1aa4aa693d315811",
+     "crc32": "65920132",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 2812,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "65920132"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m5 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "docs/numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1078,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "5AF99DA9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m5 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "empty.txt",
+     "type": "file",
+     "size": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "crc32": "00000000",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "unicode/عربى.txt",
+     "type": "file",
+     "size": 24,
+     "sha256": "da5ecd001dc6760e3f0f259e147a565dec03b41f340a5bf5b3cfec2953274575",
+     "crc32": "98ed59c6",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 24,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "98ED59C6"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 5,
+     "continuation": false,
+     "name": "unicode/emoji 😀🎉.txt",
+     "type": "file",
+     "size": 30,
+     "sha256": "68644bba2466c985beaf95eaa93686534eafd5404bad7f6bfe99eb3a369b97c6",
+     "crc32": "8f58bbd5",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 30,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "8F58BBD5"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 6,
+     "continuation": false,
+     "name": "unicode/русский/файл.txt",
+     "type": "file",
+     "size": 39,
+     "sha256": "3596821d2193a017a8c92dbba3de66291e3f11db44df1a1d1fbce4cee47a2192",
+     "crc32": "39283ab3",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 39,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "39283AB3"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 7,
+     "continuation": false,
+     "name": "unicode/Ελληνικά.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "f1238ec3863458316dd699b9353abba3d5b7d4ea8eec64c8cc00248cc6039368",
+     "crc32": "6e64b8cf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "6E64B8CF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 8,
+     "continuation": false,
+     "name": "unicode/日本語のファイル.txt",
+     "type": "file",
+     "size": 40,
+     "sha256": "488d3039279ca7d40fa0d977249940a21f5a599abad6270728c0348e0d05317d",
+     "crc32": "c4a16bcf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 40,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "C4A16BCF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 9,
+     "continuation": false,
+     "name": "unicode/русский",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 10,
+     "continuation": false,
+     "name": "docs",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 11,
+     "continuation": false,
+     "name": "emptydir",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 12,
+     "continuation": false,
+     "name": "unicode",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: m5.rar\nDetails: RAR 5\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 12\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 79C6EA4C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: docs/lorem.txt\n        Type: File\n        Size: 12000\n Packed size: 2812\n       Ratio: 23%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 65920132\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=128k\n\n        Name: docs/numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1078\n       Ratio: 12%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 5AF99DA9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=128k\n\n        Name: empty.txt\n        Type: File\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/عربى.txt\n        Type: File\n        Size: 24\n Packed size: 24\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 98ED59C6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/emoji 😀🎉.txt\n        Type: File\n        Size: 30\n Packed size: 30\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 8F58BBD5\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/русский/файл.txt\n        Type: File\n        Size: 39\n Packed size: 39\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 39283AB3\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/Ελληνικά.txt\n        Type: File\n        Size: 32\n Packed size: 32\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 6E64B8CF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/日本語のファイル.txt\n        Type: File\n        Size: 40\n Packed size: 40\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: C4A16BCF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/русский\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: docs\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: emptydir\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: unicode\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n"
+   ]
+  },
+  "filter-e8.rar": {
+   "files": [
+    "filter-e8.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "filters",
+     "command": "rar a -idq -m3 -mce+ filter-e8.rar x86e9.bin"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [
+     1
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "x86e9.bin",
+     "type": "file",
+     "size": 40000,
+     "sha256": "104e9c2b61adc809b5ffd3790a8842471c853a5ec82604aaebc858fe4b040399",
+     "crc32": "2e66f974",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 13377,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "2E66F974"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: filter-e8.rar\nDetails: RAR 5\n\n        Name: x86e9.bin\n        Type: File\n        Size: 40000\n Packed size: 13377\n       Ratio: 33%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 2E66F974\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+   ]
+  },
+  "filter-e8e9.rar": {
+   "files": [
+    "filter-e8e9.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "filters",
+     "command": "rar a -idq -m3 filter-e8e9.rar x86e9.bin"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [
+     2
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "x86e9.bin",
+     "type": "file",
+     "size": 40000,
+     "sha256": "104e9c2b61adc809b5ffd3790a8842471c853a5ec82604aaebc858fe4b040399",
+     "crc32": "2e66f974",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12243,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "2E66F974"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: filter-e8e9.rar\nDetails: RAR 5\n\n        Name: x86e9.bin\n        Type: File\n        Size: 40000\n Packed size: 12243\n       Ratio: 30%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 2E66F974\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+   ]
+  },
+  "filter-delta.rar": {
+   "files": [
+    "filter-delta.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "filters",
+     "command": "rar a -idq -m3 -mc3d+ filter-delta.rar delta.bin"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [
+     0
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "delta.bin",
+     "type": "file",
+     "size": 40000,
+     "sha256": "74acb46ad0acf840fc70f1c05b4fe63000f19c101d03f809d6dff492db14e645",
+     "crc32": "165bf21f",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 13930,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "165BF21F"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: filter-delta.rar\nDetails: RAR 5\n\n        Name: delta.bin\n        Type: File\n        Size: 40000\n Packed size: 13930\n       Ratio: 34%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 165BF21F\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+   ]
+  },
+  "solid.rar": {
+   "files": [
+    "solid.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "basic",
+     "command": "rar a -idq -m3 -s solid.rar hello.txt docs empty.txt emptydir unicode"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": true,
+   "details": "RAR 5, solid",
+   "filters": {
+    "types": [
+     0
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "unicode/emoji 😀🎉.txt",
+     "type": "file",
+     "size": 30,
+     "sha256": "68644bba2466c985beaf95eaa93686534eafd5404bad7f6bfe99eb3a369b97c6",
+     "crc32": "8f58bbd5",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 146,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "8F58BBD5"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "empty.txt",
+     "type": "file",
+     "size": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "crc32": "00000000",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 19,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "79C6EA4C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "docs/lorem.txt",
+     "type": "file",
+     "size": 12000,
+     "sha256": "ff61e78b68d307aeb3dab8d73427cb3c10d01d87cce87ebd1aa4aa693d315811",
+     "crc32": "65920132",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 2930,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "65920132"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "docs/numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1223,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "5AF99DA9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 5,
+     "continuation": false,
+     "name": "unicode/Ελληνικά.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "f1238ec3863458316dd699b9353abba3d5b7d4ea8eec64c8cc00248cc6039368",
+     "crc32": "6e64b8cf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 29,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "6E64B8CF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 6,
+     "continuation": false,
+     "name": "unicode/русский/файл.txt",
+     "type": "file",
+     "size": 39,
+     "sha256": "3596821d2193a017a8c92dbba3de66291e3f11db44df1a1d1fbce4cee47a2192",
+     "crc32": "39283ab3",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 36,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "39283AB3"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 7,
+     "continuation": false,
+     "name": "unicode/عربى.txt",
+     "type": "file",
+     "size": 24,
+     "sha256": "da5ecd001dc6760e3f0f259e147a565dec03b41f340a5bf5b3cfec2953274575",
+     "crc32": "98ed59c6",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 18,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "98ED59C6"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 8,
+     "continuation": false,
+     "name": "unicode/日本語のファイル.txt",
+     "type": "file",
+     "size": 40,
+     "sha256": "488d3039279ca7d40fa0d977249940a21f5a599abad6270728c0348e0d05317d",
+     "crc32": "c4a16bcf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 39,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "C4A16BCF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 9,
+     "continuation": false,
+     "name": "unicode/русский",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 10,
+     "continuation": false,
+     "name": "docs",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 11,
+     "continuation": false,
+     "name": "emptydir",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 12,
+     "continuation": false,
+     "name": "unicode",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: solid.rar\nDetails: RAR 5, solid\n\n        Name: unicode/emoji 😀🎉.txt\n        Type: File\n        Size: 30\n Packed size: 146\n       Ratio: 486%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 8F58BBD5\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n\n        Name: empty.txt\n        Type: File\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 19\n       Ratio: 158%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 79C6EA4C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n        Name: docs/lorem.txt\n        Type: File\n        Size: 12000\n Packed size: 2930\n       Ratio: 24%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 65920132\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n        Name: docs/numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1223\n       Ratio: 13%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 5AF99DA9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n        Name: unicode/Ελληνικά.txt\n        Type: File\n        Size: 32\n Packed size: 29\n       Ratio: 90%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 6E64B8CF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n        Name: unicode/русский/файл.txt\n        Type: File\n        Size: 39\n Packed size: 36\n       Ratio: 92%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 39283AB3\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n        Name: unicode/عربى.txt\n        Type: File\n        Size: 24\n Packed size: 18\n       Ratio: 75%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 98ED59C6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n        Name: unicode/日本語のファイル.txt\n        Type: File\n        Size: 40\n Packed size: 39\n       Ratio: 97%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: C4A16BCF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n        Name: unicode/русский\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n       Flags: solid \n\n        Name: docs\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n       Flags: solid \n\n        Name: emptydir\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n       Flags: solid \n\n        Name: unicode\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n       Flags: solid \n\n"
+   ]
+  },
+  "dict-128k.rar": {
+   "files": [
+    "dict-128k.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "dict",
+     "command": "rar a -idq -m3 -md128k dict-128k.rar dictdata.bin"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [],
+    "count": 0
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "dictdata.bin",
+     "type": "file",
+     "size": 2200000,
+     "sha256": "8b430c7476707481aa683bb3f3e3a8e0c401ec1e6b6be723efa38880ec2d3001",
+     "crc32": "852ef27e",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 20912,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "852EF27E"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: dict-128k.rar\nDetails: RAR 5\n\n        Name: dictdata.bin\n        Type: File\n        Size: 2200000\n Packed size: 20912\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 852EF27E\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+   ]
+  },
+  "dict-1m.rar": {
+   "files": [
+    "dict-1m.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "dict",
+     "command": "rar a -idq -m3 -md1m dict-1m.rar dictdata.bin"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [],
+    "count": 0
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "dictdata.bin",
+     "type": "file",
+     "size": 2200000,
+     "sha256": "8b430c7476707481aa683bb3f3e3a8e0c401ec1e6b6be723efa38880ec2d3001",
+     "crc32": "852ef27e",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 19611,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "852EF27E"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: dict-1m.rar\nDetails: RAR 5\n\n        Name: dictdata.bin\n        Type: File\n        Size: 2200000\n Packed size: 19611\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 852EF27E\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n\n"
+   ]
+  },
+  "dict-4m.rar": {
+   "files": [
+    "dict-4m.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "dict",
+     "command": "rar a -idq -m3 -md4m dict-4m.rar dictdata.bin"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [],
+    "count": 0
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "dictdata.bin",
+     "type": "file",
+     "size": 2200000,
+     "sha256": "8b430c7476707481aa683bb3f3e3a8e0c401ec1e6b6be723efa38880ec2d3001",
+     "crc32": "852ef27e",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 19468,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "852EF27E"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=4m"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: dict-4m.rar\nDetails: RAR 5\n\n        Name: dictdata.bin\n        Type: File\n        Size: 2200000\n Packed size: 19468\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 852EF27E\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=4m\n\n"
+   ]
+  },
+  "dict-default.rar": {
+   "files": [
+    "dict-default.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "dict",
+     "command": "rar a -idq -m3 dict-default.rar dictdata.bin"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [],
+    "count": 0
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "dictdata.bin",
+     "type": "file",
+     "size": 2200000,
+     "sha256": "8b430c7476707481aa683bb3f3e3a8e0c401ec1e6b6be723efa38880ec2d3001",
+     "crc32": "852ef27e",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 19468,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "852EF27E"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=4m"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: dict-default.rar\nDetails: RAR 5\n\n        Name: dictdata.bin\n        Type: File\n        Size: 2200000\n Packed size: 19468\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 852EF27E\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=4m\n\n"
+   ]
+  },
+  "symlinks.rar": {
+   "files": [
+    "symlinks.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "symlinks",
+     "command": "rar a -idq -m3 -ol symlinks.rar target.txt sub to-target to-sub"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [],
+    "count": 0
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "target.txt",
+     "type": "file",
+     "size": 15,
+     "sha256": "a168bbdf14529bb1765a5528fa639ccb78e87a19722886d527b0eac9d45f34b2",
+     "crc32": "384d8d3a",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 15,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "384D8D3A"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "sub/up-target",
+     "type": "symlink",
+     "linkTarget": "../target.txt",
+     "size": 0,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Unix symbolic link",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "sub/inner.txt",
+     "type": "file",
+     "size": 11,
+     "sha256": "12178d1258007fad49d7a4ceab4356797bfcf3284ace5973893d6c8ab7d55a9b",
+     "crc32": "160f6393",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 11,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "160F6393"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "to-target",
+     "type": "symlink",
+     "linkTarget": "target.txt",
+     "size": 0,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Unix symbolic link",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "to-sub",
+     "type": "symlink",
+     "linkTarget": "sub",
+     "size": 0,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Unix symbolic link",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 5,
+     "continuation": false,
+     "name": "sub",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: symlinks.rar\nDetails: RAR 5\n\n        Name: target.txt\n        Type: File\n        Size: 15\n Packed size: 15\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 384D8D3A\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: sub/up-target\n        Type: Unix symbolic link\n      Target: ../target.txt\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: lrwxrwxrwx\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: sub/inner.txt\n        Type: File\n        Size: 11\n Packed size: 11\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 160F6393\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: to-target\n        Type: Unix symbolic link\n      Target: target.txt\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: lrwxrwxrwx\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: to-sub\n        Type: Unix symbolic link\n      Target: sub\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: lrwxrwxrwx\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: sub\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n"
+   ]
+  },
+  "hardlinks.rar": {
+   "files": [
+    "hardlinks.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "hardlinks",
+     "command": "rar a -idq -m3 -oh hardlinks.rar original.txt second.txt"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [],
+    "count": 0
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "original.txt",
+     "type": "file",
+     "size": 20,
+     "sha256": "a11811c6915856f3c46fd990c6669a5582d941df2739691915fa292b5f9c3395",
+     "crc32": "d1e0cae2",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 20,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "D1E0CAE2"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "second.txt",
+     "type": "hardlink",
+     "linkTarget": "original.txt",
+     "sha256": "a11811c6915856f3c46fd990c6669a5582d941df2739691915fa292b5f9c3395",
+     "size": 20,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Hard link",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: hardlinks.rar\nDetails: RAR 5\n\n        Name: original.txt\n        Type: File\n        Size: 20\n Packed size: 20\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: D1E0CAE2\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: second.txt\n        Type: Hard link\n      Target: original.txt\n        Size: 20\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+   ]
+  },
+  "filecopy.rar": {
+   "files": [
+    "filecopy.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "identical",
+     "command": "rar a -idq -m3 -oi:1 filecopy.rar first.bin copy.bin"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [],
+    "count": 0
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "first.bin",
+     "type": "file",
+     "size": 8192,
+     "sha256": "87bc095c5465045cddfcb2f9cf1cb72a1dbcd7d605255c2e0006c8023b9555a0",
+     "crc32": "7b5a9b89",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 8192,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "7B5A9B89"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "copy.bin",
+     "type": "filecopy",
+     "linkTarget": "first.bin",
+     "sha256": "87bc095c5465045cddfcb2f9cf1cb72a1dbcd7d605255c2e0006c8023b9555a0",
+     "size": 8192,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File reference",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: filecopy.rar\nDetails: RAR 5\n\n        Name: first.bin\n        Type: File\n        Size: 8192\n Packed size: 8192\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 7B5A9B89\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: copy.bin\n        Type: File reference\n      Target: first.bin\n        Size: 8192\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+   ]
+  },
+  "blake2.rar": {
+   "files": [
+    "blake2.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "basic",
+     "command": "rar a -idq -m3 -htb blake2.rar hello.txt docs empty.txt emptydir unicode"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [
+     0
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "BLAKE2",
+      "450a9c9c9732788712748bed0a2fc5258ba4b600975bedca30002c38bbcd4be2"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "docs/lorem.txt",
+     "type": "file",
+     "size": 12000,
+     "sha256": "ff61e78b68d307aeb3dab8d73427cb3c10d01d87cce87ebd1aa4aa693d315811",
+     "crc32": "65920132",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 2822,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "BLAKE2",
+      "dd0b6ff6c99a86b3a3c26176aa16eaf46a66f9491ff952fced834d1495374235"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "docs/numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1078,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "BLAKE2",
+      "9c5ca2fe601112398f706f332981d4420c482e72c32746b9a398dc0e6538eead"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "empty.txt",
+     "type": "file",
+     "size": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "crc32": "00000000",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 0,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "BLAKE2",
+      "dd0e891776933f43c7d032b08a917e25741f8aa9a12c12e1cac8801500f2ca4f"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "unicode/عربى.txt",
+     "type": "file",
+     "size": 24,
+     "sha256": "da5ecd001dc6760e3f0f259e147a565dec03b41f340a5bf5b3cfec2953274575",
+     "crc32": "98ed59c6",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 24,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "BLAKE2",
+      "524aeac7ea9a626b628e9f00db5904048a5899d1ac79ba414713dc289f1fcabb"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 5,
+     "continuation": false,
+     "name": "unicode/emoji 😀🎉.txt",
+     "type": "file",
+     "size": 30,
+     "sha256": "68644bba2466c985beaf95eaa93686534eafd5404bad7f6bfe99eb3a369b97c6",
+     "crc32": "8f58bbd5",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 30,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "BLAKE2",
+      "853db2f9ba4a18fc56797436a455b4aff2db5f46590bf781502c09331c7a1000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 6,
+     "continuation": false,
+     "name": "unicode/русский/файл.txt",
+     "type": "file",
+     "size": 39,
+     "sha256": "3596821d2193a017a8c92dbba3de66291e3f11db44df1a1d1fbce4cee47a2192",
+     "crc32": "39283ab3",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 39,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "BLAKE2",
+      "4819b6df203232f0ad21bb0ef43426271ddd940a73d31a325ba3724ea2ce4388"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 7,
+     "continuation": false,
+     "name": "unicode/Ελληνικά.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "f1238ec3863458316dd699b9353abba3d5b7d4ea8eec64c8cc00248cc6039368",
+     "crc32": "6e64b8cf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "BLAKE2",
+      "41d7d9ba5b32be0aa2d3de872ae29f949d65d3c590484afd886cc6d14aa50fc7"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 8,
+     "continuation": false,
+     "name": "unicode/日本語のファイル.txt",
+     "type": "file",
+     "size": 40,
+     "sha256": "488d3039279ca7d40fa0d977249940a21f5a599abad6270728c0348e0d05317d",
+     "crc32": "c4a16bcf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 40,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "BLAKE2",
+      "b89883de30a10c01b85ce548aecae5e90ca8d9524522654c35ad042b1a025697"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 9,
+     "continuation": false,
+     "name": "unicode/русский",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 10,
+     "continuation": false,
+     "name": "docs",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 11,
+     "continuation": false,
+     "name": "emptydir",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 12,
+     "continuation": false,
+     "name": "unicode",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: blake2.rar\nDetails: RAR 5\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 12\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n      BLAKE2: 450a9c9c9732788712748bed0a2fc5258ba4b600975bedca30002c38bbcd4be2\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: docs/lorem.txt\n        Type: File\n        Size: 12000\n Packed size: 2822\n       Ratio: 23%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n      BLAKE2: dd0b6ff6c99a86b3a3c26176aa16eaf46a66f9491ff952fced834d1495374235\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: docs/numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1078\n       Ratio: 12%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n      BLAKE2: 9c5ca2fe601112398f706f332981d4420c482e72c32746b9a398dc0e6538eead\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: empty.txt\n        Type: File\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n      BLAKE2: dd0e891776933f43c7d032b08a917e25741f8aa9a12c12e1cac8801500f2ca4f\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/عربى.txt\n        Type: File\n        Size: 24\n Packed size: 24\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n      BLAKE2: 524aeac7ea9a626b628e9f00db5904048a5899d1ac79ba414713dc289f1fcabb\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/emoji 😀🎉.txt\n        Type: File\n        Size: 30\n Packed size: 30\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n      BLAKE2: 853db2f9ba4a18fc56797436a455b4aff2db5f46590bf781502c09331c7a1000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/русский/файл.txt\n        Type: File\n        Size: 39\n Packed size: 39\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n      BLAKE2: 4819b6df203232f0ad21bb0ef43426271ddd940a73d31a325ba3724ea2ce4388\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/Ελληνικά.txt\n        Type: File\n        Size: 32\n Packed size: 32\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n      BLAKE2: 41d7d9ba5b32be0aa2d3de872ae29f949d65d3c590484afd886cc6d14aa50fc7\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/日本語のファイル.txt\n        Type: File\n        Size: 40\n Packed size: 40\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n      BLAKE2: b89883de30a10c01b85ce548aecae5e90ca8d9524522654c35ad042b1a025697\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: unicode/русский\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: docs\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: emptydir\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: unicode\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n"
+   ]
+  },
+  "encrypted-data.rar": {
+   "files": [
+    "encrypted-data.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "basic",
+     "command": "rar a -idq -m3 -ppassword encrypted-data.rar hello.txt docs empty.txt emptydir unicode"
+    }
+   ],
+   "listPassword": "password",
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "322EF361"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "docs/lorem.txt",
+     "type": "file",
+     "size": 12000,
+     "sha256": "ff61e78b68d307aeb3dab8d73427cb3c10d01d87cce87ebd1aa4aa693d315811",
+     "crc32": "65920132",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 2832,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "7C030C45"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "docs/numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1088,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "7D330EED"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "empty.txt",
+     "type": "file",
+     "size": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "crc32": "00000000",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 16,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "9A46BBEC"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "unicode/عربى.txt",
+     "type": "file",
+     "size": 24,
+     "sha256": "da5ecd001dc6760e3f0f259e147a565dec03b41f340a5bf5b3cfec2953274575",
+     "crc32": "98ed59c6",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 48,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "30F4B69D"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 5,
+     "continuation": false,
+     "name": "unicode/emoji 😀🎉.txt",
+     "type": "file",
+     "size": 30,
+     "sha256": "68644bba2466c985beaf95eaa93686534eafd5404bad7f6bfe99eb3a369b97c6",
+     "crc32": "8f58bbd5",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 48,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "E4D9132A"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 6,
+     "continuation": false,
+     "name": "unicode/русский/файл.txt",
+     "type": "file",
+     "size": 39,
+     "sha256": "3596821d2193a017a8c92dbba3de66291e3f11db44df1a1d1fbce4cee47a2192",
+     "crc32": "39283ab3",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 64,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "5E82C4ED"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 7,
+     "continuation": false,
+     "name": "unicode/Ελληνικά.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "f1238ec3863458316dd699b9353abba3d5b7d4ea8eec64c8cc00248cc6039368",
+     "crc32": "6e64b8cf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 48,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "8A97DE87"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 8,
+     "continuation": false,
+     "name": "unicode/日本語のファイル.txt",
+     "type": "file",
+     "size": 40,
+     "sha256": "488d3039279ca7d40fa0d977249940a21f5a599abad6270728c0348e0d05317d",
+     "crc32": "c4a16bcf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 64,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "BAAFF058"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 9,
+     "continuation": false,
+     "name": "unicode/русский",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 10,
+     "continuation": false,
+     "name": "docs",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 11,
+     "continuation": false,
+     "name": "emptydir",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 12,
+     "continuation": false,
+     "name": "unicode",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: encrypted-data.rar\nDetails: RAR 5\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 32\n       Ratio: 266%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 322EF361\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: docs/lorem.txt\n        Type: File\n        Size: 12000\n Packed size: 2832\n       Ratio: 23%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 7C030C45\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: docs/numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1088\n       Ratio: 12%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 7D330EED\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: empty.txt\n        Type: File\n        Size: 0\n Packed size: 16\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 9A46BBEC\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/عربى.txt\n        Type: File\n        Size: 24\n Packed size: 48\n       Ratio: 200%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 30F4B69D\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/emoji 😀🎉.txt\n        Type: File\n        Size: 30\n Packed size: 48\n       Ratio: 160%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: E4D9132A\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/русский/файл.txt\n        Type: File\n        Size: 39\n Packed size: 64\n       Ratio: 164%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 5E82C4ED\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/Ελληνικά.txt\n        Type: File\n        Size: 32\n Packed size: 48\n       Ratio: 150%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 8A97DE87\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/日本語のファイル.txt\n        Type: File\n        Size: 40\n Packed size: 64\n       Ratio: 160%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: BAAFF058\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/русский\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: docs\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: emptydir\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: unicode\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n"
+   ]
+  },
+  "encrypted-stored.rar": {
+   "files": [
+    "encrypted-stored.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "misc",
+     "command": "rar a -idq -m0 -ppassword encrypted-stored.rar hello.txt numbers.txt"
+    }
+   ],
+   "listPassword": "password",
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 16,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "271AF56B"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 8896,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "FFA16CBE"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: encrypted-stored.rar\nDetails: RAR 5\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 16\n       Ratio: 133%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 271AF56B\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n       Flags: encrypted \n\n        Name: numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 8896\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: FFA16CBE\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n       Flags: encrypted \n\n"
+   ]
+  },
+  "encrypted-headers.rar": {
+   "files": [
+    "encrypted-headers.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "basic",
+     "command": "rar a -idq -m3 -hppassword encrypted-headers.rar hello.txt docs empty.txt emptydir unicode"
+    }
+   ],
+   "listPassword": "password",
+   "headerEncrypted": true,
+   "solid": false,
+   "details": "RAR 5, encrypted headers",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "79C6EA4C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "docs/lorem.txt",
+     "type": "file",
+     "size": 12000,
+     "sha256": "ff61e78b68d307aeb3dab8d73427cb3c10d01d87cce87ebd1aa4aa693d315811",
+     "crc32": "65920132",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 2832,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "65920132"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "docs/numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1088,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "5AF99DA9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "empty.txt",
+     "type": "file",
+     "size": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "crc32": "00000000",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 16,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "unicode/عربى.txt",
+     "type": "file",
+     "size": 24,
+     "sha256": "da5ecd001dc6760e3f0f259e147a565dec03b41f340a5bf5b3cfec2953274575",
+     "crc32": "98ed59c6",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 48,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "98ED59C6"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 5,
+     "continuation": false,
+     "name": "unicode/emoji 😀🎉.txt",
+     "type": "file",
+     "size": 30,
+     "sha256": "68644bba2466c985beaf95eaa93686534eafd5404bad7f6bfe99eb3a369b97c6",
+     "crc32": "8f58bbd5",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 48,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "8F58BBD5"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 6,
+     "continuation": false,
+     "name": "unicode/русский/файл.txt",
+     "type": "file",
+     "size": 39,
+     "sha256": "3596821d2193a017a8c92dbba3de66291e3f11db44df1a1d1fbce4cee47a2192",
+     "crc32": "39283ab3",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 64,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "39283AB3"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 7,
+     "continuation": false,
+     "name": "unicode/Ελληνικά.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "f1238ec3863458316dd699b9353abba3d5b7d4ea8eec64c8cc00248cc6039368",
+     "crc32": "6e64b8cf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 48,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "6E64B8CF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 8,
+     "continuation": false,
+     "name": "unicode/日本語のファイル.txt",
+     "type": "file",
+     "size": 40,
+     "sha256": "488d3039279ca7d40fa0d977249940a21f5a599abad6270728c0348e0d05317d",
+     "crc32": "c4a16bcf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 64,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "C4A16BCF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 9,
+     "continuation": false,
+     "name": "unicode/русский",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 10,
+     "continuation": false,
+     "name": "docs",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 11,
+     "continuation": false,
+     "name": "emptydir",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 12,
+     "continuation": false,
+     "name": "unicode",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: encrypted-headers.rar\nDetails: RAR 5, encrypted headers\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 32\n       Ratio: 266%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 79C6EA4C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: docs/lorem.txt\n        Type: File\n        Size: 12000\n Packed size: 2832\n       Ratio: 23%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 65920132\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: docs/numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1088\n       Ratio: 12%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 5AF99DA9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: empty.txt\n        Type: File\n        Size: 0\n Packed size: 16\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/عربى.txt\n        Type: File\n        Size: 24\n Packed size: 48\n       Ratio: 200%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 98ED59C6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/emoji 😀🎉.txt\n        Type: File\n        Size: 30\n Packed size: 48\n       Ratio: 160%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 8F58BBD5\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/русский/файл.txt\n        Type: File\n        Size: 39\n Packed size: 64\n       Ratio: 164%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 39283AB3\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/Ελληνικά.txt\n        Type: File\n        Size: 32\n Packed size: 48\n       Ratio: 150%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 6E64B8CF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/日本語のファイル.txt\n        Type: File\n        Size: 40\n Packed size: 64\n       Ratio: 160%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: C4A16BCF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: unicode/русский\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: docs\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: emptydir\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n        Name: unicode\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n"
+   ]
+  },
+  "solid-encrypted.rar": {
+   "files": [
+    "solid-encrypted.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "basic",
+     "command": "rar a -idq -m3 -s -ppassword solid-encrypted.rar hello.txt docs empty.txt emptydir unicode"
+    }
+   ],
+   "listPassword": "password",
+   "headerEncrypted": false,
+   "solid": true,
+   "details": "RAR 5, solid",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "unicode/emoji 😀🎉.txt",
+     "type": "file",
+     "size": 30,
+     "sha256": "68644bba2466c985beaf95eaa93686534eafd5404bad7f6bfe99eb3a369b97c6",
+     "crc32": "8f58bbd5",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 160,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "469F7638"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "empty.txt",
+     "type": "file",
+     "size": 0,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "crc32": "00000000",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 0,
+     "password": "password",
+     "encrypted": true,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "24BE4B33"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": "password",
+     "encrypted": true,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "4EE3C381"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "docs/lorem.txt",
+     "type": "file",
+     "size": 12000,
+     "sha256": "ff61e78b68d307aeb3dab8d73427cb3c10d01d87cce87ebd1aa4aa693d315811",
+     "crc32": "65920132",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 2944,
+     "password": "password",
+     "encrypted": true,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "EFE22ABB"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "docs/numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1232,
+     "password": "password",
+     "encrypted": true,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "A3C37B8D"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 5,
+     "continuation": false,
+     "name": "unicode/Ελληνικά.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "f1238ec3863458316dd699b9353abba3d5b7d4ea8eec64c8cc00248cc6039368",
+     "crc32": "6e64b8cf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": "password",
+     "encrypted": true,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "526C12ED"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 6,
+     "continuation": false,
+     "name": "unicode/русский/файл.txt",
+     "type": "file",
+     "size": 39,
+     "sha256": "3596821d2193a017a8c92dbba3de66291e3f11db44df1a1d1fbce4cee47a2192",
+     "crc32": "39283ab3",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 48,
+     "password": "password",
+     "encrypted": true,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "0902C220"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 7,
+     "continuation": false,
+     "name": "unicode/عربى.txt",
+     "type": "file",
+     "size": 24,
+     "sha256": "da5ecd001dc6760e3f0f259e147a565dec03b41f340a5bf5b3cfec2953274575",
+     "crc32": "98ed59c6",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": "password",
+     "encrypted": true,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "B15F4DB4"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 8,
+     "continuation": false,
+     "name": "unicode/日本語のファイル.txt",
+     "type": "file",
+     "size": 40,
+     "sha256": "488d3039279ca7d40fa0d977249940a21f5a599abad6270728c0348e0d05317d",
+     "crc32": "c4a16bcf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 48,
+     "password": "password",
+     "encrypted": true,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "22248325"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 0,
+     "ordinal": 9,
+     "continuation": false,
+     "name": "unicode/русский",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 10,
+     "continuation": false,
+     "name": "docs",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 11,
+     "continuation": false,
+     "name": "emptydir",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    },
+    {
+     "volume": 0,
+     "ordinal": 12,
+     "continuation": false,
+     "name": "unicode",
+     "type": "directory",
+     "size": 0,
+     "version": null,
+     "packedSize": null,
+     "password": "password",
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "Directory",
+     "ltChecksum": null,
+     "ltCompression": "RAR 5.0(v50) -m0"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: solid-encrypted.rar\nDetails: RAR 5, solid\n\n        Name: unicode/emoji 😀🎉.txt\n        Type: File\n        Size: 30\n Packed size: 160\n       Ratio: 533%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 469F7638\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: encrypted \n\n        Name: empty.txt\n        Type: File\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 24BE4B33\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid encrypted \n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 32\n       Ratio: 266%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 4EE3C381\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid encrypted \n\n        Name: docs/lorem.txt\n        Type: File\n        Size: 12000\n Packed size: 2944\n       Ratio: 24%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: EFE22ABB\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid encrypted \n\n        Name: docs/numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1232\n       Ratio: 13%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: A3C37B8D\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid encrypted \n\n        Name: unicode/Ελληνικά.txt\n        Type: File\n        Size: 32\n Packed size: 32\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 526C12ED\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid encrypted \n\n        Name: unicode/русский/файл.txt\n        Type: File\n        Size: 39\n Packed size: 48\n       Ratio: 123%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 0902C220\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid encrypted \n\n        Name: unicode/عربى.txt\n        Type: File\n        Size: 24\n Packed size: 32\n       Ratio: 133%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: B15F4DB4\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid encrypted \n\n        Name: unicode/日本語のファイル.txt\n        Type: File\n        Size: 40\n Packed size: 48\n       Ratio: 120%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 22248325\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid encrypted \n\n        Name: unicode/русский\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n       Flags: solid \n\n        Name: docs\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n       Flags: solid \n\n        Name: emptydir\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n       Flags: solid \n\n        Name: unicode\n        Type: Directory\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: drwxr-xr-x\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n       Flags: solid \n\n"
+   ]
+  },
+  "encrypted-unicode-password.rar": {
+   "files": [
+    "encrypted-unicode-password.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "misc",
+     "command": "rar a -idq -m3 -ppässwört密码 encrypted-unicode-password.rar hello.txt numbers.txt"
+    }
+   ],
+   "listPassword": "pässwört密码",
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": "pässwört密码",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "F3265BC0"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1088,
+     "password": "pässwört密码",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "AB16E509"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: encrypted-unicode-password.rar\nDetails: RAR 5\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 32\n       Ratio: 266%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: F3265BC0\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1088\n       Ratio: 12%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: AB16E509\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n"
+   ]
+  },
+  "per-file-passwords.rar": {
+   "files": [
+    "per-file-passwords.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "perfile/one",
+     "command": "rar a -idq -m3 -pone per-file-passwords.rar a.txt"
+    },
+    {
+     "cwd": "perfile/two",
+     "command": "rar a -idq -m3 -ptwo per-file-passwords.rar b.txt"
+    },
+    {
+     "cwd": "perfile/plain",
+     "command": "rar a -idq -m3 per-file-passwords.rar c.txt"
+    },
+    {
+     "cwd": "perfile/one",
+     "command": "rar a -idq -m3 -pone -ver per-file-passwords.rar same.txt"
+    },
+    {
+     "cwd": "perfile/two",
+     "command": "rar a -idq -m3 -ptwo -ver per-file-passwords.rar same.txt"
+    }
+   ],
+   "listPassword": "one",
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "a.txt",
+     "type": "file",
+     "size": 20,
+     "sha256": "943ef0b1e2528bd79b84f8b139df6f6ca9702db742d47964584a0901ebde9b34",
+     "crc32": "1ba73ba9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": "one",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "35355EFD"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "b.txt",
+     "type": "file",
+     "size": 20,
+     "sha256": "1e2bf57a45a6ee3b513c5a13d966c461e7f0865beb6368e2ae3e094b60476cf0",
+     "crc32": "ea3786ad",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": "two",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "9F34C82E"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "c.txt",
+     "type": "file",
+     "size": 21,
+     "sha256": "99d64306c4e3943e0edc702d1ebab3f38e8ac76dbf92c045497a0a9ffa2d986b",
+     "crc32": "d3ef2137",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 21,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "D3EF2137"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 3,
+     "continuation": false,
+     "name": "same.txt",
+     "type": "file",
+     "size": 6,
+     "sha256": "b640e840b19d378660b32fb51ae18d67dccb4a8596a29e7bd72c1b2ae5928f41",
+     "crc32": "c74ab32a",
+     "mtimeNs": 1700000000123456789,
+     "version": 1,
+     "packedSize": 32,
+     "password": "one",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "FD52CB97"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 4,
+     "continuation": false,
+     "name": "same.txt",
+     "type": "file",
+     "size": 7,
+     "sha256": "480c2336b410f1ad5f8bf1b28944490255804b65350c527787e74ebdd511e3a4",
+     "crc32": "060fc07e",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": "two",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32 MAC",
+      "7495A9C5"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: per-file-passwords.rar\nDetails: RAR 5\n\n        Name: a.txt\n        Type: File\n        Size: 20\n Packed size: 32\n       Ratio: 160%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 35355EFD\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: b.txt\n        Type: File\n        Size: 20\n Packed size: 32\n       Ratio: 160%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 9F34C82E\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: c.txt\n        Type: File\n        Size: 21\n Packed size: 21\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: D3EF2137\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: same.txt;1\n        Type: File\n        Size: 6\n Packed size: 32\n       Ratio: 533%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: FD52CB97\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \nFile version: 1\n\n        Name: same.txt\n        Type: File\n        Size: 7\n Packed size: 32\n       Ratio: 457%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n   CRC32 MAC: 7495A9C5\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n"
+   ]
+  },
+  "comment.rar": {
+   "files": [
+    "comment.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "misc",
+     "command": "rar a -idq -m3 -z../comment.txt comment.rar hello.txt numbers.txt"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [
+     0
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "79C6EA4C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1078,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "5AF99DA9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive comment:\nFixture comment.\nSecond line: ünïcödé ✓\n\n\nArchive: comment.rar\nDetails: RAR 5\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 12\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 79C6EA4C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1078\n       Ratio: 12%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 5AF99DA9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+   ]
+  },
+  "recovery.rar": {
+   "files": [
+    "recovery.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "misc",
+     "command": "rar a -idq -m3 -rr5% recovery.rar hello.txt numbers.txt"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5, recovery record",
+   "filters": {
+    "types": [
+     0
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "79C6EA4C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1078,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "5AF99DA9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: recovery.rar\nDetails: RAR 5, recovery record\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 12\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 79C6EA4C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1078\n       Ratio: 12%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 5AF99DA9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+   ]
+  },
+  "quickopen.rar": {
+   "files": [
+    "quickopen.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "misc",
+     "command": "rar a -idq -m3 -qo+ quickopen.rar hello.txt numbers.txt"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [
+     0
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "79C6EA4C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1078,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "5AF99DA9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: quickopen.rar\nDetails: RAR 5\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 12\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 79C6EA4C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1078\n       Ratio: 12%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 5AF99DA9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+   ]
+  },
+  "locked.rar": {
+   "files": [
+    "locked.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "misc",
+     "command": "rar a -idq -m3 -k locked.rar hello.txt numbers.txt"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5, lock",
+   "filters": {
+    "types": [
+     0
+    ],
+    "count": 1
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "hello.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "87699afe70c5e4275bf83c37dac2cf84ab9745e0ce8d8b06577da7e0b71c1619",
+     "crc32": "79c6ea4c",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 12,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "79C6EA4C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "numbers.txt",
+     "type": "file",
+     "size": 8893,
+     "sha256": "6251e5743b6fd6a7d606130bdf7c15077ce85ebd3a0fdee284d15a46df199e38",
+     "crc32": "5af99da9",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 1078,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "5AF99DA9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: locked.rar\nDetails: RAR 5, lock\n\n        Name: hello.txt\n        Type: File\n        Size: 12\n Packed size: 12\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 79C6EA4C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: numbers.txt\n        Type: File\n        Size: 8893\n Packed size: 1078\n       Ratio: 12%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 5AF99DA9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+   ]
+  },
+  "versions.rar": {
+   "files": [
+    "versions.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "versions/v1",
+     "command": "rar a -idq -m3 -ver versions.rar note.txt"
+    },
+    {
+     "cwd": "versions/v2",
+     "command": "rar a -idq -m3 -ver versions.rar note.txt"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": {
+    "types": [],
+    "count": 0
+   },
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "note.txt",
+     "type": "file",
+     "size": 12,
+     "sha256": "dbcdb1f658e3f2220d1c09474ff99a91b2b19a0bf81e6cde1a3814d5bc35c6d9",
+     "crc32": "3285c385",
+     "mtimeNs": 1700000000123456789,
+     "version": 1,
+     "packedSize": 12,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "3285C385"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    },
+    {
+     "volume": 0,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "note.txt",
+     "type": "file",
+     "size": 20,
+     "sha256": "ef9a1e40cca329a5df259547dfd70c843e9a508270771089b33ea8addf023b3b",
+     "crc32": "2799636f",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 20,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "2799636F"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: versions.rar\nDetails: RAR 5\n\n        Name: note.txt;1\n        Type: File\n        Size: 12\n Packed size: 12\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 3285C385\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\nFile version: 1\n\n        Name: note.txt\n        Type: File\n        Size: 20\n Packed size: 20\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 2799636F\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+   ]
+  },
+  "vol-plain.part1.rar": {
+   "files": [
+    "vol-plain.part1.rar",
+    "vol-plain.part2.rar",
+    "vol-plain.part3.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "volumes",
+     "command": "rar a -idq -m3 -v15k vol-plain.rar random.bin lorem.txt small.txt"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5, volume 1",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "random.bin",
+     "type": "file",
+     "size": 30000,
+     "sha256": "eb698e082f6dfba44ece97af0336f10b2927732924432319eb04bd437bed43aa",
+     "crc32": "66f25622",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 15197,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "Pack-CRC32",
+      "874AB347"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 1,
+     "ordinal": 0,
+     "continuation": true,
+     "name": "random.bin",
+     "type": "file",
+     "size": 30000,
+     "sha256": "eb698e082f6dfba44ece97af0336f10b2927732924432319eb04bd437bed43aa",
+     "crc32": "66f25622",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 14877,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "66F25622"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 1,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "lorem.txt",
+     "type": "file",
+     "size": 30000,
+     "sha256": "9e854d237795318f00047cc77b03708bf0cf9ae0159c7adaa4d67a70748bfc2a",
+     "crc32": "7011b5bf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 211,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "Pack-CRC32",
+      "E9D3A9B1"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 2,
+     "ordinal": 1,
+     "continuation": true,
+     "name": "lorem.txt",
+     "type": "file",
+     "size": 30000,
+     "sha256": "9e854d237795318f00047cc77b03708bf0cf9ae0159c7adaa4d67a70748bfc2a",
+     "crc32": "7011b5bf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 6309,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "7011B5BF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 2,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "small.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "52ac9c9e070cdb997a5b0c27e7c7e66342ba0fe6dc6544dbb20c6858e6d4236d",
+     "crc32": "f243954a",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "F243954A"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: vol-plain.part1.rar\nDetails: RAR 5, volume 1\n\n        Name: random.bin\n        Type: File\n        Size: 30000\n Packed size: 15197\n       Ratio: -->\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n  Pack-CRC32: 874AB347\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n",
+    "\nArchive: vol-plain.part2.rar\nDetails: RAR 5, volume 2\n\n        Name: random.bin\n        Type: File\n        Size: 30000\n Packed size: 14877\n       Ratio: <--\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 66F25622\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: lorem.txt\n        Type: File\n        Size: 30000\n Packed size: 211\n       Ratio: -->\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n  Pack-CRC32: E9D3A9B1\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n",
+    "\nArchive: vol-plain.part3.rar\nDetails: RAR 5, volume 3\n\n        Name: lorem.txt\n        Type: File\n        Size: 30000\n Packed size: 6309\n       Ratio: <--\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 7011B5BF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: small.txt\n        Type: File\n        Size: 32\n Packed size: 32\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: F243954A\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+   ]
+  },
+  "vol-solid.part1.rar": {
+   "files": [
+    "vol-solid.part1.rar",
+    "vol-solid.part2.rar",
+    "vol-solid.part3.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "volumes",
+     "command": "rar a -idq -m3 -s -v15k vol-solid.rar random.bin lorem.txt small.txt"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": true,
+   "details": "RAR 5, solid, volume 1",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "random.bin",
+     "type": "file",
+     "size": 30000,
+     "sha256": "eb698e082f6dfba44ece97af0336f10b2927732924432319eb04bd437bed43aa",
+     "crc32": "66f25622",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 15197,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "Pack-CRC32",
+      "874AB347"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 1,
+     "ordinal": 0,
+     "continuation": true,
+     "name": "random.bin",
+     "type": "file",
+     "size": 30000,
+     "sha256": "eb698e082f6dfba44ece97af0336f10b2927732924432319eb04bd437bed43aa",
+     "crc32": "66f25622",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 14877,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "66F25622"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 1,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "lorem.txt",
+     "type": "file",
+     "size": 30000,
+     "sha256": "9e854d237795318f00047cc77b03708bf0cf9ae0159c7adaa4d67a70748bfc2a",
+     "crc32": "7011b5bf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 211,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "Pack-CRC32",
+      "3342F03C"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 2,
+     "ordinal": 1,
+     "continuation": true,
+     "name": "lorem.txt",
+     "type": "file",
+     "size": 30000,
+     "sha256": "9e854d237795318f00047cc77b03708bf0cf9ae0159c7adaa4d67a70748bfc2a",
+     "crc32": "7011b5bf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 6310,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "7011B5BF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    },
+    {
+     "volume": 2,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "small.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "52ac9c9e070cdb997a5b0c27e7c7e66342ba0fe6dc6544dbb20c6858e6d4236d",
+     "crc32": "f243954a",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 33,
+     "password": null,
+     "encrypted": false,
+     "solid": true,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "F243954A"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=1m"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: vol-solid.part1.rar\nDetails: RAR 5, solid, volume 1\n\n        Name: random.bin\n        Type: File\n        Size: 30000\n Packed size: 15197\n       Ratio: -->\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n  Pack-CRC32: 874AB347\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n\n",
+    "\nArchive: vol-solid.part2.rar\nDetails: RAR 5, solid, volume 2\n\n        Name: random.bin\n        Type: File\n        Size: 30000\n Packed size: 14877\n       Ratio: <--\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 66F25622\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n\n        Name: lorem.txt\n        Type: File\n        Size: 30000\n Packed size: 211\n       Ratio: -->\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n  Pack-CRC32: 3342F03C\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n",
+    "\nArchive: vol-solid.part3.rar\nDetails: RAR 5, solid, volume 3\n\n        Name: lorem.txt\n        Type: File\n        Size: 30000\n Packed size: 6310\n       Ratio: <--\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 7011B5BF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n        Name: small.txt\n        Type: File\n        Size: 32\n Packed size: 33\n       Ratio: 103%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: F243954A\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=1m\n       Flags: solid \n\n"
+   ]
+  },
+  "vol-hp.part1.rar": {
+   "files": [
+    "vol-hp.part1.rar",
+    "vol-hp.part2.rar",
+    "vol-hp.part3.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "volumes",
+     "command": "rar a -idq -m3 -hppassword -v15k vol-hp.rar random.bin lorem.txt small.txt"
+    }
+   ],
+   "listPassword": "password",
+   "headerEncrypted": true,
+   "solid": false,
+   "details": "RAR 5, volume 1, encrypted headers",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "random.bin",
+     "type": "file",
+     "size": 30000,
+     "sha256": "eb698e082f6dfba44ece97af0336f10b2927732924432319eb04bd437bed43aa",
+     "crc32": "66f25622",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 14896,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "Pack-CRC32",
+      "EABC4E9E"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 1,
+     "ordinal": 0,
+     "continuation": true,
+     "name": "random.bin",
+     "type": "file",
+     "size": 30000,
+     "sha256": "eb698e082f6dfba44ece97af0336f10b2927732924432319eb04bd437bed43aa",
+     "crc32": "66f25622",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 14880,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "Pack-CRC32",
+      "AE407BF9"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 2,
+     "ordinal": 0,
+     "continuation": true,
+     "name": "random.bin",
+     "type": "file",
+     "size": 30000,
+     "sha256": "eb698e082f6dfba44ece97af0336f10b2927732924432319eb04bd437bed43aa",
+     "crc32": "66f25622",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 304,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "66F25622"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 2,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "lorem.txt",
+     "type": "file",
+     "size": 30000,
+     "sha256": "9e854d237795318f00047cc77b03708bf0cf9ae0159c7adaa4d67a70748bfc2a",
+     "crc32": "7011b5bf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 6528,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "7011B5BF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 2,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "small.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "52ac9c9e070cdb997a5b0c27e7c7e66342ba0fe6dc6544dbb20c6858e6d4236d",
+     "crc32": "f243954a",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 48,
+     "password": "password",
+     "encrypted": true,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "F243954A"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: vol-hp.part1.rar\nDetails: RAR 5, volume 1, encrypted headers\n\n        Name: random.bin\n        Type: File\n        Size: 30000\n Packed size: 14896\n       Ratio: -->\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n  Pack-CRC32: EABC4E9E\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n",
+    "\nArchive: vol-hp.part2.rar\nDetails: RAR 5, volume 2, encrypted headers\n\n        Name: random.bin\n        Type: File\n        Size: 30000\n Packed size: 14880\n       Ratio: <->\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n  Pack-CRC32: AE407BF9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n",
+    "\nArchive: vol-hp.part3.rar\nDetails: RAR 5, volume 3, encrypted headers\n\n        Name: random.bin\n        Type: File\n        Size: 30000\n Packed size: 304\n       Ratio: <--\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 66F25622\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: lorem.txt\n        Type: File\n        Size: 30000\n Packed size: 6528\n       Ratio: 21%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 7011B5BF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: small.txt\n        Type: File\n        Size: 32\n Packed size: 48\n       Ratio: 150%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: F243954A\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n"
+   ]
+  },
+  "dict-5g-v1.rar": {
+   "files": [
+    "dict-5g-v1.rar"
+   ],
+   "commands": [
+    {
+     "cwd": "huge",
+     "command": "rar a -idq -m1 -mt4 -md5g dict-5g-v1.rar zero.bin"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "zero.bin",
+     "type": "file",
+     "size": 4613734400,
+     "sha256": "e2926f8e46d1b88f3c25011eb05da9eb2be64c8f5203f652481c5975c0b6fcbd",
+     "crc32": "da138266",
+     "mtimeNs": 1792504068163228343,
+     "version": null,
+     "packedSize": 185630,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "DA138266"
+     ],
+     "ltCompression": "RAR 5.0(v70) -m1 -md=4480m"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: dict-5g-v1.rar\nDetails: RAR 5\n\n        Name: zero.bin\n        Type: File\n        Size: 4613734400\n Packed size: 185630\n       Ratio: 0%\n       mtime: 2026-10-20 13:47:48,163228343\n  Attributes: -rw-rw-r--\n       CRC32: DA138266\n     Host OS: Unix\n Compression: RAR 5.0(v70) -m1 -md=4480m\n\n"
+   ]
+  },
+  "vol-legacy.rar": {
+   "files": [
+    "vol-legacy.rar",
+    "vol-legacy.r00",
+    "vol-legacy.r01"
+   ],
+   "commands": [
+    {
+     "command": "cp vol-plain.part1.rar vol-legacy.rar"
+    },
+    {
+     "command": "cp vol-plain.part2.rar vol-legacy.r00"
+    },
+    {
+     "command": "cp vol-plain.part3.rar vol-legacy.r01"
+    }
+   ],
+   "listPassword": null,
+   "headerEncrypted": false,
+   "solid": false,
+   "details": "RAR 5, volume 1",
+   "filters": null,
+   "entries": [
+    {
+     "volume": 0,
+     "ordinal": 0,
+     "continuation": false,
+     "name": "random.bin",
+     "type": "file",
+     "size": 30000,
+     "sha256": "eb698e082f6dfba44ece97af0336f10b2927732924432319eb04bd437bed43aa",
+     "crc32": "66f25622",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 15197,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "Pack-CRC32",
+      "874AB347"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 1,
+     "ordinal": 0,
+     "continuation": true,
+     "name": "random.bin",
+     "type": "file",
+     "size": 30000,
+     "sha256": "eb698e082f6dfba44ece97af0336f10b2927732924432319eb04bd437bed43aa",
+     "crc32": "66f25622",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 14877,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "66F25622"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 1,
+     "ordinal": 1,
+     "continuation": false,
+     "name": "lorem.txt",
+     "type": "file",
+     "size": 30000,
+     "sha256": "9e854d237795318f00047cc77b03708bf0cf9ae0159c7adaa4d67a70748bfc2a",
+     "crc32": "7011b5bf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 211,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "Pack-CRC32",
+      "E9D3A9B1"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 2,
+     "ordinal": 1,
+     "continuation": true,
+     "name": "lorem.txt",
+     "type": "file",
+     "size": 30000,
+     "sha256": "9e854d237795318f00047cc77b03708bf0cf9ae0159c7adaa4d67a70748bfc2a",
+     "crc32": "7011b5bf",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 6309,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": true,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "7011B5BF"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m3 -md=128k"
+    },
+    {
+     "volume": 2,
+     "ordinal": 2,
+     "continuation": false,
+     "name": "small.txt",
+     "type": "file",
+     "size": 32,
+     "sha256": "52ac9c9e070cdb997a5b0c27e7c7e66342ba0fe6dc6544dbb20c6858e6d4236d",
+     "crc32": "f243954a",
+     "mtimeNs": 1700000000123456789,
+     "version": null,
+     "packedSize": 32,
+     "password": null,
+     "encrypted": false,
+     "solid": false,
+     "splitAcrossVolumes": false,
+     "ltType": "File",
+     "ltChecksum": [
+      "CRC32",
+      "F243954A"
+     ],
+     "ltCompression": "RAR 5.0(v50) -m0 -md=128k"
+    }
+   ],
+   "rarLt": [
+    "\nArchive: vol-plain.part1.rar\nDetails: RAR 5, volume 1\n\n        Name: random.bin\n        Type: File\n        Size: 30000\n Packed size: 15197\n       Ratio: -->\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n  Pack-CRC32: 874AB347\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n",
+    "\nArchive: vol-plain.part2.rar\nDetails: RAR 5, volume 2\n\n        Name: random.bin\n        Type: File\n        Size: 30000\n Packed size: 14877\n       Ratio: <--\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 66F25622\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: lorem.txt\n        Type: File\n        Size: 30000\n Packed size: 211\n       Ratio: -->\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n  Pack-CRC32: E9D3A9B1\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n",
+    "\nArchive: vol-plain.part3.rar\nDetails: RAR 5, volume 3\n\n        Name: lorem.txt\n        Type: File\n        Size: 30000\n Packed size: 6309\n       Ratio: <--\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: 7011B5BF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: small.txt\n        Type: File\n        Size: 32\n Packed size: 32\n       Ratio: 100%\n       mtime: 2023-11-14 22:13:20,123456789\n  Attributes: -rw-r--r--\n       CRC32: F243954A\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+   ],
+   "copyOf": "vol-plain.part1.rar"
+  }
+ }
+}
