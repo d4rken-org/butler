@@ -1,0 +1,2418 @@
+{
+ "libarchive": "v3.8.10",
+ "fixtures": {
+  "test_read_format_rar.rar": {
+   "size": 336,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 1.5",
+   "entries": [
+    {
+     "name": "test.txt",
+     "ltType": "File",
+     "size": 20,
+     "packedSize": 20,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 1.5(v20) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "BEC8A242"
+     ],
+     "password": null,
+     "sha256": "5a5f16e01faf8adf92eb4499a2d3e93010c4b41dbb7f698f4a8466d9f58e6dd2"
+    },
+    {
+     "name": "testlink",
+     "ltType": "Unix symbolic link",
+     "size": 8,
+     "packedSize": 8,
+     "ratio": "100%",
+     "flags": null,
+     "target": "test.txt",
+     "version": null,
+     "compression": "RAR 1.5(v20) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "B6C9447B"
+     ],
+     "password": null
+    },
+    {
+     "name": "testdir/test.txt",
+     "ltType": "File",
+     "size": 20,
+     "packedSize": 20,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 1.5(v20) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "BEC8A242"
+     ],
+     "password": null,
+     "sha256": "5a5f16e01faf8adf92eb4499a2d3e93010c4b41dbb7f698f4a8466d9f58e6dd2"
+    },
+    {
+     "name": "testdir",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 1.5(v20) -m0",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    },
+    {
+     "name": "testemptydir",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 1.5(v20) -m0",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar.rar\nDetails: RAR 1.5\n\n        Name: test.txt\n        Type: File\n        Size: 20\n Packed size: 20\n       Ratio: 100%\n       mtime: 2011-06-26 14:53:46,000000000\n       ctime: 2011-06-26 14:53:46,000000000\n       atime: 2011-06-26 14:53:46,000000000\n  Attributes: -rw-r--r--\n       CRC32: BEC8A242\n     Host OS: Unix\n Compression: RAR 1.5(v20) -m0 -md=128k\n\n        Name: testlink\n        Type: Unix symbolic link\n      Target: test.txt\n        Size: 8\n Packed size: 8\n       Ratio: 100%\n       mtime: 2011-06-24 09:38:34,000000000\n       ctime: 2011-06-24 09:38:34,000000000\n       atime: 2011-06-26 11:58:33,000000000\n  Attributes: lrwxrwxrwx\n       CRC32: B6C9447B\n     Host OS: Unix\n Compression: RAR 1.5(v20) -m0 -md=128k\n\n        Name: testdir/test.txt\n        Type: File\n        Size: 20\n Packed size: 20\n       Ratio: 100%\n       mtime: 2011-06-26 14:59:07,000000000\n       ctime: 2011-06-26 14:59:07,000000000\n       atime: 2011-06-26 14:59:07,000000000\n  Attributes: -rw-r--r--\n       CRC32: BEC8A242\n     Host OS: Unix\n Compression: RAR 1.5(v20) -m0 -md=128k\n\n        Name: testdir\n        Type: Directory\n       mtime: 2011-06-26 14:59:07,000000000\n       ctime: 2011-06-26 14:59:07,000000000\n       atime: 2011-06-26 14:59:09,000000000\n  Attributes: drwxr-xr-x\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 1.5(v20) -m0\n\n        Name: testemptydir\n        Type: Directory\n       mtime: 2011-06-21 21:28:59,000000000\n       ctime: 2011-06-21 21:28:59,000000000\n       atime: 2011-06-26 11:46:10,000000000\n  Attributes: drwxr-xr-x\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 1.5(v20) -m0\n\n"
+  },
+  "test_read_format_rar5_arm.rar": {
+   "size": 41082,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "elf-Linux-ARMv7-ls",
+     "ltType": "File",
+     "size": 90808,
+     "packedSize": 40910,
+     "ratio": "45%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=128k",
+     "checksum": [
+      "CRC32",
+      "886F91EB"
+     ],
+     "password": null,
+     "sha256": "e68c62b49184ed764f324fb4722481d60e1bf321b722238d95247f391960605c"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_arm.rar\nDetails: RAR 5\n\n        Name: elf-Linux-ARMv7-ls\n        Type: File\n        Size: 90808\n Packed size: 40910\n       Ratio: 45%\n       mtime: 2018-09-29 09:28:43,209742109\n  Attributes: -rwxr-xr-x\n       CRC32: 886F91EB\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=128k\n\n"
+  },
+  "test_read_format_rar5_arm_filter_on_window_boundary.rar": {
+   "size": 241,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_arm_filter_on_window_boundary.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_bad_tables.rar": {
+   "size": 185,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "bad_tables.txt",
+     "ltType": "File",
+     "size": 64,
+     "packedSize": 132,
+     "ratio": "206%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m4 -md=128k",
+     "checksum": null,
+     "password": null,
+     "sha256": "eb142b0cae0baa72a767ebc0823d1be94e14c5bfc52d8e417fc4302fceb6240c"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_bad_tables.rar\nDetails: RAR 5\n\n        Name: bad_tables.txt\n        Type: File\n        Size: 64\n Packed size: 132\n       Ratio: 206%\n  Attributes: ----------\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m4 -md=128k\n\n"
+  },
+  "test_read_format_rar5_bad_window_sz_in_mltarc_file.rar": {
+   "size": 156,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_bad_window_sz_in_mltarc_file.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_blake2.rar": {
+   "size": 642,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "cebula.txt",
+     "ltType": "File",
+     "size": 814,
+     "packedSize": 534,
+     "ratio": "65%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=128k",
+     "checksum": [
+      "BLAKE2",
+      "e67b86259a1cd0d51b6d6776ce10b5a5cf619559903c009ca8c346d6453853a5"
+     ],
+     "password": null,
+     "sha256": "1e98540238b2b13d1a22f4f4fa8e2eb6c66e24d46115ffdfafd3f3f981b212e7"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_blake2.rar\nDetails: RAR 5\n\n        Name: cebula.txt\n        Type: File\n        Size: 814\n Packed size: 534\n       Ratio: 65%\n       mtime: 2018-09-30 08:53:12,741864838\n  Attributes: -rw-r--r--\n      BLAKE2: e67b86259a1cd0d51b6d6776ce10b5a5cf619559903c009ca8c346d6453853a5\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=128k\n\n"
+  },
+  "test_read_format_rar5_block_size_is_too_small.rar": {
+   "size": 222,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_block_size_is_too_small.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_bytes_remaining_underflow.rar": {
+   "size": 48,
+   "ltExitCode": 1,
+   "extractExitOk": false,
+   "details": "RAR 5, volume 1",
+   "entries": [
+    {
+     "name": "poc.txt",
+     "ltType": "File",
+     "size": 10,
+     "packedSize": 1,
+     "ratio": "-->",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m1 -md=128k",
+     "checksum": null,
+     "password": null
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_bytes_remaining_underflow.rar\nDetails: RAR 5, volume 1\n\n        Name: poc.txt\n        Type: File\n        Size: 10\n Packed size: 1\n       Ratio: -->\n  Attributes: ----------\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m1 -md=128k\n\n"
+  },
+  "test_read_format_rar5_compressed.rar": {
+   "size": 436,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "test.bin",
+     "ltType": "File",
+     "size": 1200,
+     "packedSize": 361,
+     "ratio": "30%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=128k",
+     "checksum": [
+      "CRC32",
+      "7CCA70CD"
+     ],
+     "password": null,
+     "sha256": "588870a2dade35c2650fbb7898c9a9c7f21fce7c281198604e8d0c9737f2c375"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_compressed.rar\nDetails: RAR 5\n\n        Name: test.bin\n        Type: File\n        Size: 1200\n Packed size: 361\n       Ratio: 30%\n       mtime: 2018-09-27 06:07:39,514660600\n  Attributes: -rw-r--r--\n       CRC32: 7CCA70CD\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=128k\n\n"
+  },
+  "test_read_format_rar5_data_ready_pointer_leak.rar": {
+   "size": 1089,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_data_ready_pointer_leak.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_decode_number_out_of_bounds_read.rar": {
+   "size": 307,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_decode_number_out_of_bounds_read.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_different_solid_window_size.rar": {
+   "size": 3130,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_different_solid_window_size.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_different_window_size.rar": {
+   "size": 30227,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_different_window_size.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_different_winsize_on_merge.rar": {
+   "size": 542,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_different_winsize_on_merge.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_dirdata.rar": {
+   "size": 103,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5, solid, lock",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_dirdata.rar\nDetails: RAR 5, solid, lock\n\n"
+  },
+  "test_read_format_rar5_distance_overflow.rar": {
+   "size": 239,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_distance_overflow.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_encrypted.rar": {
+   "size": 391,
+   "ltExitCode": 0,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "a.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 18,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "EE5A6E55"
+     ],
+     "password": null,
+     "sha256": "02dc86d8b326a1cd07526f75b66bb7207c43376b21d9ac2c20bfedf510898861"
+    },
+    {
+     "name": "b.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 48,
+     "ratio": "266%",
+     "flags": "encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32 MAC",
+      "02A34518"
+     ],
+     "password": "password",
+     "sha256": "7ff61dd11ab812fc7f28f4f3b2e2ddf482148942a10ee079ac19295076ff741e"
+    },
+    {
+     "name": "c.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 18,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "949A3D35"
+     ],
+     "password": null,
+     "sha256": "0b8a3f12dc4e493b99fb5e0699c96006b51b05c0461c2e048f25d86a50a58eb8"
+    },
+    {
+     "name": "d.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 32,
+     "ratio": "177%",
+     "flags": "encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32 MAC",
+      "1263DFC3"
+     ],
+     "password": "password2",
+     "sha256": "7e57320eb71e376207695ee851ed2f339cb2000fa3359a19de4c494b472699e1"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_encrypted.rar\nDetails: RAR 5\n\n        Name: a.txt\n        Type: File\n        Size: 18\n Packed size: 18\n       Ratio: 100%\n       mtime: 2024-03-22 18:59:09,178918000\n  Attributes: ..A....\n       CRC32: EE5A6E55\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: b.txt\n        Type: File\n        Size: 18\n Packed size: 48\n       Ratio: 266%\n       mtime: 2024-03-22 18:59:14,344894600\n  Attributes: ..A....\n   CRC32 MAC: 02A34518\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: c.txt\n        Type: File\n        Size: 18\n Packed size: 18\n       Ratio: 100%\n       mtime: 2024-03-22 18:59:28,296761400\n  Attributes: ..A....\n       CRC32: 949A3D35\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: d.txt\n        Type: File\n        Size: 18\n Packed size: 32\n       Ratio: 177%\n       mtime: 2024-03-22 20:34:27,939673100\n  Attributes: ..A....\n   CRC32 MAC: 1263DFC3\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n"
+  },
+  "test_read_format_rar5_encrypted_filenames.rar": {
+   "size": 718,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, encrypted headers",
+   "entries": [
+    {
+     "name": "a.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 48,
+     "ratio": "266%",
+     "flags": "encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "EE5A6E55"
+     ],
+     "password": "password",
+     "sha256": "02dc86d8b326a1cd07526f75b66bb7207c43376b21d9ac2c20bfedf510898861"
+    },
+    {
+     "name": "b.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 48,
+     "ratio": "266%",
+     "flags": "encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "A9FA1485"
+     ],
+     "password": "password",
+     "sha256": "7ff61dd11ab812fc7f28f4f3b2e2ddf482148942a10ee079ac19295076ff741e"
+    },
+    {
+     "name": "c.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 32,
+     "ratio": "177%",
+     "flags": "encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "949A3D35"
+     ],
+     "password": "password",
+     "sha256": "0b8a3f12dc4e493b99fb5e0699c96006b51b05c0461c2e048f25d86a50a58eb8"
+    },
+    {
+     "name": "d.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 32,
+     "ratio": "177%",
+     "flags": "encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "26BAE125"
+     ],
+     "password": "password",
+     "sha256": "7e57320eb71e376207695ee851ed2f339cb2000fa3359a19de4c494b472699e1"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_encrypted_filenames.rar\nDetails: RAR 5, encrypted headers\n\n        Name: a.txt\n        Type: File\n        Size: 18\n Packed size: 48\n       Ratio: 266%\n       mtime: 2024-03-22 18:59:09,178918000\n  Attributes: ..A....\n       CRC32: EE5A6E55\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: b.txt\n        Type: File\n        Size: 18\n Packed size: 48\n       Ratio: 266%\n       mtime: 2024-03-22 18:59:14,344894600\n  Attributes: ..A....\n       CRC32: A9FA1485\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: c.txt\n        Type: File\n        Size: 18\n Packed size: 32\n       Ratio: 177%\n       mtime: 2024-03-22 18:59:28,296761400\n  Attributes: ..A....\n       CRC32: 949A3D35\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n        Name: d.txt\n        Type: File\n        Size: 18\n Packed size: 32\n       Ratio: 177%\n       mtime: 2024-03-22 20:34:27,939673100\n  Attributes: ..A....\n       CRC32: 26BAE125\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n       Flags: encrypted \n\n"
+  },
+  "test_read_format_rar5_extra_data_size_toolong.rar": {
+   "size": 131117,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_extra_data_size_toolong.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_extra_field_underflow.rar": {
+   "size": 61,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "a",
+     "ltType": "File",
+     "size": 0,
+     "packedSize": 1,
+     "ratio": "0%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": null,
+     "password": null,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+     "name": "b",
+     "ltType": "File",
+     "size": 0,
+     "packedSize": 1,
+     "ratio": "0%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": null,
+     "password": null,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_extra_field_underflow.rar\nDetails: RAR 5\n\n        Name: a\n        Type: File\n        Size: 0\n Packed size: 1\n       Ratio: 0%\n  Attributes: ----------\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: b\n        Type: File\n        Size: 0\n Packed size: 1\n       Ratio: 0%\n  Attributes: ----------\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+  },
+  "test_read_format_rar5_extra_field_version.rar": {
+   "size": 282,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "bin/2to3;1",
+     "ltType": "File",
+     "size": 95,
+     "packedSize": 89,
+     "ratio": "93%",
+     "flags": null,
+     "target": null,
+     "version": 1,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "F24181B7"
+     ],
+     "password": null
+    },
+    {
+     "name": "bin/2to3",
+     "ltType": "File",
+     "size": 95,
+     "packedSize": 89,
+     "ratio": "93%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "F24181B7"
+     ],
+     "password": null,
+     "sha256": "b2672f8304a45f633267966c282924c955f189463ddc728657924d01832a1c0c"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_extra_field_version.rar\nDetails: RAR 5\n\n        Name: bin/2to3;1\n        Type: File\n        Size: 95\n Packed size: 89\n       Ratio: 93%\n       mtime: 2019-01-11 00:51:51,000000000\n  Attributes: -rwxr-xr-x\n       CRC32: F24181B7\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\nFile version: 1\n\n        Name: bin/2to3\n        Type: File\n        Size: 95\n Packed size: 89\n       Ratio: 93%\n       mtime: 2019-01-11 00:51:51,000000000\n  Attributes: -rwxr-xr-x\n       CRC32: F24181B7\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+  },
+  "test_read_format_rar5_fileattr.rar": {
+   "size": 421,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "readonly.txt",
+     "ltType": "File",
+     "size": 11,
+     "packedSize": 11,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "9B8EDD8B"
+     ],
+     "password": null,
+     "sha256": "6122e0000f6b1f252db8481f26f336503e4e9e6e9206d2449ff703de08465d92"
+    },
+    {
+     "name": "hidden.txt",
+     "ltType": "File",
+     "size": 11,
+     "packedSize": 11,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "853D846F"
+     ],
+     "password": null,
+     "sha256": "584a84848d6ae5412ff2b65fdf339da7a2f55b7d0fcddf8469a2bca27c030252"
+    },
+    {
+     "name": "system.txt",
+     "ltType": "File",
+     "size": 11,
+     "packedSize": 11,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "28D28C2D"
+     ],
+     "password": null,
+     "sha256": "6291dc33445cfe4b80f5d4903929d264291a82ad14b515ea04108a6d90e61300"
+    },
+    {
+     "name": "ro_hidden.txt",
+     "ltType": "File",
+     "size": 11,
+     "packedSize": 11,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "1D109F2E"
+     ],
+     "password": null,
+     "sha256": "eb03adb08b732ed996e9062acf6ed5b3e4b0177a60f49eddf3c8bd6d45b7ff96"
+    },
+    {
+     "name": "dir_readonly",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    },
+    {
+     "name": "dir_hidden",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    },
+    {
+     "name": "dir_system",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    },
+    {
+     "name": "dir_rohidden",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_fileattr.rar\nDetails: RAR 5\n\n        Name: readonly.txt\n        Type: File\n        Size: 11\n Packed size: 11\n       Ratio: 100%\n       mtime: 2019-05-09 22:23:15,643280200\n  Attributes: ..A...R\n       CRC32: 9B8EDD8B\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: hidden.txt\n        Type: File\n        Size: 11\n Packed size: 11\n       Ratio: 100%\n       mtime: 2019-05-09 22:23:27,207461000\n  Attributes: ..A..H.\n       CRC32: 853D846F\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: system.txt\n        Type: File\n        Size: 11\n Packed size: 11\n       Ratio: 100%\n       mtime: 2019-05-09 22:23:33,973898200\n  Attributes: ..A.S..\n       CRC32: 28D28C2D\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: ro_hidden.txt\n        Type: File\n        Size: 11\n Packed size: 11\n       Ratio: 100%\n       mtime: 2019-05-09 23:22:12,632721000\n  Attributes: ..A..HR\n       CRC32: 1D109F2E\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: dir_readonly\n        Type: Directory\n       mtime: 2019-05-09 22:23:42,081550000\n  Attributes: ...D..R\n       CRC32: 00000000\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0\n\n        Name: dir_hidden\n        Type: Directory\n       mtime: 2019-05-09 22:23:44,807026600\n  Attributes: ...D.H.\n       CRC32: 00000000\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0\n\n        Name: dir_system\n        Type: Directory\n       mtime: 2019-05-09 22:23:47,418678400\n  Attributes: ...DS..\n       CRC32: 00000000\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0\n\n        Name: dir_rohidden\n        Type: Directory\n       mtime: 2019-05-09 23:23:57,339995100\n  Attributes: ...D.HR\n       CRC32: 00000000\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0\n\n"
+  },
+  "test_read_format_rar5_group_name_toolong.rar": {
+   "size": 47,
+   "ltExitCode": 1,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "a",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0",
+     "checksum": null,
+     "password": null
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_group_name_toolong.rar\nDetails: RAR 5\n\n        Name: a\n        Type: Directory\n  Attributes: -----w----\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n  Unix owner: :\n\n"
+  },
+  "test_read_format_rar5_hardlink.rar": {
+   "size": 122,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "file.txt",
+     "ltType": "File",
+     "size": 5,
+     "packedSize": 5,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "7D931721"
+     ],
+     "password": null,
+     "sha256": "a883dafc480d466ee04e0d6da986bd78eb1fdd2178d04693723da3a8f95d42f4"
+    },
+    {
+     "name": "hardlink.txt",
+     "ltType": "Hard link",
+     "size": 5,
+     "packedSize": 0,
+     "ratio": "0%",
+     "flags": null,
+     "target": "file.txt",
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_hardlink.rar\nDetails: RAR 5\n\n        Name: file.txt\n        Type: File\n        Size: 5\n Packed size: 5\n       Ratio: 100%\n       mtime: 2019-04-17 22:31:52,000000000\n  Attributes: -rw-r--r--\n       CRC32: 7D931721\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: hardlink.txt\n        Type: Hard link\n      Target: file.txt\n        Size: 5\n Packed size: 0\n       Ratio: 0%\n       mtime: 2019-04-17 22:31:52,000000000\n  Attributes: -rw-r--r--\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+  },
+  "test_read_format_rar5_invalid_dict_reference.rar": {
+   "size": 255,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_invalid_dict_reference.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_invalid_hash_valid_htime_exfld.rar": {
+   "size": 120,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "file.txt",
+     "ltType": "File",
+     "size": 49,
+     "packedSize": 49,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "98421446"
+     ],
+     "password": null,
+     "sha256": "7ea0deda699c273a9bcc067d3b044e65ab8917780bef1a116f37dbd71c97e7bc"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_invalid_hash_valid_htime_exfld.rar\nDetails: RAR 5\n\n        Name: file.txt\n        Type: File\n        Size: 49\n Packed size: 49\n       Ratio: 100%\n  Attributes: -rwxr-xr-x\n       CRC32: 98421446\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+  },
+  "test_read_format_rar5_leftshift1.rar": {
+   "size": 246,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_leftshift1.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_leftshift2.rar": {
+   "size": 106,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_leftshift2.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_loop_bug.rar": {
+   "size": 8346,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "a",
+     "ltType": "File",
+     "size": 196608,
+     "packedSize": 8304,
+     "ratio": "4%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": null,
+     "password": null,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_loop_bug.rar\nDetails: RAR 5\n\n        Name: a\n        Type: File\n        Size: 196608\n Packed size: 8304\n       Ratio: 4%\n  Attributes: .......\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+  },
+  "test_read_format_rar5_main_block_extra_bytes.rar": {
+   "size": 117,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "helloworld.txt",
+     "ltType": "File",
+     "size": 29,
+     "packedSize": 29,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "95A043B4"
+     ],
+     "password": null,
+     "sha256": "fef9ad8cf601b43f76c6320075f62267c6e5c0a526d750a70b80c919a4a0aad8"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_main_block_extra_bytes.rar\nDetails: RAR 5\n\n        Name: helloworld.txt\n        Type: File\n        Size: 29\n Packed size: 29\n       Ratio: 100%\n       mtime: 2018-09-26 06:43:42,437184854\n  Attributes: -rw-r--r--\n       CRC32: 95A043B4\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+  },
+  "test_read_format_rar5_multiarchive.part01.rar": {
+   "size": 15360,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, volume 1",
+   "entries": [
+    {
+     "name": "home/antek/temp/build/unrar5/libarchive/bin/bsdcat_test",
+     "ltType": "File",
+     "size": 144608,
+     "packedSize": 15106,
+     "ratio": "-->",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=512k",
+     "checksum": [
+      "Pack-CRC32",
+      "9505496A"
+     ],
+     "password": null,
+     "sha256": "b858933c12f1b907dac93a9428ae266c9fcb95df5cb88586fcd752a05305e1eb"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive.part01.rar\nDetails: RAR 5, volume 1\n\n        Name: home/antek/temp/build/unrar5/libarchive/bin/bsdcat_test\n        Type: File\n        Size: 144608\n Packed size: 15106\n       Ratio: -->\n       mtime: 2018-09-26 06:01:44,003858191\n  Attributes: -rwxr-xr-x\n  Pack-CRC32: 9505496A\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=512k\n\n"
+  },
+  "test_read_format_rar5_multiarchive.part02.rar": {
+   "size": 15360,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, volume 2",
+   "entries": [
+    {
+     "name": "home/antek/temp/build/unrar5/libarchive/bin/bsdcat_test",
+     "ltType": "File",
+     "size": 144608,
+     "packedSize": 15105,
+     "ratio": "<->",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=512k",
+     "checksum": [
+      "Pack-CRC32",
+      "32C1375D"
+     ],
+     "password": null,
+     "sha256": "b858933c12f1b907dac93a9428ae266c9fcb95df5cb88586fcd752a05305e1eb"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive.part02.rar\nDetails: RAR 5, volume 2\n\n        Name: home/antek/temp/build/unrar5/libarchive/bin/bsdcat_test\n        Type: File\n        Size: 144608\n Packed size: 15105\n       Ratio: <->\n       mtime: 2018-09-26 06:01:44,003858191\n  Attributes: -rwxr-xr-x\n  Pack-CRC32: 32C1375D\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=512k\n\n"
+  },
+  "test_read_format_rar5_multiarchive.part03.rar": {
+   "size": 15360,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, volume 3",
+   "entries": [
+    {
+     "name": "home/antek/temp/build/unrar5/libarchive/bin/bsdcat_test",
+     "ltType": "File",
+     "size": 144608,
+     "packedSize": 8701,
+     "ratio": "<--",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=512k",
+     "checksum": [
+      "CRC32",
+      "35277473"
+     ],
+     "password": null,
+     "sha256": "b858933c12f1b907dac93a9428ae266c9fcb95df5cb88586fcd752a05305e1eb"
+    },
+    {
+     "name": "home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test",
+     "ltType": "File",
+     "size": 365672,
+     "packedSize": 6204,
+     "ratio": "-->",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=512k",
+     "checksum": [
+      "Pack-CRC32",
+      "F87A8E5D"
+     ],
+     "password": null,
+     "sha256": "30e80423a3ed56cfc27d6fd79e3b40c087d42829aecaec01262e3727762bb2eb"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive.part03.rar\nDetails: RAR 5, volume 3\n\n        Name: home/antek/temp/build/unrar5/libarchive/bin/bsdcat_test\n        Type: File\n        Size: 144608\n Packed size: 8701\n       Ratio: <--\n       mtime: 2018-09-26 06:01:44,003858191\n  Attributes: -rwxr-xr-x\n       CRC32: 35277473\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=512k\n\n        Name: home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test\n        Type: File\n        Size: 365672\n Packed size: 6204\n       Ratio: -->\n       mtime: 2018-09-26 06:01:46,922908113\n  Attributes: -rwxr-xr-x\n  Pack-CRC32: F87A8E5D\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=512k\n\n"
+  },
+  "test_read_format_rar5_multiarchive.part04.rar": {
+   "size": 15360,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, volume 4",
+   "entries": [
+    {
+     "name": "home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test",
+     "ltType": "File",
+     "size": 365672,
+     "packedSize": 15105,
+     "ratio": "<->",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=512k",
+     "checksum": [
+      "Pack-CRC32",
+      "A5927F5D"
+     ],
+     "password": null,
+     "sha256": "30e80423a3ed56cfc27d6fd79e3b40c087d42829aecaec01262e3727762bb2eb"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive.part04.rar\nDetails: RAR 5, volume 4\n\n        Name: home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test\n        Type: File\n        Size: 365672\n Packed size: 15105\n       Ratio: <->\n       mtime: 2018-09-26 06:01:46,922908113\n  Attributes: -rwxr-xr-x\n  Pack-CRC32: A5927F5D\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=512k\n\n"
+  },
+  "test_read_format_rar5_multiarchive.part05.rar": {
+   "size": 15360,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, volume 5",
+   "entries": [
+    {
+     "name": "home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test",
+     "ltType": "File",
+     "size": 365672,
+     "packedSize": 15105,
+     "ratio": "<->",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=512k",
+     "checksum": [
+      "Pack-CRC32",
+      "80FE99FD"
+     ],
+     "password": null,
+     "sha256": "30e80423a3ed56cfc27d6fd79e3b40c087d42829aecaec01262e3727762bb2eb"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive.part05.rar\nDetails: RAR 5, volume 5\n\n        Name: home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test\n        Type: File\n        Size: 365672\n Packed size: 15105\n       Ratio: <->\n       mtime: 2018-09-26 06:01:46,922908113\n  Attributes: -rwxr-xr-x\n  Pack-CRC32: 80FE99FD\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=512k\n\n"
+  },
+  "test_read_format_rar5_multiarchive.part06.rar": {
+   "size": 15360,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, volume 6",
+   "entries": [
+    {
+     "name": "home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test",
+     "ltType": "File",
+     "size": 365672,
+     "packedSize": 15105,
+     "ratio": "<->",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=512k",
+     "checksum": [
+      "Pack-CRC32",
+      "AA44223D"
+     ],
+     "password": null,
+     "sha256": "30e80423a3ed56cfc27d6fd79e3b40c087d42829aecaec01262e3727762bb2eb"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive.part06.rar\nDetails: RAR 5, volume 6\n\n        Name: home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test\n        Type: File\n        Size: 365672\n Packed size: 15105\n       Ratio: <->\n       mtime: 2018-09-26 06:01:46,922908113\n  Attributes: -rwxr-xr-x\n  Pack-CRC32: AA44223D\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=512k\n\n"
+  },
+  "test_read_format_rar5_multiarchive.part07.rar": {
+   "size": 15360,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, volume 7",
+   "entries": [
+    {
+     "name": "home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test",
+     "ltType": "File",
+     "size": 365672,
+     "packedSize": 15105,
+     "ratio": "<->",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=512k",
+     "checksum": [
+      "Pack-CRC32",
+      "65A742B6"
+     ],
+     "password": null,
+     "sha256": "30e80423a3ed56cfc27d6fd79e3b40c087d42829aecaec01262e3727762bb2eb"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive.part07.rar\nDetails: RAR 5, volume 7\n\n        Name: home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test\n        Type: File\n        Size: 365672\n Packed size: 15105\n       Ratio: <->\n       mtime: 2018-09-26 06:01:46,922908113\n  Attributes: -rwxr-xr-x\n  Pack-CRC32: 65A742B6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=512k\n\n"
+  },
+  "test_read_format_rar5_multiarchive.part08.rar": {
+   "size": 9208,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, volume 8",
+   "entries": [
+    {
+     "name": "home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test",
+     "ltType": "File",
+     "size": 365672,
+     "packedSize": 8962,
+     "ratio": "<--",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=512k",
+     "checksum": [
+      "CRC32",
+      "E59665F8"
+     ],
+     "password": null,
+     "sha256": "30e80423a3ed56cfc27d6fd79e3b40c087d42829aecaec01262e3727762bb2eb"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive.part08.rar\nDetails: RAR 5, volume 8\n\n        Name: home/antek/temp/build/unrar5/libarchive/bin/bsdtar_test\n        Type: File\n        Size: 365672\n Packed size: 8962\n       Ratio: <--\n       mtime: 2018-09-26 06:01:46,922908113\n  Attributes: -rwxr-xr-x\n       CRC32: E59665F8\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=512k\n\n"
+  },
+  "test_read_format_rar5_multiarchive_solid.part01.rar": {
+   "size": 13312,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, solid, volume 1",
+   "entries": [
+    {
+     "name": "cebula.txt",
+     "ltType": "File",
+     "size": 814,
+     "packedSize": 659,
+     "ratio": "80%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "7E5EC49E"
+     ],
+     "password": null,
+     "sha256": "1e98540238b2b13d1a22f4f4fa8e2eb6c66e24d46115ffdfafd3f3f981b212e7"
+    },
+    {
+     "name": "test.bin",
+     "ltType": "File",
+     "size": 1200,
+     "packedSize": 331,
+     "ratio": "27%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "7CCA70CD"
+     ],
+     "password": null,
+     "sha256": "588870a2dade35c2650fbb7898c9a9c7f21fce7c281198604e8d0c9737f2c375"
+    },
+    {
+     "name": "test1.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 146,
+     "ratio": "3%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "7E13B2C6"
+     ],
+     "password": null,
+     "sha256": "7d89f86f9f69d744ffff3fc043e15bf89fc3ffc134ffcbb31d164a99bb8b67b0"
+    },
+    {
+     "name": "test2.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 28,
+     "ratio": "0%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "F166AFCB"
+     ],
+     "password": null,
+     "sha256": "f81e6fceeeab366306b23466bf6bb3aac2875e0906dc20a8652be0696ceb15a2"
+    },
+    {
+     "name": "test3.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 46,
+     "ratio": "1%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "9FB123D9"
+     ],
+     "password": null,
+     "sha256": "5e621f2b6ce8fed758c3df8221f994eda55d1e432c7cc4349c34a30ec2e1c43d"
+    },
+    {
+     "name": "test4.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 28,
+     "ratio": "0%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "10C43ED4"
+     ],
+     "password": null,
+     "sha256": "2627f40180217252956edb9a426e8d3e344adaf89019d3bccbe04f6c3416dcdd"
+    },
+    {
+     "name": "test5.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 51,
+     "ratio": "1%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "B9D155F2"
+     ],
+     "password": null,
+     "sha256": "b0622b648b174abd9c5f3965155bbcc82c642f997ab8949add0a8632bf94e636"
+    },
+    {
+     "name": "test6.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 28,
+     "ratio": "0%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "36A448FF"
+     ],
+     "password": null,
+     "sha256": "0b79ce23670b7c2e5a0d4b62f0de7b0c745522be9ed6a9ec70da6991c2f010f2"
+    },
+    {
+     "name": "elf-Linux-ARMv7-ls",
+     "ltType": "File",
+     "size": 90808,
+     "packedSize": 11463,
+     "ratio": "-->",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "Pack-CRC32",
+      "21EC4422"
+     ],
+     "password": null,
+     "sha256": "e68c62b49184ed764f324fb4722481d60e1bf321b722238d95247f391960605c"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive_solid.part01.rar\nDetails: RAR 5, solid, volume 1\n\n        Name: cebula.txt\n        Type: File\n        Size: 814\n Packed size: 659\n       Ratio: 80%\n       mtime: 2018-09-30 08:53:12,741864838\n  Attributes: -rw-r--r--\n       CRC32: 7E5EC49E\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n\n        Name: test.bin\n        Type: File\n        Size: 1200\n Packed size: 331\n       Ratio: 27%\n       mtime: 2018-09-27 06:07:39,514660600\n  Attributes: -rw-r--r--\n       CRC32: 7CCA70CD\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test1.bin\n        Type: File\n        Size: 4096\n Packed size: 146\n       Ratio: 3%\n       mtime: 2018-09-27 06:41:11,278813210\n  Attributes: -rw-r--r--\n       CRC32: 7E13B2C6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test2.bin\n        Type: File\n        Size: 4096\n Packed size: 28\n       Ratio: 0%\n       mtime: 2018-09-27 06:41:30,393434157\n  Attributes: -rw-r--r--\n       CRC32: F166AFCB\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test3.bin\n        Type: File\n        Size: 4096\n Packed size: 46\n       Ratio: 1%\n       mtime: 2018-09-27 06:41:34,050347472\n  Attributes: -rw-r--r--\n       CRC32: 9FB123D9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test4.bin\n        Type: File\n        Size: 4096\n Packed size: 28\n       Ratio: 0%\n       mtime: 2018-09-27 06:41:37,303900321\n  Attributes: -rw-r--r--\n       CRC32: 10C43ED4\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test5.bin\n        Type: File\n        Size: 4096\n Packed size: 51\n       Ratio: 1%\n       mtime: 2018-09-27 07:15:08,273011739\n  Attributes: -rw-r--r--\n       CRC32: B9D155F2\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test6.bin\n        Type: File\n        Size: 4096\n Packed size: 28\n       Ratio: 0%\n       mtime: 2018-09-27 07:15:11,399806267\n  Attributes: -rw-r--r--\n       CRC32: 36A448FF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: elf-Linux-ARMv7-ls\n        Type: File\n        Size: 90808\n Packed size: 11463\n       Ratio: -->\n       mtime: 2018-09-29 09:28:43,209742109\n  Attributes: -rwxr-xr-x\n  Pack-CRC32: 21EC4422\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n"
+  },
+  "test_read_format_rar5_multiarchive_solid.part02.rar": {
+   "size": 13312,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, solid, volume 2",
+   "entries": [
+    {
+     "name": "elf-Linux-ARMv7-ls",
+     "ltType": "File",
+     "size": 90808,
+     "packedSize": 13131,
+     "ratio": "<->",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "Pack-CRC32",
+      "26E45E70"
+     ],
+     "password": null,
+     "sha256": "e68c62b49184ed764f324fb4722481d60e1bf321b722238d95247f391960605c"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive_solid.part02.rar\nDetails: RAR 5, solid, volume 2\n\n        Name: elf-Linux-ARMv7-ls\n        Type: File\n        Size: 90808\n Packed size: 13131\n       Ratio: <->\n       mtime: 2018-09-29 09:28:43,209742109\n  Attributes: -rwxr-xr-x\n  Pack-CRC32: 26E45E70\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n"
+  },
+  "test_read_format_rar5_multiarchive_solid.part03.rar": {
+   "size": 13312,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, solid, volume 3",
+   "entries": [
+    {
+     "name": "elf-Linux-ARMv7-ls",
+     "ltType": "File",
+     "size": 90808,
+     "packedSize": 13131,
+     "ratio": "<->",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "Pack-CRC32",
+      "5DE2CDE0"
+     ],
+     "password": null,
+     "sha256": "e68c62b49184ed764f324fb4722481d60e1bf321b722238d95247f391960605c"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive_solid.part03.rar\nDetails: RAR 5, solid, volume 3\n\n        Name: elf-Linux-ARMv7-ls\n        Type: File\n        Size: 90808\n Packed size: 13131\n       Ratio: <->\n       mtime: 2018-09-29 09:28:43,209742109\n  Attributes: -rwxr-xr-x\n  Pack-CRC32: 5DE2CDE0\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n"
+  },
+  "test_read_format_rar5_multiarchive_solid.part04.rar": {
+   "size": 3280,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, solid, volume 4",
+   "entries": [
+    {
+     "name": "elf-Linux-ARMv7-ls",
+     "ltType": "File",
+     "size": 90808,
+     "packedSize": 3191,
+     "ratio": "<--",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "886F91EB"
+     ],
+     "password": null,
+     "sha256": "e68c62b49184ed764f324fb4722481d60e1bf321b722238d95247f391960605c"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiarchive_solid.part04.rar\nDetails: RAR 5, solid, volume 4\n\n        Name: elf-Linux-ARMv7-ls\n        Type: File\n        Size: 90808\n Packed size: 3191\n       Ratio: <--\n       mtime: 2018-09-29 09:28:43,209742109\n  Attributes: -rwxr-xr-x\n       CRC32: 886F91EB\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n"
+  },
+  "test_read_format_rar5_multiple_files.rar": {
+   "size": 1656,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "test1.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 356,
+     "ratio": "8%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=128k",
+     "checksum": [
+      "CRC32",
+      "7E13B2C6"
+     ],
+     "password": null,
+     "sha256": "7d89f86f9f69d744ffff3fc043e15bf89fc3ffc134ffcbb31d164a99bb8b67b0"
+    },
+    {
+     "name": "test2.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 356,
+     "ratio": "8%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=128k",
+     "checksum": [
+      "CRC32",
+      "F166AFCB"
+     ],
+     "password": null,
+     "sha256": "f81e6fceeeab366306b23466bf6bb3aac2875e0906dc20a8652be0696ceb15a2"
+    },
+    {
+     "name": "test3.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 368,
+     "ratio": "8%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=128k",
+     "checksum": [
+      "CRC32",
+      "9FB123D9"
+     ],
+     "password": null,
+     "sha256": "5e621f2b6ce8fed758c3df8221f994eda55d1e432c7cc4349c34a30ec2e1c43d"
+    },
+    {
+     "name": "test4.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 368,
+     "ratio": "8%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=128k",
+     "checksum": [
+      "CRC32",
+      "10C43ED4"
+     ],
+     "password": null,
+     "sha256": "2627f40180217252956edb9a426e8d3e344adaf89019d3bccbe04f6c3416dcdd"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiple_files.rar\nDetails: RAR 5\n\n        Name: test1.bin\n        Type: File\n        Size: 4096\n Packed size: 356\n       Ratio: 8%\n       mtime: 2018-09-27 06:41:11,278813210\n  Attributes: -rw-r--r--\n       CRC32: 7E13B2C6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=128k\n\n        Name: test2.bin\n        Type: File\n        Size: 4096\n Packed size: 356\n       Ratio: 8%\n       mtime: 2018-09-27 06:41:30,393434157\n  Attributes: -rw-r--r--\n       CRC32: F166AFCB\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=128k\n\n        Name: test3.bin\n        Type: File\n        Size: 4096\n Packed size: 368\n       Ratio: 8%\n       mtime: 2018-09-27 06:41:34,050347472\n  Attributes: -rw-r--r--\n       CRC32: 9FB123D9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=128k\n\n        Name: test4.bin\n        Type: File\n        Size: 4096\n Packed size: 368\n       Ratio: 8%\n       mtime: 2018-09-27 06:41:37,303900321\n  Attributes: -rw-r--r--\n       CRC32: 10C43ED4\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=128k\n\n"
+  },
+  "test_read_format_rar5_multiple_files_solid.rar": {
+   "size": 677,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, solid",
+   "entries": [
+    {
+     "name": "test1.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 377,
+     "ratio": "9%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "7E13B2C6"
+     ],
+     "password": null,
+     "sha256": "7d89f86f9f69d744ffff3fc043e15bf89fc3ffc134ffcbb31d164a99bb8b67b0"
+    },
+    {
+     "name": "test2.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 25,
+     "ratio": "0%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "F166AFCB"
+     ],
+     "password": null,
+     "sha256": "f81e6fceeeab366306b23466bf6bb3aac2875e0906dc20a8652be0696ceb15a2"
+    },
+    {
+     "name": "test3.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 42,
+     "ratio": "1%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "9FB123D9"
+     ],
+     "password": null,
+     "sha256": "5e621f2b6ce8fed758c3df8221f994eda55d1e432c7cc4349c34a30ec2e1c43d"
+    },
+    {
+     "name": "test4.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 25,
+     "ratio": "0%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "10C43ED4"
+     ],
+     "password": null,
+     "sha256": "2627f40180217252956edb9a426e8d3e344adaf89019d3bccbe04f6c3416dcdd"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_multiple_files_solid.rar\nDetails: RAR 5, solid\n\n        Name: test1.bin\n        Type: File\n        Size: 4096\n Packed size: 377\n       Ratio: 9%\n       mtime: 2018-09-27 06:41:11,278813210\n  Attributes: -rw-r--r--\n       CRC32: 7E13B2C6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n\n        Name: test2.bin\n        Type: File\n        Size: 4096\n Packed size: 25\n       Ratio: 0%\n       mtime: 2018-09-27 06:41:30,393434157\n  Attributes: -rw-r--r--\n       CRC32: F166AFCB\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test3.bin\n        Type: File\n        Size: 4096\n Packed size: 42\n       Ratio: 1%\n       mtime: 2018-09-27 06:41:34,050347472\n  Attributes: -rw-r--r--\n       CRC32: 9FB123D9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test4.bin\n        Type: File\n        Size: 4096\n Packed size: 25\n       Ratio: 0%\n       mtime: 2018-09-27 06:41:37,303900321\n  Attributes: -rw-r--r--\n       CRC32: 10C43ED4\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n"
+  },
+  "test_read_format_rar5_nonempty_dir_stream.rar": {
+   "size": 246,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_nonempty_dir_stream.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_only_crypt_exfld.rar": {
+   "size": 142,
+   "ltExitCode": 0,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "file.txt",
+     "ltType": "File",
+     "size": 46,
+     "packedSize": 46,
+     "ratio": "100%",
+     "flags": "encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "13249E98"
+     ],
+     "password": "password"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_only_crypt_exfld.rar\nDetails: RAR 5\n\n        Name: file.txt\n        Type: File\n        Size: 46\n Packed size: 46\n       Ratio: 100%\n  Attributes: -rwxr-xr-x\n       CRC32: 13249E98\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n       Flags: encrypted \n\n"
+  },
+  "test_read_format_rar5_owner.rar": {
+   "size": 198,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "root.txt",
+     "ltType": "File",
+     "size": 5,
+     "packedSize": 5,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "7D931721"
+     ],
+     "password": null,
+     "sha256": "a883dafc480d466ee04e0d6da986bd78eb1fdd2178d04693723da3a8f95d42f4"
+    },
+    {
+     "name": "nobody.txt",
+     "ltType": "File",
+     "size": 5,
+     "packedSize": 5,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "ACCDC166"
+     ],
+     "password": null,
+     "sha256": "5b503791b99ba19bba0a35fb9e1ba735a4ce20bd59b9bf3e1b624722d3fb4f9d"
+    },
+    {
+     "name": "numeric.txt",
+     "ltType": "File",
+     "size": 5,
+     "packedSize": 5,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "22DB207A"
+     ],
+     "password": null,
+     "sha256": "c41c64ef407bf222968822b03205813b0d987ae05c06b7c1a765957ed5e02661"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_owner.rar\nDetails: RAR 5\n\n        Name: root.txt\n        Type: File\n        Size: 5\n Packed size: 5\n       Ratio: 100%\n       mtime: 2019-04-17 22:35:09,000000000\n  Attributes: -rw-r--r--\n       CRC32: 7D931721\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n  Unix owner: root:wheel\n\n        Name: nobody.txt\n        Type: File\n        Size: 5\n Packed size: 5\n       Ratio: 100%\n       mtime: 2019-04-17 22:32:46,000000000\n  Attributes: -rw-r--r--\n       CRC32: ACCDC166\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n  Unix owner: nobody:nogroup\n\n        Name: numeric.txt\n        Type: File\n        Size: 5\n Packed size: 5\n       Ratio: 100%\n       mtime: 2019-04-17 22:58:20,000000000\n  Attributes: -rw-r--r--\n       CRC32: 22DB207A\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n  Unix owner: #9999:#8888\n\n"
+  },
+  "test_read_format_rar5_owner_name_toolong.rar": {
+   "size": 47,
+   "ltExitCode": 1,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "a",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0",
+     "checksum": null,
+     "password": null
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_owner_name_toolong.rar\nDetails: RAR 5\n\n        Name: a\n        Type: Directory\n  Attributes: -----w----\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n  Unix owner: :\n\n"
+  },
+  "test_read_format_rar5_readtables_overflow.rar": {
+   "size": 524,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_readtables_overflow.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_redir_overflow.rar": {
+   "size": 100,
+   "ltExitCode": 1,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_redir_overflow.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_redir_varint_2byte.rar": {
+   "size": 183,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "link.txt",
+     "ltType": "Unix symbolic link",
+     "size": 0,
+     "packedSize": 0,
+     "ratio": "0%",
+     "flags": null,
+     "target": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "version": null,
+     "compression": "RAR 5.0(v0) -m0 -md=0g",
+     "checksum": null,
+     "password": null
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_redir_varint_2byte.rar\nDetails: RAR 5\n\n        Name: link.txt\n        Type: Unix symbolic link\n      Target: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n  Attributes: ----------\n     Host OS: Unix\n Compression: RAR 5.0(v0) -m0 -md=0g\n\n"
+  },
+  "test_read_format_rar5_sfx.exe": {
+   "size": 317007,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, SFX",
+   "entries": [
+    {
+     "name": "test.txt.txt",
+     "ltType": "File",
+     "size": 3,
+     "packedSize": 3,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "884863D2"
+     ],
+     "password": null,
+     "sha256": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_sfx.exe\nDetails: RAR 5, SFX\n\n        Name: test.txt.txt\n        Type: File\n        Size: 3\n Packed size: 3\n       Ratio: 100%\n       mtime: 2021-10-04 10:53:33,071854000\n  Attributes: ..A....\n       CRC32: 884863D2\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+  },
+  "test_read_format_rar5_skip_block_extra_bytes.rar": {
+   "size": 124,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "helloworld.txt",
+     "ltType": "File",
+     "size": 29,
+     "packedSize": 29,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "95A043B4"
+     ],
+     "password": null,
+     "sha256": "fef9ad8cf601b43f76c6320075f62267c6e5c0a526d750a70b80c919a4a0aad8"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_skip_block_extra_bytes.rar\nDetails: RAR 5\n\n        Name: helloworld.txt\n        Type: File\n        Size: 29\n Packed size: 29\n       Ratio: 100%\n       mtime: 2018-09-26 06:43:42,437184854\n  Attributes: -rw-r--r--\n       CRC32: 95A043B4\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+  },
+  "test_read_format_rar5_solid.rar": {
+   "size": 1050,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, solid",
+   "entries": [
+    {
+     "name": "test.bin",
+     "ltType": "File",
+     "size": 1200,
+     "packedSize": 423,
+     "ratio": "35%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "7CCA70CD"
+     ],
+     "password": null,
+     "sha256": "588870a2dade35c2650fbb7898c9a9c7f21fce7c281198604e8d0c9737f2c375"
+    },
+    {
+     "name": "test1.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 129,
+     "ratio": "3%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "7E13B2C6"
+     ],
+     "password": null,
+     "sha256": "7d89f86f9f69d744ffff3fc043e15bf89fc3ffc134ffcbb31d164a99bb8b67b0"
+    },
+    {
+     "name": "test2.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 24,
+     "ratio": "0%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "F166AFCB"
+     ],
+     "password": null,
+     "sha256": "f81e6fceeeab366306b23466bf6bb3aac2875e0906dc20a8652be0696ceb15a2"
+    },
+    {
+     "name": "test3.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 41,
+     "ratio": "1%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "9FB123D9"
+     ],
+     "password": null,
+     "sha256": "5e621f2b6ce8fed758c3df8221f994eda55d1e432c7cc4349c34a30ec2e1c43d"
+    },
+    {
+     "name": "test4.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 24,
+     "ratio": "0%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "10C43ED4"
+     ],
+     "password": null,
+     "sha256": "2627f40180217252956edb9a426e8d3e344adaf89019d3bccbe04f6c3416dcdd"
+    },
+    {
+     "name": "test5.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 46,
+     "ratio": "1%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "B9D155F2"
+     ],
+     "password": null,
+     "sha256": "b0622b648b174abd9c5f3965155bbcc82c642f997ab8949add0a8632bf94e636"
+    },
+    {
+     "name": "test6.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 24,
+     "ratio": "0%",
+     "flags": "solid",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m5 -md=1m",
+     "checksum": [
+      "CRC32",
+      "36A448FF"
+     ],
+     "password": null,
+     "sha256": "0b79ce23670b7c2e5a0d4b62f0de7b0c745522be9ed6a9ec70da6991c2f010f2"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_solid.rar\nDetails: RAR 5, solid\n\n        Name: test.bin\n        Type: File\n        Size: 1200\n Packed size: 423\n       Ratio: 35%\n       mtime: 2018-09-27 06:07:39,514660600\n  Attributes: -rw-r--r--\n       CRC32: 7CCA70CD\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n\n        Name: test1.bin\n        Type: File\n        Size: 4096\n Packed size: 129\n       Ratio: 3%\n       mtime: 2018-09-27 06:41:11,278813210\n  Attributes: -rw-r--r--\n       CRC32: 7E13B2C6\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test2.bin\n        Type: File\n        Size: 4096\n Packed size: 24\n       Ratio: 0%\n       mtime: 2018-09-27 06:41:30,393434157\n  Attributes: -rw-r--r--\n       CRC32: F166AFCB\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test3.bin\n        Type: File\n        Size: 4096\n Packed size: 41\n       Ratio: 1%\n       mtime: 2018-09-27 06:41:34,050347472\n  Attributes: -rw-r--r--\n       CRC32: 9FB123D9\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test4.bin\n        Type: File\n        Size: 4096\n Packed size: 24\n       Ratio: 0%\n       mtime: 2018-09-27 06:41:37,303900321\n  Attributes: -rw-r--r--\n       CRC32: 10C43ED4\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test5.bin\n        Type: File\n        Size: 4096\n Packed size: 46\n       Ratio: 1%\n       mtime: 2018-09-27 07:15:08,273011739\n  Attributes: -rw-r--r--\n       CRC32: B9D155F2\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n        Name: test6.bin\n        Type: File\n        Size: 4096\n Packed size: 24\n       Ratio: 0%\n       mtime: 2018-09-27 07:15:11,399806267\n  Attributes: -rw-r--r--\n       CRC32: 36A448FF\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m5 -md=1m\n       Flags: solid \n\n"
+  },
+  "test_read_format_rar5_solid_encrypted.rar": {
+   "size": 475,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, solid",
+   "entries": [
+    {
+     "name": "a.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 48,
+     "ratio": "266%",
+     "flags": "encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=32m",
+     "checksum": [
+      "CRC32",
+      "EE5A6E55"
+     ],
+     "password": "password",
+     "sha256": "02dc86d8b326a1cd07526f75b66bb7207c43376b21d9ac2c20bfedf510898861"
+    },
+    {
+     "name": "b.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 16,
+     "ratio": "88%",
+     "flags": "solid encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=32m",
+     "checksum": [
+      "CRC32 MAC",
+      "63B5FB3D"
+     ],
+     "password": "password",
+     "sha256": "7ff61dd11ab812fc7f28f4f3b2e2ddf482148942a10ee079ac19295076ff741e"
+    },
+    {
+     "name": "c.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 16,
+     "ratio": "88%",
+     "flags": "solid encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=32m",
+     "checksum": [
+      "CRC32 MAC",
+      "869C27FF"
+     ],
+     "password": "password",
+     "sha256": "0b8a3f12dc4e493b99fb5e0699c96006b51b05c0461c2e048f25d86a50a58eb8"
+    },
+    {
+     "name": "d.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 16,
+     "ratio": "88%",
+     "flags": "solid encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=32m",
+     "checksum": [
+      "CRC32 MAC",
+      "C374177B"
+     ],
+     "password": "password",
+     "sha256": "7e57320eb71e376207695ee851ed2f339cb2000fa3359a19de4c494b472699e1"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_solid_encrypted.rar\nDetails: RAR 5, solid\n\n        Name: a.txt\n        Type: File\n        Size: 18\n Packed size: 48\n       Ratio: 266%\n       mtime: 2024-03-22 18:59:09,178918000\n  Attributes: ..A....\n       CRC32: EE5A6E55\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=32m\n       Flags: encrypted \n\n        Name: b.txt\n        Type: File\n        Size: 18\n Packed size: 16\n       Ratio: 88%\n       mtime: 2024-03-22 18:59:14,344894600\n  Attributes: ..A....\n   CRC32 MAC: 63B5FB3D\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=32m\n       Flags: solid encrypted \n\n        Name: c.txt\n        Type: File\n        Size: 18\n Packed size: 16\n       Ratio: 88%\n       mtime: 2024-03-22 18:59:28,296761400\n  Attributes: ..A....\n   CRC32 MAC: 869C27FF\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=32m\n       Flags: solid encrypted \n\n        Name: d.txt\n        Type: File\n        Size: 18\n Packed size: 16\n       Ratio: 88%\n       mtime: 2024-03-22 20:34:27,939673100\n  Attributes: ..A....\n   CRC32 MAC: C374177B\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=32m\n       Flags: solid encrypted \n\n"
+  },
+  "test_read_format_rar5_solid_encrypted_filenames.rar": {
+   "size": 654,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5, solid, encrypted headers",
+   "entries": [
+    {
+     "name": "a.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 48,
+     "ratio": "266%",
+     "flags": "encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=32m",
+     "checksum": [
+      "CRC32",
+      "EE5A6E55"
+     ],
+     "password": "password",
+     "sha256": "02dc86d8b326a1cd07526f75b66bb7207c43376b21d9ac2c20bfedf510898861"
+    },
+    {
+     "name": "b.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 16,
+     "ratio": "88%",
+     "flags": "solid encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=32m",
+     "checksum": [
+      "CRC32",
+      "A9FA1485"
+     ],
+     "password": "password",
+     "sha256": "7ff61dd11ab812fc7f28f4f3b2e2ddf482148942a10ee079ac19295076ff741e"
+    },
+    {
+     "name": "c.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 16,
+     "ratio": "88%",
+     "flags": "solid encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=32m",
+     "checksum": [
+      "CRC32",
+      "949A3D35"
+     ],
+     "password": "password",
+     "sha256": "0b8a3f12dc4e493b99fb5e0699c96006b51b05c0461c2e048f25d86a50a58eb8"
+    },
+    {
+     "name": "d.txt",
+     "ltType": "File",
+     "size": 18,
+     "packedSize": 16,
+     "ratio": "88%",
+     "flags": "solid encrypted",
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=32m",
+     "checksum": [
+      "CRC32",
+      "26BAE125"
+     ],
+     "password": "password",
+     "sha256": "7e57320eb71e376207695ee851ed2f339cb2000fa3359a19de4c494b472699e1"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_solid_encrypted_filenames.rar\nDetails: RAR 5, solid, encrypted headers\n\n        Name: a.txt\n        Type: File\n        Size: 18\n Packed size: 48\n       Ratio: 266%\n       mtime: 2024-03-22 18:59:09,178918000\n  Attributes: ..A....\n       CRC32: EE5A6E55\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=32m\n       Flags: encrypted \n\n        Name: b.txt\n        Type: File\n        Size: 18\n Packed size: 16\n       Ratio: 88%\n       mtime: 2024-03-22 18:59:14,344894600\n  Attributes: ..A....\n       CRC32: A9FA1485\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=32m\n       Flags: solid encrypted \n\n        Name: c.txt\n        Type: File\n        Size: 18\n Packed size: 16\n       Ratio: 88%\n       mtime: 2024-03-22 18:59:28,296761400\n  Attributes: ..A....\n       CRC32: 949A3D35\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=32m\n       Flags: solid encrypted \n\n        Name: d.txt\n        Type: File\n        Size: 18\n Packed size: 16\n       Ratio: 88%\n       mtime: 2024-03-22 20:34:27,939673100\n  Attributes: ..A....\n       CRC32: 26BAE125\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=32m\n       Flags: solid encrypted \n\n"
+  },
+  "test_read_format_rar5_stored.rar": {
+   "size": 109,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "helloworld.txt",
+     "ltType": "File",
+     "size": 29,
+     "packedSize": 29,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "95A043B4"
+     ],
+     "password": null,
+     "sha256": "fef9ad8cf601b43f76c6320075f62267c6e5c0a526d750a70b80c919a4a0aad8"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_stored.rar\nDetails: RAR 5\n\n        Name: helloworld.txt\n        Type: File\n        Size: 29\n Packed size: 29\n       Ratio: 100%\n       mtime: 2018-09-26 06:43:42,437184854\n  Attributes: -rw-r--r--\n       CRC32: 95A043B4\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+  },
+  "test_read_format_rar5_stored_manyfiles.rar": {
+   "size": 2586,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "make_uue.tcl",
+     "ltType": "File",
+     "size": 405,
+     "packedSize": 405,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "49478ADC"
+     ],
+     "password": null,
+     "sha256": "41f7ec23f892c8d4f18f72b01c8748572514475a902d818b92af048c3cb87422"
+    },
+    {
+     "name": "cebula.txt",
+     "ltType": "File",
+     "size": 814,
+     "packedSize": 814,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "7E5EC49E"
+     ],
+     "password": null,
+     "sha256": "1e98540238b2b13d1a22f4f4fa8e2eb6c66e24d46115ffdfafd3f3f981b212e7"
+    },
+    {
+     "name": "test.bin",
+     "ltType": "File",
+     "size": 1200,
+     "packedSize": 1200,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "7CCA70CD"
+     ],
+     "password": null,
+     "sha256": "588870a2dade35c2650fbb7898c9a9c7f21fce7c281198604e8d0c9737f2c375"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_stored_manyfiles.rar\nDetails: RAR 5\n\n        Name: make_uue.tcl\n        Type: File\n        Size: 405\n Packed size: 405\n       Ratio: 100%\n       mtime: 2018-09-29 09:16:30,457150977\n  Attributes: -rwxr-xr-x\n       CRC32: 49478ADC\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: cebula.txt\n        Type: File\n        Size: 814\n Packed size: 814\n       Ratio: 100%\n       mtime: 2018-09-30 08:53:12,741864838\n  Attributes: -rw-r--r--\n       CRC32: 7E5EC49E\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: test.bin\n        Type: File\n        Size: 1200\n Packed size: 1200\n       Ratio: 100%\n       mtime: 2018-09-27 06:07:39,514660600\n  Attributes: -rw-r--r--\n       CRC32: 7CCA70CD\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+  },
+  "test_read_format_rar5_symlink.rar": {
+   "size": 190,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "file.txt",
+     "ltType": "File",
+     "size": 5,
+     "packedSize": 5,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=32m",
+     "checksum": [
+      "CRC32",
+      "7D931721"
+     ],
+     "password": null,
+     "sha256": "a883dafc480d466ee04e0d6da986bd78eb1fdd2178d04693723da3a8f95d42f4"
+    },
+    {
+     "name": "symlink.txt",
+     "ltType": "Unix symbolic link",
+     "size": 8,
+     "packedSize": 0,
+     "ratio": "0%",
+     "flags": null,
+     "target": "file.txt",
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=32m",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    },
+    {
+     "name": "dirlink",
+     "ltType": "Unix symbolic link",
+     "size": 3,
+     "packedSize": 0,
+     "ratio": "0%",
+     "flags": null,
+     "target": "dir",
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=32m",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    },
+    {
+     "name": "dir",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_symlink.rar\nDetails: RAR 5\n\n        Name: file.txt\n        Type: File\n        Size: 5\n Packed size: 5\n       Ratio: 100%\n       mtime: 2019-04-17 22:31:52,000000000\n  Attributes: -rw-r--r--\n       CRC32: 7D931721\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=32m\n\n        Name: symlink.txt\n        Type: Unix symbolic link\n      Target: file.txt\n        Size: 8\n Packed size: 0\n       Ratio: 0%\n       mtime: 2019-04-17 22:32:23,000000000\n  Attributes: lrwxr-xr-x\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=32m\n\n        Name: dirlink\n        Type: Unix symbolic link\n      Target: dir\n        Size: 3\n Packed size: 0\n       Ratio: 0%\n       mtime: 2019-04-17 23:10:33,000000000\n  Attributes: lrwxr-xr-x\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=32m\n\n        Name: dir\n        Type: Directory\n       mtime: 2019-04-17 23:10:30,000000000\n  Attributes: drwxr-xr-x\n       CRC32: 00000000\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0\n\n"
+  },
+  "test_read_format_rar5_truncated_huff.rar": {
+   "size": 160,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_truncated_huff.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_unicode.rar": {
+   "size": 269,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "👋🌎.txt",
+     "ltType": "File",
+     "size": 13,
+     "packedSize": 13,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "EBE6C6E6"
+     ],
+     "password": null,
+     "sha256": "315f5bdb76d078c43b8ac0064e4a0164612b1fce77c869345bfc94c75894edd3"
+    },
+    {
+     "name": "Ⓗⓐⓡⓓ Ⓛⓘⓝⓚ.txt",
+     "ltType": "Hard link",
+     "size": 13,
+     "packedSize": 0,
+     "ratio": "0%",
+     "flags": null,
+     "target": "👋🌎.txt",
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    },
+    {
+     "name": "𝒮𝓎𝓂𝒷𝑜𝓁𝒾𝒸 𝐿𝒾𝓃𝓀.txt",
+     "ltType": "Windows symbolic link",
+     "size": 0,
+     "packedSize": 0,
+     "ratio": "0%",
+     "flags": null,
+     "target": "👋🌎.txt",
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_unicode.rar\nDetails: RAR 5\n\n        Name: 👋🌎.txt\n        Type: File\n        Size: 13\n Packed size: 13\n       Ratio: 100%\n       mtime: 2023-09-20 20:43:24,949331800\n  Attributes: ..A....\n       CRC32: EBE6C6E6\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: Ⓗⓐⓡⓓ Ⓛⓘⓝⓚ.txt\n        Type: Hard link\n      Target: 👋🌎.txt\n        Size: 13\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-09-20 20:43:24,949331800\n  Attributes: ..A....\n       CRC32: 00000000\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: 𝒮𝓎𝓂𝒷𝑜𝓁𝒾𝒸 𝐿𝒾𝓃𝓀.txt\n        Type: Windows symbolic link\n      Target: 👋🌎.txt\n        Size: 0\n Packed size: 0\n       Ratio: 0%\n       mtime: 2023-09-20 22:54:16,698371000\n  Attributes: ..A....\n       CRC32: 00000000\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+  },
+  "test_read_format_rar5_unpacked_size_exceeds_declared.rar": {
+   "size": 297,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_unpacked_size_exceeds_declared.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_unsupported_exfld.rar": {
+   "size": 121,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "file.txt",
+     "ltType": "File",
+     "size": 48,
+     "packedSize": 48,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "B4EB162E"
+     ],
+     "password": null,
+     "sha256": "33c11d06a2a1e3f04c0671c9921ade320f0e4ae552ac475c0aeb1d5bf7b0764d"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_unsupported_exfld.rar\nDetails: RAR 5\n\n        Name: file.txt\n        Type: File\n        Size: 48\n Packed size: 48\n       Ratio: 100%\n  Attributes: -rwxr-xr-x\n       CRC32: B4EB162E\n     Host OS: Unix\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n"
+  },
+  "test_read_format_rar5_win32.rar": {
+   "size": 2968,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "testdir",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0",
+     "checksum": [
+      "CRC32",
+      "00000000"
+     ],
+     "password": null
+    },
+    {
+     "name": "test.bin",
+     "ltType": "File",
+     "size": 1200,
+     "packedSize": 361,
+     "ratio": "30%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "7CCA70CD"
+     ],
+     "password": null,
+     "sha256": "588870a2dade35c2650fbb7898c9a9c7f21fce7c281198604e8d0c9737f2c375"
+    },
+    {
+     "name": "test1.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 363,
+     "ratio": "8%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "7E13B2C6"
+     ],
+     "password": null,
+     "sha256": "7d89f86f9f69d744ffff3fc043e15bf89fc3ffc134ffcbb31d164a99bb8b67b0"
+    },
+    {
+     "name": "test2.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 363,
+     "ratio": "8%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "F166AFCB"
+     ],
+     "password": null,
+     "sha256": "f81e6fceeeab366306b23466bf6bb3aac2875e0906dc20a8652be0696ceb15a2"
+    },
+    {
+     "name": "test3.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 375,
+     "ratio": "9%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "9FB123D9"
+     ],
+     "password": null,
+     "sha256": "5e621f2b6ce8fed758c3df8221f994eda55d1e432c7cc4349c34a30ec2e1c43d"
+    },
+    {
+     "name": "test4.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 375,
+     "ratio": "9%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "10C43ED4"
+     ],
+     "password": null,
+     "sha256": "2627f40180217252956edb9a426e8d3e344adaf89019d3bccbe04f6c3416dcdd"
+    },
+    {
+     "name": "test5.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 384,
+     "ratio": "9%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "B9D155F2"
+     ],
+     "password": null,
+     "sha256": "b0622b648b174abd9c5f3965155bbcc82c642f997ab8949add0a8632bf94e636"
+    },
+    {
+     "name": "test6.bin",
+     "ltType": "File",
+     "size": 4096,
+     "packedSize": 384,
+     "ratio": "9%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m3 -md=128k",
+     "checksum": [
+      "CRC32",
+      "36A448FF"
+     ],
+     "password": null,
+     "sha256": "0b79ce23670b7c2e5a0d4b62f0de7b0c745522be9ed6a9ec70da6991c2f010f2"
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_win32.rar\nDetails: RAR 5\n\n        Name: testdir\n        Type: Directory\n       mtime: 2019-05-03 10:33:02,089813400\n  Attributes: ...D...\n       CRC32: 00000000\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0\n\n        Name: test.bin\n        Type: File\n        Size: 1200\n Packed size: 361\n       Ratio: 30%\n       mtime: 2018-10-02 07:05:15,410975600\n  Attributes: ..A....\n       CRC32: 7CCA70CD\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: test1.bin\n        Type: File\n        Size: 4096\n Packed size: 363\n       Ratio: 8%\n       mtime: 2018-10-02 07:05:13,973480200\n  Attributes: ..A....\n       CRC32: 7E13B2C6\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: test2.bin\n        Type: File\n        Size: 4096\n Packed size: 363\n       Ratio: 8%\n       mtime: 2018-10-02 07:05:14,192243600\n  Attributes: ..A...R\n       CRC32: F166AFCB\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: test3.bin\n        Type: File\n        Size: 4096\n Packed size: 375\n       Ratio: 9%\n       mtime: 2018-10-02 07:05:14,378867600\n  Attributes: ..A....\n       CRC32: 9FB123D9\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: test4.bin\n        Type: File\n        Size: 4096\n Packed size: 375\n       Ratio: 9%\n       mtime: 2018-10-02 07:05:14,759680200\n  Attributes: ..A....\n       CRC32: 10C43ED4\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: test5.bin\n        Type: File\n        Size: 4096\n Packed size: 384\n       Ratio: 9%\n       mtime: 2018-10-02 07:05:15,067293800\n  Attributes: ..A....\n       CRC32: B9D155F2\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n        Name: test6.bin\n        Type: File\n        Size: 4096\n Packed size: 384\n       Ratio: 9%\n       mtime: 2018-10-02 07:05:15,270299700\n  Attributes: ..A....\n       CRC32: 36A448FF\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m3 -md=128k\n\n"
+  },
+  "test_read_format_rar5_window_buf_and_size_desync.rar": {
+   "size": 357,
+   "ltExitCode": 3,
+   "extractExitOk": false,
+   "details": "RAR 5",
+   "entries": [],
+   "rarLt": "\nArchive: test_read_format_rar5_window_buf_and_size_desync.rar\nDetails: RAR 5\n\n"
+  },
+  "test_read_format_rar5_zip_in_rar.rar": {
+   "size": 356,
+   "ltExitCode": 0,
+   "extractExitOk": true,
+   "details": "RAR 5",
+   "entries": [
+    {
+     "name": "payload/inner.zip",
+     "ltType": "File",
+     "size": 165,
+     "packedSize": 165,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "8571E12E"
+     ],
+     "password": null,
+     "sha256": "98bc6fa21849be095380e778f92677d81a04dca604ba38ae1d7393dae0fb8b17"
+    },
+    {
+     "name": "payload/real_after.txt",
+     "ltType": "File",
+     "size": 21,
+     "packedSize": 21,
+     "ratio": "100%",
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0 -md=128k",
+     "checksum": [
+      "CRC32",
+      "F64DA62E"
+     ],
+     "password": null,
+     "sha256": "c70b2aeb60e6e3759a38ce3f2c8b2fb36e522d040b94967f4aa51cb5d96327b1"
+    },
+    {
+     "name": "payload",
+     "ltType": "Directory",
+     "size": null,
+     "packedSize": null,
+     "ratio": null,
+     "flags": null,
+     "target": null,
+     "version": null,
+     "compression": "RAR 5.0(v50) -m0",
+     "checksum": null,
+     "password": null
+    }
+   ],
+   "rarLt": "\nArchive: test_read_format_rar5_zip_in_rar.rar\nDetails: RAR 5\n\n        Name: payload/inner.zip\n        Type: File\n        Size: 165\n Packed size: 165\n       Ratio: 100%\n       mtime: 2026-08-21 11:01:49,790686300\n  Attributes: ..A....\n       CRC32: 8571E12E\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: payload/real_after.txt\n        Type: File\n        Size: 21\n Packed size: 21\n       Ratio: 100%\n       mtime: 2026-08-21 11:01:49,793708400\n  Attributes: ..A....\n       CRC32: F64DA62E\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0 -md=128k\n\n        Name: payload\n        Type: Directory\n       mtime: 2026-08-21 11:01:49,793202700\n  Attributes: ...D...\n     Host OS: Windows\n Compression: RAR 5.0(v50) -m0\n\n"
+  }
+ }
+}

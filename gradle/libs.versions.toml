@@ -67,6 +67,7 @@ robolectric = "4.16.1"
 arch-core-testing = "1.1.1"
 testcontainers = "2.0.5"
 sshd = "2.19.0"
+jazzer = "0.30.0"
 # Testing (app-common-test pins newer versions; align via Dependabot later)
 jupiter-ct = "5.13.0"
 kotest-ct = "5.9.1"
@@ -213,6 +214,7 @@ testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
 sshd-core = { module = "org.apache.sshd:sshd-core", version.ref = "sshd" }
 sshd-sftp = { module = "org.apache.sshd:sshd-sftp", version.ref = "sshd" }
+jazzer-junit = { module = "com.code-intelligence:jazzer-junit", version.ref = "jazzer" }
 # Testing (app-common-test pinned versions)
 junit-vintage-engine-ct = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "jupiter-ct" }
 jupiter-engine-ct = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "jupiter-ct" }
