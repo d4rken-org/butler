@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">উন্নত ওয়াইল্ডকার্ড মিল</string>
     <string name="explorer_settings_filter_regex_desc">অন্তর্ভুক্তি/বর্জন ফিল্টারে রেগেক্স প্যাটার্ন ব্যবহার করুন।</string>
     <string name="explorer_settings_navigation">নেভিগেশন</string>
+    <string name="explorer_settings_start_location_title">শুরুর অবস্থান</string>
+    <string name="explorer_settings_start_location_desc">নতুন এক্সপ্লোরার ট্যাব কোথায় খুলবে</string>
+    <string name="explorer_settings_start_location_home_default">হোম (ডিফল্ট)</string>
+    <string name="explorer_settings_start_location_folder_label">ফোল্ডার</string>
+    <string name="explorer_settings_start_location_choose_folder_action">ফোল্ডার বেছে নিন…</string>
     <string name="explorer_settings_back_button_title">পেছনের বোতামের নেভিগেশন</string>
     <string name="explorer_settings_back_button_desc">পেছনের বোতাম/ভঙ্গি দিয়ে ইতিহাসে চলাচল করুন।</string>
     <string name="explorer_settings_trash_category">ট্র্যাশ</string>
@@ -182,7 +187,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">হোম</string>
-    <string name="explorer_breadcrumb_set_as_home_action">হোম হিসেবে নির্ধারণ করুন</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">শুরুর অবস্থান হিসেবে সেট করুন</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">নতুন ট্যাব এখানে খুলবে</string>
     <string name="explorer_breadcrumb_copy_path_action">পাথ কপি করুন</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">পাথ ক্লিপবোর্ডে কপি হয়েছে</string>
     <string name="explorer_navigation_device">ডিভাইস</string>

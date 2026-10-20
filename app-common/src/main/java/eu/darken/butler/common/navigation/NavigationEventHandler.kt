@@ -30,6 +30,7 @@ fun NavigationEventHandler(vararg sources: NavigationEventSource) {
                     )
                     is NavEvent.GoToSingleTop -> navController.goToSingleTop(event.destination)
                     is NavEvent.Up -> navController.up()
+                    is NavEvent.Dismiss -> navController.dismiss(event.destination)
                     is NavEvent.Finish -> {
                         log(TAG) { "Finish event received, closing activity" }
                         activity?.finish()

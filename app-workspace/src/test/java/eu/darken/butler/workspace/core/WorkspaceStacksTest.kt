@@ -19,12 +19,14 @@ class WorkspaceStacksTest : BaseTest() {
         id: Workspace.Id = Workspace.Id(),
         caller: Workspace.Id? = null,
         presentation: Workspace.ModalPresentationMode = Workspace.ModalPresentationMode.PANE_LOCAL,
+        hosted: Boolean = false,
     ) = Workspace.Info(
         id = id,
         type = Workspace.Type.EXPLORER,
         title = "Workspace ${id.shortTag}".toCaString(),
         callerWorkspaceId = caller,
         modalPresentation = presentation,
+        isHosted = hosted,
     )
 
     @Test
@@ -279,5 +281,72 @@ class WorkspaceStacksTest : BaseTest() {
             it.fullScreen shouldBe null
             it.paneLocal shouldBe emptyMap()
         }
+    }
+
+    @Test
+    fun `a hosted picker and what it opens form a hosted unit, not a recovery unit`() {
+        val tab = Workspace.Id()
+        val host = Workspace.Id()
+        val picker = Workspace.Id()
+        val keyPicker = Workspace.Id()
+        val stacks = WorkspaceStacks(
+            listOf(
+                info(tab),
+                info(picker, caller = host, hosted = true),
+                info(keyPicker, caller = picker),
+            ),
+        )
+
+        stacks.hostedRootOf(picker)?.id shouldBe picker
+        stacks.hostedRootOf(keyPicker)?.id shouldBe picker
+        stacks.hostedRootOf(tab) shouldBe null
+        stacks.hostedUnits.keys shouldContainExactly listOf(picker)
+        stacks.hostedUnits.getValue(picker).map { it.id } shouldContainExactly listOf(picker, keyPicker)
+
+        stacks.recoveryUnits shouldBe emptyMap()
+        stacks.unitOwners.map { it.id } shouldContainExactly listOf(tab)
+        stacks.chains shouldBe emptyList()
+        stacks.ownerOf(keyPicker) shouldBe picker
+    }
+
+    @Test
+    fun `an orphan without the hosted flag is still recovered`() {
+        val orphan = Workspace.Id()
+        val stacks = WorkspaceStacks(listOf(info(orphan, caller = Workspace.Id())))
+
+        stacks.hostedUnits shouldBe emptyMap()
+        stacks.recoveryUnits.keys shouldContainExactly listOf(orphan)
+    }
+
+    @Test
+    fun `the hosted flag below a tab does not detach the chain from it`() {
+        val tab = Workspace.Id()
+        val child = Workspace.Id()
+        val stacks = WorkspaceStacks(listOf(info(tab), info(child, caller = tab, hosted = true)))
+
+        stacks.hostedRootOf(child) shouldBe null
+        stacks.rootOf(child)?.id shouldBe tab
+    }
+
+    @Test
+    fun `hostedLeafOf shows the newest picker the hosted one opened, else the hosted one`() {
+        val picker = Workspace.Id()
+        val older = Workspace.Id()
+        val newer = Workspace.Id()
+        val host = Workspace.Id()
+
+        WorkspaceStacks(listOf(info(picker, caller = host, hosted = true)))
+            .hostedLeafOf(picker)?.id shouldBe picker
+
+        WorkspaceStacks(
+            listOf(
+                info(picker, caller = host, hosted = true),
+                info(older, caller = picker),
+                info(newer, caller = picker),
+            ),
+        ).hostedLeafOf(picker)?.id shouldBe newer
+
+        WorkspaceStacks(listOf(info(picker, caller = host, hosted = true), info(older, caller = picker)))
+            .hostedLeafOf(older) shouldBe null
     }
 }

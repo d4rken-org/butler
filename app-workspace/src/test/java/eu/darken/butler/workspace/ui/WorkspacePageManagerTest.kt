@@ -71,12 +71,39 @@ class WorkspacePageManagerTest : BaseTest() {
         id: Workspace.Id = Workspace.Id(),
         type: Workspace.Type = Workspace.Type.EXPLORER,
         callerWorkspaceId: Workspace.Id? = null,
+        isHosted: Boolean = false,
     ) = Workspace.Info(
         id = id,
         type = type,
         title = "Workspace ${id.shortTag}".toCaString(),
         callerWorkspaceId = callerWorkspaceId,
+        isHosted = isHosted,
     )
+
+    @Test
+    fun `selecting a hosted picker leaves focus and panes alone`() = runTest {
+        val tab = Workspace.Id()
+        val hosted = Workspace.Id()
+        val keyPicker = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = tab),
+                createWorkspaceInfo(id = hosted, callerWorkspaceId = Workspace.Id(), isHosted = true),
+                createWorkspaceInfo(id = keyPicker, callerWorkspaceId = hosted),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(tab)
+        val before = pageManager.state.value
+
+        pageManager.handleWorkspaceSelection(hosted)
+        pageManager.handleWorkspaceSelection(keyPicker)
+
+        pageManager.state.value.focusedWorkspaceId shouldBe tab
+        pageManager.state.value.selectedWorkspaces shouldBe before.selectedWorkspaces
+    }
 
     @Test
     fun `sub-workspace selection only updates focus without modifying pane selections`() = runTest {

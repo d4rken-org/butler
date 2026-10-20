@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Разширено съпоставяне със заместващи символи</string>
     <string name="explorer_settings_filter_regex_desc">Използвай регулярни изрази във филтрите за включване и изключване.</string>
     <string name="explorer_settings_navigation">Навигация</string>
+    <string name="explorer_settings_start_location_title">Начално местоположение</string>
+    <string name="explorer_settings_start_location_desc">Къде се отварят новите раздели на файловия мениджър</string>
+    <string name="explorer_settings_start_location_home_default">Начало (по подразбиране)</string>
+    <string name="explorer_settings_start_location_folder_label">Папка</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Избери папка…</string>
     <string name="explorer_settings_back_button_title">Навигация с бутона „Назад“</string>
     <string name="explorer_settings_back_button_desc">Преминавай през историята с бутона или жеста за връщане назад.</string>
     <string name="explorer_settings_trash_category">Кошче</string>
@@ -179,7 +184,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Начало</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Задай като начало</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Задай като начално местоположение</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Новите раздели ще се отварят тук</string>
     <string name="explorer_breadcrumb_copy_path_action">Копирай пътя</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Пътят е копиран в клипборда</string>
     <string name="explorer_navigation_device">Устройство</string>

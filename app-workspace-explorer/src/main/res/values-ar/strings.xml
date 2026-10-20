@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">مطابقة متقدمة بأحرف البدل</string>
     <string name="explorer_settings_filter_regex_desc">استخدم التعابير النمطية في مرشحات التضمين والاستبعاد.</string>
     <string name="explorer_settings_navigation">التنقل</string>
+    <string name="explorer_settings_start_location_title">موقع البدء</string>
+    <string name="explorer_settings_start_location_desc">مكان فتح علامات تبويب المستكشف الجديدة</string>
+    <string name="explorer_settings_start_location_home_default">الرئيسية (افتراضي)</string>
+    <string name="explorer_settings_start_location_folder_label">مجلد</string>
+    <string name="explorer_settings_start_location_choose_folder_action">اختيار مجلد…</string>
     <string name="explorer_settings_back_button_title">التنقل بزر الرجوع</string>
     <string name="explorer_settings_back_button_desc">التنقل عبر السجل باستخدام زر أو إيماءة الرجوع.</string>
     <string name="explorer_settings_trash_category">سلة المهملات</string>
@@ -193,7 +198,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">الرئيسية</string>
-    <string name="explorer_breadcrumb_set_as_home_action">تعيين كصفحة رئيسية</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">تعيين كموقع البدء</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">ستُفتح علامات التبويب الجديدة هنا</string>
     <string name="explorer_breadcrumb_copy_path_action">نسخ المسار</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">تم نسخ المسار إلى الحافظة</string>
     <string name="explorer_navigation_device">الجهاز</string>

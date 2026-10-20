@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Recherche par caractères génériques avancée</string>
     <string name="explorer_settings_filter_regex_desc">Utiliser des expressions régulières dans les filtres d’inclusion et d’exclusion.</string>
     <string name="explorer_settings_navigation">Navigation</string>
+    <string name="explorer_settings_start_location_title">Emplacement de départ</string>
+    <string name="explorer_settings_start_location_desc">Où s’ouvrent les nouveaux onglets de l’explorateur</string>
+    <string name="explorer_settings_start_location_home_default">Accueil (par défaut)</string>
+    <string name="explorer_settings_start_location_folder_label">Dossier</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Choisir un dossier…</string>
     <string name="explorer_settings_back_button_title">Navigation par le bouton retour</string>
     <string name="explorer_settings_back_button_desc">Naviguer dans l’historique avec le bouton ou le geste retour.</string>
     <string name="explorer_settings_trash_category">Corbeille</string>
@@ -177,7 +182,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Accueil</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Définir comme accueil</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Définir comme emplacement de départ</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Les nouveaux onglets s’ouvriront ici</string>
     <string name="explorer_breadcrumb_copy_path_action">Copier le chemin</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Chemin copié dans le presse-papiers</string>
     <string name="explorer_navigation_device">Appareil</string>

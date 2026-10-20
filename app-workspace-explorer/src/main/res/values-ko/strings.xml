@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">고급 와일드카드 매칭</string>
     <string name="explorer_settings_filter_regex_desc">포함/제외 필터에서 정규식 패턴을 사용합니다.</string>
     <string name="explorer_settings_navigation">탐색</string>
+    <string name="explorer_settings_start_location_title">시작 위치</string>
+    <string name="explorer_settings_start_location_desc">새 탐색기 탭이 열리는 위치</string>
+    <string name="explorer_settings_start_location_home_default">홈 (기본값)</string>
+    <string name="explorer_settings_start_location_folder_label">폴더</string>
+    <string name="explorer_settings_start_location_choose_folder_action">폴더 선택…</string>
     <string name="explorer_settings_back_button_title">뒤로 가기 버튼 탐색</string>
     <string name="explorer_settings_back_button_desc">뒤로 가기 버튼/제스처로 기록을 따라 이동합니다.</string>
     <string name="explorer_settings_trash_category">휴지통</string>
@@ -176,7 +181,8 @@
 
     <!-- 탐색 -->
     <string name="explorer_navigation_home">홈</string>
-    <string name="explorer_breadcrumb_set_as_home_action">홈으로 설정</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">시작 위치로 설정</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">새 탭이 여기에서 열려요</string>
     <string name="explorer_breadcrumb_copy_path_action">경로 복사</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">경로를 클립보드에 복사했습니다</string>
     <string name="explorer_navigation_device">기기</string>

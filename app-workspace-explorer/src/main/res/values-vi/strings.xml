@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Khớp ký tự đại diện nâng cao</string>
     <string name="explorer_settings_filter_regex_desc">Sử dụng biểu thức chính quy (regex) trong bộ lọc bao gồm/loại trừ.</string>
     <string name="explorer_settings_navigation">Điều hướng</string>
+    <string name="explorer_settings_start_location_title">Vị trí bắt đầu</string>
+    <string name="explorer_settings_start_location_desc">Nơi mở các thẻ mới của Trình duyệt tệp</string>
+    <string name="explorer_settings_start_location_home_default">Trang chủ (mặc định)</string>
+    <string name="explorer_settings_start_location_folder_label">Thư mục</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Chọn thư mục…</string>
     <string name="explorer_settings_back_button_title">Điều hướng bằng nút quay lại</string>
     <string name="explorer_settings_back_button_desc">Di chuyển qua lịch sử bằng nút quay lại/cử chỉ quay lại.</string>
     <string name="explorer_settings_trash_category">Thùng rác</string>
@@ -176,7 +181,8 @@
 
     <!-- Điều hướng -->
     <string name="explorer_navigation_home">Trang chủ</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Đặt làm trang chủ</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Đặt làm vị trí bắt đầu</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Các thẻ mới sẽ mở tại đây</string>
     <string name="explorer_breadcrumb_copy_path_action">Sao chép đường dẫn</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Đã sao chép đường dẫn vào bộ nhớ tạm</string>
     <string name="explorer_navigation_device">Thiết bị</string>

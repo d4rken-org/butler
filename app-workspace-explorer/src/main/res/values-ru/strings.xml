@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Расширенное сопоставление с шаблоном</string>
     <string name="explorer_settings_filter_regex_desc">Использовать регулярные выражения в фильтрах включения/исключения.</string>
     <string name="explorer_settings_navigation">Навигация</string>
+    <string name="explorer_settings_start_location_title">Начальное расположение</string>
+    <string name="explorer_settings_start_location_desc">Где открываются новые вкладки проводника</string>
+    <string name="explorer_settings_start_location_home_default">Главная (по умолчанию)</string>
+    <string name="explorer_settings_start_location_folder_label">Папка</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Выбрать папку…</string>
     <string name="explorer_settings_back_button_title">Навигация кнопкой «Назад»</string>
     <string name="explorer_settings_back_button_desc">Переход по истории с помощью кнопки «Назад» или жеста.</string>
     <string name="explorer_settings_trash_category">Корзина</string>
@@ -187,7 +192,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Главная</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Сделать главной</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Сделать начальным расположением</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Новые вкладки будут открываться здесь</string>
     <string name="explorer_breadcrumb_copy_path_action">Скопировать путь</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Путь скопирован в буфер обмена</string>
     <string name="explorer_navigation_device">Устройство</string>

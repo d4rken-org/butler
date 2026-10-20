@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">進階萬用字元比對</string>
     <string name="explorer_settings_filter_regex_desc">在包含／排除篩選條件中使用正規表示式。</string>
     <string name="explorer_settings_navigation">導覽</string>
+    <string name="explorer_settings_start_location_title">起始位置</string>
+    <string name="explorer_settings_start_location_desc">新檔案總管分頁的開啟位置</string>
+    <string name="explorer_settings_start_location_home_default">首頁（預設）</string>
+    <string name="explorer_settings_start_location_folder_label">資料夾</string>
+    <string name="explorer_settings_start_location_choose_folder_action">選擇資料夾…</string>
     <string name="explorer_settings_back_button_title">返回鍵導覽</string>
     <string name="explorer_settings_back_button_desc">使用返回鍵／手勢瀏覽歷史記錄。</string>
     <string name="explorer_settings_trash_category">回收桶</string>
@@ -176,7 +181,8 @@
 
     <!-- 導覽 -->
     <string name="explorer_navigation_home">首頁</string>
-    <string name="explorer_breadcrumb_set_as_home_action">設為首頁</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">設為起始位置</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">新分頁將在這裡開啟</string>
     <string name="explorer_breadcrumb_copy_path_action">複製路徑</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">已將路徑複製到剪貼簿</string>
     <string name="explorer_navigation_device">裝置</string>

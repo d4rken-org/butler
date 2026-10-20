@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Corrispondenza avanzata dei caratteri jolly</string>
     <string name="explorer_settings_filter_regex_desc">Usa espressioni regolari nei filtri di inclusione/esclusione.</string>
     <string name="explorer_settings_navigation">Navigazione</string>
+    <string name="explorer_settings_start_location_title">Posizione iniziale</string>
+    <string name="explorer_settings_start_location_desc">Dove si aprono le nuove schede di Explorer</string>
+    <string name="explorer_settings_start_location_home_default">Home (predefinita)</string>
+    <string name="explorer_settings_start_location_folder_label">Cartella</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Scegli cartella…</string>
     <string name="explorer_settings_back_button_title">Navigazione con il pulsante Indietro</string>
     <string name="explorer_settings_back_button_desc">Naviga nella cronologia con il pulsante o il gesto Indietro.</string>
     <string name="explorer_settings_trash_category">Cestino</string>
@@ -179,7 +184,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Home</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Imposta come home</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Imposta come posizione iniziale</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Le nuove schede si apriranno qui</string>
     <string name="explorer_breadcrumb_copy_path_action">Copia percorso</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Percorso copiato negli appunti</string>
     <string name="explorer_navigation_device">Dispositivo</string>

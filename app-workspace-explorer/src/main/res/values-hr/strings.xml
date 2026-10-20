@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Napredno podudaranje zamjenskih znakova</string>
     <string name="explorer_settings_filter_regex_desc">Upotrijebi regularne izraze u filtrima za uključivanje i isključivanje.</string>
     <string name="explorer_settings_navigation">Navigacija</string>
+    <string name="explorer_settings_start_location_title">Početna lokacija</string>
+    <string name="explorer_settings_start_location_desc">Gdje se otvaraju nove kartice preglednika datoteka</string>
+    <string name="explorer_settings_start_location_home_default">Početna (zadano)</string>
+    <string name="explorer_settings_start_location_folder_label">Mapa</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Odaberi mapu…</string>
     <string name="explorer_settings_back_button_title">Navigacija tipkom Natrag</string>
     <string name="explorer_settings_back_button_desc">Kreći se kroz povijest tipkom ili gestom za povratak.</string>
     <string name="explorer_settings_trash_category">Smeće</string>
@@ -183,7 +188,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Početna</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Postavi kao početnu</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Postavi kao početnu lokaciju</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Nove kartice otvarat će se ovdje</string>
     <string name="explorer_breadcrumb_copy_path_action">Kopiraj putanju</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Putanja je kopirana u međuspremnik</string>
     <string name="explorer_navigation_device">Uređaj</string>

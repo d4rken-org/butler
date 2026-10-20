@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Edistynyt jokerimerkkihaku</string>
     <string name="explorer_settings_filter_regex_desc">Käytä säännöllisiä lausekkeita sisällytys- ja poissulkusuodattimissa.</string>
     <string name="explorer_settings_navigation">Navigointi</string>
+    <string name="explorer_settings_start_location_title">Aloitussijainti</string>
+    <string name="explorer_settings_start_location_desc">Mihin tiedostonhallinnan uudet välilehdet avautuvat</string>
+    <string name="explorer_settings_start_location_home_default">Aloitus (oletus)</string>
+    <string name="explorer_settings_start_location_folder_label">Kansio</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Valitse kansio…</string>
     <string name="explorer_settings_back_button_title">Navigointi Takaisin-painikkeella</string>
     <string name="explorer_settings_back_button_desc">Siirry historiassa Takaisin-painikkeella tai -eleellä.</string>
     <string name="explorer_settings_trash_category">Roskakori</string>
@@ -179,7 +184,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Aloitus</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Aseta aloitussijainniksi</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Aseta aloitussijainniksi</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Uudet välilehdet avautuvat tähän</string>
     <string name="explorer_breadcrumb_copy_path_action">Kopioi polku</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Polku kopioitu leikepöydälle</string>
     <string name="explorer_navigation_device">Laite</string>

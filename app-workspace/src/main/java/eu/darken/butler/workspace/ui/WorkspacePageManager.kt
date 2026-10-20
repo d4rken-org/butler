@@ -267,6 +267,13 @@ class WorkspacePageManager @Inject constructor(
         val workspaceInfo = repoInfos.find { it.id == workspaceId }
         val isSubWorkspace = workspaceInfo?.isSubWorkspace == true
 
+        if (isSubWorkspace && WorkspaceStacks(repoInfos).hostedRootOf(workspaceId) != null) {
+            // Rendered by its own navigation destination, never inside a pane: focusing it would point
+            // the selection at something no layout can show.
+            log(TAG) { "Hosted workspace $workspaceId selected, ignoring" }
+            return
+        }
+
         if (isSubWorkspace) {
             // Focus stays on the child - that is what the caller asked for - but its root has to be
             // in a pane the layout renders, or the selection keeps naming a different tab: Classic

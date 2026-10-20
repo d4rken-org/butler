@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Advanced na pagtutugma ng wildcard</string>
     <string name="explorer_settings_filter_regex_desc">Gumamit ng mga pattern ng regex sa mga filter para sa pagsama at pagbukod.</string>
     <string name="explorer_settings_navigation">Pag-navigate</string>
+    <string name="explorer_settings_start_location_title">Panimulang lokasyon</string>
+    <string name="explorer_settings_start_location_desc">Kung saan bubukas ang mga bagong tab ng Explorer</string>
+    <string name="explorer_settings_start_location_home_default">Home (default)</string>
+    <string name="explorer_settings_start_location_folder_label">Folder</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Pumili ng folder…</string>
     <string name="explorer_settings_back_button_title">Pag-navigate gamit ang button na Bumalik</string>
     <string name="explorer_settings_back_button_desc">Mag-navigate sa kasaysayan gamit ang button o galaw na Bumalik.</string>
     <string name="explorer_settings_trash_category">Basurahan</string>
@@ -179,7 +184,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Home</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Itakda bilang home</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Itakda bilang panimulang lokasyon</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Dito bubukas ang mga bagong tab</string>
     <string name="explorer_breadcrumb_copy_path_action">Kopyahin ang path</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Nakopya ang path sa clipboard</string>
     <string name="explorer_navigation_device">Device</string>

@@ -2606,6 +2606,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             else -> return@launch // Ignore Trash targets
         }
         explorerSettings.defaultStartLocation.value(location)
+        toastEvents.emit(R.string.explorer_breadcrumb_set_as_start_location_confirmation.toCaString())
     }
 
     fun shareNavigationError() = launch {

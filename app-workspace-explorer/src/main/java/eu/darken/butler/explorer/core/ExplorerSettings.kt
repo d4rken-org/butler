@@ -41,7 +41,12 @@ class ExplorerSettings @Inject constructor(
 
     val defaultViewStyle = dataStore.createValue("explorer.view.style.default", ExplorerViewStyle.default(), json)
 
-    val defaultStartLocation = dataStore.createValue<DefaultStartLocation?>("explorer.navigation.start_location_default", null, json)
+    val defaultStartLocation = dataStore.createValue<DefaultStartLocation?>(
+        "explorer.navigation.start_location_default",
+        null,
+        json,
+        onErrorFallbackToDefault = true,
+    )
 
     /** Superseded by [favoriteEntries]; still read once to carry a pre-label list over. */
     val favoritePaths = dataStore.createAPathListValue("explorer.favorites.paths", emptyList(), json)

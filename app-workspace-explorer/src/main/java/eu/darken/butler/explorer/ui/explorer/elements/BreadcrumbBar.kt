@@ -768,7 +768,7 @@ private fun BreadcrumbContextMenu(
         // "Set as home" available for all supported targets
         if (onSetAsHome != null) {
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.explorer_breadcrumb_set_as_home_action)) },
+                text = { Text(stringResource(R.string.explorer_breadcrumb_set_as_start_location_action)) },
                 onClick = onSetAsHome,
                 leadingIcon = {
                     Icon(

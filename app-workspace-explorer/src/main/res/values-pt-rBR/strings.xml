@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Correspondência avançada com curingas</string>
     <string name="explorer_settings_filter_regex_desc">Use padrões regex em filtros de inclusão/exclusão.</string>
     <string name="explorer_settings_navigation">Navegação</string>
+    <string name="explorer_settings_start_location_title">Local inicial</string>
+    <string name="explorer_settings_start_location_desc">Onde as novas abas do Explorer abrem</string>
+    <string name="explorer_settings_start_location_home_default">Início (padrão)</string>
+    <string name="explorer_settings_start_location_folder_label">Pasta</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Escolher pasta…</string>
     <string name="explorer_settings_back_button_title">Navegação pelo botão voltar</string>
     <string name="explorer_settings_back_button_desc">Navegue pelo histórico com o botão/gesto voltar.</string>
     <string name="explorer_settings_trash_category">Lixeira</string>
@@ -177,7 +182,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Início</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Definir como início</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Definir como local inicial</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">As novas abas vão abrir aqui</string>
     <string name="explorer_breadcrumb_copy_path_action">Copiar caminho</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Caminho copiado para a área de transferência</string>
     <string name="explorer_navigation_device">Dispositivo</string>

@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">جدید وائلڈ کارڈ مماثلت</string>
     <string name="explorer_settings_filter_regex_desc">شامل کرنے اور خارج کرنے والے فلٹرز میں regex پیٹرن استعمال کریں۔</string>
     <string name="explorer_settings_navigation">نیویگیشن</string>
+    <string name="explorer_settings_start_location_title">آغاز کا مقام</string>
+    <string name="explorer_settings_start_location_desc">نئے ایکسپلورر ٹیب کہاں کھلیں گے</string>
+    <string name="explorer_settings_start_location_home_default">ہوم (ڈیفالٹ)</string>
+    <string name="explorer_settings_start_location_folder_label">فولڈر</string>
+    <string name="explorer_settings_start_location_choose_folder_action">فولڈر منتخب کریں…</string>
     <string name="explorer_settings_back_button_title">واپس کے بٹن سے نیویگیشن</string>
     <string name="explorer_settings_back_button_desc">واپس کے بٹن یا اشارے سے سرگزشت میں جائیں۔</string>
     <string name="explorer_settings_trash_category">ردی کی ٹوکری</string>
@@ -182,7 +187,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">ہوم</string>
-    <string name="explorer_breadcrumb_set_as_home_action">ہوم بنائیں</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">آغاز کے مقام کے طور پر سیٹ کریں</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">نئے ٹیب یہاں کھلیں گے</string>
     <string name="explorer_breadcrumb_copy_path_action">راستہ کاپی کریں</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">راستہ کلپ بورڈ پر کاپی کر دیا گیا</string>
     <string name="explorer_navigation_device">آلہ</string>

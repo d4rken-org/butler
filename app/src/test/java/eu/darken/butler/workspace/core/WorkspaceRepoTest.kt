@@ -61,6 +61,7 @@ class WorkspaceRepoTest : BaseTest() {
     private class FakePickerArguments(
         override val type: Workspace.Type,
         override val callerWorkspaceId: Workspace.Id?,
+        override val isHostedByNavigation: Boolean = false,
     ) : Workspace.ArgumentsForResult {
         override fun describeContents(): Int = 0
         override fun writeToParcel(dest: Parcel, flags: Int) = Unit
@@ -120,6 +121,7 @@ class WorkspaceRepoTest : BaseTest() {
                     ?: Workspace.ModalPresentationMode.PANE_LOCAL,
                 // Mirrors initialInfo(): lifecycle decisions read the projected flag, not the arguments
                 pausableAsChild = arguments.isPausableAsChild,
+                isHosted = (arguments as? Workspace.ArgumentsWithCaller)?.isHostedByNavigation == true,
                 contentPath = (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath,
             )
         )
@@ -353,6 +355,31 @@ class WorkspaceRepoTest : BaseTest() {
                 .shouldBeInstanceOf<WorkspaceAction.Reorder.Result>().success shouldBe true
 
             repo.workspaceIds() shouldBe listOf(second, first, overlay, nested)
+        }
+
+    @Test
+    fun `a hosted picker no reorder surface lists does not block reordering the tabs`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val first = repo.createTab()
+            val hosted = (
+                repo.execute(
+                    WorkspaceAction.Create(
+                        type = Workspace.Type.EXPLORER,
+                        arguments = FakePickerArguments(
+                            type = Workspace.Type.EXPLORER,
+                            callerWorkspaceId = Workspace.Id(),
+                            isHostedByNavigation = true,
+                        ),
+                    )
+                ) as WorkspaceAction.Create.Result.Success
+            ).newId
+            val second = repo.createTab()
+
+            repo.execute(WorkspaceAction.Reorder(listOf(second, first)))
+                .shouldBeInstanceOf<WorkspaceAction.Reorder.Result>().success shouldBe true
+
+            repo.workspaceIds() shouldBe listOf(second, first, hosted)
         }
 
     @Test

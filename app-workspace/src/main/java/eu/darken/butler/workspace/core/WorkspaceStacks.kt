@@ -35,12 +35,46 @@ class WorkspaceStacks(private val infos: List<Workspace.Info>) {
     }
 
     /**
-     * The whole ownership unit [id] belongs to: its root first, then every descendant
-     * breadth-first, so an owner always precedes anything it owns. Null when [rootOf] cannot
-     * resolve, i.e. the unit has no valid owner to act on.
+     * The hosted workspace ([Workspace.Info.isHosted]) the caller chain of [id] terminates at: its
+     * caller names a navigation request rather than a workspace, so the chain ends there instead of
+     * at a tab. Null when [id] is unknown, belongs to a tab, or its chain dead-ends anywhere else.
      */
-    fun unitOf(id: Workspace.Id): List<Workspace.Info>? {
-        val root = rootOf(id) ?: return null
+    fun hostedRootOf(id: Workspace.Id): Workspace.Info? {
+        var current = byId[id] ?: return null
+        val visited = mutableSetOf<Workspace.Id>()
+        while (current.isSubWorkspace) {
+            if (!visited.add(current.id)) return null
+            current = current.callerWorkspaceId?.let { byId[it] }
+                ?: return current.takeIf { it.isHosted }
+        }
+        return null
+    }
+
+    /**
+     * Every hosted unit keyed by its hosted root: the root first, then every descendant
+     * breadth-first. No tab surface lists, renders or recovers these; the destination hosting the
+     * root owns them.
+     */
+    val hostedUnits: Map<Workspace.Id, List<Workspace.Info>> by lazy {
+        infos
+            .filter { it.isHosted && hostedRootOf(it.id)?.id == it.id }
+            .associate { root -> root.id to descendantsOf(root) }
+    }
+
+    /**
+     * What the destination hosting [hostedRootId] shows: the newest member of that unit that owns
+     * nothing itself, so a picker opened from the hosted one covers it until it closes. Null when
+     * [hostedRootId] is not a hosted root.
+     */
+    fun hostedLeafOf(hostedRootId: Workspace.Id): Workspace.Info? {
+        val members = hostedUnits[hostedRootId] ?: return null
+        val order = infos.withIndex().associate { (index, info) -> info.id to index }
+        return members
+            .filter { childrenOf[it.id].isNullOrEmpty() }
+            .maxByOrNull { order.getValue(it.id) }
+    }
+
+    private fun descendantsOf(root: Workspace.Info): List<Workspace.Info> {
         val members = mutableListOf(root)
         val seen = mutableSetOf(root.id)
         var index = 0
@@ -53,6 +87,16 @@ class WorkspaceStacks(private val infos: List<Workspace.Info>) {
     }
 
     /**
+     * The whole ownership unit [id] belongs to: its root first, then every descendant
+     * breadth-first, so an owner always precedes anything it owns. Null when [rootOf] cannot
+     * resolve, i.e. the unit has no valid owner to act on.
+     */
+    fun unitOf(id: Workspace.Id): List<Workspace.Info>? {
+        val root = rootOf(id) ?: return null
+        return descendantsOf(root)
+    }
+
+    /**
      * The workspaces whose ownership cannot be resolved - a caller id naming nothing, or a cycle -
      * grouped into connected components over the caller relation and keyed by the member that comes
      * first in workspace order. Nothing validates caller ids at creation time, so these are
@@ -60,10 +104,11 @@ class WorkspaceStacks(private val infos: List<Workspace.Info>) {
      * listing each separately would offer several cards for what one close already takes down.
      *
      * The set is closed under the relation: a descendant of an unresolvable workspace runs into the
-     * same dead end, and an ancestor that resolved would make its descendants resolve too.
+     * same dead end, and an ancestor that resolved would make its descendants resolve too. Hosted
+     * units ([hostedUnits]) have an owner, just not a tab, so they are never recovery units.
      */
     val recoveryUnits: Map<Workspace.Id, List<Workspace.Info>> by lazy {
-        val unresolvable = infos.filter { it.isSubWorkspace && rootOf(it.id) == null }
+        val unresolvable = infos.filter { it.isSubWorkspace && rootOf(it.id) == null && hostedRootOf(it.id) == null }
         val unresolvableIds = unresolvable.mapTo(mutableSetOf()) { it.id }
         val order = infos.withIndex().associate { (index, info) -> info.id to index }
 
@@ -96,11 +141,12 @@ class WorkspaceStacks(private val infos: List<Workspace.Info>) {
     }
 
     /**
-     * The unit owner [id] is listed under: its ownership root, or - when ownership cannot be
-     * resolved - the representative of its recovery unit. Falls back to [id] for an id this snapshot
-     * never saw.
+     * The unit owner [id] is listed under: its ownership root, its hosted root, or - when ownership
+     * cannot be resolved - the representative of its recovery unit. Falls back to [id] for an id
+     * this snapshot never saw.
      */
-    fun ownerOf(id: Workspace.Id): Workspace.Id = rootOf(id)?.id ?: recoveryOwnerById[id] ?: id
+    fun ownerOf(id: Workspace.Id): Workspace.Id =
+        rootOf(id)?.id ?: hostedRootOf(id)?.id ?: recoveryOwnerById[id] ?: id
 
     /** One entry per unit, in workspace order: every tab, plus one representative per recovery unit. */
     val unitOwners: List<Workspace.Info> by lazy {

@@ -7,6 +7,11 @@
     <string name="explorer_settings_filter_regex_title">Haladó helyettesítőkarakter-egyeztetés</string>
     <string name="explorer_settings_filter_regex_desc">Reguláris kifejezések használata a bevonási és kizárási szűrőkben.</string>
     <string name="explorer_settings_navigation">Navigáció</string>
+    <string name="explorer_settings_start_location_title">Kezdő hely</string>
+    <string name="explorer_settings_start_location_desc">Hol nyílnak meg a fájlkezelő új lapjai</string>
+    <string name="explorer_settings_start_location_home_default">Kezdőhely (alapértelmezett)</string>
+    <string name="explorer_settings_start_location_folder_label">Mappa</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Mappa kiválasztása…</string>
     <string name="explorer_settings_back_button_title">Navigáció a Vissza gombbal</string>
     <string name="explorer_settings_back_button_desc">Navigáció az előzményekben a Vissza gombbal vagy gesztussal.</string>
     <string name="explorer_settings_trash_category">Kuka</string>
@@ -159,7 +164,8 @@
     <string name="explorer_info_device_storage_used_label">Használt</string>
     <string name="explorer_info_device_storage_free_label">Szabad</string>
     <string name="explorer_navigation_home">Kezdőhely</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Beállítás kezdőhelyként</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Beállítás kezdő helyként</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Az új lapok itt nyílnak meg</string>
     <string name="explorer_breadcrumb_copy_path_action">Útvonal másolása</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Útvonal a vágólapra másolva</string>
     <string name="explorer_navigation_device">Eszköz</string>

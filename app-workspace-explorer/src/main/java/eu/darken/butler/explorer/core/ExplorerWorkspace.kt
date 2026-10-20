@@ -251,6 +251,7 @@ class ExplorerWorkspace @AssistedInject constructor(
             callerWorkspaceId = pickerConfig?.callerWorkspaceId,
             modalPresentation = (creationArguments as? Workspace.ArgumentsWithCaller)?.modalPresentation
                 ?: Workspace.ModalPresentationMode.PANE_LOCAL,
+            isHosted = (creationArguments as? Workspace.ArgumentsWithCaller)?.isHostedByNavigation == true,
         )
     }.stateInWorkspace(
         scope = scope,

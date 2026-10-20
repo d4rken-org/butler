@@ -17,5 +17,13 @@ sealed interface NavEvent {
 
     data object Up : NavEvent
 
+    /**
+     * Remove [destination] from the back stack wherever it sits, or do nothing if it is not there.
+     * Unlike [Up], a late dismissal can never pop whatever replaced it on top.
+     */
+    data class Dismiss(
+        val destination: NavigationDestination,
+    ) : NavEvent
+
     data object Finish : NavEvent
 }

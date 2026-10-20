@@ -5,6 +5,7 @@ import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -23,6 +24,7 @@ fun SettingsPreferenceItem(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     value: String? = null,
+    valueStyle: TextStyle? = null,
     enabled: Boolean = true,
     onUpgrade: (() -> Unit)? = null,
 ) {
@@ -35,6 +37,7 @@ fun SettingsPreferenceItem(
         modifier = modifier,
         subtitle = subtitle,
         value = value,
+        valueStyle = valueStyle,
         enabled = enabled,
         requiresUpgrade = upgradeAction != null,
     )

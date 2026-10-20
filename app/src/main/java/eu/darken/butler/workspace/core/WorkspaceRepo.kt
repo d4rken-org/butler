@@ -771,7 +771,9 @@ class WorkspaceRepo @Inject constructor(
                 log(TAG) { "BEFORE re-order:\n${current.joinToString("\n")}" }
                 val stacks = peekStacks()
                 val membersByOwner = current.groupBy { stacks.ownerOf(it.id) }
-                val expanded = action.ownerIds.flatMap { membersByOwner[it].orEmpty() }
+                // No reorder surface lists hosted units, so they keep their place at the end
+                val hostedOwners = stacks.hostedUnits.keys - action.ownerIds.toSet()
+                val expanded = (action.ownerIds + hostedOwners).flatMap { membersByOwner[it].orEmpty() }
                 log(TAG) { "AFTER re-order:\n${expanded.joinToString("\n")}" }
 
                 if (expanded.size != current.size) {

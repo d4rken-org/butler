@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Erweiterte Platzhaltersuche</string>
     <string name="explorer_settings_filter_regex_desc">Reguläre Ausdrücke für Einschluss- und Ausschlussfilter verwenden.</string>
     <string name="explorer_settings_navigation">Navigation</string>
+    <string name="explorer_settings_start_location_title">Startort</string>
+    <string name="explorer_settings_start_location_desc">Wo neue Explorer-Tabs geöffnet werden</string>
+    <string name="explorer_settings_start_location_home_default">Start (Standard)</string>
+    <string name="explorer_settings_start_location_folder_label">Ordner</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Ordner auswählen…</string>
     <string name="explorer_settings_back_button_title">Navigation über die Zurück-Taste</string>
     <string name="explorer_settings_back_button_desc">Mit der Zurück-Taste oder -Geste durch den Verlauf navigieren.</string>
     <string name="explorer_settings_trash_category">Papierkorb</string>
@@ -177,7 +182,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Start</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Als Start festlegen</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Als Startort festlegen</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Neue Tabs öffnen sich hier</string>
     <string name="explorer_breadcrumb_copy_path_action">Pfad kopieren</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Pfad in die Zwischenablage kopiert</string>
     <string name="explorer_navigation_device">Gerät</string>

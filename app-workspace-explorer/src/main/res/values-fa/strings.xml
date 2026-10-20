@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">تطبیق پیشرفته الگو</string>
     <string name="explorer_settings_filter_regex_desc">از الگوهای regex در فیلترهای شامل/مستثنی استفاده کنید.</string>
     <string name="explorer_settings_navigation">پیمایش</string>
+    <string name="explorer_settings_start_location_title">مکان شروع</string>
+    <string name="explorer_settings_start_location_desc">محل باز شدن زبانه‌های جدید کاوشگر</string>
+    <string name="explorer_settings_start_location_home_default">خانه (پیش‌فرض)</string>
+    <string name="explorer_settings_start_location_folder_label">پوشه</string>
+    <string name="explorer_settings_start_location_choose_folder_action">انتخاب پوشه…</string>
     <string name="explorer_settings_back_button_title">پیمایش با دکمه بازگشت</string>
     <string name="explorer_settings_back_button_desc">با دکمه یا اشاره بازگشت در تاریخچه پیمایش کنید.</string>
     <string name="explorer_settings_trash_category">سطل زباله</string>
@@ -180,7 +185,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">خانه</string>
-    <string name="explorer_breadcrumb_set_as_home_action">تنظیم به‌عنوان خانه</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">تنظیم به‌عنوان مکان شروع</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">زبانه‌های جدید اینجا باز می‌شوند</string>
     <string name="explorer_breadcrumb_copy_path_action">کپی مسیر</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">مسیر در کلیپ‌بورد کپی شد</string>
     <string name="explorer_navigation_device">دستگاه</string>

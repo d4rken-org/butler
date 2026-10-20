@@ -7,6 +7,11 @@
     <string name="explorer_settings_filter_regex_title">התאמת תבניות מתקדמת</string>
     <string name="explorer_settings_filter_regex_desc">שימוש בביטויים רגולריים במסנני הכללה והחרגה.</string>
     <string name="explorer_settings_navigation">ניווט</string>
+    <string name="explorer_settings_start_location_title">מיקום התחלה</string>
+    <string name="explorer_settings_start_location_desc">איפה נפתחות כרטיסיות חדשות של הסייר</string>
+    <string name="explorer_settings_start_location_home_default">בית (ברירת מחדל)</string>
+    <string name="explorer_settings_start_location_folder_label">תיקייה</string>
+    <string name="explorer_settings_start_location_choose_folder_action">בחירת תיקייה…</string>
     <string name="explorer_settings_back_button_title">ניווט בכפתור חזרה</string>
     <string name="explorer_settings_back_button_desc">ניווט בהיסטוריה באמצעות כפתור או מחוות חזרה.</string>
     <string name="explorer_settings_trash_category">סל המחזור</string>
@@ -167,7 +172,8 @@
     <string name="explorer_info_device_storage_used_label">בשימוש</string>
     <string name="explorer_info_device_storage_free_label">פנוי</string>
     <string name="explorer_navigation_home">בית</string>
-    <string name="explorer_breadcrumb_set_as_home_action">הגדרה כבית</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">הגדרה כמיקום התחלה</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">כרטיסיות חדשות ייפתחו כאן</string>
     <string name="explorer_breadcrumb_copy_path_action">העתקת נתיב</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">הנתיב הועתק ללוח</string>
     <string name="explorer_navigation_device">מכשיר</string>

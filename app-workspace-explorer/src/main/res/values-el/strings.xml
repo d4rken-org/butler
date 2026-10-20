@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Προηγμένη αντιστοίχιση με wildcards</string>
     <string name="explorer_settings_filter_regex_desc">Χρήση μοτίβων regex στα φίλτρα συμπερίληψης/εξαίρεσης.</string>
     <string name="explorer_settings_navigation">Πλοήγηση</string>
+    <string name="explorer_settings_start_location_title">Τοποθεσία έναρξης</string>
+    <string name="explorer_settings_start_location_desc">Πού ανοίγουν οι νέες καρτέλες της Εξερεύνησης</string>
+    <string name="explorer_settings_start_location_home_default">Αρχική (προεπιλογή)</string>
+    <string name="explorer_settings_start_location_folder_label">Φάκελος</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Επίλεξε φάκελο…</string>
     <string name="explorer_settings_back_button_title">Πλοήγηση με το κουμπί «Πίσω»</string>
     <string name="explorer_settings_back_button_desc">Πλοήγηση στο ιστορικό με το κουμπί ή τη χειρονομία «Πίσω».</string>
     <string name="explorer_settings_trash_category">Κάδος</string>
@@ -180,7 +185,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Αρχική</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Ορισμός ως αρχική</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Ορισμός ως τοποθεσία έναρξης</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Οι νέες καρτέλες θα ανοίγουν εδώ</string>
     <string name="explorer_breadcrumb_copy_path_action">Αντιγραφή διαδρομής</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Η διαδρομή αντιγράφηκε στο πρόχειρο</string>
     <string name="explorer_navigation_device">Συσκευή</string>

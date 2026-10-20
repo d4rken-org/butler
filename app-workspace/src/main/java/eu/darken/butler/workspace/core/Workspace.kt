@@ -258,6 +258,16 @@ interface Workspace<ArgT : Workspace.Arguments> {
          */
         val pausableAsChild: Boolean
             get() = false
+
+        /**
+         * True when this workspace is shown by a navigation destination outside the tabs screen
+         * instead of by a tab. [callerWorkspaceId] then names that destination's request, not a
+         * workspace, so the ownership walk ends here rather than at a tab.
+         *
+         * See `HostedPickerRequests`.
+         */
+        val isHostedByNavigation: Boolean
+            get() = false
     }
 
     /**
@@ -360,6 +370,8 @@ interface Workspace<ArgT : Workspace.Arguments> {
          * the arguments it actually captured before releasing anything.
          */
         val pausableAsChild: Boolean = false,
+        /** Projected from [ArgumentsWithCaller.isHostedByNavigation], see [WorkspaceStacks.hostedUnits]. */
+        val isHosted: Boolean = false,
         /**
          * Content path this workspace currently holds (e.g. the editor's open file), making it
          * eligible for duplicate-open focusing: a Create/claim for the same path resolves to a

@@ -8,6 +8,11 @@
     <string name="explorer_settings_filter_regex_title">Geavanceerde jokertekens</string>
     <string name="explorer_settings_filter_regex_desc">Gebruik regex-patronen in insluit- en uitsluitfilters.</string>
     <string name="explorer_settings_navigation">Navigatie</string>
+    <string name="explorer_settings_start_location_title">Startlocatie</string>
+    <string name="explorer_settings_start_location_desc">Waar nieuwe Verkenner-tabbladen openen</string>
+    <string name="explorer_settings_start_location_home_default">Start (standaard)</string>
+    <string name="explorer_settings_start_location_folder_label">Map</string>
+    <string name="explorer_settings_start_location_choose_folder_action">Map kiezen…</string>
     <string name="explorer_settings_back_button_title">Navigeren met terugknop</string>
     <string name="explorer_settings_back_button_desc">Navigeer door de geschiedenis met de terugknop of het terugveeggebaar.</string>
     <string name="explorer_settings_trash_category">Prullenbak</string>
@@ -180,7 +185,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Start</string>
-    <string name="explorer_breadcrumb_set_as_home_action">Als start instellen</string>
+    <string name="explorer_breadcrumb_set_as_start_location_action">Instellen als startlocatie</string>
+    <string name="explorer_breadcrumb_set_as_start_location_confirmation">Nieuwe tabbladen openen hier</string>
     <string name="explorer_breadcrumb_copy_path_action">Pad kopiëren</string>
     <string name="explorer_breadcrumb_copy_path_confirmation">Pad gekopieerd naar klembord</string>
     <string name="explorer_navigation_device">Apparaat</string>
