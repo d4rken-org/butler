@@ -32,7 +32,7 @@ class OperationFgsService : Service2() {
     /** Android 14 (API 34) shortService timeout. Kept so a timeout is handled the same whichever
      *  overload the platform invokes. */
     override fun onTimeout(startId: Int) {
-        log(TAG, WARN) { "onTimeout($startId): dataSync FGS time budget exhausted" }
+        log(TAG, WARN) { "onTimeout($startId): shortService FGS timeout" }
         coordinator.get().onServiceTimeout(this)
     }
 
