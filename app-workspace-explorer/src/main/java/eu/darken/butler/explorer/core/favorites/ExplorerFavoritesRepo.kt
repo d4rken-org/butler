@@ -11,7 +11,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
-import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -100,8 +99,7 @@ class ExplorerFavoritesRepo @Inject constructor(
     } catch (e: CancellationException) {
         // Re-throw cancellation so flatMapLatest's stale-resolve cancellation works correctly.
         throw e
-    } catch (e: ReadException) {
-        // Use path.name (not path.path) to avoid leaking sensitive folder names in logs.
+    } catch (e: Exception) {
         log(TAG, WARN) { "Favorite path unavailable: ${entry.path.name} - ${e.asLog()}" }
         FavoriteItem(entry.path, FavoriteItem.State.Unavailable(e), entry.label)
     }

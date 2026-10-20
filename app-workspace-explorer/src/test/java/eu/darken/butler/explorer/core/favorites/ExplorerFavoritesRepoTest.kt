@@ -7,10 +7,15 @@ import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import eu.darken.butler.common.serialization.SerializationIOModule
 import eu.darken.butler.explorer.core.ExplorerSettings
@@ -18,13 +23,20 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -32,6 +44,9 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
+import java.io.IOException
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -378,6 +393,113 @@ class ExplorerFavoritesRepoTest : BaseTest() {
         val resolved = repo.favorites.first { items -> items.any { it.isUnavailable } }
         resolved shouldHaveSize 1
         resolved.first().isUnavailable shouldBe true
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun directoryLookup(path: LocalPath) = LocalPathLookup(
+        lookedUp = path,
+        fileType = FileType.DIRECTORY,
+        size = null,
+        modifiedAt = null,
+    ) as APathLookup<APath<*>>
+
+    /** Resolves [failing] (whose lookup throws [error]) next to a healthy directory favorite. */
+    private suspend fun resolveNextToHealthy(failing: APath<*>, error: Exception): List<FavoriteItem> {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val gatewaySwitch = mockk<GatewaySwitch>(relaxed = true)
+        val healthy = LocalPath.build("/storage/emulated/0/Documents")
+        coEvery { gatewaySwitch.lookup(failing, any()) } throws error
+        coEvery { gatewaySwitch.lookup(healthy, any()) } returns directoryLookup(healthy)
+
+        val repo = freshRepo(scope, gatewaySwitch)
+        repo.addAll(listOf(failing, healthy))
+
+        return repo.favorites.first { items -> items.size == 2 && items.none { it.isResolving } }
+    }
+
+    private val brokenArchiveEntry = ArchivePath(
+        LocalPath.build("/storage/emulated/0/Download/broken.zip"),
+        listOf("inner.txt"),
+    )
+
+    @Test
+    fun `favorites flow - emits Unavailable when an archive lookup throws a plain IOException`() = runTest {
+        val error = IOException("data for inner.txt overlaps with central directory.")
+
+        val (archive, healthy) = resolveNextToHealthy(brokenArchiveEntry, error)
+
+        archive.path shouldBe brokenArchiveEntry
+        archive.state.shouldBeInstanceOf<FavoriteItem.State.Unavailable>().reason shouldBeSameInstanceAs error
+        healthy.isAvailable shouldBe true
+    }
+
+    @Test
+    fun `favorites flow - emits Unavailable when lookup throws PathPermissionDeniedException`() = runTest {
+        val error = PathPermissionDeniedException(
+            brokenArchiveEntry,
+            "lookup",
+            PathPermissionDeniedException.Reason.NO_MECHANISM,
+        )
+
+        val (archive, healthy) = resolveNextToHealthy(brokenArchiveEntry, error)
+
+        archive.path shouldBe brokenArchiveEntry
+        archive.state.shouldBeInstanceOf<FavoriteItem.State.Unavailable>().reason shouldBeSameInstanceAs error
+        healthy.isAvailable shouldBe true
+    }
+
+    @Test
+    fun `favorites flow - emits Unavailable when lookup throws a RuntimeException`() = runTest {
+        val error = IllegalStateException("boom")
+
+        val (archive, healthy) = resolveNextToHealthy(brokenArchiveEntry, error)
+
+        archive.path shouldBe brokenArchiveEntry
+        archive.state.shouldBeInstanceOf<FavoriteItem.State.Unavailable>().reason shouldBeSameInstanceAs error
+        healthy.isAvailable shouldBe true
+    }
+
+    @Test
+    fun `favorites flow - a stale resolution is cancelled, not reported as Unavailable`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+        val gatewaySwitch = mockk<GatewaySwitch>(relaxed = true)
+        val slow = LocalPath.build("/p/slow")
+        val fast = LocalPath.build("/p/fast")
+
+        val slowCalls = AtomicInteger()
+        val staleStarted = CompletableDeferred<Unit>()
+        val staleCancelled = CompletableDeferred<Unit>()
+        // Only the first lookup hangs; the one from the restarted pass answers, so the pass completes.
+        coEvery { gatewaySwitch.lookup(slow, any()) } coAnswers {
+            if (slowCalls.incrementAndGet() == 1) {
+                staleStarted.complete(Unit)
+                try {
+                    awaitCancellation()
+                } catch (e: CancellationException) {
+                    staleCancelled.complete(Unit)
+                    throw e
+                }
+            } else {
+                directoryLookup(slow)
+            }
+        }
+        coEvery { gatewaySwitch.lookup(fast, any()) } returns directoryLookup(fast)
+
+        val repo = freshRepo(scope, gatewaySwitch)
+        val emissions = CopyOnWriteArrayList<List<FavoriteItem>>()
+        scope.launch { repo.favorites.collect { emissions.add(it) } }
+
+        repo.add(slow)
+        staleStarted.await()
+
+        repo.add(fast)
+        staleCancelled.await()
+
+        val resolved = repo.favorites.first { items -> items.size == 2 && items.none { it.isResolving } }
+        resolved.map { it.isAvailable } shouldContainExactly listOf(true, true)
+        emissions.flatten().none { it.path == slow && it.isUnavailable } shouldBe true
+
+        scope.cancel()
     }
 
     @Test
