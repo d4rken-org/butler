@@ -38,6 +38,7 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.mockk
 import kotlinx.coroutines.flow.toList
 import org.junit.Before
@@ -65,6 +66,8 @@ class ExtractOperationTest : BaseTest() {
     private val writtenStreams = mutableMapOf<String, ByteArrayOutputStream>()
     private val moves = mutableListOf<Pair<APath<*>, APath<*>>>()
     private val existingPaths = mutableSetOf<String>()
+    private val addedHints = mutableListOf<APathLookup<*>>()
+    private val removedHints = mutableListOf<APathLookup<*>>()
 
     private fun lookupOf(path: LocalPath, isDir: Boolean = false) = LocalPathLookup(
         lookedUp = path,
@@ -73,6 +76,12 @@ class ExtractOperationTest : BaseTest() {
         modifiedAt = null,
     )
 
+    @Suppress("UNCHECKED_CAST")
+    private fun typedLookupOf(path: LocalPath, isDir: Boolean = false) =
+        lookupOf(path, isDir) as APathLookup<APath<*>>
+
+    private fun Collection<APathLookup<*>>.typed() = map { it.lookedUp to it.fileType }
+
     private fun isTemp(path: APath<*>) = path.name.endsWith(".part")
 
     @Before
@@ -80,6 +89,14 @@ class ExtractOperationTest : BaseTest() {
         writtenStreams.clear()
         moves.clear()
         existingPaths.clear()
+        addedHints.clear()
+        removedHints.clear()
+        coEvery { fileSystemHinter.trackPathsAdded(any(), any()) } answers {
+            addedHints += secondArg<Collection<APathLookup<*>>>()
+        }
+        coEvery { fileSystemHinter.trackPathsRemoved(any(), any()) } answers {
+            removedHints += secondArg<Collection<APathLookup<*>>>()
+        }
         coEvery { gatewaySwitch.lookup(any(), any<LookupOptions>()) } answers {
             @Suppress("UNCHECKED_CAST")
             lookupOf(firstArg<LocalPath>()) as APathLookup<APath<*>>
@@ -613,6 +630,258 @@ class ExtractOperationTest : BaseTest() {
         }
 
         coVerify(exactly = 0) { archiveService.extractZipSequential(any(), any(), any(), any(), any()) }
+    }
+
+    private fun mockSequentialSingleEntry() {
+        coEvery { archiveService.extractZipSequential(any(), any(), any(), any(), any()) } coAnswers {
+            val action = arg<suspend (SequentialEntry, InputStream) -> SequentialOutcome>(4)
+            action(
+                SequentialEntry(ordinal = 0, segments = listOf("a.txt"), rawName = "a.txt", isEncrypted = false),
+                ByteArrayInputStream("alpha".toByteArray()),
+            )
+            SequentialResult(extracted = 1, skippedUnsafe = 0)
+        }
+    }
+
+    @Test
+    fun `a whole-archive extraction hints its output folder`() = runTest2 {
+        mockSeekable(meta("a.txt"), meta("sub", "b.txt"))
+        coEvery { gatewaySwitch.lookup(baseDir, any<LookupOptions>()) } returns typedLookupOf(baseDir, isDir = true)
+
+        val report = operation(command()).perform(context()).toList().completed().report
+            as ExtractOperationReport
+
+        addedHints.typed() shouldContainExactlyInAnyOrder listOf(
+            baseDir to FileType.DIRECTORY,
+            baseDir.child("a.txt") to FileType.FILE,
+            baseDir.child("sub", "b.txt") to FileType.FILE,
+        )
+        report.outputDir shouldBe baseDir
+    }
+
+    @Test
+    fun `a sequential whole-archive extraction hints its output folder`() = runTest2 {
+        mockNotSeekable()
+        mockSequentialSingleEntry()
+        coEvery { gatewaySwitch.lookup(baseDir, any<LookupOptions>()) } returns typedLookupOf(baseDir, isDir = true)
+
+        val report = operation(command()).perform(context()).toList().completed().report
+            as ExtractOperationReport
+
+        addedHints.typed() shouldContainExactlyInAnyOrder listOf(
+            baseDir to FileType.DIRECTORY,
+            baseDir.child("a.txt") to FileType.FILE,
+        )
+        report.outputDir shouldBe baseDir
+    }
+
+    @Test
+    fun `a failed lookup of the output folder still hints the extracted files`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { gatewaySwitch.lookup(baseDir, any<LookupOptions>()) } throws ReadException("gone", baseDir)
+
+        val completed = operation(command()).perform(context()).toList().completed()
+
+        completed.error.shouldBeNull()
+        addedHints.typed() shouldContainExactly listOf(baseDir.child("a.txt") to FileType.FILE)
+    }
+
+    @Test
+    fun `a password prompt dismissed before writing reports no output folder`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { archiveService.requiresPassword(archivePath) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
+
+        val report = operation(command()).perform(context()).toList().completed().report
+            as ExtractOperationReport
+
+        report.outputDir.shouldBeNull()
+        addedHints.map { it.lookedUp } shouldNotContain baseDir
+    }
+
+    @Test
+    fun `a dismissed sequential merge prompt reports no output folder`() = runTest2 {
+        mockNotSeekable()
+        coEvery { gatewaySwitch.exists(baseDir) } returns true
+        coEvery { gatewaySwitch.lookup(baseDir, any<LookupOptions>()) } returns typedLookupOf(baseDir, isDir = true)
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+
+        val report = operation(command()).perform(context()).toList().completed().report
+            as ExtractOperationReport
+
+        report.outputDir.shouldBeNull()
+        addedHints.map { it.lookedUp } shouldNotContain baseDir
+    }
+
+    @Test
+    fun `a declined sequential merge into a file at the base path reports no output folder`() = runTest2 {
+        mockNotSeekable()
+        coEvery { gatewaySwitch.exists(baseDir) } returns true
+        coEvery { gatewaySwitch.lookup(baseDir, any<LookupOptions>()) } returns typedLookupOf(baseDir)
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Skip()
+
+        val report = operation(command()).perform(context()).toList().completed().report
+            as ExtractOperationReport
+
+        report.outputDir.shouldBeNull()
+        addedHints.map { it.lookedUp } shouldNotContain baseDir
+    }
+
+    @Test
+    fun `overwriting a file at the sequential base path removes its row before the folder is added`() = runTest2 {
+        mockNotSeekable()
+        mockSequentialSingleEntry()
+        coEvery { gatewaySwitch.exists(baseDir) } returns true
+        // The up-front check sees the file, the lookup after extraction sees the folder that replaced it.
+        coEvery { gatewaySwitch.lookup(baseDir, any<LookupOptions>()) } returns
+            typedLookupOf(baseDir) andThen typedLookupOf(baseDir, isDir = true)
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+
+        val report = operation(command()).perform(context()).toList().completed().report
+            as ExtractOperationReport
+
+        coVerifyOrder {
+            fileSystemHinter.trackPathsRemoved(
+                any(),
+                match { it.typed() == listOf(baseDir to FileType.FILE) },
+            )
+            fileSystemHinter.trackPathsAdded(
+                any(),
+                match { (baseDir to FileType.DIRECTORY) in it.typed() },
+            )
+        }
+        report.outputDir shouldBe baseDir
+    }
+
+    @Test
+    fun `a selection hints the folder it created in the destination`() = runTest2 {
+        mockSeekable(meta("sub", dir = true), meta("sub", "b.txt"), meta("other.txt"))
+        val subDir = destDir.child("sub")
+        coEvery { gatewaySwitch.lookup(subDir, any<LookupOptions>()) } returns typedLookupOf(subDir, isDir = true)
+
+        val report = operation(command(entries = setOf(listOf("sub")))).perform(context()).toList().completed()
+            .report as ExtractOperationReport
+
+        addedHints.typed() shouldContainExactlyInAnyOrder listOf(
+            subDir to FileType.DIRECTORY,
+            subDir.child("b.txt") to FileType.FILE,
+        )
+        report.outputDir.shouldBeNull()
+    }
+
+    @Test
+    fun `a selection whose first write fails still hints the folder it created`() = runTest2 {
+        mockSeekable(meta("sub", "b.txt"))
+        val subDir = destDir.child("sub")
+        coEvery { gatewaySwitch.lookup(subDir, any<LookupOptions>()) } returns typedLookupOf(subDir, isDir = true)
+        coEvery { gatewaySwitch.openOutputStream(any(), any()) } throws WriteException("disk full", subDir)
+
+        val completed = operation(command(entries = setOf(listOf("sub")))).perform(context()).toList().completed()
+
+        completed.error.shouldBeInstanceOf<WriteException>()
+        val report = completed.report as ExtractOperationReport
+        report.extractedFiles shouldBe 0
+        report.affectedPaths.shouldBeEmpty()
+        addedHints.typed() shouldContainExactly listOf(subDir to FileType.DIRECTORY)
+    }
+
+    @Test
+    fun `the whole-archive folder is named after the archive without its extension`() {
+        command().wholeArchiveDir shouldBe destDir.child("archive")
+        ExplorerCommand.Extract(
+            archive = LocalPath.build("/test/source/x.tar.gz"),
+            destinationDir = destDir,
+        ).wholeArchiveDir shouldBe destDir.child("x")
+        ExplorerCommand.Extract(
+            archive = LocalPath.build("/test/source/y.7z"),
+            destinationDir = destDir,
+        ).wholeArchiveDir shouldBe destDir.child("y")
+    }
+
+    @Test
+    fun `a failing container stat after the output folder exists still hints it`() = runTest2 {
+        mockNotSeekable()
+        coEvery { archiveService.statContainer(archivePath) } throws ReadException("stat failed", archivePath)
+        coEvery { gatewaySwitch.lookup(baseDir, any<LookupOptions>()) } returns typedLookupOf(baseDir, isDir = true)
+
+        val completed = operation(command()).perform(context()).toList().completed()
+
+        completed.error.shouldBeInstanceOf<ReadException>()
+        addedHints.typed() shouldContain (baseDir to FileType.DIRECTORY)
+    }
+
+    @Test
+    fun `replacing a folder with a file removes the folder row before the file is added`() = runTest2 {
+        mockSeekable(meta("a"))
+        val destA = destDir.child("a")
+        coEvery { gatewaySwitch.exists(destA) } returns true
+        // The conflict check sees the folder, the lookup after the move sees the file.
+        coEvery { gatewaySwitch.lookup(destA, any<LookupOptions>()) } returns
+            typedLookupOf(destA, isDir = true) andThen typedLookupOf(destA)
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+
+        operation(command(entries = setOf(listOf("a")))).perform(context()).toList().completed()
+            .error.shouldBeNull()
+
+        coVerifyOrder {
+            fileSystemHinter.trackPathsRemoved(
+                any(),
+                match { it.typed() == listOf(destA to FileType.DIRECTORY) },
+            )
+            fileSystemHinter.trackPathsAdded(
+                any(),
+                match { it.typed() == listOf(destA to FileType.FILE) },
+            )
+        }
+    }
+
+    @Test
+    fun `a replacement whose delete fails hints no removal`() = runTest2 {
+        mockSeekable(meta("a"))
+        val destA = destDir.child("a")
+        coEvery { gatewaySwitch.exists(destA) } returns true
+        coEvery { gatewaySwitch.lookup(destA, any<LookupOptions>()) } returns typedLookupOf(destA, isDir = true)
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+        coEvery { gatewaySwitch.delete(destA, any<Boolean>()) } returns false
+
+        operation(command(entries = setOf(listOf("a")))).perform(context()).toList().completed()
+            .error.shouldBeInstanceOf<WriteException>()
+
+        coVerify(exactly = 0) { fileSystemHinter.trackPathsRemoved(any(), any()) }
+    }
+
+    @Test
+    fun `a replacement whose move fails after the delete still hints the removal`() = runTest2 {
+        mockSeekable(meta("a"))
+        val destA = destDir.child("a")
+        coEvery { gatewaySwitch.exists(destA) } returns true
+        coEvery { gatewaySwitch.lookup(destA, any<LookupOptions>()) } returns typedLookupOf(destA, isDir = true)
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns MoveOutcome.NotSupported("test")
+
+        operation(command(entries = setOf(listOf("a")))).perform(context()).toList().completed()
+            .error.shouldBeInstanceOf<WriteException>()
+
+        removedHints.typed() shouldContainExactly listOf(destA to FileType.DIRECTORY)
+    }
+
+    @Test
+    fun `a cancellation while looking up the output folder cancels the operation`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { gatewaySwitch.lookup(baseDir, any<LookupOptions>()) } throws CancellationException("cancelled")
+
+        shouldThrow<CancellationException> {
+            operation(command()).perform(context()).toList()
+        }
+
+        coVerify(exactly = 0) { fileSystemHinter.trackPathsAdded(any(), any()) }
     }
 
     @Test
