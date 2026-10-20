@@ -2,6 +2,7 @@ package eu.darken.butler.main.core.operations.fgs
 
 import android.app.Notification
 import android.app.NotificationManager
+import android.app.Service
 import android.content.Context
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.issue.Issue
@@ -9,12 +10,14 @@ import eu.darken.butler.workspace.core.operations.CompletedOperationSnapshot
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -256,5 +259,82 @@ class OperationFgsCoordinatorTest : BaseTest() {
 
         verify { notifications.buildProgress(any(), any(), any()) }
         verify { notificationManager.cancel(postedAttentionId) }
+    }
+
+    @Test
+    fun `a reconcile running after a timeout does not restart the service`() {
+        testScope = TestScope(StandardTestDispatcher())
+        startCoordinator()
+        opsFlow.value = listOf(managedOp(Operation.State.Queued(t0)))
+        testScope.advanceUntilIdle()
+
+        // Starts the service synchronously and queues its reconcile ahead of the timeout handling.
+        coordinator.onAppBackgrounded()
+        val service = mockk<Service>(relaxed = true)
+        coordinator.onServiceTimeout(service)
+        coordinator.onServiceDestroyed()
+        testScope.advanceUntilIdle()
+
+        verify(exactly = 1) { context.startForegroundService(any()) }
+    }
+
+    @Test
+    fun `a waiting operation keeps its attention notification after a timeout`() {
+        val attentionId = slot<Int>()
+        every { notifications.buildAttention(capture(attentionId), any()) } returns mockk(relaxed = true)
+
+        startCoordinator()
+        opsFlow.value = listOf(managedOp(waitingState()))
+        testScope.advanceUntilIdle()
+        coordinator.onAppBackgrounded()
+        testScope.advanceUntilIdle()
+        val postedAttentionId = attentionId.captured
+
+        clearMocks(notificationManager, answers = false)
+        coordinator.onServiceTimeout(mockk<Service>(relaxed = true))
+        testScope.advanceUntilIdle()
+
+        verify { notificationManager.notify(postedAttentionId, any()) }
+        verify(exactly = 0) { notificationManager.cancel(postedAttentionId) }
+        verify { notificationManager.notify(NOTIFICATION_ID_SUMMARY, any()) }
+    }
+
+    @Test
+    fun `returning to the foreground after a timeout allows a new service start`() {
+        startCoordinator()
+        opsFlow.value = listOf(managedOp(Operation.State.Queued(t0)))
+        testScope.advanceUntilIdle()
+        coordinator.onAppBackgrounded()
+        testScope.advanceUntilIdle()
+        coordinator.onServiceTimeout(mockk<Service>(relaxed = true))
+        coordinator.onServiceDestroyed()
+        testScope.advanceUntilIdle()
+
+        coordinator.onAppForegrounded()
+        testScope.advanceUntilIdle()
+        coordinator.onAppBackgrounded()
+        testScope.advanceUntilIdle()
+
+        verify(exactly = 2) { context.startForegroundService(any()) }
+    }
+
+    @Test
+    fun `a timeout handled after returning to the foreground does not block the next start`() {
+        testScope = TestScope(StandardTestDispatcher())
+        startCoordinator()
+        opsFlow.value = listOf(managedOp(Operation.State.Queued(t0)))
+        testScope.advanceUntilIdle()
+        coordinator.onAppBackgrounded()
+        testScope.advanceUntilIdle()
+
+        // The foreground reconcile is queued before the timeout arrives.
+        coordinator.onAppForegrounded()
+        coordinator.onServiceTimeout(mockk<Service>(relaxed = true))
+        coordinator.onServiceDestroyed()
+        testScope.advanceUntilIdle()
+        coordinator.onAppBackgrounded()
+        testScope.advanceUntilIdle()
+
+        verify(exactly = 2) { context.startForegroundService(any()) }
     }
 }
