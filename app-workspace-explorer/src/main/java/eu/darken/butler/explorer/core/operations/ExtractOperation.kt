@@ -149,7 +149,7 @@ class ExtractOperation @AssistedInject constructor(
             command.entries?.any { requested -> meta.segments.startsWithList(requested) } ?: true
         }
         // See ArchivePasswordRequiredException.mayBeDamaged.
-        val mayBeDamaged = index.format == ArchiveFormat.SEVEN_Z
+        val mayBeDamaged = !index.format.capabilities.wrongPasswordDistinguishable
 
         // Prompt for the password up front so we never write a half-decrypted tree.
         var attemptFailed = false
