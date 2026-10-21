@@ -227,6 +227,13 @@
     <string name="general_error_type_mismatch_msg">Tür uyuşmazlığı: %1$s bekleniyordu, ancak %2$s alındı.</string>
     <string name="general_error_cant_access_msg">%s içine erişilemiyor.</string>
     <string name="general_error_archive_not_seekable_msg">%s doğrudan gezinilemiyor: bulunduğu depolama yalnızca sıralı okumayı destekliyor, ancak bu arşiv biçimi rastgele erişim gerektiriyor.</string>
+    <string name="general_error_archive_damaged_msg">%s hasarlı veya eksik olduğundan okunamıyor.</string>
+    <string name="general_error_archive_rar4_msg">%s eski RAR4 biçimini kullanıyor ve açılamıyor. Yalnızca RAR5 arşivleri destekleniyor.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s ayıklanamıyor: %2$s bellek gerekiyor, ancak yalnızca %3$s kullanılabilir.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s, çok parçalı bir arşivin %2$d. parçası. Bunun yerine ilk parçayı açın.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s desteklenmeyen bir RAR özelliği kullanıyor.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s çok parçalı bir arşiv, ancak %2$s parçası eksik.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s çok parçalı bir arşiv, ancak parçalarından biri eksik.</string>
     <string name="general_error_root_unavailable">Root erişimi kullanılamıyor.</string>
     <string name="general_error_elevated_access_required">Bu işlem yükseltilmiş erişim gerektiriyor. Kurulum\'da root veya ADB erişimini yapılandırın.</string>
     <string name="general_error_no_compatible_app_found_msg">Bu isteği işleyecek uyumlu bir uygulama bulunamadı.</string>

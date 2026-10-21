@@ -279,6 +279,13 @@
     <string name="general_error_type_mismatch_msg">عدم تطابق النوع: المتوقع %1$s، لكن تم الحصول على %2$s.</string>
     <string name="general_error_cant_access_msg">تعذر الوصول إلى %s.</string>
     <string name="general_error_archive_not_seekable_msg">يتعذّر تصفح %s مباشرة: التخزين الذي يوجد عليه يدعم القراءة المتسلسلة فقط، بينما يتطلب تنسيق الأرشيف هذا وصولًا عشوائيًا.</string>
+    <string name="general_error_archive_damaged_msg">%s تالف أو غير مكتمل ولا يمكن قراءته.</string>
+    <string name="general_error_archive_rar4_msg">يستخدم %s تنسيق RAR4 الأقدم، ولا يمكن فتحه. أرشيفات RAR5 فقط مدعومة.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">يتعذّر فك ضغط %1$s: يحتاج إلى %2$s من الذاكرة، لكن المتاح %3$s فقط.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s هو الجزء %2$d من أرشيف متعدد الأجزاء. افتح الجزء الأول بدلًا منه.</string>
+    <string name="general_error_archive_unsupported_feature_msg">يستخدم %s ميزة RAR غير مدعومة.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s أرشيف متعدد الأجزاء، لكن الجزء %2$s منه مفقود.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s أرشيف متعدد الأجزاء، لكن أحد أجزائه مفقود.</string>
     <string name="general_error_root_unavailable">الوصول بصلاحيات Root غير متاح.</string>
     <string name="general_error_elevated_access_required">تتطلب هذه العملية وصولًا مرتفع الصلاحيات. اضبط Root أو وصول ADB في الإعداد.</string>
     <string name="general_error_no_compatible_app_found_msg">لم يتم العثور على تطبيق متوافق للتعامل مع هذا الطلب.</string>

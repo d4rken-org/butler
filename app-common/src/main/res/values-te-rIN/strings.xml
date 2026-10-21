@@ -213,6 +213,13 @@
     <string name="general_error_type_mismatch_msg">రకం సరిపోలలేదు: %1$s కావాలి, కానీ %2$s వచ్చింది.</string>
     <string name="general_error_cant_access_msg">%sను యాక్సెస్ చేయలేము.</string>
     <string name="general_error_archive_not_seekable_msg">%sను నేరుగా బ్రౌజ్ చేయలేము: అది ఉన్న నిల్వలో వరుసగా చదవడం మాత్రమే సాధ్యం, కానీ ఈ ఆర్కైవ్ ఫార్మాట్‌కు ఏ స్థానాన్నైనా నేరుగా యాక్సెస్ చేయగలగాలి.</string>
+    <string name="general_error_archive_damaged_msg">%s దెబ్బతిన్నది లేదా అసంపూర్ణంగా ఉంది, కాబట్టి దాన్ని చదవలేము.</string>
+    <string name="general_error_archive_rar4_msg">%s పాత RAR4 ఫార్మాట్‌ను ఉపయోగిస్తుంది, దాన్ని తెరవలేము. RAR5 ఆర్కైవ్‌లకు మాత్రమే మద్దతు ఉంది.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$sను అన్‌ప్యాక్ చేయలేము: దీనికి %2$s మెమరీ అవసరం, కానీ %3$s మాత్రమే అందుబాటులో ఉంది.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s అనేది బహుళ భాగాల ఆర్కైవ్‌లో భాగం %2$d. దానికి బదులుగా మొదటి భాగాన్ని తెరవండి.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s మద్దతు లేని RAR ఫీచర్‌ను ఉపయోగిస్తుంది.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s బహుళ భాగాల ఆర్కైవ్, కానీ దానిలోని భాగం %2$s లేదు.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s బహుళ భాగాల ఆర్కైవ్, కానీ దానిలోని ఒక భాగం లేదు.</string>
     <string name="general_error_root_unavailable">రూట్ యాక్సెస్ అందుబాటులో లేదు.</string>
     <string name="general_error_elevated_access_required">ఈ చర్యకు అధిక అధికారాలతో యాక్సెస్ అవసరం. సెటప్‌లో రూట్ లేదా ADB యాక్సెస్‌ను కాన్ఫిగర్ చేయండి.</string>
     <string name="general_error_no_compatible_app_found_msg">ఈ అభ్యర్థనను నిర్వహించగల అనుకూల యాప్ ఏదీ దొరకలేదు.</string>

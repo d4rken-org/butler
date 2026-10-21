@@ -237,6 +237,13 @@
     <string name="general_error_type_mismatch_msg">Nepodudaranje vrsta: očekivano %1$s, dobiveno %2$s.</string>
     <string name="general_error_cant_access_msg">Nije moguće pristupiti: %s.</string>
     <string name="general_error_archive_not_seekable_msg">Nije moguće izravno pregledavati %s: pohrana na kojoj se nalazi podržava samo slijedno čitanje, a ovaj format arhive zahtijeva nasumičan pristup.</string>
+    <string name="general_error_archive_damaged_msg">Arhiva %s je oštećena ili nepotpuna i ne može se pročitati.</string>
+    <string name="general_error_archive_rar4_msg">Arhiva %s koristi stariji format RAR4, koji se ne može otvoriti. Podržane su samo arhive RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">Arhivu %1$s nije moguće raspakirati: potrebno joj je %2$s memorije, a dostupno je samo %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s je dio %2$d višedijelne arhive. Umjesto toga otvori prvi dio.</string>
+    <string name="general_error_archive_unsupported_feature_msg">Arhiva %s koristi značajku RAR-a koja nije podržana.</string>
+    <string name="general_error_archive_missing_part_msg">Arhiva %1$s je višedijelna, ali nedostaje njezin dio %2$s.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">Arhiva %s je višedijelna, ali nedostaje jedan od njezinih dijelova.</string>
     <string name="general_error_root_unavailable">Root pristup nije dostupan.</string>
     <string name="general_error_elevated_access_required">Ova operacija zahtijeva pristup s višim ovlastima. Konfiguriraj root ili ADB pristup u početnom postavljanju.</string>
     <string name="general_error_no_compatible_app_found_msg">Nije pronađena kompatibilna aplikacija za obradu ovog zahtjeva.</string>

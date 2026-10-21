@@ -289,6 +289,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">Ứng dụng khách SSH và SFTP để kết nối với máy chủ SFTP. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API ghi nhật ký được Apache MINA SSHD sử dụng. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">Thư viện tệp nén hỗ trợ nhiều định dạng. Phần đọc tệp nén RAR5 được chuyển sang Kotlin từ trình đọc RAR5 của thư viện này. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">Trình nén tệp. Phần dẫn xuất khóa và kiểm tra mật khẩu RAR5 của chương trình này được chuyển đổi để mở tệp nén RAR được mã hóa. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Thư viện Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Thư viện mạng Retrofit, OkHttp và OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

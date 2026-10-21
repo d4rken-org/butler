@@ -223,6 +223,13 @@
     <string name="general_error_type_mismatch_msg">Hindi tugmang uri: Kailangan ang %1$s, pero %2$s ang nakuha.</string>
     <string name="general_error_cant_access_msg">Hindi ma-access ang %s.</string>
     <string name="general_error_archive_not_seekable_msg">Hindi direktang ma-browse ang %s: sunod-sunod na pagbasa lang ang sinusuportahan ng storage na kinalalagyan nito, pero kailangan ng format ng archive na ito ang random access.</string>
+    <string name="general_error_archive_damaged_msg">Sira o kulang ang %s at hindi ito mabasa.</string>
+    <string name="general_error_archive_rar4_msg">Gumagamit ang %s ng mas lumang RAR4 format, na hindi mabubuksan. RAR5 archive lang ang sinusuportahan.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">Hindi ma-unpack ang %1$s: kailangan nito ng %2$s na memory, pero %3$s lang ang available.</string>
+    <string name="general_error_archive_not_first_part_msg">Ang %1$s ay bahagi %2$d ng isang multi-part archive. Buksan na lang ang unang bahagi.</string>
+    <string name="general_error_archive_unsupported_feature_msg">Gumagamit ang %s ng RAR feature na hindi sinusuportahan.</string>
+    <string name="general_error_archive_missing_part_msg">Multi-part archive ang %1$s, pero nawawala ang bahagi nitong %2$s.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">Multi-part archive ang %s, pero nawawala ang isa sa mga bahagi nito.</string>
     <string name="general_error_root_unavailable">Hindi available ang root access.</string>
     <string name="general_error_elevated_access_required">Kailangan ng mas mataas na antas ng access para sa operasyong ito. I-configure ang root o ADB access sa Pag-setup.</string>
     <string name="general_error_no_compatible_app_found_msg">Walang nakitang angkop na app para sa kahilingang ito.</string>

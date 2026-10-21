@@ -207,6 +207,13 @@
     <string name="general_error_type_mismatch_msg">प्रकार मेल नहीं खाता: %1$s चाहिए था, लेकिन %2$s मिला।</string>
     <string name="general_error_cant_access_msg">%s की पहुँच नहीं मिल रही।</string>
     <string name="general_error_archive_not_seekable_msg">%s को सीधे ब्राउज़ नहीं किया जा सकता: इसका स्टोरेज केवल क्रम से पढ़ने का समर्थन करता है, लेकिन इस आर्काइव फ़ॉर्मैट के लिए रैंडम ऐक्सेस आवश्यक है।</string>
+    <string name="general_error_archive_damaged_msg">%s खराब या अधूरा है और पढ़ा नहीं जा सकता।</string>
+    <string name="general_error_archive_rar4_msg">%s पुराने RAR4 फ़ॉर्मैट का इस्तेमाल करता है, जिसे खोला नहीं जा सकता। केवल RAR5 आर्काइव समर्थित हैं।</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s को अनपैक नहीं किया जा सकता: इसके लिए %2$s मेमोरी चाहिए, लेकिन केवल %3$s उपलब्ध है।</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s कई हिस्सों वाले आर्काइव का हिस्सा %2$d है। इसके बजाय पहला हिस्सा खोलें।</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s RAR की ऐसी सुविधा का इस्तेमाल करता है जो समर्थित नहीं है।</string>
+    <string name="general_error_archive_missing_part_msg">%1$s कई हिस्सों वाला आर्काइव है, लेकिन इसका हिस्सा %2$s मौजूद नहीं है।</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s कई हिस्सों वाला आर्काइव है, लेकिन इसका एक हिस्सा मौजूद नहीं है।</string>
     <string name="general_error_root_unavailable">रूट ऐक्सेस उपलब्ध नहीं है।</string>
     <string name="general_error_elevated_access_required">इस प्रक्रिया के लिए उच्चाधिकार वाली पहुँच आवश्यक है। सेटअप में रूट या ADB ऐक्सेस कॉन्फ़िगर करें।</string>
     <string name="general_error_no_compatible_app_found_msg">इस अनुरोध को संभालने के लिए कोई संगत ऐप नहीं मिला।</string>

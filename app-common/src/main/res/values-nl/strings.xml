@@ -226,6 +226,13 @@
     <string name="general_error_type_mismatch_msg">Type komt niet overeen: %1$s verwacht, maar %2$s ontvangen.</string>
     <string name="general_error_cant_access_msg">Geen toegang tot %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s kan niet direct worden doorbladerd: de opslag waarop het bestand zich bevindt ondersteunt alleen sequentieel lezen, maar dit archiefformaat vereist willekeurige toegang.</string>
+    <string name="general_error_archive_damaged_msg">%s is beschadigd of onvolledig en kan niet worden gelezen.</string>
+    <string name="general_error_archive_rar4_msg">%s gebruikt het oudere RAR4-formaat, dat niet kan worden geopend. Alleen RAR5-archieven worden ondersteund.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s kan niet worden uitgepakt: er is %2$s geheugen nodig, maar slechts %3$s is beschikbaar.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s is deel %2$d van een archief uit meerdere delen. Open in plaats daarvan het eerste deel.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s gebruikt een RAR-functie die niet wordt ondersteund.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s is een archief uit meerdere delen, maar deel %2$s ontbreekt.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s is een archief uit meerdere delen, maar een van de delen ontbreekt.</string>
     <string name="general_error_root_unavailable">Root-toegang is niet beschikbaar.</string>
     <string name="general_error_elevated_access_required">Deze bewerking vereist verhoogde toegang. Configureer root of ADB-toegang in Setup.</string>
     <string name="general_error_no_compatible_app_found_msg">Geen geschikte app gevonden om dit verzoek af te handelen.</string>

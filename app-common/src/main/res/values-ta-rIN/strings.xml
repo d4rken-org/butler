@@ -223,6 +223,13 @@
     <string name="general_error_type_mismatch_msg">வகை பொருந்தவில்லை: எதிர்பார்த்தது %1$s, ஆனால் கிடைத்தது %2$s.</string>
     <string name="general_error_cant_access_msg">%s ஐ அணுக முடியவில்லை.</string>
     <string name="general_error_archive_not_seekable_msg">%s ஐ நேரடியாக உலாவ முடியாது: அது இருக்கும் சேமிப்பகம் வரிசையாக வாசிப்பதை மட்டுமே ஆதரிக்கிறது, ஆனால் இந்தக் காப்பக வடிவத்துக்கு எந்த இடத்தையும் நேரடியாக அணுகும் வசதி தேவை.</string>
+    <string name="general_error_archive_damaged_msg">%s சேதமடைந்துள்ளது அல்லது முழுமையற்றது, அதைப் படிக்க முடியாது.</string>
+    <string name="general_error_archive_rar4_msg">%s பழைய RAR4 வடிவத்தைப் பயன்படுத்துகிறது, அதைத் திறக்க முடியாது. RAR5 காப்பகங்கள் மட்டுமே ஆதரிக்கப்படுகின்றன.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s ஐப் பிரித்தெடுக்க முடியாது: இதற்கு %2$s நினைவகம் தேவை, ஆனால் %3$s மட்டுமே கிடைக்கிறது.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s என்பது பல பகுதிகளைக் கொண்ட காப்பகத்தின் பகுதி %2$d. அதற்குப் பதிலாக முதல் பகுதியைத் திறக்கவும்.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s ஆதரிக்கப்படாத RAR அம்சத்தைப் பயன்படுத்துகிறது.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s பல பகுதிகளைக் கொண்ட காப்பகம், ஆனால் அதன் பகுதி %2$s இல்லை.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s பல பகுதிகளைக் கொண்ட காப்பகம், ஆனால் அதன் பகுதிகளில் ஒன்று இல்லை.</string>
     <string name="general_error_root_unavailable">Root அணுகல் கிடைக்கவில்லை.</string>
     <string name="general_error_elevated_access_required">இந்தச் செயல்பாட்டுக்கு உயர்நிலை அணுகல் தேவை. அமைவாக்கத்தில் Root அல்லது ADB அணுகலை அமைக்கவும்.</string>
     <string name="general_error_no_compatible_app_found_msg">இந்தக் கோரிக்கையைக் கையாள இணக்கமான செயலி எதுவும் கிடைக்கவில்லை.</string>

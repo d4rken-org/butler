@@ -240,6 +240,13 @@
     <string name="general_error_type_mismatch_msg">Nesúlad typov: Očakáva sa %1$s, ale získalo sa %2$s.</string>
     <string name="general_error_cant_access_msg">K %s sa nedá pristupovať.</string>
     <string name="general_error_archive_not_seekable_msg">%s sa nedá priamo prehliadať: úložisko, na ktorom sa nachádza, podporuje len sekvenčné čítanie, ale tento formát archívu vyžaduje náhodný prístup.</string>
+    <string name="general_error_archive_damaged_msg">Archív %s je poškodený alebo neúplný a nedá sa prečítať.</string>
+    <string name="general_error_archive_rar4_msg">Archív %s používa starší formát RAR4, ktorý sa nedá otvoriť. Podporované sú len archívy RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s sa nedá rozbaliť: vyžaduje %2$s pamäte, ale k dispozícii je len %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s je časť %2$d viacdielneho archívu. Namiesto toho otvor prvú časť.</string>
+    <string name="general_error_archive_unsupported_feature_msg">Archív %s používa funkciu RAR, ktorá nie je podporovaná.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s je viacdielny archív, ale chýba jeho časť %2$s.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s je viacdielny archív, ale chýba jedna z jeho častí.</string>
     <string name="general_error_root_unavailable">Prístup root nie je dostupný.</string>
     <string name="general_error_elevated_access_required">Táto operácia vyžaduje prístup so zvýšenými oprávneniami. Nakonfiguruj prístup root alebo ADB v nastavení oprávnení.</string>
     <string name="general_error_no_compatible_app_found_msg">Nenašla sa kompatibilná aplikácia na spracovanie tejto požiadavky.</string>

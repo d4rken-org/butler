@@ -286,6 +286,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">Client SSH și SFTP pentru conexiuni la servere SFTP. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API-ul de jurnalizare folosit de Apache MINA SSHD. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">Bibliotecă de arhive pentru mai multe formate. Citirea arhivelor RAR5 este o portare în Kotlin a cititorului său RAR5. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">Arhivator de fișiere. Derivarea cheii și verificarea parolei RAR5 din acesta au fost portate pentru a deschide arhive RAR criptate. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Biblioteci Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Biblioteci de rețea Retrofit, OkHttp și OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

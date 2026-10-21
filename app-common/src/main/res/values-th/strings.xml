@@ -213,6 +213,13 @@
     <string name="general_error_type_mismatch_msg">ประเภทไม่ตรงกัน: ต้องการ %1$s แต่ได้รับ %2$s</string>
     <string name="general_error_cant_access_msg">ไม่สามารถเข้าถึง %s</string>
     <string name="general_error_archive_not_seekable_msg">ไม่สามารถเรียกดู %s ได้โดยตรง เนื่องจากที่เก็บข้อมูลที่ไฟล์นี้อยู่รองรับการอ่านแบบลำดับเท่านั้น แต่รูปแบบไฟล์บีบอัดนี้ต้องการการเข้าถึงแบบสุ่ม</string>
+    <string name="general_error_archive_damaged_msg">%s เสียหายหรือไม่สมบูรณ์ จึงอ่านไม่ได้</string>
+    <string name="general_error_archive_rar4_msg">%s ใช้รูปแบบ RAR4 รุ่นเก่าซึ่งเปิดไม่ได้ รองรับเฉพาะไฟล์บีบอัด RAR5 เท่านั้น</string>
+    <string name="general_error_archive_dictionary_too_large_msg">แตกไฟล์ %1$s ไม่ได้ เนื่องจากต้องใช้หน่วยความจำ %2$s แต่มีให้ใช้เพียง %3$s</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s เป็นส่วนที่ %2$d ของไฟล์บีบอัดแบบหลายส่วน ให้เปิดส่วนแรกแทน</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s ใช้ฟีเจอร์ของ RAR ที่ไม่รองรับ</string>
+    <string name="general_error_archive_missing_part_msg">%1$s เป็นไฟล์บีบอัดแบบหลายส่วน แต่ไม่พบส่วน %2$s</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s เป็นไฟล์บีบอัดแบบหลายส่วน แต่ไม่พบส่วนใดส่วนหนึ่ง</string>
     <string name="general_error_root_unavailable">ไม่สามารถใช้สิทธิ์ root ได้</string>
     <string name="general_error_elevated_access_required">การดำเนินการนี้ต้องใช้สิทธิ์ระดับสูง ตั้งค่า root หรือการเข้าถึง ADB ในการตั้งค่าเริ่มต้น</string>
     <string name="general_error_no_compatible_app_found_msg">ไม่พบแอปที่รองรับสำหรับคำขอนี้</string>

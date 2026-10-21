@@ -308,6 +308,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">SSH at SFTP client para sa mga koneksyon sa mga SFTP server. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, ang logging API na ginagamit ng Apache MINA SSHD. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">Library ng archive para sa maraming format. Ang pagbasa ng RAR5 archive ay Kotlin port ng RAR5 reader nito. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">File archiver. Na-port ang RAR5 key derivation at pagsuri ng password nito para mabuksan ang mga naka-encrypt na RAR archive. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Mga library ng Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Mga library sa networking na Retrofit, OkHttp, at OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

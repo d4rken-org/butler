@@ -304,6 +304,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">用於連接 SFTP 伺服器的 SSH 與 SFTP 用戶端。（APACHE 2.0）</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java，Apache MINA SSHD 所使用的記錄 API。（MIT）</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">支援多種格式的封存函式庫。RAR5 封存檔讀取功能是其 RAR5 讀取器的 Kotlin 移植版本。（BSD 2-CLAUSE）</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">檔案封存工具。移植了其 RAR5 金鑰衍生與密碼檢查，用於開啟加密的 RAR 封存檔。（LGPL 2.1）</string>
     <string name="acknowledgement_square_libraries_title">Square 函式庫</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit、OkHttp 與 OkIO 網路函式庫。（APACHE 2.0）</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

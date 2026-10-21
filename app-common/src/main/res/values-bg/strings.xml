@@ -222,6 +222,13 @@
     <string name="general_error_type_mismatch_msg">Несъответствие на типовете: очаква се %1$s, но е получен %2$s.</string>
     <string name="general_error_cant_access_msg">Няма достъп до %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s не може да се преглежда директно: хранилището, в което се намира, поддържа само последователно четене, но този архивен формат изисква произволен достъп.</string>
+    <string name="general_error_archive_damaged_msg">%s е повреден или непълен и не може да бъде прочетен.</string>
+    <string name="general_error_archive_rar4_msg">%s използва по-стария формат RAR4, който не може да бъде отворен. Поддържат се само архиви RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s не може да бъде разархивиран: нужни са %2$s памет, но са налични само %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s е част %2$d от многотомен архив. Вместо това отвори първата част.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s използва функция на RAR, която не се поддържа.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s е многотомен архив, но частта му %2$s липсва.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s е многотомен архив, но една от частите му липсва.</string>
     <string name="general_error_root_unavailable">Достъпът чрез root не е наличен.</string>
     <string name="general_error_elevated_access_required">Тази операция изисква достъп с повишени права. Настрой достъп чрез root или ADB в „Настройка на разрешенията“.</string>
     <string name="general_error_no_compatible_app_found_msg">Не е намерено съвместимо приложение за обработка на тази заявка.</string>

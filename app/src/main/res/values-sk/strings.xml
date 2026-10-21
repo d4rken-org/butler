@@ -318,6 +318,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">Klient SSH a SFTP na pripojenie k serverom SFTP. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API na zaznamenávanie, ktoré používa Apache MINA SSHD. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">Knižnica pre archívy v mnohých formátoch. Čítanie archívov RAR5 je port jej čítačky RAR5 do Kotlinu. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">Archivačný program. Jeho odvodzovanie kľúča a kontrola hesla pre RAR5 boli portované na otváranie šifrovaných archívov RAR. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Knižnice Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Sieťové knižnice Retrofit, OkHttp a OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

@@ -213,6 +213,13 @@
     <string name="general_error_type_mismatch_msg">型が一致しません。%1$sを期待しましたが、%2$sでした。</string>
     <string name="general_error_cant_access_msg">%sにアクセスできません。</string>
     <string name="general_error_archive_not_seekable_msg">%sは直接閲覧できません。保存先のストレージが順次読み込みにしか対応していないため、このアーカイブ形式が必要とするランダムアクセスができません。</string>
+    <string name="general_error_archive_damaged_msg">%sは破損しているか不完全なため、読み込めません。</string>
+    <string name="general_error_archive_rar4_msg">%sは古いRAR4形式を使用しているため、開けません。対応しているのはRAR5アーカイブのみです。</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$sを展開できません。%2$sのメモリが必要ですが、使用できるのは%3$sのみです。</string>
+    <string name="general_error_archive_not_first_part_msg">%1$sは分割アーカイブのパート%2$dです。代わりに最初のパートを開いてください。</string>
+    <string name="general_error_archive_unsupported_feature_msg">%sはサポートされていないRARの機能を使用しています。</string>
+    <string name="general_error_archive_missing_part_msg">%1$sは分割アーカイブですが、パート%2$sが見つかりません。</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%sは分割アーカイブですが、パートのいずれかが見つかりません。</string>
     <string name="general_error_root_unavailable">Rootアクセスは利用できません。</string>
     <string name="general_error_elevated_access_required">この操作には高度なアクセス権限が必要です。セットアップでRootまたはADB接続を設定してください。</string>
     <string name="general_error_no_compatible_app_found_msg">この操作に対応できるアプリが見つかりません。</string>

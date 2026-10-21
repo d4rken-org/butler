@@ -227,6 +227,13 @@
     <string name="general_error_type_mismatch_msg">Type incompatible : attendu %1$s, obtenu %2$s.</string>
     <string name="general_error_cant_access_msg">Impossible d’accéder à %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s ne peut pas être parcouru directement : le support sur lequel il se trouve ne prend en charge que la lecture séquentielle, alors que ce format d’archive nécessite un accès aléatoire.</string>
+    <string name="general_error_archive_damaged_msg">%s est endommagé ou incomplet et ne peut pas être lu.</string>
+    <string name="general_error_archive_rar4_msg">%s utilise l’ancien format RAR4, qui ne peut pas être ouvert. Seules les archives RAR5 sont prises en charge.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s ne peut pas être décompressé : il nécessite %2$s de mémoire, mais seulement %3$s sont disponibles.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s est la partie %2$d d’une archive en plusieurs parties. Ouvrez plutôt la première partie.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s utilise une fonctionnalité RAR qui n’est pas prise en charge.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s est une archive en plusieurs parties, mais sa partie %2$s est manquante.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s est une archive en plusieurs parties, mais l’une de ses parties est manquante.</string>
     <string name="general_error_root_unavailable">L’accès root n’est pas disponible.</string>
     <string name="general_error_elevated_access_required">Cette opération nécessite des privilèges élevés. Configure l’accès root ou ADB dans la configuration.</string>
     <string name="general_error_no_compatible_app_found_msg">Aucune application compatible trouvée pour traiter cette demande.</string>

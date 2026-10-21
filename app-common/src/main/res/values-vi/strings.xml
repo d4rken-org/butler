@@ -213,6 +213,13 @@
     <string name="general_error_type_mismatch_msg">Sai kiểu dữ liệu: Cần %1$s nhưng nhận được %2$s.</string>
     <string name="general_error_cant_access_msg">Không thể truy cập %s.</string>
     <string name="general_error_archive_not_seekable_msg">Không thể duyệt trực tiếp %s: bộ nhớ chứa tệp này chỉ hỗ trợ đọc tuần tự, nhưng định dạng tệp nén này yêu cầu truy cập ngẫu nhiên.</string>
+    <string name="general_error_archive_damaged_msg">%s bị hỏng hoặc không đầy đủ nên không thể đọc.</string>
+    <string name="general_error_archive_rar4_msg">%s dùng định dạng RAR4 cũ hơn nên không thể mở. Chỉ hỗ trợ tệp nén RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">Không thể giải nén %1$s: cần %2$s bộ nhớ, nhưng chỉ còn %3$s khả dụng.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s là phần %2$d của một tệp nén nhiều phần. Hãy mở phần đầu tiên.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s dùng một tính năng RAR không được hỗ trợ.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s là tệp nén nhiều phần, nhưng thiếu phần %2$s.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s là tệp nén nhiều phần, nhưng thiếu một trong các phần.</string>
     <string name="general_error_root_unavailable">Không có quyền truy cập root.</string>
     <string name="general_error_elevated_access_required">Thao tác này yêu cầu quyền truy cập nâng cao. Hãy cấu hình truy cập Root hoặc ADB trong Thiết lập.</string>
     <string name="general_error_no_compatible_app_found_msg">Không tìm thấy ứng dụng phù hợp để xử lý yêu cầu này.</string>

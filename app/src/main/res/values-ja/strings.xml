@@ -289,6 +289,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">SFTPサーバーへの接続に使うSSHおよびSFTPクライアント。(APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java。Apache MINA SSHDが使うログ記録API。(MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">多形式対応のアーカイブライブラリ。RAR5アーカイブの読み込みは、そのRAR5リーダーをKotlinに移植したものです。(BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">ファイルアーカイバー。暗号化されたRARアーカイブを開くため、そのRAR5の鍵導出とパスワード確認を移植しました。(LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Squareライブラリ</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit、OkHttp、OkIOのネットワークライブラリ。(APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

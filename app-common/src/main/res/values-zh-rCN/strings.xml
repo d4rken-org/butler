@@ -214,6 +214,13 @@
     <string name="general_error_type_mismatch_msg">类型不匹配：需要 %1$s，但得到 %2$s。</string>
     <string name="general_error_cant_access_msg">无法访问 %s。</string>
     <string name="general_error_archive_not_seekable_msg">%s 无法直接浏览：其所在存储仅支持顺序读取，但该压缩格式需要随机访问。</string>
+    <string name="general_error_archive_damaged_msg">%s 已损坏或不完整，无法读取。</string>
+    <string name="general_error_archive_rar4_msg">%s 使用的是较旧的 RAR4 格式，无法打开。仅支持 RAR5 压缩包。</string>
+    <string name="general_error_archive_dictionary_too_large_msg">无法解压 %1$s：需要 %2$s 内存，但仅有 %3$s 可用。</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s 是分卷压缩包的第 %2$d 卷。请改为打开第一卷。</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s 使用了不受支持的 RAR 功能。</string>
+    <string name="general_error_archive_missing_part_msg">%1$s 是分卷压缩包，但缺少其分卷 %2$s。</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s 是分卷压缩包，但缺少其中一个分卷。</string>
     <string name="general_error_root_unavailable">Root 访问不可用。</string>
     <string name="general_error_elevated_access_required">此操作需要提升的访问权限。请在设置向导中配置 Root 或 ADB 访问。</string>
     <string name="general_error_no_compatible_app_found_msg">未找到可处理此请求的兼容应用。</string>

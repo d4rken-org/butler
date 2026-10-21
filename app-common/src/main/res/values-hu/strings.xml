@@ -207,6 +207,13 @@
     <string name="general_error_type_mismatch_msg">Típuseltérés: a várt típus %1$s, a kapott %2$s.</string>
     <string name="general_error_cant_access_msg">%s nem érhető el.</string>
     <string name="general_error_archive_not_seekable_msg">%s nem böngészhető közvetlenül: a tárhelye csak soros olvasást támogat, de ez az archívumformátum véletlen hozzáférést igényel.</string>
+    <string name="general_error_archive_damaged_msg">A(z) %s sérült vagy hiányos, ezért nem olvasható.</string>
+    <string name="general_error_archive_rar4_msg">A(z) %s a régebbi RAR4 formátumot használja, amely nem nyitható meg. Csak a RAR5 archívumok támogatottak.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">A(z) %1$s nem bontható ki: %2$s memóriára van szüksége, de csak %3$s áll rendelkezésre.</string>
+    <string name="general_error_archive_not_first_part_msg">A(z) %1$s egy többrészes archívum %2$d. része. Inkább az első részt nyisd meg.</string>
+    <string name="general_error_archive_unsupported_feature_msg">A(z) %s olyan RAR-funkciót használ, amely nem támogatott.</string>
+    <string name="general_error_archive_missing_part_msg">A(z) %1$s többrészes archívum, de hiányzik a(z) %2$s része.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">A(z) %s többrészes archívum, de hiányzik az egyik része.</string>
     <string name="general_error_root_unavailable">A root-hozzáférés nem érhető el.</string>
     <string name="general_error_elevated_access_required">Ehhez a művelethez emelt szintű hozzáférés szükséges. Állíts be root- vagy ADB-hozzáférést a kezdeti beállításban.</string>
     <string name="general_error_no_compatible_app_found_msg">Nem található kompatibilis alkalmazás a kérés kezeléséhez.</string>
