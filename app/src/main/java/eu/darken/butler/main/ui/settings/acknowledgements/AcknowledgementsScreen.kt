@@ -266,6 +266,24 @@ fun AcknowledgementsScreen(
 
             item {
                 SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_libarchive_title),
+                    subtitle = stringResource(R.string.acknowledgement_libarchive_subtitle),
+                    onClick = { onOpenUrl("https://github.com/libarchive/libarchive") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.acknowledgement_7zip_title),
+                    subtitle = stringResource(R.string.acknowledgement_7zip_subtitle),
+                    onClick = { onOpenUrl("https://www.7-zip.org/") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
                     title = stringResource(R.string.acknowledgement_square_libraries_title),
                     subtitle = stringResource(R.string.acknowledgement_square_libraries_subtitle),
                     onClick = { onOpenUrl("https://square.github.io/") }
