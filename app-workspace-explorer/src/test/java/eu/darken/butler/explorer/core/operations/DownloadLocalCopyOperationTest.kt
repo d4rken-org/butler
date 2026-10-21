@@ -11,6 +11,7 @@ import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -18,15 +19,22 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.withTimeout
 import org.junit.Before
 import org.junit.Test
 import testhelpers.BaseTest
@@ -36,6 +44,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.OutputStream
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 class DownloadLocalCopyOperationTest : BaseTest() {
 
@@ -170,6 +179,45 @@ class DownloadLocalCopyOperationTest : BaseTest() {
         states.completed().error.shouldBeNull()
         coVerify { gatewaySwitch.delete(destPath, any()) }
         moves.single().second shouldBe destPath
+    }
+
+    @Test
+    fun `the conflict prompt is visible as a waiting state while it is unanswered`() = runTest2 {
+        coEvery { gatewaySwitch.exists(destPath) } returns true
+        val issue = slot<PathActionIssue.PathAlreadyExists>()
+        val answer = CompletableDeferred<Issue.Resolution>()
+        coEvery { issueHandler.handleIssue(any(), capture(issue)) } coAnswers { answer.await() }
+
+        val states = mutableListOf<ExplorerOperation.State>()
+        val job = launch { operation().perform(context()).collect { states += it } }
+        advanceUntilIdle()
+
+        answer.isCompleted shouldBe false
+        states.last().shouldBeInstanceOf<ExplorerOperation.State.Waiting>().issue shouldBeSameInstanceAs issue.captured
+
+        answer.complete(PathActionIssue.PathAlreadyExists.Resolution.Cancel())
+        withTimeout(5.seconds) { job.join() }
+
+        states.last().shouldBeInstanceOf<ExplorerOperation.State.Completed>()
+    }
+
+    @Test
+    fun `the operation is active again right after the conflict prompt`() = runTest2 {
+        coEvery { gatewaySwitch.exists(destPath) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+        // Non-empty content would emit an Active progress state on the first read and mask a missing resend.
+        coEvery { gatewaySwitch.openInputStream(sourcePath) } answers { ByteArrayInputStream(ByteArray(0)) }
+
+        val states = operation().perform(context()).toList()
+
+        states.filterIsInstance<ExplorerOperation.State.Waiting>().map { it.issue::class } shouldContain
+            PathActionIssue.PathAlreadyExists::class
+        val waitingAt = states.indexOfFirst {
+            it is ExplorerOperation.State.Waiting && it.issue is PathActionIssue.PathAlreadyExists
+        }
+        states[waitingAt + 1].shouldBeInstanceOf<ExplorerOperation.State.Active>()
+        states.completed().error.shouldBeNull()
     }
 
     @Test

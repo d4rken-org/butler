@@ -30,6 +30,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.withContext
+import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
 /**
@@ -85,14 +86,20 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
         val destPath = command.destinationDir.child(command.source.name)
         var overwriteAuthorized = false
         if (gatewaySwitch.exists(destPath)) {
-            val resolution = issueHandler.handleIssue(
-                operationContext.id,
-                PathActionIssue.PathAlreadyExists(
-                    destination = gatewaySwitch.lookup(destPath, LookupOptions()),
-                    canSkip = false,
-                    canOverwrite = true,
-                ),
+            val issue = PathActionIssue.PathAlreadyExists(
+                destination = gatewaySwitch.lookup(destPath, LookupOptions()),
+                canSkip = false,
+                canOverwrite = true,
             )
+            send(
+                State.Waiting(
+                    startedAt = operationContext.startedAt,
+                    waitingSince = Clock.System.now(),
+                    issue = issue,
+                )
+            )
+            val resolution = issueHandler.handleIssue(operationContext.id, issue)
+            send(stateActive)
             when (resolution) {
                 is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> overwriteAuthorized = true
                 else -> {
