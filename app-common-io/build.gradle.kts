@@ -53,6 +53,8 @@ android {
             assets.directories.add("$projectDir/schemas")
             // SftpGatewayIntegrationTest uses lib-ssh's test-only host keys.
             resources.directories.add("${rootProject.projectDir}/lib-ssh/src/test/resources")
+            // RarArchiveHandler tests read lib-rar's fixtures.
+            resources.directories.add("${rootProject.projectDir}/lib-rar/src/test/resources/fixtures")
         }
         getByName("androidTest") {
             assets.directories.add("${rootProject.projectDir}/lib-ssh/src/test/resources")
@@ -77,6 +79,7 @@ dependencies {
     implementation(project(":lib-smb"))
     implementation(project(":lib-ssh"))
     implementation(project(":lib-webdav"))
+    implementation(project(":lib-rar"))
     addRoomDb()
     addWorkerManager()
 

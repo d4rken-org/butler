@@ -48,7 +48,30 @@ class ArchiveFormatTest : BaseTest() {
     fun `non-archives return null`() {
         ArchiveFormat.fromFileName("song.mp3") shouldBe null
         ArchiveFormat.fromFileName("noextension") shouldBe null
-        ArchiveFormat.fromFileName("archive.rar") shouldBe null
+    }
+
+    @Test
+    fun `detect rar as a read-only format`() {
+        ArchiveFormat.fromFileName("photos.rar") shouldBe ArchiveFormat.RAR
+        ArchiveFormat.fromFileName("PHOTOS.RAR") shouldBe ArchiveFormat.RAR
+        ArchiveFormat.fromFileName("photos.part1.rar") shouldBe ArchiveFormat.RAR
+        ArchiveFormat.RAR.displayExtension shouldBe "rar"
+        ArchiveFormat.RAR.isWritable shouldBe false
+    }
+
+    @Test
+    fun `legacy rar continuation volumes are not detected`() {
+        ArchiveFormat.fromFileName("photos.r00") shouldBe null
+        ArchiveFormat.fromFileName("photos.r01") shouldBe null
+        ArchiveFormat.fromFileName("photos.s00") shouldBe null
+    }
+
+    @Test
+    fun `stemOf strips the rar extension`() {
+        ArchiveFormat.stemOf("photos.rar") shouldBe "photos"
+        ArchiveFormat.stemOf("Photos.RAR") shouldBe "Photos"
+        ArchiveFormat.stemOf("photos.part1.rar") shouldBe "photos.part1"
+        ArchiveFormat.stemOf(".rar") shouldBe ".rar"
     }
 
     @Test
@@ -57,7 +80,7 @@ class ArchiveFormatTest : BaseTest() {
         ArchiveFormat.fromFileName("PHOTOS.7Z") shouldBe ArchiveFormat.SEVEN_Z
         ArchiveFormat.stemOf("photos.7z") shouldBe "photos"
         ArchiveFormat.SEVEN_Z.isWritable shouldBe false
-        ArchiveFormat.entries.filter { it != ArchiveFormat.SEVEN_Z }.all { it.isWritable } shouldBe true
+        ArchiveFormat.entries.filter { !it.isWritable } shouldBe listOf(ArchiveFormat.SEVEN_Z, ArchiveFormat.RAR)
     }
 
     @Test

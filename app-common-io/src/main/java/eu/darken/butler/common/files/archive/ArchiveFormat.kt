@@ -4,8 +4,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Archive formats supported for browsing and extraction. All but [SEVEN_Z] can also be created
- * (see [isWritable] and [ArchiveService.compress]).
+ * Archive formats supported for browsing and extraction. All but [SEVEN_Z] and [RAR] can also be
+ * created (see [isWritable] and [ArchiveService.compress]).
  *
  * Detection is filename-based because compound suffixes (`.tar.gz`) cannot be distinguished
  * from their plain compression counterparts (`.gz`) via single-extension MIME lookups.
@@ -17,6 +17,7 @@ enum class ArchiveFormat(val displayExtension: String) {
     @SerialName("tar_gz") TAR_GZ("tar.gz"),
     @SerialName("tar_bz2") TAR_BZ2("tar.bz2"),
     @SerialName("seven_z") SEVEN_Z("7z"),
+    @SerialName("rar") RAR("rar"),
     ;
 
     val capabilities: ArchiveCapabilities
@@ -24,6 +25,7 @@ enum class ArchiveFormat(val displayExtension: String) {
             ZIP -> ZipArchiveHandler.CAPABILITIES
             TAR, TAR_GZ, TAR_BZ2 -> TarArchiveHandler.CAPABILITIES
             SEVEN_Z -> SevenZArchiveHandler.CAPABILITIES
+            RAR -> RarArchiveHandler.CAPABILITIES
         }
 
     val isWritable: Boolean get() = capabilities.writable
@@ -42,13 +44,15 @@ enum class ArchiveFormat(val displayExtension: String) {
                 lower.endsWith(".tar.bz2") || lower.endsWith(".tbz2") -> TAR_BZ2
                 lower.endsWith(".tar") -> TAR
                 lower.endsWith(".7z") -> SEVEN_Z
+                // Of a legacy multi-part set (.rar, .r00, .r01, …) only the first file is opened.
+                lower.endsWith(".rar") -> RAR
                 else -> null
             }
         }
 
         // Compound suffixes first so ".tar.gz" is stripped whole rather than leaving ".tar".
         private val STEM_SUFFIXES = listOf(
-            ".tar.gz", ".tar.bz2", ".tbz2", ".tgz", ".tar", ".apks", ".xapk", ".apkm", ".zip", ".7z",
+            ".tar.gz", ".tar.bz2", ".tbz2", ".tgz", ".tar", ".apks", ".xapk", ".apkm", ".zip", ".7z", ".rar",
         )
 
         /**

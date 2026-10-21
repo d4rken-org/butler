@@ -226,6 +226,13 @@
     <string name="general_error_type_mismatch_msg">Type mismatch: Wanted %1$s, but got %2$s.</string>
     <string name="general_error_cant_access_msg">Can\'t access %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s can\'t be browsed directly: the storage it is on only supports sequential reading, but this archive format requires random access.</string>
+    <string name="general_error_archive_damaged_msg">%s is damaged or incomplete and can\'t be read.</string>
+    <string name="general_error_archive_rar4_msg">%s uses the older RAR4 format, which can\'t be opened. Only RAR5 archives are supported.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s can\'t be unpacked: it needs %2$s of memory, but only %3$s is available.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s is part %2$d of a multi-part archive. Open the first part instead.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s uses a RAR feature that isn\'t supported.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s is a multi-part archive, but its part %2$s is missing.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s is a multi-part archive, but one of its parts is missing.</string>
     <string name="general_error_root_unavailable">Root access is unavailable.</string>
     <string name="general_error_elevated_access_required">This operation requires elevated access. Configure root or ADB access in Setup.</string>
     <string name="general_error_no_compatible_app_found_msg">No compatible app found to handle this request.</string>

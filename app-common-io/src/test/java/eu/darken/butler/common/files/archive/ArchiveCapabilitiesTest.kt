@@ -48,6 +48,18 @@ class ArchiveCapabilitiesTest : BaseTest() {
     }
 
     @Test
+    fun `rar capabilities`() {
+        ArchiveFormat.RAR.capabilities shouldBe ArchiveCapabilities(
+            access = Access.SEQUENTIAL,
+            sequentialExtractionFallback = false,
+            readEncryption = setOf(EncryptionScope.ENTRY_DATA, EncryptionScope.HEADERS),
+            wrongPasswordDistinguishable = true,
+            writable = false,
+            writeEncryption = false,
+        )
+    }
+
+    @Test
     fun `only 7z cannot distinguish a wrong password from damage`() {
         ArchiveFormat.entries.filter { !it.capabilities.wrongPasswordDistinguishable } shouldBe
             listOf(ArchiveFormat.SEVEN_Z)
