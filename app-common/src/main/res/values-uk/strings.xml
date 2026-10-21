@@ -252,6 +252,13 @@
     <string name="general_error_type_mismatch_msg">Невідповідність типу: очікувалося %1$s, а отримано %2$s.</string>
     <string name="general_error_cant_access_msg">Не вдається отримати доступ до %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s не можна переглянути напряму: сховище, на якому розташовано цей файл, підтримує лише послідовне читання, а цей формат архіву потребує довільного доступу.</string>
+    <string name="general_error_archive_damaged_msg">Архів %s пошкоджений або неповний, тому його не можна прочитати.</string>
+    <string name="general_error_archive_rar4_msg">Архів %s використовує старіший формат RAR4, який не можна відкрити. Підтримуються лише архіви RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">Не вдається розпакувати %1$s: потрібно %2$s пам’яті, але доступно лише %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s — частина %2$d багатотомного архіву. Відкрийте натомість першу частину.</string>
+    <string name="general_error_archive_unsupported_feature_msg">Архів %s використовує функцію RAR, яка не підтримується.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s — багатотомний архів, але його частина %2$s відсутня.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s — багатотомний архів, але одна з його частин відсутня.</string>
     <string name="general_error_root_unavailable">Доступ до root недоступний.</string>
     <string name="general_error_elevated_access_required">Ця операція потребує розширеного доступу. Налаштуй root або доступ до ADB в розділі «Налаштування».</string>
     <string name="general_error_no_compatible_app_found_msg">Не знайдено сумісного програми для обробки цього запиту.</string>

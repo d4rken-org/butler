@@ -227,6 +227,13 @@
     <string name="general_error_type_mismatch_msg">Tipo incorrecto: se esperaba %1$s, pero se obtuvo %2$s.</string>
     <string name="general_error_cant_access_msg">No se puede acceder a %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s no se puede examinar directamente: el almacenamiento en el que se encuentra solo admite lectura secuencial, pero este formato de archivo comprimido requiere acceso aleatorio.</string>
+    <string name="general_error_archive_damaged_msg">%s está dañado o incompleto y no se puede leer.</string>
+    <string name="general_error_archive_rar4_msg">%s usa el formato RAR4 antiguo, que no se puede abrir. Solo se admiten archivos comprimidos RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s no se puede descomprimir: necesita %2$s de memoria, pero solo hay %3$s disponibles.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s es la parte %2$d de un archivo comprimido de varias partes. Abre la primera parte en su lugar.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s usa una función de RAR que no es compatible.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s es un archivo comprimido de varias partes, pero falta su parte %2$s.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s es un archivo comprimido de varias partes, pero falta una de sus partes.</string>
     <string name="general_error_root_unavailable">El acceso root no está disponible.</string>
     <string name="general_error_elevated_access_required">Esta operación requiere acceso elevado. Configura root o el acceso a ADB en Configuración.</string>
     <string name="general_error_no_compatible_app_found_msg">No se encontró ninguna app compatible para gestionar esta solicitud.</string>

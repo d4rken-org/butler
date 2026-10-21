@@ -291,6 +291,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">לקוח SSH ו־SFTP לחיבור לשרתי SFTP. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, ממשק הרישום ביומן שבו משתמש Apache MINA SSHD. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">ספריית ארכיונים התומכת בפורמטים רבים. קריאת ארכיוני RAR5 היא הסבה ל־Kotlin של קורא ה־RAR5 שלה. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">תוכנה לארכוב קבצים. גזירת המפתח ובדיקת הסיסמה של RAR5 שלה הוסבו כדי לפתוח ארכיוני RAR מוצפנים. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">ספריות Square</string>
     <string name="acknowledgement_square_libraries_subtitle">ספריות הרשת Retrofit, OkHttp ו־OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

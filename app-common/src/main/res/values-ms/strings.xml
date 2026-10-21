@@ -194,6 +194,13 @@
     <string name="general_error_type_mismatch_msg">Jenis tidak sepadan: Memerlukan %1$s, tetapi mendapat %2$s.</string>
     <string name="general_error_cant_access_msg">Tidak dapat mengakses %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s tidak boleh dilayari secara langsung: storannya hanya menyokong bacaan berjujukan, tetapi format arkib ini memerlukan akses rawak.</string>
+    <string name="general_error_archive_damaged_msg">%s rosak atau tidak lengkap dan tidak dapat dibaca.</string>
+    <string name="general_error_archive_rar4_msg">%s menggunakan format RAR4 yang lebih lama, yang tidak dapat dibuka. Hanya arkib RAR5 disokong.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s tidak dapat dinyahpek: ia memerlukan %2$s memori, tetapi hanya %3$s tersedia.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s ialah bahagian %2$d daripada arkib berbilang bahagian. Buka bahagian pertama sebaliknya.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s menggunakan ciri RAR yang tidak disokong.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s ialah arkib berbilang bahagian, tetapi bahagian %2$s tiada.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s ialah arkib berbilang bahagian, tetapi salah satu bahagiannya tiada.</string>
     <string name="general_error_root_unavailable">Akses root tidak tersedia.</string>
     <string name="general_error_elevated_access_required">Operasi ini memerlukan akses istimewa. Konfigurasikan akses root atau ADB dalam Persediaan.</string>
     <string name="general_error_no_compatible_app_found_msg">Tiada aplikasi serasi ditemui untuk mengendalikan permintaan ini.</string>

@@ -281,6 +281,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">SSH- és SFTP-kliens az SFTP-kiszolgálókhoz való csatlakozáshoz. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, az Apache MINA SSHD által használt naplózási API. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">Többformátumú archívumkönyvtár. A RAR5 archívumok olvasása a könyvtár RAR5 olvasójának Kotlin-portja. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">Fájltömörítő. A RAR5 kulcsszármaztatása és jelszó-ellenőrzése át lett ültetve belőle a titkosított RAR archívumok megnyitásához. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Square-könyvtárak</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp és OkIO hálózati könyvtárak. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

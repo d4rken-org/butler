@@ -295,6 +295,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">SFTP sunucularına bağlanmak için SSH ve SFTP istemcisi. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, Apache MINA SSHD\'nin kullandığı günlükleme API\'si. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">Çok biçimli arşiv kitaplığı. RAR5 arşivlerini okuma, kitaplığın RAR5 okuyucusunun Kotlin\'e aktarılmış hâlidir. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">Dosya arşivleyici. Şifreli RAR arşivlerini açmak için RAR5 anahtar türetme ve parola denetimi buradan uyarlandı. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Square kitaplıkları</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp ve OkIO ağ kitaplıkları. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

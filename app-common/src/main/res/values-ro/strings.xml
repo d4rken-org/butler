@@ -220,6 +220,13 @@
     <string name="general_error_type_mismatch_msg">Tip nepotrivit: se aștepta %1$s, dar s-a primit %2$s.</string>
     <string name="general_error_cant_access_msg">Nu se poate accesa %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s nu poate fi explorat direct: stocarea pe care se află permite doar citirea secvențială, dar acest format de arhivă necesită acces aleatoriu.</string>
+    <string name="general_error_archive_damaged_msg">%s este deteriorat sau incomplet și nu poate fi citit.</string>
+    <string name="general_error_archive_rar4_msg">%s folosește formatul mai vechi RAR4, care nu poate fi deschis. Sunt acceptate doar arhivele RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s nu poate fi dezarhivat: necesită %2$s de memorie, dar este disponibil doar %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s este partea %2$d a unei arhive din mai multe părți. Deschide în schimb prima parte.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s folosește o funcție RAR care nu este acceptată.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s este o arhivă din mai multe părți, dar lipsește partea %2$s.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s este o arhivă din mai multe părți, dar lipsește una dintre părți.</string>
     <string name="general_error_root_unavailable">Accesul root nu este disponibil.</string>
     <string name="general_error_elevated_access_required">Această operație necesită acces cu privilegii ridicate. Configurează accesul root sau ADB în Configurare.</string>
     <string name="general_error_no_compatible_app_found_msg">Nu s-a găsit nicio aplicație compatibilă pentru această cerere.</string>

@@ -213,6 +213,13 @@
     <string name="general_error_type_mismatch_msg">형식이 일치하지 않습니다. 예상 형식: %1$s, 실제 형식: %2$s</string>
     <string name="general_error_cant_access_msg">%s에 접근할 수 없습니다.</string>
     <string name="general_error_archive_not_seekable_msg">%s 파일은 직접 탐색할 수 없습니다. 저장 위치가 순차 읽기만 지원하는데, 이 압축 형식은 임의 접근이 필요합니다.</string>
+    <string name="general_error_archive_damaged_msg">%s 파일이 손상되었거나 불완전하여 읽을 수 없습니다.</string>
+    <string name="general_error_archive_rar4_msg">%s 파일은 이전 RAR4 형식을 사용하므로 열 수 없습니다. RAR5 압축 파일만 지원됩니다.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s 파일의 압축을 풀 수 없습니다. %2$s의 메모리가 필요하지만 %3$s만 사용할 수 있습니다.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s 파일은 분할 압축 파일의 %2$d번째 부분입니다. 대신 첫 번째 부분을 여십시오.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s 파일은 지원되지 않는 RAR 기능을 사용합니다.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s 파일은 분할 압축 파일이지만 %2$s 부분이 없습니다.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s 파일은 분할 압축 파일이지만 부분 중 하나가 없습니다.</string>
     <string name="general_error_root_unavailable">Root 접근을 사용할 수 없습니다.</string>
     <string name="general_error_elevated_access_required">이 작업에는 상위 권한이 필요합니다. 설정에서 Root 또는 ADB 접근을 구성하세요.</string>
     <string name="general_error_no_compatible_app_found_msg">이 요청을 처리할 수 있는 앱을 찾을 수 없습니다.</string>

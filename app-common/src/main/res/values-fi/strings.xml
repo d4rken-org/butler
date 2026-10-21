@@ -226,6 +226,13 @@
     <string name="general_error_type_mismatch_msg">Tyyppivirhe: odotettiin tyyppiä %1$s, mutta saatiin %2$s.</string>
     <string name="general_error_cant_access_msg">Kohteeseen %s ei ole pääsyä.</string>
     <string name="general_error_archive_not_seekable_msg">Arkistoa %s ei voi selata suoraan: sen tallennustila tukee vain peräkkäistä lukemista, mutta tämä arkistomuoto vaatii satunnaisen lukupääsyn.</string>
+    <string name="general_error_archive_damaged_msg">Arkisto %s on vioittunut tai keskeneräinen, eikä sitä voi lukea.</string>
+    <string name="general_error_archive_rar4_msg">Arkisto %s käyttää vanhempaa RAR4-muotoa, jota ei voi avata. Vain RAR5-arkistoja tuetaan.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">Arkistoa %1$s ei voi purkaa: se vaatii %2$s muistia, mutta käytettävissä on vain %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">Tiedosto %1$s on moniosaisen arkiston osa %2$d. Avaa sen sijaan ensimmäinen osa.</string>
+    <string name="general_error_archive_unsupported_feature_msg">Arkisto %s käyttää RAR-ominaisuutta, jota ei tueta.</string>
+    <string name="general_error_archive_missing_part_msg">Arkisto %1$s on moniosainen, mutta sen osa %2$s puuttuu.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">Arkisto %s on moniosainen, mutta yksi sen osista puuttuu.</string>
     <string name="general_error_root_unavailable">Root-käyttöoikeus ei ole saatavilla.</string>
     <string name="general_error_elevated_access_required">Tämä toiminto vaatii korotetut käyttöoikeudet. Määritä root- tai ADB-käyttöoikeus käyttöoikeuksien määrityksessä.</string>
     <string name="general_error_no_compatible_app_found_msg">Pyynnön käsittelyyn ei löytynyt yhteensopivaa sovellusta.</string>

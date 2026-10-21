@@ -317,6 +317,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">SSH i SFTP klijent za povezivanje sa SFTP poslužiteljima. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API za zapisivanje koji upotrebljava Apache MINA SSHD. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">Biblioteka za arhive u više formata. Čitanje arhiva RAR5 prijenos je njezina čitača RAR5 u Kotlin. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">Program za arhiviranje datoteka. Njegovo izvođenje ključa i provjera lozinke za RAR5 preneseni su radi otvaranja šifriranih arhiva RAR. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Biblioteke Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Mrežne biblioteke Retrofit, OkHttp i OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

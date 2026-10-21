@@ -226,6 +226,13 @@
     <string name="general_error_type_mismatch_msg">Falscher Typ: %1$s erwartet, aber %2$s erhalten.</string>
     <string name="general_error_cant_access_msg">Zugriff auf %s nicht möglich.</string>
     <string name="general_error_archive_not_seekable_msg">%s lässt sich nicht direkt durchsuchen: Der verwendete Speicher unterstützt nur sequenzielles Lesen, dieses Archivformat erfordert jedoch wahlfreien Zugriff.</string>
+    <string name="general_error_archive_damaged_msg">%s ist beschädigt oder unvollständig und kann nicht gelesen werden.</string>
+    <string name="general_error_archive_rar4_msg">%s verwendet das ältere RAR4-Format, das nicht geöffnet werden kann. Nur RAR5-Archive werden unterstützt.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s kann nicht entpackt werden: Es benötigt %2$s Arbeitsspeicher, verfügbar sind aber nur %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s ist Teil %2$d eines mehrteiligen Archivs. Öffne stattdessen den ersten Teil.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s verwendet eine RAR-Funktion, die nicht unterstützt wird.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s ist ein mehrteiliges Archiv, aber der Teil %2$s fehlt.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s ist ein mehrteiliges Archiv, aber einer seiner Teile fehlt.</string>
     <string name="general_error_root_unavailable">Root-Zugriff ist nicht verfügbar.</string>
     <string name="general_error_elevated_access_required">Dieser Vorgang erfordert erweiterte Zugriffsrechte. Konfiguriere Root-Zugriff oder ADB-Zugriff in der Einrichtung.</string>
     <string name="general_error_no_compatible_app_found_msg">Keine passende App für diese Anfrage gefunden.</string>

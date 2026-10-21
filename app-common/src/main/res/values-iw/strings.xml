@@ -233,6 +233,13 @@
     <string name="general_error_type_mismatch_msg">אי־התאמה בסוג: נדרש %1$s, אך התקבל %2$s.</string>
     <string name="general_error_cant_access_msg">אין גישה ל־%s.</string>
     <string name="general_error_archive_not_seekable_msg">אי אפשר לעיין ישירות ב־%s: האחסון שבו הוא נמצא תומך רק בקריאה רציפה, אך פורמט הארכיון הזה מחייב גישה אקראית.</string>
+    <string name="general_error_archive_damaged_msg">הקובץ %s פגום או חלקי ולא ניתן לקרוא אותו.</string>
+    <string name="general_error_archive_rar4_msg">הקובץ %s משתמש בפורמט RAR4 הישן, שלא ניתן לפתוח. יש תמיכה רק בארכיוני RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">לא ניתן לחלץ את %1$s: נדרשים %2$s זיכרון, אך זמינים רק %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">הקובץ %1$s הוא חלק %2$d של ארכיון מרובה חלקים. יש לפתוח את החלק הראשון במקומו.</string>
+    <string name="general_error_archive_unsupported_feature_msg">הקובץ %s משתמש בתכונת RAR שאינה נתמכת.</string>
+    <string name="general_error_archive_missing_part_msg">הקובץ %1$s הוא ארכיון מרובה חלקים, אך החלק %2$s שלו חסר.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">הקובץ %s הוא ארכיון מרובה חלקים, אך אחד מחלקיו חסר.</string>
     <string name="general_error_root_unavailable">גישת root אינה זמינה.</string>
     <string name="general_error_elevated_access_required">פעולה זו דורשת גישה עם הרשאות מורחבות. יש להגדיר גישת root או ADB בהגדרת ההרשאות.</string>
     <string name="general_error_no_compatible_app_found_msg">לא נמצא יישומון מתאים לטיפול בבקשה זו.</string>

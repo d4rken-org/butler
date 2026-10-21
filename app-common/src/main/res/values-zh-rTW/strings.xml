@@ -213,6 +213,13 @@
     <string name="general_error_type_mismatch_msg">類型不符：預期為 %1$s，但實際為 %2$s。</string>
     <string name="general_error_cant_access_msg">無法存取 %s。</string>
     <string name="general_error_archive_not_seekable_msg">無法直接瀏覽 %s：其所在的儲存空間僅支援循序讀取，但此封存格式需要隨機存取。</string>
+    <string name="general_error_archive_damaged_msg">%s 已損毀或不完整，無法讀取。</string>
+    <string name="general_error_archive_rar4_msg">%s 使用較舊的 RAR4 格式，無法開啟。僅支援 RAR5 封存檔。</string>
+    <string name="general_error_archive_dictionary_too_large_msg">無法解壓縮 %1$s：需要 %2$s 記憶體，但僅有 %3$s 可用。</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s 是分割封存檔的第 %2$d 部分。請改為開啟第一部分。</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s 使用了不支援的 RAR 功能。</string>
+    <string name="general_error_archive_missing_part_msg">%1$s 是分割封存檔，但缺少其中的部分 %2$s。</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s 是分割封存檔，但缺少其中一個部分。</string>
     <string name="general_error_root_unavailable">無法使用 Root 存取權。</string>
     <string name="general_error_elevated_access_required">此操作需要提升的存取權限。請在設定精靈中設定 Root 或 ADB 存取權。</string>
     <string name="general_error_no_compatible_app_found_msg">找不到相容的應用程式可處理此要求。</string>

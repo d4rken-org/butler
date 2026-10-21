@@ -226,6 +226,13 @@
     <string name="general_error_type_mismatch_msg">Ασυμφωνία τύπου: Αναμενόταν %1$s, αλλά βρέθηκε %2$s.</string>
     <string name="general_error_cant_access_msg">Δεν είναι δυνατή η πρόσβαση σε %s.</string>
     <string name="general_error_archive_not_seekable_msg">Δεν είναι δυνατή η άμεση περιήγηση στο %s: ο αποθηκευτικός χώρος στον οποίο βρίσκεται υποστηρίζει μόνο διαδοχική ανάγνωση, ενώ αυτή η μορφή αρχείου συμπίεσης απαιτεί τυχαία πρόσβαση.</string>
+    <string name="general_error_archive_damaged_msg">Το %s είναι κατεστραμμένο ή ελλιπές και δεν είναι δυνατή η ανάγνωσή του.</string>
+    <string name="general_error_archive_rar4_msg">Το %s χρησιμοποιεί την παλαιότερη μορφή RAR4, η οποία δεν μπορεί να ανοίξει. Υποστηρίζονται μόνο αρχεία συμπίεσης RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">Δεν είναι δυνατή η αποσυμπίεση του %1$s: απαιτεί %2$s μνήμης, αλλά είναι διαθέσιμα μόνο %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">Το %1$s είναι το τμήμα %2$d ενός αρχείου συμπίεσης πολλών τμημάτων. Ανοίξτε αντί αυτού το πρώτο τμήμα.</string>
+    <string name="general_error_archive_unsupported_feature_msg">Το %s χρησιμοποιεί μια λειτουργία RAR που δεν υποστηρίζεται.</string>
+    <string name="general_error_archive_missing_part_msg">Το %1$s είναι αρχείο συμπίεσης πολλών τμημάτων, αλλά λείπει το τμήμα του %2$s.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">Το %s είναι αρχείο συμπίεσης πολλών τμημάτων, αλλά λείπει ένα από τα τμήματά του.</string>
     <string name="general_error_root_unavailable">Η πρόσβαση root δεν είναι διαθέσιμη.</string>
     <string name="general_error_elevated_access_required">Αυτή η λειτουργία απαιτεί αυξημένα δικαιώματα πρόσβασης. Ρύθμισε το Root ή την πρόσβαση ADB στη Ρύθμιση.</string>
     <string name="general_error_no_compatible_app_found_msg">Δεν βρέθηκε συμβατή εφαρμογή για τον χειρισμό αυτού του αιτήματος.</string>

@@ -307,6 +307,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">SFTP சேவையகங்களுடன் இணைவதற்கான SSH மற்றும் SFTP கிளையன்ட். (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, Apache MINA SSHD பயன்படுத்தும் பதிவு API. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">பல வடிவங்களை ஆதரிக்கும் காப்பக நூலகம். RAR5 காப்பகங்களைப் படிக்கும் பகுதி, அதன் RAR5 வாசிப்பானை Kotlin-க்கு மாற்றியமைத்ததாகும். (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">கோப்புக் காப்பகக் கருவி. மறையாக்கப்பட்ட RAR காப்பகங்களைத் திறக்க, அதன் RAR5 விசை வருவிப்பும் கடவுச்சொல் சரிபார்ப்பும் மாற்றியமைக்கப்பட்டன. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Square நிரலகங்கள்</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp மற்றும் OkIO பிணைய நிரலகங்கள். (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

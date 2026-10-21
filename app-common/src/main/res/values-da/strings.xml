@@ -222,6 +222,13 @@
     <string name="general_error_type_mismatch_msg">Forkert type: Forventede %1$s, men fik %2$s.</string>
     <string name="general_error_cant_access_msg">Kan ikke få adgang til %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s kan ikke gennemses direkte: Lageret, det ligger på, understøtter kun sekventiel læsning, men dette arkivformat kræver vilkårlig adgang.</string>
+    <string name="general_error_archive_damaged_msg">%s er beskadiget eller ufuldstændigt og kan ikke læses.</string>
+    <string name="general_error_archive_rar4_msg">%s bruger det ældre RAR4-format, som ikke kan åbnes. Kun RAR5-arkiver understøttes.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s kan ikke udpakkes: Det kræver %2$s hukommelse, men kun %3$s er tilgængelig.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s er del %2$d af et arkiv i flere dele. Åbn den første del i stedet.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s bruger en RAR-funktion, som ikke understøttes.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s er et arkiv i flere dele, men del %2$s mangler.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s er et arkiv i flere dele, men en af delene mangler.</string>
     <string name="general_error_root_unavailable">Root-adgang er ikke tilgængelig.</string>
     <string name="general_error_elevated_access_required">Denne handling kræver udvidede adgangsrettigheder. Konfigurer root- eller ADB-adgang i opsætningen.</string>
     <string name="general_error_no_compatible_app_found_msg">Ingen kompatibel app fundet til at håndtere denne anmodning.</string>

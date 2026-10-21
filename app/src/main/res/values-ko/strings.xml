@@ -289,6 +289,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">SFTP 서버에 연결하기 위한 SSH 및 SFTP 클라이언트. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, Apache MINA SSHD가 사용하는 로깅 API. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">다양한 형식을 지원하는 압축 파일 라이브러리. RAR5 압축 파일 읽기는 이 라이브러리의 RAR5 리더를 Kotlin으로 포팅한 것입니다. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">파일 압축 프로그램. 암호화된 RAR 압축 파일을 열기 위해 이 프로그램의 RAR5 키 파생 및 암호 확인 기능을 포팅했습니다. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Square 라이브러리</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp, OkIO 네트워킹 라이브러리. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

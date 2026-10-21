@@ -226,6 +226,13 @@
     <string name="general_error_type_mismatch_msg">Typene samsvarer ikke: Forventet %1$s, men fikk %2$s.</string>
     <string name="general_error_cant_access_msg">Får ikke tilgang til %s.</string>
     <string name="general_error_archive_not_seekable_msg">Kan ikke bla direkte i %s: lagringsstedet støtter bare sekvensiell lesing, men dette arkivformatet krever direkte tilgang til vilkårlige posisjoner.</string>
+    <string name="general_error_archive_damaged_msg">%s er skadet eller ufullstendig og kan ikke leses.</string>
+    <string name="general_error_archive_rar4_msg">%s bruker det eldre RAR4-formatet, som ikke kan åpnes. Bare RAR5-arkiver støttes.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s kan ikke pakkes ut: det trenger %2$s minne, men bare %3$s er tilgjengelig.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s er del %2$d av et arkiv i flere deler. Åpne den første delen i stedet.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s bruker en RAR-funksjon som ikke støttes.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s er et arkiv i flere deler, men del %2$s mangler.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s er et arkiv i flere deler, men en av delene mangler.</string>
     <string name="general_error_root_unavailable">Root-tilgang er ikke tilgjengelig.</string>
     <string name="general_error_elevated_access_required">Denne operasjonen krever utvidede tilgangsrettigheter. Konfigurer root- eller ADB-tilgang i oppsettet.</string>
     <string name="general_error_no_compatible_app_found_msg">Fant ingen kompatibel app som kan håndtere denne forespørselen.</string>

@@ -304,6 +304,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">Клієнт SSH і SFTP для підключення до SFTP-серверів. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API журналювання, який використовує Apache MINA SSHD. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">Бібліотека для архівів багатьох форматів. Читання архівів RAR5 — це перенесений на Kotlin її модуль читання RAR5. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">Архіватор файлів. Його отримання ключа та перевірку пароля RAR5 перенесено, щоб відкривати зашифровані архіви RAR. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Бібліотеки Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Мережеві бібліотеки Retrofit, OkHttp і OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

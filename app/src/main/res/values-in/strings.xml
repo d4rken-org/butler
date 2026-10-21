@@ -302,6 +302,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">Klien SSH dan SFTP untuk koneksi ke server SFTP. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API pencatatan log yang digunakan oleh Apache MINA SSHD. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">Pustaka arsip multiformat. Pembacaan arsip RAR5 merupakan port Kotlin dari pembaca RAR5 milik pustaka ini. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">Pengarsip file. Derivasi kunci dan pemeriksaan kata sandi RAR5 miliknya di-port untuk membuka arsip RAR terenkripsi. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Pustaka Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Pustaka jaringan Retrofit, OkHttp, dan OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

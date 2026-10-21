@@ -253,6 +253,13 @@
     <string name="general_error_type_mismatch_msg">Несоответствие типов: ожидалось %1$s, получено %2$s.</string>
     <string name="general_error_cant_access_msg">Нет доступа к %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s нельзя открыть напрямую: хранилище, на котором он находится, поддерживает только последовательное чтение, а этот формат архива требует произвольного доступа.</string>
+    <string name="general_error_archive_damaged_msg">Архив %s повреждён или неполон, его нельзя прочитать.</string>
+    <string name="general_error_archive_rar4_msg">Архив %s использует старый формат RAR4, который нельзя открыть. Поддерживаются только архивы RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">Не удаётся распаковать %1$s: требуется %2$s памяти, но доступно только %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s — часть %2$d многотомного архива. Откройте вместо него первую часть.</string>
+    <string name="general_error_archive_unsupported_feature_msg">Архив %s использует функцию RAR, которая не поддерживается.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s — многотомный архив, но его часть %2$s отсутствует.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s — многотомный архив, но одна из его частей отсутствует.</string>
     <string name="general_error_root_unavailable">Root-доступ недоступен.</string>
     <string name="general_error_elevated_access_required">Для этой операции требуется расширенный доступ. Настройте Root или Shizuku в разделе Setup.</string>
     <string name="general_error_no_compatible_app_found_msg">Не найдено подходящее приложение для обработки этого запроса.</string>

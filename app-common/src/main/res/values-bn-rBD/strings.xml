@@ -226,6 +226,13 @@
     <string name="general_error_type_mismatch_msg">ধরন মিলছে না: %1$s চেয়েছিল, কিন্তু %2$s পাওয়া গেছে।</string>
     <string name="general_error_cant_access_msg">%s অ্যাক্সেস করা যাচ্ছে না।</string>
     <string name="general_error_archive_not_seekable_msg">%s সরাসরি ব্রাউজ করা যাচ্ছে না: এর স্টোরেজ শুধু ধারাবাহিকভাবে পড়তে দেয়, কিন্তু এই আর্কাইভ ফরম্যাটে যেকোনো অবস্থান থেকে পড়ার সুবিধা প্রয়োজন।</string>
+    <string name="general_error_archive_damaged_msg">%s ক্ষতিগ্রস্ত বা অসম্পূর্ণ, তাই এটি পড়া যাচ্ছে না।</string>
+    <string name="general_error_archive_rar4_msg">%s পুরোনো RAR4 ফরম্যাট ব্যবহার করে, যা খোলা যায় না। শুধু RAR5 আর্কাইভ সমর্থিত।</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s আনপ্যাক করা যাচ্ছে না: এর জন্য %2$s মেমরি প্রয়োজন, কিন্তু মাত্র %3$s উপলব্ধ।</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s একটি বহু-অংশের আর্কাইভের %2$d নম্বর অংশ। এর বদলে প্রথম অংশটি খুলুন।</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s এমন একটি RAR ফিচার ব্যবহার করে যা সমর্থিত নয়।</string>
+    <string name="general_error_archive_missing_part_msg">%1$s একটি বহু-অংশের আর্কাইভ, কিন্তু এর %2$s অংশটি পাওয়া যাচ্ছে না।</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s একটি বহু-অংশের আর্কাইভ, কিন্তু এর একটি অংশ পাওয়া যাচ্ছে না।</string>
     <string name="general_error_root_unavailable">রুট অ্যাক্সেস পাওয়া যাচ্ছে না।</string>
     <string name="general_error_elevated_access_required">এই কাজের জন্য উচ্চতর অ্যাক্সেস প্রয়োজন। সেটআপে রুট বা ADB অ্যাক্সেস কনফিগার করুন।</string>
     <string name="general_error_no_compatible_app_found_msg">এই অনুরোধের জন্য উপযুক্ত কোনো অ্যাপ পাওয়া যায়নি।</string>

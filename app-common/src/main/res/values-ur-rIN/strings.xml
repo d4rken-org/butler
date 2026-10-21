@@ -224,6 +224,13 @@
     <string name="general_error_type_mismatch_msg">قسم میں عدم مطابقت: %1$s درکار تھا، مگر %2$s ملا۔</string>
     <string name="general_error_cant_access_msg">%s تک رسائی ممکن نہیں۔</string>
     <string name="general_error_archive_not_seekable_msg">%s کو براہ راست براؤز نہیں کیا جا سکتا: جس اسٹوریج پر یہ موجود ہے وہ صرف ترتیب وار پڑھنے کی سہولت دیتا ہے، جبکہ اس آرکائیو فارمیٹ کے لیے کسی بھی مقام تک براہ راست رسائی درکار ہے۔</string>
+    <string name="general_error_archive_damaged_msg">%s خراب یا نامکمل ہے اور اسے پڑھا نہیں جا سکتا۔</string>
+    <string name="general_error_archive_rar4_msg">%s پرانا RAR4 فارمیٹ استعمال کرتا ہے، جسے کھولا نہیں جا سکتا۔ صرف RAR5 آرکائیوز معاون ہیں۔</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s کو ان پیک نہیں کیا جا سکتا: اسے %2$s میموری درکار ہے، لیکن صرف %3$s دستیاب ہے۔</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s کئی حصوں والے آرکائیو کا حصہ %2$d ہے۔ اس کے بجائے پہلا حصہ کھولیں۔</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s RAR کی ایک ایسی خصوصیت استعمال کرتا ہے جو معاون نہیں ہے۔</string>
+    <string name="general_error_archive_missing_part_msg">%1$s کئی حصوں والا آرکائیو ہے، لیکن اس کا حصہ %2$s موجود نہیں ہے۔</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s کئی حصوں والا آرکائیو ہے، لیکن اس کا ایک حصہ موجود نہیں ہے۔</string>
     <string name="general_error_root_unavailable">روٹ رسائی دستیاب نہیں ہے۔</string>
     <string name="general_error_elevated_access_required">اس کارروائی کے لیے اعلیٰ اختیارات والی رسائی درکار ہے۔ سیٹ اپ میں روٹ یا ADB رسائی ترتیب دیں۔</string>
     <string name="general_error_no_compatible_app_found_msg">اس درخواست کو پورا کرنے کے لیے کوئی مطابقت رکھنے والی ایپ نہیں ملی۔</string>

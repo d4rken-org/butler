@@ -226,6 +226,13 @@
     <string name="general_error_type_mismatch_msg">عدم تطابق نوع: %1$s مورد انتظار بود، اما %2$s دریافت شد.</string>
     <string name="general_error_cant_access_msg">دسترسی به %s ممکن نیست.</string>
     <string name="general_error_archive_not_seekable_msg">%s را نمی‌توان مستقیماً مرور کرد: حافظه‌ای که روی آن قرار دارد فقط از خواندن ترتیبی پشتیبانی می‌کند، اما این قالب بایگانی به دسترسی تصادفی نیاز دارد.</string>
+    <string name="general_error_archive_damaged_msg">%s آسیب دیده یا ناقص است و خوانده نمی‌شود.</string>
+    <string name="general_error_archive_rar4_msg">%s از قالب قدیمی‌تر RAR4 استفاده می‌کند که باز نمی‌شود. فقط از بایگانی‌های RAR5 پشتیبانی می‌شود.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s را نمی‌توان از حالت فشرده خارج کرد: به %2$s حافظه نیاز دارد، اما فقط %3$s در دسترس است.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s بخش %2$d از یک بایگانی چندبخشی است. به‌جای آن بخش اول را باز کنید.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s از یک ویژگی RAR استفاده می‌کند که پشتیبانی نمی‌شود.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s یک بایگانی چندبخشی است، اما بخش %2$s آن موجود نیست.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s یک بایگانی چندبخشی است، اما یکی از بخش‌های آن موجود نیست.</string>
     <string name="general_error_root_unavailable">دسترسی root در دسترس نیست.</string>
     <string name="general_error_elevated_access_required">این عملیات به دسترسی سطح‌بالا نیاز دارد. در راه‌اندازی، root یا دسترسی ADB را پیکربندی کنید.</string>
     <string name="general_error_no_compatible_app_found_msg">برنامهٔ سازگاری برای انجام این درخواست یافت نشد.</string>

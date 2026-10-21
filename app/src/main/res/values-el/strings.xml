@@ -294,6 +294,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">Πελάτης SSH και SFTP για συνδέσεις με διακομιστές SFTP. (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, το API καταγραφής που χρησιμοποιεί το Apache MINA SSHD. (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">Βιβλιοθήκη αρχείων συμπίεσης πολλών μορφών. Η ανάγνωση αρχείων RAR5 είναι μεταφορά σε Kotlin του αναγνώστη RAR5 της. (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">Πρόγραμμα αρχειοθέτησης. Η παραγωγή κλειδιών και ο έλεγχος κωδικού RAR5 του μεταφέρθηκαν για το άνοιγμα κρυπτογραφημένων αρχείων RAR. (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">Βιβλιοθήκες Square</string>
     <string name="acknowledgement_square_libraries_subtitle">Βιβλιοθήκες δικτύωσης Retrofit, OkHttp και OkIO. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

@@ -289,6 +289,10 @@
     <string name="acknowledgement_apache_mina_sshd_subtitle">ไคลเอนต์ SSH และ SFTP สำหรับเชื่อมต่อกับเซิร์ฟเวอร์ SFTP (APACHE 2.0)</string>
     <string name="acknowledgement_slf4j_title">SLF4J</string>
     <string name="acknowledgement_slf4j_subtitle">Simple Logging Facade for Java, API บันทึกที่ Apache MINA SSHD ใช้ (MIT)</string>
+    <string name="acknowledgement_libarchive_title">libarchive</string>
+    <string name="acknowledgement_libarchive_subtitle">ไลบรารีไฟล์บีบอัดที่รองรับหลายรูปแบบ การอ่านไฟล์บีบอัด RAR5 พอร์ตเป็น Kotlin มาจากตัวอ่าน RAR5 ของไลบรารีนี้ (BSD 2-CLAUSE)</string>
+    <string name="acknowledgement_7zip_title">7-Zip</string>
+    <string name="acknowledgement_7zip_subtitle">โปรแกรมบีบอัดไฟล์ การสร้างคีย์และการตรวจสอบรหัสผ่านของ RAR5 จากโปรแกรมนี้ถูกพอร์ตมาเพื่อเปิดไฟล์บีบอัด RAR ที่เข้ารหัส (LGPL 2.1)</string>
     <string name="acknowledgement_square_libraries_title">ไลบรารี Square</string>
     <string name="acknowledgement_square_libraries_subtitle">ไลบรารีเครือข่าย Retrofit, OkHttp และ OkIO (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>

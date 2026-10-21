@@ -226,6 +226,13 @@
     <string name="general_error_type_mismatch_msg">Tipo non corrispondente: atteso %1$s, ottenuto %2$s.</string>
     <string name="general_error_cant_access_msg">Impossibile accedere a %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s non può essere sfogliato direttamente: l’archiviazione su cui si trova supporta solo la lettura sequenziale, ma questo formato di archivio richiede l’accesso casuale.</string>
+    <string name="general_error_archive_damaged_msg">%s è danneggiato o incompleto e non può essere letto.</string>
+    <string name="general_error_archive_rar4_msg">%s usa il vecchio formato RAR4, che non può essere aperto. Sono supportati solo gli archivi RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">Impossibile estrarre %1$s: richiede %2$s di memoria, ma ne sono disponibili solo %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s è la parte %2$d di un archivio multiparte. Apri invece la prima parte.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s usa una funzionalità RAR non supportata.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s è un archivio multiparte, ma manca la sua parte %2$s.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s è un archivio multiparte, ma manca una delle sue parti.</string>
     <string name="general_error_root_unavailable">L’accesso root non è disponibile.</string>
     <string name="general_error_elevated_access_required">Questa operazione richiede accesso con privilegi elevati. Configura accesso root o ADB in Configurazione.</string>
     <string name="general_error_no_compatible_app_found_msg">Nessuna app compatibile trovata per gestire questa richiesta.</string>

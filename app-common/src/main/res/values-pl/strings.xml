@@ -253,6 +253,13 @@
     <string name="general_error_type_mismatch_msg">Niezgodność typu: oczekiwano %1$s, otrzymano %2$s.</string>
     <string name="general_error_cant_access_msg">Nie można uzyskać dostępu do %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s nie można przeglądać bezpośrednio: nośnik, na którym się znajduje, obsługuje tylko odczyt sekwencyjny, a ten format archiwum wymaga dostępu swobodnego.</string>
+    <string name="general_error_archive_damaged_msg">Archiwum %s jest uszkodzone lub niekompletne i nie można go odczytać.</string>
+    <string name="general_error_archive_rar4_msg">Archiwum %s używa starszego formatu RAR4, którego nie można otworzyć. Obsługiwane są tylko archiwa RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">Nie można rozpakować %1$s: wymaga %2$s pamięci, a dostępne jest tylko %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s to część %2$d archiwum wieloczęściowego. Zamiast tego otwórz pierwszą część.</string>
+    <string name="general_error_archive_unsupported_feature_msg">Archiwum %s używa funkcji RAR, która nie jest obsługiwana.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s to archiwum wieloczęściowe, ale brakuje jego części %2$s.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s to archiwum wieloczęściowe, ale brakuje jednej z jego części.</string>
     <string name="general_error_root_unavailable">Dostęp root jest niedostępny.</string>
     <string name="general_error_elevated_access_required">Ta operacja wymaga podwyższonych uprawnień. Skonfiguruj dostęp root lub ADB w Konfiguracji.</string>
     <string name="general_error_no_compatible_app_found_msg">Nie znaleziono zgodnej aplikacji do obsługi tego żądania.</string>

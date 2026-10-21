@@ -252,6 +252,13 @@
     <string name="general_error_type_mismatch_msg">Neshoda typu: očekáváno %1$s, ale obdrženo %2$s.</string>
     <string name="general_error_cant_access_msg">Nelze přistoupit k %s.</string>
     <string name="general_error_archive_not_seekable_msg">%s nelze procházet přímo: úložiště, na kterém se nachází, podporuje pouze sekvenční čtení, ale tento formát archivu vyžaduje náhodný přístup.</string>
+    <string name="general_error_archive_damaged_msg">%s je poškozený nebo neúplný a nelze ho přečíst.</string>
+    <string name="general_error_archive_rar4_msg">%s používá starší formát RAR4, který nelze otevřít. Podporovány jsou pouze archivy RAR5.</string>
+    <string name="general_error_archive_dictionary_too_large_msg">%1$s nelze rozbalit: vyžaduje %2$s paměti, ale k dispozici je pouze %3$s.</string>
+    <string name="general_error_archive_not_first_part_msg">%1$s je část %2$d vícedílného archivu. Otevřete místo toho první část.</string>
+    <string name="general_error_archive_unsupported_feature_msg">%s používá funkci RAR, která není podporována.</string>
+    <string name="general_error_archive_missing_part_msg">%1$s je vícedílný archiv, ale chybí jeho část %2$s.</string>
+    <string name="general_error_archive_missing_part_unknown_msg">%s je vícedílný archiv, ale jedna z jeho částí chybí.</string>
     <string name="general_error_root_unavailable">Přístup s právy root není k dispozici.</string>
     <string name="general_error_elevated_access_required">Tato operace vyžaduje rozšířený přístup. Nastavte Root nebo ADB v Nastavení.</string>
     <string name="general_error_no_compatible_app_found_msg">Nebyla nalezena žádná kompatibilní aplikace pro zpracování tohoto požadavku.</string>
