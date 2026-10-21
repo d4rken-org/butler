@@ -32,7 +32,8 @@ import kotlin.time.Instant
  * validation and output commit locks. [ArchiveGateway] is a thin adapter over this; Explorer
  * operations orchestrate it. Reading, writing and password checks for a concrete format are
  * delegated to its [ArchiveHandler]: [ZipArchiveHandler], [TarArchiveHandler],
- * [SevenZArchiveHandler]. No commons-compress/zip4j types leak out of this package.
+ * [SevenZArchiveHandler], [RarArchiveHandler]. No commons-compress/zip4j/lib-rar types leak out of
+ * this package.
  */
 @Singleton
 class ArchiveService @Inject constructor(
@@ -48,11 +49,13 @@ class ArchiveService @Inject constructor(
     private val tarHandler = TarArchiveHandler(handlerContext)
     private val sevenZHandler = SevenZArchiveHandler(handlerContext)
     private val zipHandler = ZipArchiveHandler(handlerContext)
+    private val rarHandler = RarArchiveHandler(handlerContext)
 
     private fun handlerFor(format: ArchiveFormat): ArchiveHandler = when (format) {
         ArchiveFormat.ZIP -> zipHandler
         ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2 -> tarHandler
         ArchiveFormat.SEVEN_Z -> sevenZHandler
+        ArchiveFormat.RAR -> rarHandler
     }
 
     private val cacheMutex = Mutex()
@@ -257,6 +260,10 @@ class ArchiveService @Inject constructor(
                     // A password set while this one was being checked gets its own check.
                     else -> null
                 }
+            } catch (e: ArchivePasswordRequiredException) {
+                // A failure the handler could not attribute to the password for certain carries its own prompt flags.
+                passwordStore.evictIfGeneration(container, snapshot.generation)
+                throw e
             } finally {
                 cached.fill(Char.MIN_VALUE)
             }

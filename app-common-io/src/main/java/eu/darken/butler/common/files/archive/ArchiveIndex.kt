@@ -29,7 +29,7 @@ data class ArchiveEntryMeta(
     val crc: Long? = null,
     /** Zip only: raw central-directory compression method code (0=STORE, 8=DEFLATE, 99=AES). */
     val rawMethod: Int? = null,
-    /** 7z only: position in the archive's entry list, the entry's identity when names repeat. */
+    /** 7z and RAR: position in the archive's entry list, the entry's identity when names repeat. */
     val ordinal: Int? = null,
 )
 
@@ -44,7 +44,7 @@ data class ArchiveIndex(
     val skippedUnsafe: Int,
     /** Entries dropped because they are unsupported special types (fifo, device, hardlink). */
     val skippedSpecial: Int,
-    /** 7z only: the entry list itself is encrypted, so this index could only be built with a password. */
+    /** 7z and RAR: the entry list itself is encrypted, so this index could only be built with a password. */
     val isHeaderEncrypted: Boolean = false,
     /** [ArchivePasswordStore] generation of the password a header-encrypted index was built with. */
     val passwordGeneration: Int? = null,
