@@ -112,6 +112,8 @@ class SaveFilesOperation @AssistedInject constructor(
         progressTracker.totalItems = command.sources.size
         progressTracker.totalBytes = command.sources.sumOf { it.size ?: 0L }
 
+        var stateActive = State.Active(startedAt = operationContext.startedAt)
+
         val issueResolver = PathOperationIssueResolver { issue ->
             send(
                 State.Waiting(
@@ -120,10 +122,11 @@ class SaveFilesOperation @AssistedInject constructor(
                     issue = issue,
                 )
             )
-            issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
+            val resolution = issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
+            send(stateActive)
+            resolution
         }
 
-        var stateActive = State.Active(startedAt = operationContext.startedAt)
         send(stateActive)
 
         val results = mutableListOf<SaveFilesReport.FileResult>()

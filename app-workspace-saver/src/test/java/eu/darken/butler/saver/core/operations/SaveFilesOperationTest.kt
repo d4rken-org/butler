@@ -44,9 +44,12 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.ZipInputStream
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.withTimeout
 import org.junit.Before
 import org.junit.Test
 import testhelpers.BaseTest
@@ -54,6 +57,7 @@ import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import kotlin.random.Random
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 class SaveFilesOperationTest : BaseTest() {
 
@@ -335,6 +339,36 @@ class SaveFilesOperationTest : BaseTest() {
         capturedIssues.filterIsInstance<PathActionIssue.InsufficientPermission>()
             .single().exception.shouldBeInstanceOf<WriteException>()
         coVerify(exactly = 0) { gatewaySwitch.createFile(any(), any()) }
+    }
+
+    @Test
+    fun `the operation is active again right after the conflict prompt is answered`() = runTest2 {
+        val stagingGate = CompletableDeferred<Unit>()
+        coEvery { gatewaySwitch.createFile(any(), any()) } coAnswers {
+            val path = firstArg<APath<*>>()
+            if (isStagingOf(path, "file.txt")) stagingGate.await()
+            present += path.path
+            Unit
+        }
+
+        val states = mutableListOf<Operation.State>()
+        val job = launch {
+            operation()
+                .perform(Operation.Context(id = Operation.Id(), startedAt = Clock.System.now()))
+                .collect { states += it }
+        }
+        advanceUntilIdle()
+
+        states.filterIsInstance<SaveFilesOperation.State.Waiting>()
+            .single().issue.shouldBeInstanceOf<PathActionIssue.PathAlreadyExists>()
+        withClue("states while the staged write is pending: $states") {
+            states.last().shouldBeInstanceOf<SaveFilesOperation.State.Active>()
+        }
+
+        stagingGate.complete(Unit)
+        withTimeout(10.seconds) { job.join() }
+
+        states.last().shouldBeInstanceOf<SaveFilesOperation.State.Completed>()
     }
 
     /*
