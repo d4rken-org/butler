@@ -14,6 +14,8 @@
   <title>{% if page.title and page.title != site.title %}{{ page.title | escape }} · {% endif %}{{ site.title | escape }}</title>
   <meta name="description" content="{{ page.description | default: ui.tagline | escape }}">
   <link rel="canonical" href="{{ page.url | remove: '.html' | absolute_url }}">
+  <meta property="og:site_name" content="{{ site.title | escape }}">
+  {% if page.url == '/' %}<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": {{ site.title | jsonify }}, "url": {{ '/' | absolute_url | jsonify }}}</script>{% endif %}
   {% if versions.size > 1 %}
     {% for version in versions %}<link rel="alternate" hreflang="{{ version.lang }}" href="{{ version.url | remove: '.html' | absolute_url }}">
     {% endfor %}<link rel="alternate" hreflang="x-default" href="{{ english.url | remove: '.html' | absolute_url }}">
