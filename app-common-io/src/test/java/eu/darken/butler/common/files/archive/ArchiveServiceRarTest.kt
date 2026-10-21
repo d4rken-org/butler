@@ -6,6 +6,7 @@ import eu.darken.butler.common.error.localized
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -75,6 +76,9 @@ class ArchiveServiceRarTest : BaseTest() {
         cacheDir.deleteRecursively()
         gatewaySwitch = mockk<GatewaySwitch>().apply {
             coEvery { openInputStream(any()) } answers { firstArg<LocalPath>().file.inputStream() }
+            coEvery { existsStrict(any()) } answers {
+                if (firstArg<LocalPath>().file.exists()) Existence.PRESENT else Existence.ABSENT
+            }
             coEvery { lookup(any(), any<LookupOptions>()) } answers {
                 @Suppress("UNCHECKED_CAST")
                 firstArg<LocalPath>().file.toLookup() as APathLookup<APath<*>>
@@ -108,7 +112,7 @@ class ArchiveServiceRarTest : BaseTest() {
     )
 
     private fun handler(windowBudgetBytes: Long) = RarArchiveHandler(
-        ArchiveHandlerContext({ gatewaySwitch }, passwordStore),
+        ArchiveHandlerContext({ gatewaySwitch }, passwordStore, volumeFingerprint = { "test" }),
         windowBudgetBytes,
     )
 
@@ -416,7 +420,7 @@ class ArchiveServiceRarTest : BaseTest() {
     }
 
     @Test
-    fun `a first part without its siblings names the missing part`() = runTest2 {
+    fun `a first part whose next part is absent names that part`() = runTest2 {
         val container = fixture("vol-plain.part1.rar")
 
         val e = shouldThrow<ArchiveMissingPartException> { create().index(container) }

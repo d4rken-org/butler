@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.ArchivePath
 
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -14,6 +15,7 @@ import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.COP
 import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.MAX_ENTRIES
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
@@ -45,7 +47,7 @@ class ArchiveService @Inject constructor(
 
     private val gatewaySwitch: GatewaySwitch get() = gatewaySwitchLazy.get()
 
-    private val handlerContext = ArchiveHandlerContext(gatewaySwitchLazy, passwordStore)
+    private val handlerContext = ArchiveHandlerContext(gatewaySwitchLazy, passwordStore, ::volumeFingerprint)
     private val tarHandler = TarArchiveHandler(handlerContext)
     private val sevenZHandler = SevenZArchiveHandler(handlerContext)
     private val zipHandler = ZipArchiveHandler(handlerContext)
@@ -75,25 +77,25 @@ class ArchiveService @Inject constructor(
     fun detectFormat(container: APath<*>): ArchiveFormat? = ArchiveFormat.fromFileName(container.name)
 
     /**
-     * Returns the (cached) entry index for [container], rebuilding when the container's
-     * stat fingerprint changed. Single-flight per container.
+     * Returns the (cached) entry index for [container], rebuilding when the stat fingerprint of the
+     * container, or of any later volume of a multi-part archive, changed. Single-flight per container.
      */
     suspend fun index(container: APath<*>): ArchiveIndex {
         val format = requireSupported(container)
         val stat = statContainer(container)
         cacheMutex.withLock { indexCache[container] }
-            ?.takeIf { it.isServable(stat) }
+            ?.takeIf { it.isServable(currentFingerprint(it.volumes, stat)) }
             ?.let { return it }
 
         return buildLocks.getOrPut(container) { Mutex() }.withLock {
             cacheMutex.withLock { indexCache[container] }
-                ?.takeIf { it.isServable(stat) }
+                ?.takeIf { it.isServable(currentFingerprint(it.volumes, stat)) }
                 ?.let { return@withLock it }
 
             var built = buildIndex(container, format, stat)
-            // The container may have changed while we were scanning it.
+            // A volume may have changed while we were scanning it; the index carries its stats from before.
             val after = statContainer(container)
-            if (after.fingerprint != stat.fingerprint) {
+            if (currentFingerprint(built.volumes, after) != built.fingerprint) {
                 log(TAG, WARN) { "index($container): changed during scan, rebuilding" }
                 built = buildIndex(container, format, after)
             }
@@ -108,8 +110,8 @@ class ArchiveService @Inject constructor(
     }
 
     /** A listing that only a password could produce is served only while that same password is cached. */
-    private fun ArchiveIndex.isServable(stat: ContainerStat): Boolean =
-        fingerprint == stat.fingerprint &&
+    private fun ArchiveIndex.isServable(currentFingerprint: String): Boolean =
+        fingerprint == currentFingerprint &&
             (!isHeaderEncrypted || (passwordGeneration == passwordStore.generation(container) && hasPassword(container)))
 
     private fun hasPassword(container: APath<*>): Boolean =
@@ -151,14 +153,39 @@ class ArchiveService @Inject constructor(
     }
 
     /**
-     * Returns the index after re-verifying the container hasn't changed since it was cached. Used
+     * The fingerprint an index read from [volumes] (empty: the container alone) would carry now,
+     * with [containerStat] for the container. A multi-part archive's joins every volume's, container
+     * first, so a change to any part invalidates the index and every cache key derived from it.
+     */
+    private suspend fun currentFingerprint(volumes: List<APath<*>>, containerStat: ContainerStat): String =
+        if (volumes.isEmpty()) {
+            containerStat.fingerprint
+        } else {
+            joinFingerprints(containerStat, volumes.drop(1).map { volumeFingerprint(it) })
+        }
+
+    private fun joinFingerprints(containerStat: ContainerStat, laterVolumes: List<String>): String =
+        (listOf(containerStat.fingerprint) + laterVolumes).joinToString(VOLUME_SEPARATOR)
+
+    /** A later volume that cannot be looked up, e.g. a deleted one, gets a placeholder instead of failing the caller. */
+    private suspend fun volumeFingerprint(volume: APath<*>): String = try {
+        statContainer(volume).fingerprint
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        log(TAG, WARN) { "volumeFingerprint($volume) failed: ${e.asLog()}" }
+        UNREADABLE_VOLUME
+    }
+
+    /**
+     * Returns the index after re-verifying its volumes haven't changed since it was cached. Used
      * right before entry reads so reported metadata (size/date) matches the bytes about to be read,
      * even if the container was replaced between browsing and reading.
      */
     private suspend fun freshIndex(container: APath<*>): ArchiveIndex {
         val idx = index(container)
-        val recheck = statContainer(container)
-        return if (recheck.fingerprint != idx.fingerprint) index(container) else idx
+        val recheck = currentFingerprint(idx.volumes, statContainer(container))
+        return if (recheck != idx.fingerprint) index(container) else idx
     }
 
     /**
@@ -349,13 +376,18 @@ class ArchiveService @Inject constructor(
         ArchiveIndex(
             container = container,
             format = format,
-            fingerprint = stat.fingerprint,
+            fingerprint = if (collected.volumes.isEmpty()) {
+                stat.fingerprint
+            } else {
+                joinFingerprints(stat, collected.laterVolumeFingerprints)
+            },
             entriesBySegments = bySegments,
             childrenBySegments = children,
             skippedUnsafe = collected.skippedUnsafe,
             skippedSpecial = collected.skippedSpecial,
             isHeaderEncrypted = collected.headerEncrypted,
             passwordGeneration = collected.passwordGeneration,
+            volumes = collected.volumes,
         ).also {
             log(TAG, INFO) {
                 "buildIndex($container): ${it.entriesBySegments.size} entries" +
@@ -398,6 +430,8 @@ class ArchiveService @Inject constructor(
         private val TAG = logTag("Gateway", "Archive", "Service")
         private const val MAX_CACHED_INDEXES = 8
         private const val COMMIT_LOCK_STRIPES = 16
+        private const val VOLUME_SEPARATOR = "|"
+        private const val UNREADABLE_VOLUME = "!"
         // Prefixes live in ArchiveDiskCache, which sweeps them all on startup so no materialized
         // archive cache survives a process restart (stale content or decrypted plaintext).
         private val PREFIX_ENTRY = ArchiveDiskCache.PREFIX_ENTRY

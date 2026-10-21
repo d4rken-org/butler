@@ -70,8 +70,18 @@ class ArchiveFormatTest : BaseTest() {
     fun `stemOf strips the rar extension`() {
         ArchiveFormat.stemOf("photos.rar") shouldBe "photos"
         ArchiveFormat.stemOf("Photos.RAR") shouldBe "Photos"
-        ArchiveFormat.stemOf("photos.part1.rar") shouldBe "photos.part1"
         ArchiveFormat.stemOf(".rar") shouldBe ".rar"
+    }
+
+    @Test
+    fun `stemOf strips a rar part suffix whole`() {
+        ArchiveFormat.stemOf("photos.part1.rar") shouldBe "photos"
+        ArchiveFormat.stemOf("photos.part2.rar") shouldBe "photos"
+        ArchiveFormat.stemOf("Photos.PART12.RAR") shouldBe "Photos"
+        ArchiveFormat.stemOf("photos.part001.rar") shouldBe "photos"
+        ArchiveFormat.stemOf("my.photos.part1.rar") shouldBe "my.photos"
+        ArchiveFormat.stemOf("photos.part.rar") shouldBe "photos.part"
+        ArchiveFormat.stemOf(".part1.rar") shouldBe ".part1.rar"
     }
 
     @Test

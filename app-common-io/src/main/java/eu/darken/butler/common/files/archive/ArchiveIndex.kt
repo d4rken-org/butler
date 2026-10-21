@@ -36,7 +36,7 @@ data class ArchiveEntryMeta(
 data class ArchiveIndex(
     val container: APath<*>,
     val format: ArchiveFormat,
-    /** Container stat fingerprint (size+mtime) captured around index construction. */
+    /** Stat fingerprint (size+mtime) captured around index construction, of every one of [volumes] if any. */
     val fingerprint: String,
     val entriesBySegments: Map<List<String>, ArchiveEntryMeta>,
     val childrenBySegments: Map<List<String>, List<ArchiveEntryMeta>>,
@@ -48,6 +48,8 @@ data class ArchiveIndex(
     val isHeaderEncrypted: Boolean = false,
     /** [ArchivePasswordStore] generation of the password a header-encrypted index was built with. */
     val passwordGeneration: Int? = null,
+    /** Multi-part archives: every file the index was read from, [container] first. Empty for a single file. */
+    val volumes: List<APath<*>> = emptyList(),
 ) {
     val isEncrypted: Boolean by lazy { isHeaderEncrypted || entriesBySegments.values.any { it.isEncrypted } }
 
