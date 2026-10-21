@@ -21,6 +21,7 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.IssueHandler
@@ -31,7 +32,9 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.ints.shouldBeLessThan
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -445,6 +448,134 @@ class ExtractOperationTest : BaseTest() {
 
         report.subjectPath shouldBe archivePath
         report.affectedPaths.shouldBeEmpty()
+    }
+
+    @Test
+    fun `a password prompt is surfaced as a waiting state`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { archiveService.requiresPassword(archivePath) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
+
+        val states = operation(command()).perform(context()).toList()
+
+        states.filterIsInstance<ExplorerOperation.State.Waiting>().map { it.issue::class } shouldContain
+            PathActionIssue.ArchivePasswordRequired::class
+        val waitingAt = states.indexOfFirst {
+            it is ExplorerOperation.State.Waiting && it.issue is PathActionIssue.ArchivePasswordRequired
+        }
+        waitingAt shouldBeLessThan states.indexOfFirst { it is ExplorerOperation.State.Completed }
+    }
+
+    @Test
+    fun `a conflict prompt is surfaced as a waiting state and the operation resumes as active`() = runTest2 {
+        mockSeekable(meta("a.txt"), meta("b.txt"))
+        coEvery { gatewaySwitch.exists(baseDir.child("a.txt")) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Skip()
+
+        val states = operation(command()).perform(context()).toList()
+
+        states.filterIsInstance<ExplorerOperation.State.Waiting>().map { it.issue::class } shouldContain
+            PathActionIssue.PathAlreadyExists::class
+        val waitingAt = states.indexOfFirst {
+            it is ExplorerOperation.State.Waiting && it.issue is PathActionIssue.PathAlreadyExists
+        }
+        val completedAt = states.indexOfFirst { it is ExplorerOperation.State.Completed }
+        waitingAt shouldBeLessThan completedAt
+        states.subList(waitingAt + 1, completedAt)
+            .filterIsInstance<ExplorerOperation.State.Active>()
+            .shouldNotBeEmpty()
+    }
+
+    @Test
+    fun `the state right after a conflict prompt is active again`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { gatewaySwitch.exists(baseDir.child("a.txt")) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Skip()
+
+        val states = operation(command()).perform(context()).toList()
+
+        states.filterIsInstance<ExplorerOperation.State.Waiting>().map { it.issue::class } shouldContain
+            PathActionIssue.PathAlreadyExists::class
+        val waitingAt = states.indexOfFirst {
+            it is ExplorerOperation.State.Waiting && it.issue is PathActionIssue.PathAlreadyExists
+        }
+        states[waitingAt + 1].shouldBeInstanceOf<ExplorerOperation.State.Active>()
+    }
+
+    @Test
+    fun `a sequential merge prompt is surfaced as a waiting state`() = runTest2 {
+        mockNotSeekable()
+        coEvery { gatewaySwitch.exists(baseDir) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+
+        val states = operation(command()).perform(context()).toList()
+
+        states.filterIsInstance<ExplorerOperation.State.Waiting>().map { it.issue::class } shouldContain
+            PathActionIssue.PathAlreadyExists::class
+        val waitingAt = states.indexOfFirst {
+            it is ExplorerOperation.State.Waiting && it.issue is PathActionIssue.PathAlreadyExists
+        }
+        waitingAt shouldBeLessThan states.indexOfFirst { it is ExplorerOperation.State.Completed }
+    }
+
+    @Test
+    fun `a sequential password prompt is surfaced as a waiting state`() = runTest2 {
+        mockNotSeekable()
+        var calls = 0
+        coEvery { archiveService.extractZipSequential(any(), any(), any(), any(), any()) } coAnswers {
+            calls++
+            if (calls == 1) throw ArchivePasswordRequiredException(archivePath)
+            SequentialResult(extracted = 0, skippedUnsafe = 0)
+        }
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Submit("hunter2")
+
+        val states = operation(command()).perform(context()).toList()
+
+        calls shouldBe 2
+        states.filterIsInstance<ExplorerOperation.State.Waiting>().map { it.issue::class } shouldContain
+            PathActionIssue.ArchivePasswordRequired::class
+        val waitingAt = states.indexOfFirst {
+            it is ExplorerOperation.State.Waiting && it.issue is PathActionIssue.ArchivePasswordRequired
+        }
+        waitingAt shouldBeLessThan states.indexOfFirst { it is ExplorerOperation.State.Completed }
+    }
+
+    @Test
+    fun `sequential flow resumes with its progress after a password prompt`() = runTest2 {
+        mockNotSeekable()
+        var calls = 0
+        coEvery { archiveService.extractZipSequential(any(), any(), any(), any(), any()) } coAnswers {
+            calls++
+            if (calls == 1) {
+                // First progress callback of the run: the throttle starts at 0, so it always passes.
+                arg<(Long, Long?) -> Unit>(3).invoke(512L, 1024L)
+                throw ArchivePasswordRequiredException(archivePath)
+            }
+            SequentialResult(extracted = 0, skippedUnsafe = 0)
+        }
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Submit("hunter2")
+
+        val states = operation(command()).perform(context()).toList()
+
+        calls shouldBe 2
+        states.filterIsInstance<ExplorerOperation.State.Waiting>().map { it.issue::class } shouldContain
+            PathActionIssue.ArchivePasswordRequired::class
+        val waitingAt = states.indexOfFirst {
+            it is ExplorerOperation.State.Waiting && it.issue is PathActionIssue.ArchivePasswordRequired
+        }
+        val beforePrompt = states.subList(0, waitingAt)
+            .filterIsInstance<ExplorerOperation.State.Active>()
+            .last()
+        beforePrompt.primaryProgress.count shouldBe Progress.Count.Size(current = 512L, max = 1024L)
+
+        val resumed = states[waitingAt + 1].shouldBeInstanceOf<ExplorerOperation.State.Active>()
+        resumed.primaryProgress.count shouldBe beforePrompt.primaryProgress.count
     }
 
     @Test

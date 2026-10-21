@@ -29,6 +29,7 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.Workspace
@@ -111,18 +112,32 @@ class ExtractOperation @AssistedInject constructor(
         }
     }
 
+    /** The UI only offers a prompt for an operation in [State.Waiting]. */
+    private suspend fun ProducerScope<State>.awaitResolution(
+        ctx: Operation.Context,
+        issue: PathActionIssue,
+        resumeAs: State.Active = State.Active(startedAt = ctx.startedAt),
+    ): Issue.Resolution {
+        send(State.Waiting(startedAt = ctx.startedAt, issue = issue))
+        val resolution = issueHandler.handleIssue(ctx.id, issue)
+        send(resumeAs)
+        return resolution
+    }
+
     /** True if a password was submitted; the issue handler has cached it by then. */
-    private suspend fun promptForPassword(
+    private suspend fun ProducerScope<State>.promptForPassword(
         ctx: Operation.Context,
         attemptFailed: Boolean,
         mayBeDamaged: Boolean,
-    ): Boolean = issueHandler.handleIssue(
-        ctx.id,
+        resumeAs: State.Active = State.Active(startedAt = ctx.startedAt),
+    ): Boolean = awaitResolution(
+        ctx,
         PathActionIssue.ArchivePasswordRequired(
             container = command.archive,
             attemptFailed = attemptFailed,
             mayBeDamaged = mayBeDamaged,
         ),
+        resumeAs,
     ) is PathActionIssue.ArchivePasswordRequired.Resolution.Submit
 
     /**
@@ -155,7 +170,13 @@ class ExtractOperation @AssistedInject constructor(
         var attemptFailed = false
         while (true) {
             val pending = pendingPassword() ?: break
-            if (!promptForPassword(ctx, attemptFailed || pending.attemptFailed, mayBeDamaged || pending.mayBeDamaged)) {
+            if (!promptForPassword(
+                    ctx,
+                    attemptFailed || pending.attemptFailed,
+                    mayBeDamaged || pending.mayBeDamaged,
+                    stateActive,
+                )
+            ) {
                 log(tag, INFO) { "Password prompt dismissed, aborting extract" }
                 completeEmpty(ctx)
                 return
@@ -173,7 +194,7 @@ class ExtractOperation @AssistedInject constructor(
         try {
             while (true) {
                 try {
-                    extractEntries(ctx, session, remaining.toList()) { meta, outcome ->
+                    extractEntries(ctx, session, remaining.toList(), { stateActive }) { meta, outcome ->
                         remaining.remove(meta)
                         if (outcome !is WriteOutcome.Written) return@extractEntries
                         processedBytes += outcome.bytes
@@ -189,7 +210,13 @@ class ExtractOperation @AssistedInject constructor(
                     break
                 } catch (e: ArchivePasswordRequiredException) {
                     log(tag, WARN) { "Password failed mid-extraction, ${remaining.size} entries left" }
-                    if (!promptForPassword(ctx, attemptFailed = true, mayBeDamaged = e.mayBeDamaged)) {
+                    if (!promptForPassword(
+                            ctx,
+                            attemptFailed = true,
+                            mayBeDamaged = e.mayBeDamaged,
+                            resumeAs = stateActive,
+                        )
+                    ) {
                         log(tag, INFO) { "Password prompt dismissed mid-extraction, keeping what was written" }
                         remaining.forEach { session.reportBuilder.addSkipped(it.segments.joinToString("/")) }
                         break
@@ -206,22 +233,24 @@ class ExtractOperation @AssistedInject constructor(
         finish(ctx, session, error = null)
     }
 
-    private suspend fun extractEntries(
+    private suspend fun ProducerScope<State>.extractEntries(
         ctx: Operation.Context,
         session: ExtractSession,
         entries: List<ArchiveEntryMeta>,
+        currentActive: () -> State.Active,
         onEntry: suspend (ArchiveEntryMeta, WriteOutcome) -> Unit,
     ) {
         archiveService.useEntryStreams(command.archive, entries) { meta, input ->
             currentCoroutineContext().ensureActive()
             val outcome = writeEntry(session, meta.segments, input) { existing ->
-                val resolution = issueHandler.handleIssue(
-                    ctx.id,
+                val resolution = awaitResolution(
+                    ctx,
                     PathActionIssue.PathAlreadyExists(
                         destination = existing,
                         canSkip = true,
                         canOverwrite = true,
                     ),
+                    currentActive(),
                 )
                 when (resolution) {
                     is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> ConflictDecision.OVERWRITE
@@ -252,13 +281,14 @@ class ExtractOperation @AssistedInject constructor(
         var policy = ConflictDecision.SKIP
         if (gatewaySwitch.exists(baseDir)) {
             val existing = gatewaySwitch.lookup(baseDir, LookupOptions())
-            val resolution = issueHandler.handleIssue(
-                ctx.id,
+            val resolution = awaitResolution(
+                ctx,
                 PathActionIssue.PathAlreadyExists(
                     destination = existing,
                     canSkip = true,
                     canOverwrite = true,
                 ),
+                stateActive,
             )
             policy = when (resolution) {
                 is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> ConflictDecision.OVERWRITE
@@ -321,17 +351,16 @@ class ExtractOperation @AssistedInject constructor(
             val now = System.currentTimeMillis()
             if (now - lastProgressAt >= PROGRESS_INTERVAL_MS) {
                 lastProgressAt = now
-                trySend(
-                    stateActive.copy(
-                        primaryProgress = Progress.Data(
-                            primary = (currentEntry ?: command.archive.name).toCaString(),
-                            secondary = command.archive.userReadablePath,
-                            count = total
-                                ?.let { Progress.Count.Size(current = read, max = it) }
-                                ?: Progress.Count.Indeterminate(),
-                        ),
+                stateActive = stateActive.copy(
+                    primaryProgress = Progress.Data(
+                        primary = (currentEntry ?: command.archive.name).toCaString(),
+                        secondary = command.archive.userReadablePath,
+                        count = total
+                            ?.let { Progress.Count.Size(current = read, max = it) }
+                            ?: Progress.Count.Indeterminate(),
                     ),
                 )
+                trySend(stateActive)
             }
         }
 
@@ -396,13 +425,14 @@ class ExtractOperation @AssistedInject constructor(
                     break
                 } catch (e: ArchivePasswordRequiredException) {
                     attemptFailed = attemptFailed || e.attemptFailed
-                    val resolution = issueHandler.handleIssue(
-                        ctx.id,
+                    val resolution = awaitResolution(
+                        ctx,
                         PathActionIssue.ArchivePasswordRequired(
                             container = command.archive,
                             attemptFailed = attemptFailed,
                             mayBeDamaged = e.mayBeDamaged,
                         ),
+                        stateActive,
                     )
                     if (resolution !is PathActionIssue.ArchivePasswordRequired.Resolution.Submit) {
                         log(tag, INFO) { "Password prompt dismissed, aborting sequential extract" }
