@@ -55,12 +55,16 @@ enum class ArchiveFormat(val displayExtension: String) {
             ".tar.gz", ".tar.bz2", ".tbz2", ".tgz", ".tar", ".apks", ".xapk", ".apkm", ".zip", ".7z", ".rar",
         )
 
+        private val RAR_PART_SUFFIX = Regex("""\.part\d+\.rar$""", RegexOption.IGNORE_CASE)
+
         /**
-         * File name without its archive extension, e.g. "backup.tar.gz" -> "backup". Handles compound
-         * and alias suffixes. Falls back to the pre-last-dot stem, then the full name, so a name that is
-         * only an extension (".tar.gz") is returned unchanged rather than mangled into ".tar".
+         * File name without its archive extension, e.g. "backup.tar.gz" -> "backup", "photos.part1.rar"
+         * -> "photos". Handles compound and alias suffixes. Falls back to the pre-last-dot stem, then the
+         * full name, so a name that is only an extension (".tar.gz") is returned unchanged rather than
+         * mangled into ".tar".
          */
         fun stemOf(fileName: String): String {
+            RAR_PART_SUFFIX.find(fileName)?.let { return fileName.take(it.range.first).ifBlank { fileName } }
             val lower = fileName.lowercase()
             val suffix = STEM_SUFFIXES.firstOrNull { lower.endsWith(it) }
             if (suffix != null) return fileName.dropLast(suffix.length).ifBlank { fileName }

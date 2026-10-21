@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.archive
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.Existence
 import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.COPY_BUFFER_SIZE
 import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.MAX_ENTRIES
 import eu.darken.butler.common.files.archive.ArchiveHandlerContext.Companion.SPECIAL_UNIX_TYPES
@@ -28,17 +29,21 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.runBlocking
 import java.io.Closeable
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * RAR5, read-only. Every read is one pass from the start of the container stream, so stream-only
- * storage works. Only the first volume of a multi-part archive is read.
+ * storage works. The later volumes of a multi-part archive are opened next to the container, under
+ * the names [RarVolumeNames] derives from its name.
  */
 internal class RarArchiveHandler(
     private val context: ArchiveHandlerContext,
@@ -66,7 +71,8 @@ internal class RarArchiveHandler(
         val metas = ArrayList<ArchiveEntryMeta>()
         val headerEncrypted: Boolean
         val generation: Int
-        openSession(container, listOnly = true).use { session ->
+        val volumes = VolumeLog()
+        openSession(container, listOnly = true, volumes).use { session ->
             headerEncrypted = session.reader.archive.headerEncrypted
             generation = session.generation
             while (true) {
@@ -115,6 +121,8 @@ internal class RarArchiveHandler(
             skippedSpecial = skippedSpecial,
             headerEncrypted = headerEncrypted,
             passwordGeneration = generation.takeIf { headerEncrypted },
+            volumes = if (volumes.paths.isEmpty()) emptyList() else listOf(container) + volumes.paths,
+            laterVolumeFingerprints = volumes.fingerprints.toList(),
         )
     }
 
@@ -201,11 +209,11 @@ internal class RarArchiveHandler(
         }
     }
 
-    private suspend fun openSession(container: APath<*>, listOnly: Boolean): Session {
+    private suspend fun openSession(container: APath<*>, listOnly: Boolean, volumes: VolumeLog? = null): Session {
         val password = SnapshotPassword(passwordStore.snapshot(container))
         val caller = CallerJob(currentCoroutineContext()[Job])
         val reader = try {
-            openReader(container, password, caller, listOnly)
+            openReader(container, password, caller, listOnly, volumes)
         } catch (e: Exception) {
             password.wipe()
             throw mapRarError(e, container, password.generation)
@@ -219,6 +227,7 @@ internal class RarArchiveHandler(
         password: RarPasswordProvider,
         caller: CallerJob,
         listOnly: Boolean,
+        volumes: VolumeLog? = null,
     ): RarReader {
         val budget = object : RarMemoryBudget {
             override fun acquire(bytes: Long) = windowBudget.acquire(bytes, caller::check)
@@ -232,8 +241,27 @@ internal class RarArchiveHandler(
                 memoryBudget = budget,
                 listOnly = listOnly,
                 cancellation = caller::check,
+                volumeProvider = { index -> openVolume(container, index, caller, volumes) },
             ),
         )
+    }
+
+    /**
+     * Opens volume [index] next to [container] on the reader's thread. Null, which the reader reports
+     * as that volume missing, only for a sibling the gateway reports absent: failing to open one that
+     * may exist surfaces the gateway's own error. With no caller, i.e. a detached [openEntry] stream
+     * reading into the next volume, nothing can cancel the open. The context carries no dispatcher, so
+     * nothing is dispatched onto the thread this blocks.
+     */
+    private fun openVolume(container: APath<*>, index: Int, caller: CallerJob, volumes: VolumeLog?): InputStream? {
+        val name = RarVolumeNames.volumeName(container.name, index) ?: return null
+        val volume = container.parent?.child(name) ?: return null
+        return runBlocking(caller.job ?: EmptyCoroutineContext) {
+            if (context.gatewaySwitch.existsStrict(volume) == Existence.ABSENT) return@runBlocking null
+            if (volumes == null) return@runBlocking context.gatewaySwitch.openInputStream(volume)
+            val fingerprint = context.volumeFingerprint(volume)
+            context.gatewaySwitch.openInputStream(volume).also { volumes.add(volume, fingerprint) }
+        }
     }
 
     private suspend fun Session.seek(ordinal: Int, meta: ArchiveEntryMeta) {
@@ -301,6 +329,17 @@ internal class RarArchiveHandler(
     private class CallerJob(@Volatile var job: Job?) {
         fun check() {
             job?.ensureActive()
+        }
+    }
+
+    /** The later volumes a scan's reader opened, in order, each fingerprinted before it was opened. */
+    private class VolumeLog {
+        val paths = CopyOnWriteArrayList<APath<*>>()
+        val fingerprints = CopyOnWriteArrayList<String>()
+
+        fun add(volume: APath<*>, fingerprint: String) {
+            paths += volume
+            fingerprints += fingerprint
         }
     }
 

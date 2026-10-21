@@ -67,12 +67,18 @@ internal class ScanResult(
     val skippedSpecial: Int,
     val headerEncrypted: Boolean = false,
     val passwordGeneration: Int? = null,
+    /** Multi-part archives: every file the scan read, container first. Empty when it read only the container. */
+    val volumes: List<APath<*>> = emptyList(),
+    /** [ArchiveHandlerContext.volumeFingerprint] of each of [volumes] after the container, taken before it was read. */
+    val laterVolumeFingerprints: List<String> = emptyList(),
 )
 
 /** Shared container access for the format handlers. Resolves the gateway on use, never on construction. */
 internal class ArchiveHandlerContext(
     private val gatewaySwitchLazy: dagger.Lazy<GatewaySwitch>,
     val passwordStore: ArchivePasswordStore,
+    /** Stat fingerprint of a later volume of a multi-part archive, as its index records it. */
+    val volumeFingerprint: suspend (APath<*>) -> String,
 ) {
 
     val gatewaySwitch: GatewaySwitch get() = gatewaySwitchLazy.get()
