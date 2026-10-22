@@ -64,6 +64,10 @@
     <string name="sftp_error_key_format_description">Cheia privată nu este într-un format pe care Butler îl poate citi. Sunt acceptate fișierele de chei OpenSSH, PEM și PKCS#8.</string>
     <string name="sftp_error_key_passphrase_title">Frază de acces greșită</string>
     <string name="sftp_error_key_passphrase_description">Cheia privată este protejată, iar fraza de acces este greșită sau lipsește.</string>
+    <string name="sftp_error_key_passphrase_required_title">Este necesară fraza de acces</string>
+    <string name="sftp_error_key_passphrase_required_description">Introdu fraza de acces a cheii private pentru a te conecta la acest server.</string>
+    <string name="sftp_error_location_changed_title">Serverul s-a schimbat</string>
+    <string name="sftp_error_location_changed_description">Acest server a fost modificat între timp. Încearcă din nou.</string>
     <string name="sftp_error_access_denied_title">Fără acces la acest dosar</string>
     <string name="sftp_error_access_denied_description">Acest cont nu poate deschide dosarul setat pentru \"%1$s\". Verifică permisiunile dosarului pe server.</string>
     <string name="sftp_error_pro_required_title">Serverele SFTP necesită Butler Pro</string>
