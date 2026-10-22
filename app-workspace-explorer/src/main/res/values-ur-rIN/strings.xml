@@ -156,6 +156,8 @@
     <string name="explorer_info_sftp_private_key_label">نجی کلید</string>
     <string name="explorer_info_sftp_credential_stored">اس آلے پر محفوظ ہے</string>
     <string name="explorer_info_sftp_credential_session">Butler بند ہونے تک رکھی جاتی ہے</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">کلید محفوظ ہے، پاس فریز Butler بند ہونے تک رکھا جاتا ہے</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">کلید محفوظ ہے، کھولنے کے لیے پاس فریز درکار ہے</string>
     <string name="explorer_info_sftp_host_key_type_label">ہوسٹ کلید کی قسم</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">ہوسٹ کلید کا فنگر پرنٹ</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -319,6 +321,13 @@
         <item quantity="other">%1$d نیٹ ورک اسٹوریج ہٹائیں؟</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler سرور کی تفصیلات اور محفوظ پاس ورڈ بھول جائے گا۔ سرور پر کچھ بھی حذف نہیں ہو گا۔</string>
+    <string name="explorer_network_disconnect_location_action">منقطع کریں</string>
+    <string name="explorer_network_disconnect_confirmation_title">%1$s کو منقطع کریں؟</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">%1$d نیٹ ورک اسٹوریج کو منقطع کریں؟</item>
+        <item quantity="other">%1$d نیٹ ورک اسٹوریج کو منقطع کریں؟</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">جب تک آپ دوبارہ سائن اِن نہیں کرتے، Butler سائن اِن کی تفصیلات بھول جائے گا۔ سرور کی تفصیلات محفوظ رہیں گی۔ اس اسٹوریج پر جاری منتقلیاں ناکام ہو سکتی ہیں۔</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">نیٹ ورک اسٹوریج شامل کریں</string>
@@ -362,6 +371,7 @@
     <string name="explorer_sftp_form_sign_in_title">%1$s میں سائن اِن کریں</string>
     <string name="explorer_sftp_form_sign_in_password_hint">اس سرور کو کھولنے کے لیے پاس ورڈ دوبارہ درج کریں۔</string>
     <string name="explorer_sftp_form_sign_in_key_hint">اس سرور کو کھولنے کے لیے نجی کلید کی فائل دوبارہ منتخب کریں، یا اس کا پاس فریز درج کریں۔</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">اس سرور کو کھولنے کے لیے کلید کا پاس فریز درج کریں۔</string>
     <string name="explorer_sftp_form_host_hint">build.lan یا 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">بنیادی راستہ (اختیاری)</string>
     <string name="explorer_sftp_form_base_path_help">خالی: سرور کا ابتدائی فولڈر۔ / سے شروع: مکمل راستہ۔ اس کے علاوہ کچھ بھی: ابتدائی فولڈر کے نسبت سے۔</string>
@@ -374,10 +384,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">فائل منتخب کریں</string>
     <string name="explorer_sftp_form_passphrase_label">کلید کا پاس فریز (اختیاری)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">محفوظ پاس فریز برقرار رکھنے کے لیے خالی چھوڑیں</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Butler شروع ہونے کے بعد درج کیا گیا پاس فریز استعمال کرنے کے لیے خالی چھوڑیں</string>
     <string name="explorer_sftp_form_remember_label">سائن اِن کی معلومات یاد رکھیں</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">پاس فریز یاد رکھیں</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">کلید کے ساتھ محفوظ ہوتا ہے</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">جڑتے وقت Butler اسے پوچھے گا</string>
     <string name="explorer_sftp_form_error_username_malformed">صارف نام میں کنٹرول حروف نہیں ہو سکتے</string>
     <string name="explorer_sftp_form_error_password_required">صارف نام، سائن اِن کا طریقہ یا یاد رکھنے کی ترتیب بدلنے کے لیے پاس ورڈ دوبارہ درج کریں</string>
     <string name="explorer_sftp_form_error_key_required">نجی کلید کی فائل منتخب کریں</string>
+    <string name="explorer_sftp_form_error_passphrase_required">کلید کا پاس فریز درج کریں</string>
+    <string name="explorer_sftp_form_error_location_changed">اس دوران یہ سرور بدل دیا گیا۔ دوبارہ کوشش کریں۔</string>
     <string name="explorer_sftp_form_error_key_too_large">یہ فائل %1$d KiB سے بڑی ہے اور نجی کلید نہیں ہو سکتی</string>
     <string name="explorer_sftp_form_error_key_not_a_file">فولڈر نہیں، فائل منتخب کریں</string>
     <string name="explorer_sftp_form_error_key_unreadable">کلید کی فائل پڑھی نہیں جا سکی</string>
@@ -407,6 +423,11 @@
     <string name="explorer_sftp_host_key_retrust_title">سرور کی کلید بدلیں؟</string>
     <string name="explorer_sftp_host_key_retrust_message">کلید صرف تبھی بدلیں جب آپ جانتے ہوں کہ %1$s نے اسے کیوں بدلا۔ Butler اب سے پیش کردہ کلید پر بھروسا کرے گا۔</string>
     <string name="explorer_sftp_host_key_retrust_action">کلید بدلیں</string>
+    <string name="explorer_sftp_unlock_title">%1$s کو ان لاک کریں</string>
+    <string name="explorer_sftp_unlock_message">کلید کا پاس فریز درج کریں۔</string>
+    <string name="explorer_sftp_unlock_passphrase_label">پاس فریز</string>
+    <string name="explorer_sftp_unlock_edit_action">سرور میں ترمیم کریں</string>
+    <string name="explorer_sftp_unlock_action">ان لاک کریں</string>
     <string name="explorer_webdav_form_add_title">WebDAV سرور شامل کریں</string>
     <string name="explorer_webdav_form_edit_title">WebDAV سرور میں ترمیم کریں</string>
     <string name="explorer_webdav_form_sign_in_title">%1$s میں سائن اِن کریں</string>

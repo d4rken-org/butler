@@ -85,6 +85,10 @@
     <string name="sftp_error_key_format_description">نجی کلید ایسے فارمیٹ میں نہیں ہے جسے Butler پڑھ سکے۔ OpenSSH، PEM اور PKCS#8 کلیدی فائلیں معاون ہیں۔</string>
     <string name="sftp_error_key_passphrase_title">غلط پاس فریز</string>
     <string name="sftp_error_key_passphrase_description">نجی کلید محفوظ ہے اور پاس فریز غلط ہے یا درج نہیں کیا گیا۔</string>
+    <string name="sftp_error_key_passphrase_required_title">پاس فریز درکار ہے</string>
+    <string name="sftp_error_key_passphrase_required_description">اس سرور سے جڑنے کے لیے نجی کلید کا پاس فریز درج کریں۔</string>
+    <string name="sftp_error_location_changed_title">سرور بدل گیا</string>
+    <string name="sftp_error_location_changed_description">اس دوران یہ سرور بدل دیا گیا۔ دوبارہ کوشش کریں۔</string>
     <string name="sftp_error_access_denied_title">اس فولڈر تک رسائی نہیں ہے</string>
     <string name="sftp_error_access_denied_description">اس اکاؤنٹ کو \"%1$s\" کے لیے مقرر کردہ فولڈر کھولنے کی اجازت نہیں ہو سکتی۔ سرور پر فولڈر کی اجازتیں جانچیں۔</string>
     <string name="sftp_error_pro_required_title">SFTP سرورز کے لیے Butler Pro درکار ہے</string>

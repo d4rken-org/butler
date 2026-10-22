@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">Özel anahtar, Butler\'ın okuyabileceği bir biçimde değil. OpenSSH, PEM ve PKCS#8 anahtar dosyaları desteklenir.</string>
     <string name="sftp_error_key_passphrase_title">Yanlış parola ifadesi</string>
     <string name="sftp_error_key_passphrase_description">Özel anahtar korumalı ve parola ifadesi yanlış veya eksik.</string>
+    <string name="sftp_error_key_passphrase_required_title">Parola ifadesi gerekli</string>
+    <string name="sftp_error_key_passphrase_required_description">Bu sunucuya bağlanmak için özel anahtarın parola ifadesini gir.</string>
+    <string name="sftp_error_location_changed_title">Sunucu değişti</string>
+    <string name="sftp_error_location_changed_description">Bu sunucu bu arada değiştirildi. Tekrar dene.</string>
     <string name="sftp_error_access_denied_title">Bu klasöre erişim yok</string>
     <string name="sftp_error_access_denied_description">Bu hesap \"%1$s\" için ayarlanan klasörü açamıyor olabilir. Sunucudaki klasör izinlerini kontrol et.</string>
     <string name="sftp_error_pro_required_title">SFTP sunucuları Butler Pro gerektirir</string>

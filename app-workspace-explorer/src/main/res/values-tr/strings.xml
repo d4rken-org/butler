@@ -151,6 +151,8 @@
     <string name="explorer_info_sftp_private_key_label">Özel anahtar</string>
     <string name="explorer_info_sftp_credential_stored">Bu cihazda saklanıyor</string>
     <string name="explorer_info_sftp_credential_session">Butler kapanana kadar tutulur</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Anahtar kayıtlı, parola ifadesi Butler kapanana kadar tutulur</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Anahtar kayıtlı, açmak için parola ifadesi gerekli</string>
     <string name="explorer_info_sftp_host_key_type_label">Sunucu anahtarı türü</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Sunucu anahtarı parmak izi</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -313,6 +315,13 @@
         <item quantity="other">%1$d ağ depolaması kaldırılsın mı?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler sunucu bilgilerini ve kayıtlı şifreyi unutur. Sunucudaki hiçbir şey silinmez.</string>
+    <string name="explorer_network_disconnect_location_action">Bağlantıyı kes</string>
+    <string name="explorer_network_disconnect_confirmation_title">%1$s bağlantısı kesilsin mi?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">%1$d ağ depolamasının bağlantısı kesilsin mi?</item>
+        <item quantity="other">%1$d ağ depolamasının bağlantısı kesilsin mi?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler, yeniden oturum açana kadar oturum bilgilerini unutur. Sunucu bilgileri kayıtlı kalır. Bu depolamaya devam eden aktarımlar başarısız olabilir.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">Ağ depolaması ekle</string>
@@ -356,6 +365,7 @@
     <string name="explorer_sftp_form_sign_in_title">%1$s için oturum aç</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Bu sunucuyu açmak için şifreyi yeniden gir.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Bu sunucuyu açmak için özel anahtar dosyasını yeniden seç veya parola ifadesini gir.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Bu sunucuyu açmak için anahtarın parola ifadesini gir.</string>
     <string name="explorer_sftp_form_host_hint">build.lan veya 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Temel yol (isteğe bağlı)</string>
     <string name="explorer_sftp_form_base_path_help">Boş: sunucunun başlangıç klasörü. / ile başlıyorsa: mutlak yol. Diğer durumlarda: başlangıç klasörüne göre göreli yol.</string>
@@ -368,10 +378,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Dosya seç</string>
     <string name="explorer_sftp_form_passphrase_label">Anahtar parola ifadesi (isteğe bağlı)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Kayıtlı parola ifadesini korumak için boş bırak</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Butler başladığından beri girilen parola ifadesini kullanmak için boş bırak</string>
     <string name="explorer_sftp_form_remember_label">Kimlik bilgilerini hatırla</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Parola ifadesini hatırla</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Anahtarla birlikte saklanır</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler bağlanırken sorar</string>
     <string name="explorer_sftp_form_error_username_malformed">Kullanıcı adı denetim karakterleri içeremez</string>
     <string name="explorer_sftp_form_error_password_required">Kullanıcı adını, oturum açma yöntemini veya hatırlama ayarını değiştirmek için şifreyi yeniden gir</string>
     <string name="explorer_sftp_form_error_key_required">Bir özel anahtar dosyası seç</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Anahtarın parola ifadesini gir</string>
+    <string name="explorer_sftp_form_error_location_changed">Bu sunucu bu arada değiştirildi. Tekrar dene.</string>
     <string name="explorer_sftp_form_error_key_too_large">Bu dosya %1$d KiB\'den büyük, özel anahtar olamaz</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Klasör değil, bir dosya seç</string>
     <string name="explorer_sftp_form_error_key_unreadable">Anahtar dosyası okunamadı</string>
@@ -401,6 +417,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Sunucu anahtarı değiştirilsin mi?</string>
     <string name="explorer_sftp_host_key_retrust_message">Anahtarı yalnızca %1$s sunucusunun neden değiştirdiğini biliyorsan değiştir. Butler bundan sonra sunulan anahtara güvenecek.</string>
     <string name="explorer_sftp_host_key_retrust_action">Anahtarı değiştir</string>
+    <string name="explorer_sftp_unlock_title">%1$s kilidini aç</string>
+    <string name="explorer_sftp_unlock_message">Anahtarın parola ifadesini gir.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Parola ifadesi</string>
+    <string name="explorer_sftp_unlock_edit_action">Sunucuyu düzenle</string>
+    <string name="explorer_sftp_unlock_action">Kilidi aç</string>
     <string name="explorer_webdav_form_add_title">WebDAV sunucusu ekle</string>
     <string name="explorer_webdav_form_edit_title">WebDAV sunucusunu düzenle</string>
     <string name="explorer_webdav_form_sign_in_title">%1$s için oturum aç</string>
