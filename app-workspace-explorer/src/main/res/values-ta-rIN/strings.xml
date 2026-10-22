@@ -153,6 +153,8 @@
     <string name="explorer_info_sftp_private_key_label">தனிப்பட்ட விசை</string>
     <string name="explorer_info_sftp_credential_stored">இந்தச் சாதனத்தில் சேமிக்கப்பட்டுள்ளது</string>
     <string name="explorer_info_sftp_credential_session">Butler மூடப்படும் வரை வைத்திருக்கப்படும்</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">விசை சேமிக்கப்பட்டுள்ளது, கடவுச்சொற்றொடர் Butler மூடப்படும் வரை வைத்திருக்கப்படும்</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">விசை சேமிக்கப்பட்டுள்ளது, திறக்கக் கடவுச்சொற்றொடர் தேவை</string>
     <string name="explorer_info_sftp_host_key_type_label">ஹோஸ்ட் விசை வகை</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">ஹோஸ்ட் விசை கைரேகை</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -318,6 +320,13 @@
         <item quantity="other">%1$d பிணையச் சேமிப்பகங்களை அகற்றவா?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">சேவையக விவரங்களையும் சேமித்த கடவுச்சொல்லையும் Butler மறந்துவிடும். சேவையகத்தில் எதுவும் நீக்கப்படாது.</string>
+    <string name="explorer_network_disconnect_location_action">இணைப்பைத் துண்டி</string>
+    <string name="explorer_network_disconnect_confirmation_title">%1$s இணைப்பைத் துண்டிக்கவா?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">%1$d பிணையச் சேமிப்பகத்தின் இணைப்பைத் துண்டிக்கவா?</item>
+        <item quantity="other">%1$d பிணையச் சேமிப்பகங்களின் இணைப்பைத் துண்டிக்கவா?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">மீண்டும் உள்நுழையும் வரை உள்நுழைவு விவரங்களை Butler மறந்துவிடும். சேவையக விவரங்கள் சேமிக்கப்பட்டபடியே இருக்கும். இந்தச் சேமிப்பகத்திற்கு இன்னும் நடந்துகொண்டிருக்கும் பரிமாற்றங்கள் தோல்வியடையலாம்.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">பிணையச் சேமிப்பகத்தைச் சேர்</string>
@@ -361,6 +370,7 @@
     <string name="explorer_sftp_form_sign_in_title">%1$s இல் உள்நுழையுங்கள்</string>
     <string name="explorer_sftp_form_sign_in_password_hint">இந்தச் சேவையகத்தைத் திறக்கக் கடவுச்சொல்லை மீண்டும் உள்ளிடுங்கள்.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">இந்தச் சேவையகத்தைத் திறக்கத் தனிப்பட்ட விசைக் கோப்பை மீண்டும் தேர்ந்தெடுங்கள் அல்லது அதன் கடவுச்சொற்றொடரை உள்ளிடுங்கள்.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">இந்தச் சேவையகத்தைத் திறக்க விசையின் கடவுச்சொற்றொடரை உள்ளிடுங்கள்.</string>
     <string name="explorer_sftp_form_host_hint">build.lan அல்லது 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">அடிப்படைப் பாதை (விருப்பத்தேர்வு)</string>
     <string name="explorer_sftp_form_base_path_help">காலியாக இருந்தால்: சேவையகத்தின் தொடக்கக் கோப்புறை. / உடன் தொடங்கினால்: முழுப் பாதை. மற்றவை: தொடக்கக் கோப்புறையைச் சார்ந்த பாதை.</string>
@@ -373,10 +383,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">கோப்பைத் தேர்ந்தெடு</string>
     <string name="explorer_sftp_form_passphrase_label">விசைக் கடவுச்சொற்றொடர் (விருப்பத்தேர்வு)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">சேமித்த கடவுச்சொற்றொடரை வைத்திருக்க காலியாக விடுங்கள்</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Butler தொடங்கிய பிறகு உள்ளிட்ட கடவுச்சொற்றொடரைப் பயன்படுத்த காலியாக விடுங்கள்</string>
     <string name="explorer_sftp_form_remember_label">உள்நுழைவு விவரங்களை நினைவில் கொள்</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">கடவுச்சொற்றொடரை நினைவில் கொள்</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">விசையுடன் சேமிக்கப்படும்</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">இணைக்கும்போது Butler கேட்கும்</string>
     <string name="explorer_sftp_form_error_username_malformed">பயனர்பெயரில் கட்டுப்பாட்டு எழுத்துகள் இருக்கக்கூடாது</string>
     <string name="explorer_sftp_form_error_password_required">பயனர்பெயர், உள்நுழைவு முறை அல்லது நினைவில் கொள்ளும் அமைப்பை மாற்ற கடவுச்சொல்லை மீண்டும் உள்ளிடுங்கள்</string>
     <string name="explorer_sftp_form_error_key_required">தனிப்பட்ட விசைக் கோப்பைத் தேர்ந்தெடுங்கள்</string>
+    <string name="explorer_sftp_form_error_passphrase_required">விசையின் கடவுச்சொற்றொடரை உள்ளிடுங்கள்</string>
+    <string name="explorer_sftp_form_error_location_changed">இதற்கிடையில் இந்தச் சேவையகம் மாற்றப்பட்டது. மீண்டும் முயற்சியுங்கள்.</string>
     <string name="explorer_sftp_form_error_key_too_large">இந்தக் கோப்பு %1$d KiB ஐவிடப் பெரியது; இது தனிப்பட்ட விசையாக இருக்க முடியாது</string>
     <string name="explorer_sftp_form_error_key_not_a_file">கோப்பைத் தேர்ந்தெடுங்கள், கோப்புறையை அல்ல</string>
     <string name="explorer_sftp_form_error_key_unreadable">விசைக் கோப்பை வாசிக்க முடியவில்லை</string>
@@ -406,6 +422,11 @@
     <string name="explorer_sftp_host_key_retrust_title">சேவையக விசையை மாற்றவா?</string>
     <string name="explorer_sftp_host_key_retrust_message">%1$s ஏன் விசையை மாற்றியது என்று தெரிந்தால் மட்டுமே விசையை மாற்றுங்கள். இனி வழங்கப்பட்ட விசையை Butler நம்பும்.</string>
     <string name="explorer_sftp_host_key_retrust_action">விசையை மாற்று</string>
+    <string name="explorer_sftp_unlock_title">%1$s ஐத் திற</string>
+    <string name="explorer_sftp_unlock_message">விசையின் கடவுச்சொற்றொடரை உள்ளிடுங்கள்.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">கடவுச்சொற்றொடர்</string>
+    <string name="explorer_sftp_unlock_edit_action">சேவையகத்தைத் திருத்து</string>
+    <string name="explorer_sftp_unlock_action">திற</string>
     <string name="explorer_webdav_form_add_title">WebDAV சேவையகத்தைச் சேர்</string>
     <string name="explorer_webdav_form_edit_title">WebDAV சேவையகத்தைத் திருத்து</string>
     <string name="explorer_webdav_form_sign_in_title">%1$s இல் உள்நுழையுங்கள்</string>

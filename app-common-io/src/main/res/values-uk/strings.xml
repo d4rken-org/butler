@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">Приватний ключ має формат, який Butler не може прочитати. Підтримуються файли ключів OpenSSH, PEM і PKCS#8.</string>
     <string name="sftp_error_key_passphrase_title">Неправильна парольна фраза</string>
     <string name="sftp_error_key_passphrase_description">Приватний ключ захищено, а парольна фраза неправильна або відсутня.</string>
+    <string name="sftp_error_key_passphrase_required_title">Потрібна парольна фраза</string>
+    <string name="sftp_error_key_passphrase_required_description">Введи парольну фразу приватного ключа, щоб підключитися до цього сервера.</string>
+    <string name="sftp_error_location_changed_title">Сервер змінено</string>
+    <string name="sftp_error_location_changed_description">Цей сервер тим часом змінили. Спробуй ще раз.</string>
     <string name="sftp_error_access_denied_title">Немає доступу до цієї теки</string>
     <string name="sftp_error_access_denied_description">Цей обліковий запис, імовірно, не може відкрити теку, указану для \"%1$s\". Перевір дозволи теки на сервері.</string>
     <string name="sftp_error_pro_required_title">SFTP-сервери потребують Butler Pro</string>

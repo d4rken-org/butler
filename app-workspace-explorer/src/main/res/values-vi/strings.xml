@@ -150,6 +150,8 @@
     <string name="explorer_info_sftp_private_key_label">Khóa riêng tư</string>
     <string name="explorer_info_sftp_credential_stored">Được lưu trên thiết bị này</string>
     <string name="explorer_info_sftp_credential_session">Được giữ đến khi Butler đóng</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Đã lưu khóa, giữ cụm mật khẩu đến khi Butler đóng</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Đã lưu khóa, cần cụm mật khẩu để mở</string>
     <string name="explorer_info_sftp_host_key_type_label">Loại khóa máy chủ</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Dấu vân tay khóa máy chủ</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -305,6 +307,12 @@
         <item quantity="other">Xóa %1$d bộ nhớ mạng?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler sẽ quên thông tin máy chủ và mật khẩu đã lưu. Không có gì trên máy chủ bị xóa.</string>
+    <string name="explorer_network_disconnect_location_action">Ngắt kết nối</string>
+    <string name="explorer_network_disconnect_confirmation_title">Ngắt kết nối %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="other">Ngắt kết nối %1$d bộ nhớ mạng?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler sẽ quên thông tin đăng nhập cho đến khi bạn đăng nhập lại. Thông tin máy chủ vẫn được lưu. Các lượt truyền đến bộ nhớ này đang chạy có thể thất bại.</string>
 
     <!-- Biểu mẫu bộ nhớ mạng -->
     <string name="explorer_network_form_add_title">Thêm bộ nhớ mạng</string>
@@ -348,6 +356,7 @@
     <string name="explorer_sftp_form_sign_in_title">Đăng nhập vào %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Nhập lại mật khẩu để mở máy chủ này.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Chọn lại tệp khóa riêng tư, hoặc nhập cụm mật khẩu của nó, để mở máy chủ này.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Nhập cụm mật khẩu của khóa để mở máy chủ này.</string>
     <string name="explorer_sftp_form_host_hint">build.lan hoặc 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Đường dẫn gốc (tùy chọn)</string>
     <string name="explorer_sftp_form_base_path_help">Để trống: thư mục bắt đầu của máy chủ. Bắt đầu bằng /: đường dẫn tuyệt đối. Còn lại: tương đối so với thư mục bắt đầu.</string>
@@ -360,10 +369,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Chọn tệp</string>
     <string name="explorer_sftp_form_passphrase_label">Cụm mật khẩu của khóa (tùy chọn)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Để trống để giữ cụm mật khẩu đã lưu</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Để trống để dùng cụm mật khẩu đã nhập từ khi Butler khởi động</string>
     <string name="explorer_sftp_form_remember_label">Ghi nhớ thông tin đăng nhập</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Ghi nhớ cụm mật khẩu</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Được lưu cùng với khóa</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler sẽ hỏi khi kết nối</string>
     <string name="explorer_sftp_form_error_username_malformed">Tên đăng nhập không được chứa ký tự điều khiển</string>
     <string name="explorer_sftp_form_error_password_required">Nhập lại mật khẩu để thay đổi tên đăng nhập, phương thức đăng nhập hoặc tùy chọn ghi nhớ</string>
     <string name="explorer_sftp_form_error_key_required">Chọn một tệp khóa riêng tư</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Nhập cụm mật khẩu của khóa</string>
+    <string name="explorer_sftp_form_error_location_changed">Máy chủ này đã được thay đổi trong lúc đó. Hãy thử lại.</string>
     <string name="explorer_sftp_form_error_key_too_large">Tệp này lớn hơn %1$d KiB nên không thể là khóa riêng tư</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Chọn một tệp, không phải thư mục</string>
     <string name="explorer_sftp_form_error_key_unreadable">Không thể đọc tệp khóa</string>
@@ -393,6 +408,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Thay thế khóa máy chủ?</string>
     <string name="explorer_sftp_host_key_retrust_message">Chỉ thay thế khóa nếu bạn biết lý do %1$s đã đổi nó. Butler sẽ tin cậy khóa được đưa ra từ giờ trở đi.</string>
     <string name="explorer_sftp_host_key_retrust_action">Thay thế khóa</string>
+    <string name="explorer_sftp_unlock_title">Mở khóa %1$s</string>
+    <string name="explorer_sftp_unlock_message">Nhập cụm mật khẩu của khóa.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Cụm mật khẩu</string>
+    <string name="explorer_sftp_unlock_edit_action">Sửa máy chủ</string>
+    <string name="explorer_sftp_unlock_action">Mở khóa</string>
     <string name="explorer_webdav_form_add_title">Thêm máy chủ WebDAV</string>
     <string name="explorer_webdav_form_edit_title">Sửa máy chủ WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">Đăng nhập vào %1$s</string>

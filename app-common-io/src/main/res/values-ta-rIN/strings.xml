@@ -85,6 +85,10 @@
     <string name="sftp_error_key_format_description">தனிப்பட்ட விசை Butler வாசிக்கக்கூடிய வடிவத்தில் இல்லை. OpenSSH, PEM மற்றும் PKCS#8 விசைக் கோப்புகள் ஆதரிக்கப்படுகின்றன.</string>
     <string name="sftp_error_key_passphrase_title">தவறான கடவுச்சொற்றொடர்</string>
     <string name="sftp_error_key_passphrase_description">தனிப்பட்ட விசை பாதுகாக்கப்பட்டுள்ளது; கடவுச்சொற்றொடர் தவறானது அல்லது கொடுக்கப்படவில்லை.</string>
+    <string name="sftp_error_key_passphrase_required_title">கடவுச்சொற்றொடர் தேவை</string>
+    <string name="sftp_error_key_passphrase_required_description">இந்தச் சேவையகத்துடன் இணைக்கத் தனிப்பட்ட விசையின் கடவுச்சொற்றொடரை உள்ளிடுங்கள்.</string>
+    <string name="sftp_error_location_changed_title">சேவையகம் மாற்றப்பட்டது</string>
+    <string name="sftp_error_location_changed_description">இதற்கிடையில் இந்தச் சேவையகம் மாற்றப்பட்டது. மீண்டும் முயற்சியுங்கள்.</string>
     <string name="sftp_error_access_denied_title">இந்தக் கோப்புறைக்கு அணுகல் இல்லை</string>
     <string name="sftp_error_access_denied_description">\"%1$s\" க்கு அமைக்கப்பட்ட கோப்புறையைத் திறக்க இந்தக் கணக்குக்கு அனுமதி இல்லை. சேவையகத்தில் கோப்புறையின் அனுமதிகளைச் சரிபாருங்கள்.</string>
     <string name="sftp_error_pro_required_title">SFTP சேவையகங்களுக்கு Butler Pro தேவை</string>
