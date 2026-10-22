@@ -157,6 +157,8 @@
     <string name="explorer_info_sftp_private_key_label">Privatni ključ</string>
     <string name="explorer_info_sftp_credential_stored">Pohranjeno na ovom uređaju</string>
     <string name="explorer_info_sftp_credential_session">Zadržava se dok se Butler ne zatvori</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Ključ je pohranjen, lozinka ključa zadržava se dok se Butler ne zatvori</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Ključ je pohranjen, za otvaranje je potrebna lozinka ključa</string>
     <string name="explorer_info_sftp_host_key_type_label">Vrsta ključa poslužitelja</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Otisak ključa poslužitelja</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -329,6 +331,14 @@
         <item quantity="other">Ukloniti %1$d lokacija mrežne pohrane?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler zaboravlja podatke o poslužitelju i spremljenu lozinku. Ništa se na poslužitelju ne briše.</string>
+    <string name="explorer_network_disconnect_location_action">Odspoji</string>
+    <string name="explorer_network_disconnect_confirmation_title">Odspojiti %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Odspojiti %1$d mrežnu pohranu?</item>
+        <item quantity="few">Odspojiti %1$d mrežne pohrane?</item>
+        <item quantity="other">Odspojiti %1$d mrežnih pohrana?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler zaboravlja podatke za prijavu dok se ponovno ne prijaviš. Podaci o poslužitelju ostaju spremljeni. Prijenosi na ovu pohranu koji su još u tijeku mogu ne uspjeti.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">Dodaj mrežnu pohranu</string>
@@ -372,6 +382,7 @@
     <string name="explorer_sftp_form_sign_in_title">Prijava na %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Ponovno unesi lozinku da otvoriš ovaj poslužitelj.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Ponovno odaberi datoteku privatnog ključa ili unesi njegovu lozinku da otvoriš ovaj poslužitelj.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Unesi lozinku ključa da otvoriš ovaj poslužitelj.</string>
     <string name="explorer_sftp_form_host_hint">build.lan ili 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Osnovna putanja (neobavezno)</string>
     <string name="explorer_sftp_form_base_path_help">Prazno: početna mapa poslužitelja. Počinje s /: apsolutna putanja. Sve ostalo: relativno u odnosu na početnu mapu.</string>
@@ -384,10 +395,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Odaberi datoteku</string>
     <string name="explorer_sftp_form_passphrase_label">Lozinka ključa (neobavezno)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Ostavi prazno da zadržiš spremljenu lozinku ključa</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Ostavi prazno da se upotrijebi lozinka unesena od pokretanja Butlera</string>
     <string name="explorer_sftp_form_remember_label">Zapamti vjerodajnice</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Zapamti lozinku ključa</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Pohranjuje se s ključem</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler je traži pri povezivanju</string>
     <string name="explorer_sftp_form_error_username_malformed">Korisničko ime ne smije sadržavati kontrolne znakove</string>
     <string name="explorer_sftp_form_error_password_required">Ponovno unesi lozinku da promijeniš korisničko ime, način prijave ili postavku pamćenja</string>
     <string name="explorer_sftp_form_error_key_required">Odaberi datoteku privatnog ključa</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Unesi lozinku ključa</string>
+    <string name="explorer_sftp_form_error_location_changed">Ovaj je poslužitelj u međuvremenu promijenjen. Pokušaj ponovno.</string>
     <string name="explorer_sftp_form_error_key_too_large">Ova je datoteka veća od %1$d KiB i ne može biti privatni ključ</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Odaberi datoteku, a ne mapu</string>
     <string name="explorer_sftp_form_error_key_unreadable">Datoteku ključa nije bilo moguće pročitati</string>
@@ -417,6 +434,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Zamijeniti ključ poslužitelja?</string>
     <string name="explorer_sftp_host_key_retrust_message">Zamijeni ključ samo ako znaš zašto ga je poslužitelj %1$s promijenio. Butler će odsad vjerovati predstavljenom ključu.</string>
     <string name="explorer_sftp_host_key_retrust_action">Zamijeni ključ</string>
+    <string name="explorer_sftp_unlock_title">Otključaj %1$s</string>
+    <string name="explorer_sftp_unlock_message">Unesi lozinku ključa.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Lozinka ključa</string>
+    <string name="explorer_sftp_unlock_edit_action">Uredi poslužitelj</string>
+    <string name="explorer_sftp_unlock_action">Otključaj</string>
     <string name="explorer_webdav_form_add_title">Dodaj WebDAV poslužitelj</string>
     <string name="explorer_webdav_form_edit_title">Uredi WebDAV poslužitelj</string>
     <string name="explorer_webdav_form_sign_in_title">Prijava na %1$s</string>

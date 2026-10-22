@@ -64,6 +64,10 @@
     <string name="sftp_error_key_format_description">המפתח הפרטי אינו בפורמט ש־Butler יכול לקרוא. קובצי מפתח מסוג OpenSSH, PEM ו־PKCS#8 נתמכים.</string>
     <string name="sftp_error_key_passphrase_title">ביטוי הסיסמה שגוי</string>
     <string name="sftp_error_key_passphrase_description">המפתח הפרטי מוגן, וביטוי הסיסמה שגוי או חסר.</string>
+    <string name="sftp_error_key_passphrase_required_title">נדרש ביטוי סיסמה</string>
+    <string name="sftp_error_key_passphrase_required_description">יש להזין את ביטוי הסיסמה של המפתח הפרטי כדי להתחבר לשרת הזה.</string>
+    <string name="sftp_error_location_changed_title">השרת השתנה</string>
+    <string name="sftp_error_location_changed_description">השרת הזה השתנה בינתיים. יש לנסות שוב.</string>
     <string name="sftp_error_access_denied_title">אין גישה לתיקייה הזו</string>
     <string name="sftp_error_access_denied_description">החשבון הזה אינו רשאי לפתוח את התיקייה שהוגדרה עבור \"%1$s\". יש לבדוק את הרשאות התיקייה בשרת.</string>
     <string name="sftp_error_pro_required_title">שרתי SFTP דורשים Butler Pro</string>

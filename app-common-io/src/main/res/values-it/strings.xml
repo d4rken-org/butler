@@ -85,6 +85,10 @@
     <string name="sftp_error_key_format_description">La chiave privata non è in un formato che Butler riesce a leggere. Sono supportati i file di chiave OpenSSH, PEM e PKCS#8.</string>
     <string name="sftp_error_key_passphrase_title">Passphrase errata</string>
     <string name="sftp_error_key_passphrase_description">La chiave privata è protetta e la passphrase è errata o mancante.</string>
+    <string name="sftp_error_key_passphrase_required_title">Passphrase necessaria</string>
+    <string name="sftp_error_key_passphrase_required_description">Immetti la passphrase della chiave privata per connetterti a questo server.</string>
+    <string name="sftp_error_location_changed_title">Server modificato</string>
+    <string name="sftp_error_location_changed_description">Questo server è stato modificato nel frattempo. Riprova.</string>
     <string name="sftp_error_access_denied_title">Nessun accesso a questa cartella</string>
     <string name="sftp_error_access_denied_description">Questo account potrebbe non poter aprire la cartella impostata per \"%1$s\". Verifica le autorizzazioni della cartella nel server.</string>
     <string name="sftp_error_pro_required_title">I server SFTP richiedono Butler Pro</string>
