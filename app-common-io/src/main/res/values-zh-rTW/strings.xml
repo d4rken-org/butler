@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">私密金鑰的格式不是Butler可讀取的格式。支援 OpenSSH、PEM 與 PKCS#8 金鑰檔案。</string>
     <string name="sftp_error_key_passphrase_title">密碼短語錯誤</string>
     <string name="sftp_error_key_passphrase_description">私密金鑰受到保護，且密碼短語錯誤或未提供。</string>
+    <string name="sftp_error_key_passphrase_required_title">需要密碼短語</string>
+    <string name="sftp_error_key_passphrase_required_description">輸入私密金鑰的密碼短語以連接此伺服器。</string>
+    <string name="sftp_error_location_changed_title">伺服器已變更</string>
+    <string name="sftp_error_location_changed_description">此伺服器在這段期間已被變更，請重試。</string>
     <string name="sftp_error_access_denied_title">無法存取此資料夾</string>
     <string name="sftp_error_access_denied_description">此帳戶可能無法開啟為\"%1$s\"設定的資料夾。請檢查伺服器上該資料夾的權限。</string>
     <string name="sftp_error_pro_required_title">SFTP 伺服器需要Butler Pro</string>

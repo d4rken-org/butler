@@ -85,6 +85,10 @@
     <string name="sftp_error_key_format_description">ప్రైవేట్ కీ, Butler చదవగల ఫార్మాట్‌లో లేదు. OpenSSH, PEM, PKCS#8 కీ ఫైళ్లకు మద్దతు ఉంది.</string>
     <string name="sftp_error_key_passphrase_title">తప్పు పాస్‌ఫ్రేజ్</string>
     <string name="sftp_error_key_passphrase_description">ప్రైవేట్ కీ రక్షించబడింది, పాస్‌ఫ్రేజ్ తప్పుగా ఉంది లేదా ఇవ్వలేదు.</string>
+    <string name="sftp_error_key_passphrase_required_title">పాస్‌ఫ్రేజ్ అవసరం</string>
+    <string name="sftp_error_key_passphrase_required_description">ఈ సర్వర్‌కు కనెక్ట్ కావడానికి ప్రైవేట్ కీ పాస్‌ఫ్రేజ్‌ను నమోదు చేయండి.</string>
+    <string name="sftp_error_location_changed_title">సర్వర్ మారింది</string>
+    <string name="sftp_error_location_changed_description">ఈ సర్వర్ ఈలోగా మారింది. మళ్లీ ప్రయత్నించండి.</string>
     <string name="sftp_error_access_denied_title">ఈ ఫోల్డర్‌కు యాక్సెస్ లేదు</string>
     <string name="sftp_error_access_denied_description">ఈ ఖాతాకు \"%1$s\" కోసం సెట్ చేసిన ఫోల్డర్‌ను తెరవడానికి అనుమతి లేకపోవచ్చు. సర్వర్‌లో ఫోల్డర్ అనుమతులను తనిఖీ చేయండి.</string>
     <string name="sftp_error_pro_required_title">SFTP సర్వర్‌లకు Butler Pro అవసరం</string>

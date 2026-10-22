@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">Yksityinen avain ei ole muodossa, jonka Butler osaa lukea. OpenSSH-, PEM- ja PKCS#8-avaintiedostot ovat tuettuja.</string>
     <string name="sftp_error_key_passphrase_title">Väärä salalause</string>
     <string name="sftp_error_key_passphrase_description">Yksityinen avain on suojattu, ja salalause on väärä tai puuttuu.</string>
+    <string name="sftp_error_key_passphrase_required_title">Salalause tarvitaan</string>
+    <string name="sftp_error_key_passphrase_required_description">Anna yksityisen avaimen salalause muodostaaksesi yhteyden tähän palvelimeen.</string>
+    <string name="sftp_error_location_changed_title">Palvelin muuttui</string>
+    <string name="sftp_error_location_changed_description">Tätä palvelinta muutettiin sillä välin. Yritä uudelleen.</string>
     <string name="sftp_error_access_denied_title">Ei käyttöoikeutta tähän kansioon</string>
     <string name="sftp_error_access_denied_description">Tämä tili ei saa avata kansiota, joka on asetettu palvelimelle \"%1$s\". Tarkista kansion käyttöoikeudet palvelimelta.</string>
     <string name="sftp_error_pro_required_title">SFTP-palvelimet vaativat Butler Pron</string>

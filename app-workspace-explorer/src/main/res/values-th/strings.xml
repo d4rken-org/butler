@@ -150,6 +150,8 @@
     <string name="explorer_info_sftp_private_key_label">คีย์ส่วนตัว</string>
     <string name="explorer_info_sftp_credential_stored">จัดเก็บไว้บนอุปกรณ์นี้</string>
     <string name="explorer_info_sftp_credential_session">เก็บไว้จนกว่า Butler จะปิด</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">จัดเก็บคีย์ไว้แล้ว เก็บวลีรหัสผ่านไว้จนกว่า Butler จะปิด</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">จัดเก็บคีย์ไว้แล้ว ต้องใช้วลีรหัสผ่านเพื่อเปิด</string>
     <string name="explorer_info_sftp_host_key_type_label">ประเภทคีย์โฮสต์</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">ลายนิ้วมือคีย์โฮสต์</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -305,6 +307,12 @@
         <item quantity="other">ลบที่เก็บข้อมูลเครือข่าย %1$d รายการ</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler จะลืมรายละเอียดเซิร์ฟเวอร์และรหัสผ่านที่บันทึกไว้ ไม่มีสิ่งใดบนเซิร์ฟเวอร์ถูกลบ</string>
+    <string name="explorer_network_disconnect_location_action">ตัดการเชื่อมต่อ</string>
+    <string name="explorer_network_disconnect_confirmation_title">ตัดการเชื่อมต่อ %1$s ไหม</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="other">ตัดการเชื่อมต่อที่เก็บข้อมูลเครือข่าย %1$d รายการไหม</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler จะลืมข้อมูลเข้าสู่ระบบจนกว่าคุณจะเข้าสู่ระบบอีกครั้ง รายละเอียดเซิร์ฟเวอร์ยังคงบันทึกไว้ การโอนย้ายไปยังที่เก็บข้อมูลนี้ที่ยังทำงานอยู่อาจล้มเหลว</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">เพิ่มที่เก็บข้อมูลเครือข่าย</string>
@@ -348,6 +356,7 @@
     <string name="explorer_sftp_form_sign_in_title">เข้าสู่ระบบ %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">ป้อนรหัสผ่านอีกครั้งเพื่อเปิดเซิร์ฟเวอร์นี้</string>
     <string name="explorer_sftp_form_sign_in_key_hint">เลือกไฟล์คีย์ส่วนตัวอีกครั้ง หรือป้อนวลีรหัสผ่านของคีย์ เพื่อเปิดเซิร์ฟเวอร์นี้</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">ป้อนวลีรหัสผ่านของคีย์เพื่อเปิดเซิร์ฟเวอร์นี้</string>
     <string name="explorer_sftp_form_host_hint">build.lan หรือ 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">เส้นทางฐาน (ไม่บังคับ)</string>
     <string name="explorer_sftp_form_base_path_help">เว้นว่าง: โฟลเดอร์เริ่มต้นของเซิร์ฟเวอร์ ขึ้นต้นด้วย /: เส้นทางสัมบูรณ์ อย่างอื่น: สัมพันธ์กับโฟลเดอร์เริ่มต้น</string>
@@ -360,10 +369,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">เลือกไฟล์</string>
     <string name="explorer_sftp_form_passphrase_label">วลีรหัสผ่านของคีย์ (ไม่บังคับ)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">เว้นว่างไว้เพื่อใช้วลีรหัสผ่านที่บันทึกไว้</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">เว้นว่างไว้เพื่อใช้วลีรหัสผ่านที่ป้อนไว้ตั้งแต่ Butler เริ่มทำงาน</string>
     <string name="explorer_sftp_form_remember_label">จดจำข้อมูลเข้าสู่ระบบ</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">จดจำวลีรหัสผ่าน</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">จัดเก็บไว้พร้อมกับคีย์</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler จะถามเมื่อเชื่อมต่อ</string>
     <string name="explorer_sftp_form_error_username_malformed">ชื่อผู้ใช้ต้องไม่มีอักขระควบคุม</string>
     <string name="explorer_sftp_form_error_password_required">ป้อนรหัสผ่านอีกครั้งเพื่อเปลี่ยนชื่อผู้ใช้ วิธีเข้าสู่ระบบ หรือการตั้งค่าการจดจำ</string>
     <string name="explorer_sftp_form_error_key_required">เลือกไฟล์คีย์ส่วนตัว</string>
+    <string name="explorer_sftp_form_error_passphrase_required">ป้อนวลีรหัสผ่านของคีย์</string>
+    <string name="explorer_sftp_form_error_location_changed">เซิร์ฟเวอร์นี้ถูกเปลี่ยนแปลงในระหว่างนี้ ลองใหม่</string>
     <string name="explorer_sftp_form_error_key_too_large">ไฟล์นี้ใหญ่กว่า %1$d KiB จึงไม่สามารถเป็นคีย์ส่วนตัวได้</string>
     <string name="explorer_sftp_form_error_key_not_a_file">เลือกไฟล์ ไม่ใช่โฟลเดอร์</string>
     <string name="explorer_sftp_form_error_key_unreadable">อ่านไฟล์คีย์ไม่ได้</string>
@@ -393,6 +408,11 @@
     <string name="explorer_sftp_host_key_retrust_title">แทนที่คีย์เซิร์ฟเวอร์ไหม</string>
     <string name="explorer_sftp_host_key_retrust_message">แทนที่คีย์เมื่อคุณรู้ว่าทำไม %1$s จึงเปลี่ยนคีย์เท่านั้น จากนี้ Butler จะเชื่อถือคีย์ที่แสดง</string>
     <string name="explorer_sftp_host_key_retrust_action">แทนที่คีย์</string>
+    <string name="explorer_sftp_unlock_title">ปลดล็อก %1$s</string>
+    <string name="explorer_sftp_unlock_message">ป้อนวลีรหัสผ่านของคีย์</string>
+    <string name="explorer_sftp_unlock_passphrase_label">วลีรหัสผ่าน</string>
+    <string name="explorer_sftp_unlock_edit_action">แก้ไขเซิร์ฟเวอร์</string>
+    <string name="explorer_sftp_unlock_action">ปลดล็อก</string>
     <string name="explorer_webdav_form_add_title">เพิ่มเซิร์ฟเวอร์ WebDAV</string>
     <string name="explorer_webdav_form_edit_title">แก้ไขเซิร์ฟเวอร์ WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">เข้าสู่ระบบ %1$s</string>

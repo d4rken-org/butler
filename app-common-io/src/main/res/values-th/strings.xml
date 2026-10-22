@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">คีย์ส่วนตัวไม่ได้อยู่ในรูปแบบที่ Butler อ่านได้ รองรับไฟล์คีย์ OpenSSH, PEM และ PKCS#8</string>
     <string name="sftp_error_key_passphrase_title">วลีรหัสผ่านไม่ถูกต้อง</string>
     <string name="sftp_error_key_passphrase_description">คีย์ส่วนตัวถูกป้องกันไว้ และวลีรหัสผ่านไม่ถูกต้องหรือไม่ได้ระบุ</string>
+    <string name="sftp_error_key_passphrase_required_title">ต้องใช้วลีรหัสผ่าน</string>
+    <string name="sftp_error_key_passphrase_required_description">ป้อนวลีรหัสผ่านของคีย์ส่วนตัวเพื่อเชื่อมต่อกับเซิร์ฟเวอร์นี้</string>
+    <string name="sftp_error_location_changed_title">เซิร์ฟเวอร์มีการเปลี่ยนแปลง</string>
+    <string name="sftp_error_location_changed_description">เซิร์ฟเวอร์นี้ถูกเปลี่ยนแปลงในระหว่างนี้ ลองใหม่</string>
     <string name="sftp_error_access_denied_title">ไม่มีการเข้าถึงโฟลเดอร์นี้</string>
     <string name="sftp_error_access_denied_description">บัญชีนี้อาจไม่สามารถเปิดโฟลเดอร์ที่ตั้งไว้สำหรับ \"%1$s\" ได้ ตรวจสอบสิทธิ์ของโฟลเดอร์บนเซิร์ฟเวอร์</string>
     <string name="sftp_error_pro_required_title">เซิร์ฟเวอร์ SFTP ต้องใช้ Butler Pro</string>

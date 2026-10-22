@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">المفتاح الخاص ليس بصيغة يستطيع Butler قراءتها. ملفات مفاتيح OpenSSH وPEM وPKCS#8 مدعومة.</string>
     <string name="sftp_error_key_passphrase_title">عبارة المرور غير صحيحة</string>
     <string name="sftp_error_key_passphrase_description">المفتاح الخاص محمي وعبارة المرور غير صحيحة أو مفقودة.</string>
+    <string name="sftp_error_key_passphrase_required_title">عبارة المرور مطلوبة</string>
+    <string name="sftp_error_key_passphrase_required_description">أدخل عبارة مرور المفتاح الخاص للاتصال بهذا الخادم.</string>
+    <string name="sftp_error_location_changed_title">تغيّر الخادم</string>
+    <string name="sftp_error_location_changed_description">تغيّر هذا الخادم في هذه الأثناء. حاول مرة أخرى.</string>
     <string name="sftp_error_access_denied_title">لا يوجد وصول إلى هذا المجلد</string>
     <string name="sftp_error_access_denied_description">قد لا يتمكن هذا الحساب من فتح المجلد المحدد لـ \"%1$s\". تحقق من أذونات المجلد على الخادم.</string>
     <string name="sftp_error_pro_required_title">خوادم SFTP تتطلب Butler Pro</string>

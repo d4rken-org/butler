@@ -64,6 +64,10 @@
     <string name="sftp_error_key_format_description">निजी कुंजी ऐसे फ़ॉर्मैट में नहीं है जिसे Butler पढ़ सके। OpenSSH, PEM और PKCS#8 कुंजी फ़ाइलें समर्थित हैं।</string>
     <string name="sftp_error_key_passphrase_title">गलत पासफ़्रेज़</string>
     <string name="sftp_error_key_passphrase_description">निजी कुंजी सुरक्षित है और पासफ़्रेज़ गलत है या दिया नहीं गया।</string>
+    <string name="sftp_error_key_passphrase_required_title">पासफ़्रेज़ चाहिए</string>
+    <string name="sftp_error_key_passphrase_required_description">इस सर्वर से कनेक्ट करने के लिए निजी कुंजी का पासफ़्रेज़ दर्ज करें।</string>
+    <string name="sftp_error_location_changed_title">सर्वर बदल गया</string>
+    <string name="sftp_error_location_changed_description">इस बीच यह सर्वर बदल दिया गया। फिर कोशिश करें।</string>
     <string name="sftp_error_access_denied_title">इस फ़ोल्डर की पहुँच नहीं है</string>
     <string name="sftp_error_access_denied_description">यह खाता \"%1$s\" के लिए तय फ़ोल्डर नहीं खोल सकता। सर्वर पर फ़ोल्डर की अनुमतियाँ जाँचें।</string>
     <string name="sftp_error_pro_required_title">SFTP सर्वर के लिए Butler Pro आवश्यक है</string>

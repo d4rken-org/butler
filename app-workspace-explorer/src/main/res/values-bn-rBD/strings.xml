@@ -156,6 +156,8 @@
     <string name="explorer_info_sftp_private_key_label">প্রাইভেট কী</string>
     <string name="explorer_info_sftp_credential_stored">এই ডিভাইসে রাখা আছে</string>
     <string name="explorer_info_sftp_credential_session">Butler বন্ধ না হওয়া পর্যন্ত রাখা হয়</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">কী রাখা আছে, পাসফ্রেজ Butler বন্ধ না হওয়া পর্যন্ত রাখা হয়</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">কী রাখা আছে, খুলতে পাসফ্রেজ প্রয়োজন</string>
     <string name="explorer_info_sftp_host_key_type_label">হোস্ট কী-এর ধরন</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">হোস্ট কী-এর ফিঙ্গারপ্রিন্ট</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -321,6 +323,13 @@
         <item quantity="other">%1$dটি নেটওয়ার্ক স্টোরেজ সরাবেন?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler সার্ভারের বিস্তারিত ও সংরক্ষিত পাসওয়ার্ড ভুলে যাবে। সার্ভারের কোনো কিছু মুছে ফেলা হবে না।</string>
+    <string name="explorer_network_disconnect_location_action">সংযোগ বিচ্ছিন্ন করুন</string>
+    <string name="explorer_network_disconnect_confirmation_title">%1$s-এর সংযোগ বিচ্ছিন্ন করবেন?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">%1$dটি নেটওয়ার্ক স্টোরেজের সংযোগ বিচ্ছিন্ন করবেন?</item>
+        <item quantity="other">%1$dটি নেটওয়ার্ক স্টোরেজের সংযোগ বিচ্ছিন্ন করবেন?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">আবার সাইন ইন না করা পর্যন্ত Butler সাইন ইনের তথ্য ভুলে যাবে। সার্ভারের বিস্তারিত সংরক্ষিত থাকবে। এই স্টোরেজে চলমান ট্রান্সফার ব্যর্থ হতে পারে।</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">নেটওয়ার্ক স্টোরেজ যোগ করুন</string>
@@ -364,6 +373,7 @@
     <string name="explorer_sftp_form_sign_in_title">%1$s-এ সাইন ইন করুন</string>
     <string name="explorer_sftp_form_sign_in_password_hint">এই সার্ভার খুলতে আবার পাসওয়ার্ড দিন।</string>
     <string name="explorer_sftp_form_sign_in_key_hint">এই সার্ভার খুলতে আবার প্রাইভেট কী ফাইল বাছুন, অথবা এর পাসফ্রেজ দিন।</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">এই সার্ভার খুলতে কী-এর পাসফ্রেজ দিন।</string>
     <string name="explorer_sftp_form_host_hint">build.lan অথবা 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">মূল পাথ (ঐচ্ছিক)</string>
     <string name="explorer_sftp_form_base_path_help">খালি: সার্ভারের শুরুর ফোল্ডার। / দিয়ে শুরু: পূর্ণ পাথ। অন্য যেকোনো কিছু: শুরুর ফোল্ডারের তুলনায়।</string>
@@ -376,10 +386,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">ফাইল বাছুন</string>
     <string name="explorer_sftp_form_passphrase_label">কী-এর পাসফ্রেজ (ঐচ্ছিক)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">সংরক্ষিত পাসফ্রেজ রাখতে খালি রাখুন</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Butler চালু হওয়ার পর দেওয়া পাসফ্রেজ ব্যবহার করতে খালি রাখুন</string>
     <string name="explorer_sftp_form_remember_label">সাইন ইনের তথ্য মনে রাখুন</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">পাসফ্রেজ মনে রাখুন</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">কী-এর সঙ্গে রাখা হয়</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">সংযোগের সময় Butler এটি চাইবে</string>
     <string name="explorer_sftp_form_error_username_malformed">ব্যবহারকারীর নামে কন্ট্রোল অক্ষর থাকতে পারবে না</string>
     <string name="explorer_sftp_form_error_password_required">ব্যবহারকারীর নাম, সাইন ইনের পদ্ধতি বা মনে রাখার সেটিং বদলাতে আবার পাসওয়ার্ড দিন</string>
     <string name="explorer_sftp_form_error_key_required">একটি প্রাইভেট কী ফাইল বাছুন</string>
+    <string name="explorer_sftp_form_error_passphrase_required">কী-এর পাসফ্রেজ দিন</string>
+    <string name="explorer_sftp_form_error_location_changed">ইতিমধ্যে এই সার্ভারে পরিবর্তন করা হয়েছে। আবার চেষ্টা করুন।</string>
     <string name="explorer_sftp_form_error_key_too_large">এই ফাইল %1$d KiB-এর চেয়ে বড়, তাই প্রাইভেট কী হতে পারে না</string>
     <string name="explorer_sftp_form_error_key_not_a_file">ফোল্ডার নয়, একটি ফাইল বাছুন</string>
     <string name="explorer_sftp_form_error_key_unreadable">কী ফাইল পড়া যায়নি</string>
@@ -409,6 +425,11 @@
     <string name="explorer_sftp_host_key_retrust_title">সার্ভারের কী বদলাবেন?</string>
     <string name="explorer_sftp_host_key_retrust_message">%1$s কেন কী বদলেছে তা জানা থাকলেই শুধু কী বদলান। Butler এখন থেকে দেখানো কী-কে বিশ্বস্ত ধরবে।</string>
     <string name="explorer_sftp_host_key_retrust_action">কী বদলান</string>
+    <string name="explorer_sftp_unlock_title">%1$s আনলক করুন</string>
+    <string name="explorer_sftp_unlock_message">কী-এর পাসফ্রেজ দিন।</string>
+    <string name="explorer_sftp_unlock_passphrase_label">পাসফ্রেজ</string>
+    <string name="explorer_sftp_unlock_edit_action">সার্ভার সম্পাদনা করুন</string>
+    <string name="explorer_sftp_unlock_action">আনলক করুন</string>
     <string name="explorer_webdav_form_add_title">WebDAV সার্ভার যোগ করুন</string>
     <string name="explorer_webdav_form_edit_title">WebDAV সার্ভার সম্পাদনা করুন</string>
     <string name="explorer_webdav_form_sign_in_title">%1$s-এ সাইন ইন করুন</string>

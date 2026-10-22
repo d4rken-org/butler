@@ -153,6 +153,8 @@
     <string name="explorer_info_sftp_private_key_label">Privat nøgle</string>
     <string name="explorer_info_sftp_credential_stored">Gemt på denne enhed</string>
     <string name="explorer_info_sftp_credential_session">Bevares, indtil Butler lukkes</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Nøglen er gemt, adgangssætningen bevares, indtil Butler lukkes</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Nøglen er gemt, adgangssætning kræves for at åbne</string>
     <string name="explorer_info_sftp_host_key_type_label">Værtsnøgletype</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Værtsnøglens fingeraftryk</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -318,6 +320,13 @@
         <item quantity="other">Fjern %1$d netværkslagre?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler glemmer serveroplysningerne og den gemte adgangskode. Intet på serveren bliver slettet.</string>
+    <string name="explorer_network_disconnect_location_action">Afbryd forbindelsen</string>
+    <string name="explorer_network_disconnect_confirmation_title">Afbryd forbindelsen til %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Afbryd forbindelsen til %1$d netværkslager?</item>
+        <item quantity="other">Afbryd forbindelsen til %1$d netværkslagre?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler glemmer loginoplysningerne, indtil du logger ind igen. Serveroplysningerne forbliver gemt. Overførsler til dette lager, der stadig kører, kan mislykkes.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">Tilføj netværkslager</string>
@@ -361,6 +370,7 @@
     <string name="explorer_sftp_form_sign_in_title">Log ind på %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Indtast adgangskoden igen for at åbne denne server.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Vælg den private nøglefil igen, eller indtast dens adgangssætning, for at åbne denne server.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Indtast nøglens adgangssætning for at åbne denne server.</string>
     <string name="explorer_sftp_form_host_hint">build.lan eller 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Basissti (valgfri)</string>
     <string name="explorer_sftp_form_base_path_help">Tom: serverens startmappe. Begynder med /: en absolut sti. Alt andet: relativt til startmappen.</string>
@@ -373,10 +383,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Vælg fil</string>
     <string name="explorer_sftp_form_passphrase_label">Nøglens adgangssætning (valgfri)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Lad feltet stå tomt for at beholde den gemte adgangssætning</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Lad feltet stå tomt for at bruge den adgangssætning, der er indtastet, siden Butler startede</string>
     <string name="explorer_sftp_form_remember_label">Husk loginoplysninger</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Husk adgangssætning</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Gemmes sammen med nøglen</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler spørger efter den, når der oprettes forbindelse</string>
     <string name="explorer_sftp_form_error_username_malformed">Brugernavnet må ikke indeholde kontroltegn</string>
     <string name="explorer_sftp_form_error_password_required">Indtast adgangskoden igen for at ændre brugernavnet, loginmetoden eller indstillingen for at huske</string>
     <string name="explorer_sftp_form_error_key_required">Vælg en privat nøglefil</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Indtast nøglens adgangssætning</string>
+    <string name="explorer_sftp_form_error_location_changed">Denne server blev ændret i mellemtiden. Prøv igen.</string>
     <string name="explorer_sftp_form_error_key_too_large">Denne fil er større end %1$d KiB og kan ikke være en privat nøgle</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Vælg en fil, ikke en mappe</string>
     <string name="explorer_sftp_form_error_key_unreadable">Nøglefilen kunne ikke læses</string>
@@ -406,6 +422,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Erstat serverens nøgle?</string>
     <string name="explorer_sftp_host_key_retrust_message">Erstat kun nøglen, hvis du ved, hvorfor %1$s har ændret den. Butler stoler fremover på den fremviste nøgle.</string>
     <string name="explorer_sftp_host_key_retrust_action">Erstat nøgle</string>
+    <string name="explorer_sftp_unlock_title">Lås %1$s op</string>
+    <string name="explorer_sftp_unlock_message">Indtast nøglens adgangssætning.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Adgangssætning</string>
+    <string name="explorer_sftp_unlock_edit_action">Rediger server</string>
+    <string name="explorer_sftp_unlock_action">Lås op</string>
     <string name="explorer_webdav_form_add_title">Tilføj WebDAV-server</string>
     <string name="explorer_webdav_form_edit_title">Rediger WebDAV-server</string>
     <string name="explorer_webdav_form_sign_in_title">Log ind på %1$s</string>

@@ -150,6 +150,8 @@
     <string name="explorer_info_sftp_private_key_label">秘密鍵</string>
     <string name="explorer_info_sftp_credential_stored">この端末に保存済み</string>
     <string name="explorer_info_sftp_credential_session">Butler を閉じるまで保持</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">鍵は保存済み、パスフレーズは Butler を閉じるまで保持</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">鍵は保存済み、開くにはパスフレーズが必要</string>
     <string name="explorer_info_sftp_host_key_type_label">ホスト鍵の種類</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">ホスト鍵のフィンガープリント</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -305,6 +307,12 @@
         <item quantity="other">%1$d 個のネットワークストレージを削除しますか？</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler はサーバーの詳細情報と保存されたパスワードを削除します。サーバー上のデータは削除されません。</string>
+    <string name="explorer_network_disconnect_location_action">切断</string>
+    <string name="explorer_network_disconnect_confirmation_title">%1$s を切断しますか？</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="other">%1$d 個のネットワークストレージを切断しますか？</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">再度サインインするまで、Butler はサインイン情報を破棄します。サーバーの詳細情報は保存されたままです。このストレージへの実行中の転送は失敗する可能性があります。</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">ネットワークストレージを追加</string>
@@ -348,6 +356,7 @@
     <string name="explorer_sftp_form_sign_in_title">%1$s にサインイン</string>
     <string name="explorer_sftp_form_sign_in_password_hint">このサーバーを開くには、パスワードをもう一度入力してください。</string>
     <string name="explorer_sftp_form_sign_in_key_hint">このサーバーを開くには、秘密鍵ファイルをもう一度選択するか、パスフレーズを入力してください。</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">このサーバーを開くには、鍵のパスフレーズを入力してください。</string>
     <string name="explorer_sftp_form_host_hint">build.lan または 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">ベースパス（任意）</string>
     <string name="explorer_sftp_form_base_path_help">空欄: サーバーの開始フォルダ。/ で始まる場合: 絶対パス。それ以外: 開始フォルダからの相対パス。</string>
@@ -360,10 +369,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">ファイルを選択</string>
     <string name="explorer_sftp_form_passphrase_label">鍵のパスフレーズ（任意）</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">空欄のままにすると保存済みのパスフレーズを維持します</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">空欄のままにすると、Butler の起動後に入力したパスフレーズを使用します</string>
     <string name="explorer_sftp_form_remember_label">認証情報を保存</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">パスフレーズを保存</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">鍵と一緒に保存されます</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">接続時に Butler が入力を求めます</string>
     <string name="explorer_sftp_form_error_username_malformed">ユーザー名に制御文字を含めることはできません</string>
     <string name="explorer_sftp_form_error_password_required">ユーザー名、サインイン方法、保存設定を変更するには、パスワードを再入力してください</string>
     <string name="explorer_sftp_form_error_key_required">秘密鍵ファイルを選択してください</string>
+    <string name="explorer_sftp_form_error_passphrase_required">鍵のパスフレーズを入力してください</string>
+    <string name="explorer_sftp_form_error_location_changed">このサーバーはその間に変更されました。もう一度お試しください。</string>
     <string name="explorer_sftp_form_error_key_too_large">このファイルは %1$d KiB を超えており、秘密鍵ではありません</string>
     <string name="explorer_sftp_form_error_key_not_a_file">フォルダではなくファイルを選択してください</string>
     <string name="explorer_sftp_form_error_key_unreadable">鍵ファイルを読み取れませんでした</string>
@@ -393,6 +408,11 @@
     <string name="explorer_sftp_host_key_retrust_title">サーバーの鍵を置き換えますか？</string>
     <string name="explorer_sftp_host_key_retrust_message">%1$s が鍵を変更した理由が分かっている場合にのみ、鍵を置き換えてください。以後、Butler は提示された鍵を信頼します。</string>
     <string name="explorer_sftp_host_key_retrust_action">鍵を置き換え</string>
+    <string name="explorer_sftp_unlock_title">%1$s のロックを解除</string>
+    <string name="explorer_sftp_unlock_message">鍵のパスフレーズを入力してください。</string>
+    <string name="explorer_sftp_unlock_passphrase_label">パスフレーズ</string>
+    <string name="explorer_sftp_unlock_edit_action">サーバーを編集</string>
+    <string name="explorer_sftp_unlock_action">ロック解除</string>
     <string name="explorer_webdav_form_add_title">WebDAV サーバーを追加</string>
     <string name="explorer_webdav_form_edit_title">WebDAV サーバーを編集</string>
     <string name="explorer_webdav_form_sign_in_title">%1$s にサインイン</string>

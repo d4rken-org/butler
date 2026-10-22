@@ -85,6 +85,10 @@
     <string name="sftp_error_key_format_description">Wala sa format na mababasa ng Butler ang private key. Sinusuportahan ang mga key file na OpenSSH, PEM, at PKCS#8.</string>
     <string name="sftp_error_key_passphrase_title">Maling passphrase</string>
     <string name="sftp_error_key_passphrase_description">Protektado ang private key at mali o nawawala ang passphrase.</string>
+    <string name="sftp_error_key_passphrase_required_title">Kailangan ng passphrase</string>
+    <string name="sftp_error_key_passphrase_required_description">Ilagay ang passphrase ng private key para makakonekta sa server na ito.</string>
+    <string name="sftp_error_location_changed_title">Nagbago ang server</string>
+    <string name="sftp_error_location_changed_description">Nabago ang server na ito samantala. Subukan muli.</string>
     <string name="sftp_error_access_denied_title">Walang access sa folder na ito</string>
     <string name="sftp_error_access_denied_description">Maaaring hindi pinapayagan ang account na ito na buksan ang folder na itinakda para sa \"%1$s\". Suriin ang mga pahintulot ng folder sa server.</string>
     <string name="sftp_error_pro_required_title">Kailangan ng Butler Pro para sa mga SFTP server</string>

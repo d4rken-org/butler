@@ -154,6 +154,8 @@
     <string name="explorer_info_sftp_private_key_label">Privésleutel</string>
     <string name="explorer_info_sftp_credential_stored">Opgeslagen op dit apparaat</string>
     <string name="explorer_info_sftp_credential_session">Bewaard tot Butler sluit</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Sleutel opgeslagen, wachtzin bewaard tot Butler sluit</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Sleutel opgeslagen, wachtzin nodig om te openen</string>
     <string name="explorer_info_sftp_host_key_type_label">Type hostsleutel</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Vingerafdruk van hostsleutel</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -316,6 +318,13 @@
         <item quantity="other">%1$d netwerkopslagen verwijderen?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler vergeet de servergegevens en het opgeslagen wachtwoord. Er wordt niets op de server verwijderd.</string>
+    <string name="explorer_network_disconnect_location_action">Verbinding verbreken</string>
+    <string name="explorer_network_disconnect_confirmation_title">Verbinding met %1$s verbreken?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Verbinding met %1$d netwerkopslag verbreken?</item>
+        <item quantity="other">Verbinding met %1$d netwerkopslagen verbreken?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler vergeet de aanmeldgegevens tot je je opnieuw aanmeldt. De servergegevens blijven opgeslagen. Overdrachten naar deze opslag die nog bezig zijn, kunnen mislukken.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">Netwerkopslag toevoegen</string>
@@ -359,6 +368,7 @@
     <string name="explorer_sftp_form_sign_in_title">Aanmelden bij %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Voer het wachtwoord opnieuw in om deze server te openen.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Kies het privésleutelbestand opnieuw, of voer de wachtzin in, om deze server te openen.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Voer de wachtzin van de sleutel in om deze server te openen.</string>
     <string name="explorer_sftp_form_host_hint">build.lan of 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Basispad (optioneel)</string>
     <string name="explorer_sftp_form_base_path_help">Leeg: de beginmap van de server. Begint met /: een absoluut pad. Anders: relatief aan de beginmap.</string>
@@ -371,10 +381,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Bestand kiezen</string>
     <string name="explorer_sftp_form_passphrase_label">Wachtzin van sleutel (optioneel)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Laat leeg om de opgeslagen wachtzin te behouden</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Laat leeg om de wachtzin te gebruiken die is ingevoerd sinds Butler is gestart</string>
     <string name="explorer_sftp_form_remember_label">Inloggegevens onthouden</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Wachtzin onthouden</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Opgeslagen bij de sleutel</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler vraagt ernaar bij het verbinden</string>
     <string name="explorer_sftp_form_error_username_malformed">De gebruikersnaam mag geen stuurtekens bevatten</string>
     <string name="explorer_sftp_form_error_password_required">Voer het wachtwoord opnieuw in om de gebruikersnaam, aanmeldmethode of onthoudinstelling te wijzigen</string>
     <string name="explorer_sftp_form_error_key_required">Kies een privésleutelbestand</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Voer de wachtzin van de sleutel in</string>
+    <string name="explorer_sftp_form_error_location_changed">Deze server is ondertussen gewijzigd. Probeer opnieuw.</string>
     <string name="explorer_sftp_form_error_key_too_large">Dit bestand is groter dan %1$d KiB en kan geen privésleutel zijn</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Kies een bestand, geen map</string>
     <string name="explorer_sftp_form_error_key_unreadable">Het sleutelbestand kon niet worden gelezen</string>
@@ -404,6 +420,11 @@
     <string name="explorer_sftp_host_key_retrust_title">De serversleutel vervangen?</string>
     <string name="explorer_sftp_host_key_retrust_message">Vervang de sleutel alleen als je weet waarom %1$s die heeft gewijzigd. Butler vertrouwt voortaan de gepresenteerde sleutel.</string>
     <string name="explorer_sftp_host_key_retrust_action">Sleutel vervangen</string>
+    <string name="explorer_sftp_unlock_title">%1$s ontgrendelen</string>
+    <string name="explorer_sftp_unlock_message">Voer de wachtzin van de sleutel in.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Wachtzin</string>
+    <string name="explorer_sftp_unlock_edit_action">Server bewerken</string>
+    <string name="explorer_sftp_unlock_action">Ontgrendelen</string>
     <string name="explorer_webdav_form_add_title">WebDAV-server toevoegen</string>
     <string name="explorer_webdav_form_edit_title">WebDAV-server bewerken</string>
     <string name="explorer_webdav_form_sign_in_title">Aanmelden bij %1$s</string>

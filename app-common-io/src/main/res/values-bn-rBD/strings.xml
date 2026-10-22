@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">প্রাইভেট কী এমন ফরম্যাটে নেই যা Butler পড়তে পারে। OpenSSH, PEM ও PKCS#8 কী ফাইল সমর্থিত।</string>
     <string name="sftp_error_key_passphrase_title">পাসফ্রেজ ভুল</string>
     <string name="sftp_error_key_passphrase_description">প্রাইভেট কী সুরক্ষিত এবং পাসফ্রেজ ভুল বা দেওয়া হয়নি।</string>
+    <string name="sftp_error_key_passphrase_required_title">পাসফ্রেজ প্রয়োজন</string>
+    <string name="sftp_error_key_passphrase_required_description">এই সার্ভারে সংযোগ করতে প্রাইভেট কী-এর পাসফ্রেজ দিন।</string>
+    <string name="sftp_error_location_changed_title">সার্ভার বদলে গেছে</string>
+    <string name="sftp_error_location_changed_description">ইতিমধ্যে এই সার্ভারে পরিবর্তন করা হয়েছে। আবার চেষ্টা করুন।</string>
     <string name="sftp_error_access_denied_title">এই ফোল্ডারে অ্যাক্সেস নেই</string>
     <string name="sftp_error_access_denied_description">এই অ্যাকাউন্ট \"%1$s\"-এর জন্য নির্ধারিত ফোল্ডার খুলতে পারে না। সার্ভারে ফোল্ডারের অনুমতি পরীক্ষা করুন।</string>
     <string name="sftp_error_pro_required_title">SFTP সার্ভারের জন্য Butler Pro প্রয়োজন</string>

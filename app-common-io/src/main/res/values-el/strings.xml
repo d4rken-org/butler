@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">Το ιδιωτικό κλειδί δεν έχει μορφή που μπορεί να διαβάσει το Butler. Υποστηρίζονται αρχεία κλειδιών OpenSSH, PEM και PKCS#8.</string>
     <string name="sftp_error_key_passphrase_title">Λάθος φράση πρόσβασης</string>
     <string name="sftp_error_key_passphrase_description">Το ιδιωτικό κλειδί είναι προστατευμένο και η φράση πρόσβασης είναι λάθος ή λείπει.</string>
+    <string name="sftp_error_key_passphrase_required_title">Απαιτείται φράση πρόσβασης</string>
+    <string name="sftp_error_key_passphrase_required_description">Εισήγαγε τη φράση πρόσβασης του ιδιωτικού κλειδιού για να συνδεθείς σε αυτόν τον διακομιστή.</string>
+    <string name="sftp_error_location_changed_title">Ο διακομιστής άλλαξε</string>
+    <string name="sftp_error_location_changed_description">Αυτός ο διακομιστής άλλαξε στο μεταξύ. Δοκίμασε ξανά.</string>
     <string name="sftp_error_access_denied_title">Δεν υπάρχει πρόσβαση σε αυτόν τον φάκελο</string>
     <string name="sftp_error_access_denied_description">Αυτός ο λογαριασμός ενδέχεται να μην μπορεί να ανοίξει τον φάκελο που έχει οριστεί για το \"%1$s\". Έλεγξε τα δικαιώματα του φακέλου στον διακομιστή.</string>
     <string name="sftp_error_pro_required_title">Οι διακομιστές SFTP απαιτούν Butler Pro</string>

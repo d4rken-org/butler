@@ -149,6 +149,8 @@
     <string name="explorer_info_sftp_private_key_label">私钥</string>
     <string name="explorer_info_sftp_credential_stored">已存储在此设备上</string>
     <string name="explorer_info_sftp_credential_session">保留至 Butler 关闭</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">密钥已存储，密码短语保留至 Butler 关闭</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">密钥已存储，打开时需要密码短语</string>
     <string name="explorer_info_sftp_host_key_type_label">主机密钥类型</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">主机密钥指纹</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -304,6 +306,12 @@
         <item quantity="other">移除 %1$d 个网络存储？</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler 将忘记服务器详情和已保存的密码，服务器上的内容不会被删除。</string>
+    <string name="explorer_network_disconnect_location_action">断开连接</string>
+    <string name="explorer_network_disconnect_confirmation_title">断开 %1$s 的连接？</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="other">断开 %1$d 个网络存储的连接？</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler 会忘记登录信息，直到再次登录。服务器详情仍会保留。仍在进行的传输可能会失败。</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_pro_notice">添加和测试位置是免费的，浏览它需要 Butler Pro。</string>
@@ -350,6 +358,7 @@
     <string name="explorer_sftp_form_sign_in_title">登录 %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">请重新输入密码以打开此服务器。</string>
     <string name="explorer_sftp_form_sign_in_key_hint">请重新选择私钥文件，或输入其密码短语，以打开此服务器。</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">输入密钥的密码短语以打开此服务器。</string>
     <string name="explorer_sftp_form_host_hint">build.lan 或 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">基础路径（可选）</string>
     <string name="explorer_sftp_form_base_path_help">留空：使用服务器的起始文件夹。以 / 开头：绝对路径。其他情况：相对于起始文件夹。</string>
@@ -362,10 +371,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">选择文件</string>
     <string name="explorer_sftp_form_passphrase_label">密钥密码短语（可选）</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">留空以保留已保存的密码短语</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">留空以使用 Butler 启动后输入的密码短语</string>
     <string name="explorer_sftp_form_remember_label">记住凭据</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">记住密码短语</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">与密钥一起存储</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">连接时 Butler 会询问</string>
     <string name="explorer_sftp_form_error_username_malformed">用户名不能包含控制字符</string>
     <string name="explorer_sftp_form_error_password_required">要更改用户名、登录方式或记住设置，请重新输入密码</string>
     <string name="explorer_sftp_form_error_key_required">请选择私钥文件</string>
+    <string name="explorer_sftp_form_error_passphrase_required">请输入密钥的密码短语</string>
+    <string name="explorer_sftp_form_error_location_changed">此服务器在此期间已被更改。请重试。</string>
     <string name="explorer_sftp_form_error_key_too_large">此文件大于 %1$d KiB，不可能是私钥</string>
     <string name="explorer_sftp_form_error_key_not_a_file">请选择文件，而不是文件夹</string>
     <string name="explorer_sftp_form_error_key_unreadable">无法读取密钥文件</string>
@@ -395,6 +410,11 @@
     <string name="explorer_sftp_host_key_retrust_title">替换服务器密钥？</string>
     <string name="explorer_sftp_host_key_retrust_message">仅当你清楚 %1$s 为何更改密钥时才替换。此后 Butler 将信任当前提供的密钥。</string>
     <string name="explorer_sftp_host_key_retrust_action">替换密钥</string>
+    <string name="explorer_sftp_unlock_title">解锁 %1$s</string>
+    <string name="explorer_sftp_unlock_message">输入密钥的密码短语。</string>
+    <string name="explorer_sftp_unlock_passphrase_label">密码短语</string>
+    <string name="explorer_sftp_unlock_edit_action">编辑服务器</string>
+    <string name="explorer_sftp_unlock_action">解锁</string>
     <string name="explorer_webdav_form_add_title">添加 WebDAV 服务器</string>
     <string name="explorer_webdav_form_edit_title">编辑 WebDAV 服务器</string>
     <string name="explorer_webdav_form_sign_in_title">登录 %1$s</string>

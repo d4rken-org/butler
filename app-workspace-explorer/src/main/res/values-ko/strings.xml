@@ -150,6 +150,8 @@
     <string name="explorer_info_sftp_private_key_label">개인 키</string>
     <string name="explorer_info_sftp_credential_stored">이 기기에 저장됨</string>
     <string name="explorer_info_sftp_credential_session">Butler를 닫을 때까지 유지됨</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">키는 저장됨, 패스프레이즈는 Butler를 닫을 때까지 유지됨</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">키는 저장됨, 열려면 패스프레이즈 필요</string>
     <string name="explorer_info_sftp_host_key_type_label">호스트 키 유형</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">호스트 키 지문</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -305,6 +307,12 @@
         <item quantity="other">네트워크 저장공간 %1$d개를 제거할까요?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler가 서버 정보와 저장된 비밀번호를 잊습니다. 서버의 데이터는 삭제되지 않습니다.</string>
+    <string name="explorer_network_disconnect_location_action">연결 해제</string>
+    <string name="explorer_network_disconnect_confirmation_title">%1$s 연결을 해제할까요?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="other">네트워크 저장공간 %1$d개의 연결을 해제할까요?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">다시 로그인할 때까지 Butler가 로그인 정보를 잊어요. 서버 정보는 그대로 저장돼요. 이 저장공간으로 진행 중인 전송은 실패할 수 있어요.</string>
 
     <!-- 네트워크 저장공간 양식 -->
     <string name="explorer_network_form_add_title">네트워크 저장공간 추가</string>
@@ -348,6 +356,7 @@
     <string name="explorer_sftp_form_sign_in_title">%1$s에 로그인</string>
     <string name="explorer_sftp_form_sign_in_password_hint">이 서버를 열려면 비밀번호를 다시 입력하세요.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">이 서버를 열려면 개인 키 파일을 다시 선택하거나 패스프레이즈를 입력하세요.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">이 서버를 열려면 키의 패스프레이즈를 입력하세요.</string>
     <string name="explorer_sftp_form_host_hint">build.lan 또는 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">기본 경로(선택)</string>
     <string name="explorer_sftp_form_base_path_help">비워 두면 서버의 시작 폴더예요. /로 시작하면 절대 경로예요. 그 외에는 시작 폴더 기준의 상대 경로예요.</string>
@@ -360,10 +369,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">파일 선택</string>
     <string name="explorer_sftp_form_passphrase_label">키 패스프레이즈(선택)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">저장된 패스프레이즈를 유지하려면 비워 두세요</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Butler를 시작한 후 입력한 패스프레이즈를 사용하려면 비워 두세요</string>
     <string name="explorer_sftp_form_remember_label">로그인 정보 기억</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">패스프레이즈 기억</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">키와 함께 저장돼요</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">연결할 때 Butler가 물어봐요</string>
     <string name="explorer_sftp_form_error_username_malformed">사용자 이름에는 제어 문자를 사용할 수 없어요</string>
     <string name="explorer_sftp_form_error_password_required">사용자 이름, 로그인 방식 또는 기억 설정을 변경하려면 비밀번호를 다시 입력하세요</string>
     <string name="explorer_sftp_form_error_key_required">개인 키 파일을 선택하세요</string>
+    <string name="explorer_sftp_form_error_passphrase_required">키의 패스프레이즈를 입력하세요</string>
+    <string name="explorer_sftp_form_error_location_changed">그사이 이 서버가 변경되었어요. 다시 시도하세요.</string>
     <string name="explorer_sftp_form_error_key_too_large">이 파일은 %1$d KiB보다 커서 개인 키가 될 수 없어요</string>
     <string name="explorer_sftp_form_error_key_not_a_file">폴더가 아닌 파일을 선택하세요</string>
     <string name="explorer_sftp_form_error_key_unreadable">키 파일을 읽을 수 없어요</string>
@@ -393,6 +408,11 @@
     <string name="explorer_sftp_host_key_retrust_title">서버 키를 교체할까요?</string>
     <string name="explorer_sftp_host_key_retrust_message">%1$s 서버가 키를 바꾼 이유를 알고 있을 때만 키를 교체하세요. 이제부터 Butler는 제시된 키를 신뢰해요.</string>
     <string name="explorer_sftp_host_key_retrust_action">키 교체</string>
+    <string name="explorer_sftp_unlock_title">%1$s 잠금 해제</string>
+    <string name="explorer_sftp_unlock_message">키의 패스프레이즈를 입력하세요.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">패스프레이즈</string>
+    <string name="explorer_sftp_unlock_edit_action">서버 편집</string>
+    <string name="explorer_sftp_unlock_action">잠금 해제</string>
     <string name="explorer_webdav_form_add_title">WebDAV 서버 추가</string>
     <string name="explorer_webdav_form_edit_title">WebDAV 서버 편집</string>
     <string name="explorer_webdav_form_sign_in_title">%1$s에 로그인</string>

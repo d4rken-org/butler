@@ -156,6 +156,8 @@
     <string name="explorer_info_sftp_private_key_label">ప్రైవేట్ కీ</string>
     <string name="explorer_info_sftp_credential_stored">ఈ పరికరంలో నిల్వ చేయబడింది</string>
     <string name="explorer_info_sftp_credential_session">Butler మూసివేసే వరకు ఉంచబడుతుంది</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">కీ నిల్వ చేయబడింది, Butler మూసివేసే వరకు పాస్‌ఫ్రేజ్ ఉంచబడుతుంది</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">కీ నిల్వ చేయబడింది, తెరవడానికి పాస్‌ఫ్రేజ్ అవసరం</string>
     <string name="explorer_info_sftp_host_key_type_label">హోస్ట్ కీ రకం</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">హోస్ట్ కీ ఫింగర్‌ప్రింట్</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -321,6 +323,13 @@
         <item quantity="other">%1$d నెట్‌వర్క్ నిల్వలను తీసివేయాలా?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler సర్వర్ వివరాలను, సేవ్ చేసిన పాస్‌వర్డ్‌ను మర్చిపోతుంది. సర్వర్‌లో ఏదీ తొలగించబడదు.</string>
+    <string name="explorer_network_disconnect_location_action">డిస్‌కనెక్ట్ చేయండి</string>
+    <string name="explorer_network_disconnect_confirmation_title">%1$sను డిస్‌కనెక్ట్ చేయాలా?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">%1$d నెట్‌వర్క్ నిల్వను డిస్‌కనెక్ట్ చేయాలా?</item>
+        <item quantity="other">%1$d నెట్‌వర్క్ నిల్వలను డిస్‌కనెక్ట్ చేయాలా?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">మీరు మళ్లీ సైన్ ఇన్ చేసే వరకు Butler సైన్ ఇన్ వివరాలను మర్చిపోతుంది. సర్వర్ వివరాలు సేవ్ చేయబడి ఉంటాయి. ఈ నిల్వకు ఇంకా నడుస్తున్న బదిలీలు విఫలం కావచ్చు.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">నెట్‌వర్క్ నిల్వను జోడించండి</string>
@@ -364,6 +373,7 @@
     <string name="explorer_sftp_form_sign_in_title">%1$sకు సైన్ ఇన్ చేయండి</string>
     <string name="explorer_sftp_form_sign_in_password_hint">ఈ సర్వర్‌ను తెరవడానికి పాస్‌వర్డ్‌ను మళ్లీ నమోదు చేయండి.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">ఈ సర్వర్‌ను తెరవడానికి ప్రైవేట్ కీ ఫైల్‌ను మళ్లీ ఎంచుకోండి లేదా దాని పాస్‌ఫ్రేజ్‌ను నమోదు చేయండి.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">ఈ సర్వర్‌ను తెరవడానికి కీ పాస్‌ఫ్రేజ్‌ను నమోదు చేయండి.</string>
     <string name="explorer_sftp_form_host_hint">build.lan లేదా 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">బేస్ పాత్ (ఐచ్ఛికం)</string>
     <string name="explorer_sftp_form_base_path_help">ఖాళీగా ఉంటే: సర్వర్ ప్రారంభ ఫోల్డర్. / తో మొదలైతే: సంపూర్ణ పాత్. మరేదైనా: ప్రారంభ ఫోల్డర్‌కు సాపేక్షంగా.</string>
@@ -376,10 +386,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">ఫైల్‌ను ఎంచుకోండి</string>
     <string name="explorer_sftp_form_passphrase_label">కీ పాస్‌ఫ్రేజ్ (ఐచ్ఛికం)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">సేవ్ చేసిన పాస్‌ఫ్రేజ్‌ను ఉంచడానికి ఖాళీగా వదిలేయండి</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Butler ప్రారంభమైనప్పటి నుంచి నమోదు చేసిన పాస్‌ఫ్రేజ్‌ను ఉపయోగించడానికి ఖాళీగా వదిలేయండి</string>
     <string name="explorer_sftp_form_remember_label">ఆధారాలను గుర్తుంచుకోండి</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">పాస్‌ఫ్రేజ్‌ను గుర్తుంచుకోండి</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">కీతో పాటు నిల్వ చేయబడుతుంది</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">కనెక్ట్ అయ్యేటప్పుడు Butler దాన్ని అడుగుతుంది</string>
     <string name="explorer_sftp_form_error_username_malformed">వినియోగదారు పేరులో కంట్రోల్ అక్షరాలు ఉండకూడదు</string>
     <string name="explorer_sftp_form_error_password_required">వినియోగదారు పేరు, సైన్ ఇన్ పద్ధతి లేదా గుర్తుంచుకునే సెట్టింగ్‌ను మార్చడానికి పాస్‌వర్డ్‌ను మళ్లీ నమోదు చేయండి</string>
     <string name="explorer_sftp_form_error_key_required">ప్రైవేట్ కీ ఫైల్‌ను ఎంచుకోండి</string>
+    <string name="explorer_sftp_form_error_passphrase_required">కీ పాస్‌ఫ్రేజ్‌ను నమోదు చేయండి</string>
+    <string name="explorer_sftp_form_error_location_changed">ఈ సర్వర్ ఈలోగా మారింది. మళ్లీ ప్రయత్నించండి.</string>
     <string name="explorer_sftp_form_error_key_too_large">ఈ ఫైల్ %1$d KiB కంటే పెద్దది, కాబట్టి ఇది ప్రైవేట్ కీ కాదు</string>
     <string name="explorer_sftp_form_error_key_not_a_file">ఫైల్‌ను ఎంచుకోండి, ఫోల్డర్‌ను కాదు</string>
     <string name="explorer_sftp_form_error_key_unreadable">కీ ఫైల్‌ను చదవలేకపోయాము</string>
@@ -409,6 +425,11 @@
     <string name="explorer_sftp_host_key_retrust_title">సర్వర్ కీని భర్తీ చేయాలా?</string>
     <string name="explorer_sftp_host_key_retrust_message">%1$s కీని ఎందుకు మార్చిందో మీకు తెలిస్తేనే కీని భర్తీ చేయండి. ఇకపై Butler చూపిన కీని విశ్వసిస్తుంది.</string>
     <string name="explorer_sftp_host_key_retrust_action">కీని భర్తీ చేయండి</string>
+    <string name="explorer_sftp_unlock_title">%1$sను అన్‌లాక్ చేయండి</string>
+    <string name="explorer_sftp_unlock_message">కీ పాస్‌ఫ్రేజ్‌ను నమోదు చేయండి.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">పాస్‌ఫ్రేజ్</string>
+    <string name="explorer_sftp_unlock_edit_action">సర్వర్‌ను సవరించండి</string>
+    <string name="explorer_sftp_unlock_action">అన్‌లాక్ చేయండి</string>
     <string name="explorer_webdav_form_add_title">WebDAV సర్వర్‌ను జోడించండి</string>
     <string name="explorer_webdav_form_edit_title">WebDAV సర్వర్‌ను సవరించండి</string>
     <string name="explorer_webdav_form_sign_in_title">%1$sకు సైన్ ఇన్ చేయండి</string>

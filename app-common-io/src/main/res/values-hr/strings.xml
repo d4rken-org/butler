@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">Privatni ključ nije u formatu koji Butler može pročitati. Podržane su datoteke ključeva OpenSSH, PEM i PKCS#8.</string>
     <string name="sftp_error_key_passphrase_title">Pogrešna lozinka ključa</string>
     <string name="sftp_error_key_passphrase_description">Privatni ključ je zaštićen, a lozinka ključa je pogrešna ili nedostaje.</string>
+    <string name="sftp_error_key_passphrase_required_title">Potrebna je lozinka ključa</string>
+    <string name="sftp_error_key_passphrase_required_description">Unesi lozinku privatnog ključa da se povežeš s ovim poslužiteljem.</string>
+    <string name="sftp_error_location_changed_title">Poslužitelj je promijenjen</string>
+    <string name="sftp_error_location_changed_description">Ovaj je poslužitelj u međuvremenu promijenjen. Pokušaj ponovno.</string>
     <string name="sftp_error_access_denied_title">Nema pristupa ovoj mapi</string>
     <string name="sftp_error_access_denied_description">Ovom računu možda nije dopušteno otvoriti mapu postavljenu za \"%1$s\". Provjeri dozvole mape na poslužitelju.</string>
     <string name="sftp_error_pro_required_title">Za SFTP poslužitelje potreban je Butler Pro</string>

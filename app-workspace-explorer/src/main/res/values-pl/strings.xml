@@ -159,6 +159,8 @@
     <string name="explorer_info_sftp_private_key_label">Klucz prywatny</string>
     <string name="explorer_info_sftp_credential_stored">Zapisane na tym urządzeniu</string>
     <string name="explorer_info_sftp_credential_session">Przechowywane do zamknięcia Butler</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Klucz zapisany, fraza hasła przechowywana do zamknięcia Butler</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Klucz zapisany, do otwarcia potrzebna fraza hasła</string>
     <string name="explorer_info_sftp_host_key_type_label">Typ klucza hosta</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Odcisk klucza hosta</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -335,6 +337,15 @@
         <item quantity="other">Usunąć %1$d magazynu sieciowego?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler zapomni dane serwera oraz zapisane hasło. Nic na serwerze nie zostanie usunięte.</string>
+    <string name="explorer_network_disconnect_location_action">Rozłącz</string>
+    <string name="explorer_network_disconnect_confirmation_title">Rozłączyć %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Rozłączyć %1$d magazyn sieciowy?</item>
+        <item quantity="few">Rozłączyć %1$d magazyny sieciowe?</item>
+        <item quantity="many">Rozłączyć %1$d magazynów sieciowych?</item>
+        <item quantity="other">Rozłączyć %1$d magazynu sieciowego?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler zapomni dane logowania do czasu ponownego zalogowania. Dane serwera pozostaną zapisane. Trwające transfery do tego magazynu mogą się nie powieść.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">Dodaj magazyn sieciowy</string>
@@ -378,6 +389,7 @@
     <string name="explorer_sftp_form_sign_in_title">Zaloguj się do %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Wpisz hasło ponownie, aby otworzyć ten serwer.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Wybierz plik klucza prywatnego ponownie lub wpisz jego frazę hasła, aby otworzyć ten serwer.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Wpisz frazę hasła klucza, aby otworzyć ten serwer.</string>
     <string name="explorer_sftp_form_host_hint">build.lan lub 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Ścieżka bazowa (opcjonalnie)</string>
     <string name="explorer_sftp_form_base_path_help">Puste: folder startowy serwera. Zaczyna się od /: ścieżka bezwzględna. Cokolwiek innego: ścieżka względem folderu startowego.</string>
@@ -390,10 +402,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Wybierz plik</string>
     <string name="explorer_sftp_form_passphrase_label">Fraza hasła klucza (opcjonalnie)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Pozostaw puste, aby zachować zapisaną frazę hasła</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Pozostaw puste, aby użyć frazy hasła wpisanej od uruchomienia Butler</string>
     <string name="explorer_sftp_form_remember_label">Zapamiętaj dane logowania</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Zapamiętaj frazę hasła</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Zapisana razem z kluczem</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler zapyta o nią przy łączeniu</string>
     <string name="explorer_sftp_form_error_username_malformed">Nazwa użytkownika nie może zawierać znaków sterujących</string>
     <string name="explorer_sftp_form_error_password_required">Wpisz hasło ponownie, aby zmienić nazwę użytkownika, metodę logowania lub ustawienie zapamiętywania</string>
     <string name="explorer_sftp_form_error_key_required">Wybierz plik klucza prywatnego</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Wpisz frazę hasła klucza</string>
+    <string name="explorer_sftp_form_error_location_changed">Ten serwer został w międzyczasie zmieniony. Spróbuj ponownie.</string>
     <string name="explorer_sftp_form_error_key_too_large">Ten plik jest większy niż %1$d KiB i nie może być kluczem prywatnym</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Wybierz plik, a nie folder</string>
     <string name="explorer_sftp_form_error_key_unreadable">Nie udało się odczytać pliku klucza</string>
@@ -423,6 +441,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Zastąpić klucz serwera?</string>
     <string name="explorer_sftp_host_key_retrust_message">Zastąp klucz tylko wtedy, gdy wiesz, dlaczego %1$s go zmienił. Od teraz Butler będzie ufać przedstawionemu kluczowi.</string>
     <string name="explorer_sftp_host_key_retrust_action">Zastąp klucz</string>
+    <string name="explorer_sftp_unlock_title">Odblokuj %1$s</string>
+    <string name="explorer_sftp_unlock_message">Wpisz frazę hasła klucza.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Fraza hasła</string>
+    <string name="explorer_sftp_unlock_edit_action">Edytuj serwer</string>
+    <string name="explorer_sftp_unlock_action">Odblokuj</string>
     <string name="explorer_webdav_form_add_title">Dodaj serwer WebDAV</string>
     <string name="explorer_webdav_form_edit_title">Edytuj serwer WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">Zaloguj się do %1$s</string>
