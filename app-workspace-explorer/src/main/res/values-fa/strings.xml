@@ -154,6 +154,8 @@
     <string name="explorer_info_sftp_private_key_label">کلید خصوصی</string>
     <string name="explorer_info_sftp_credential_stored">ذخیره‌شده روی این دستگاه</string>
     <string name="explorer_info_sftp_credential_session">تا بسته شدن Butler نگه داشته می‌شود</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">کلید ذخیره شده، عبارت عبور تا بسته شدن Butler نگه داشته می‌شود</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">کلید ذخیره شده، برای باز کردن به عبارت عبور نیاز است</string>
     <string name="explorer_info_sftp_host_key_type_label">نوع کلید میزبان</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">اثر انگشت کلید میزبان</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -316,6 +318,13 @@
         <item quantity="other">%1$d حافظه شبکه حذف شوند؟</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler جزئیات سرور و گذرواژه ذخیره‌شده را فراموش می‌کند. چیزی در سرور حذف نمی‌شود.</string>
+    <string name="explorer_network_disconnect_location_action">قطع اتصال</string>
+    <string name="explorer_network_disconnect_confirmation_title">اتصال %1$s قطع شود؟</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">اتصال %1$d حافظه شبکه قطع شود؟</item>
+        <item quantity="other">اتصال %1$d حافظه شبکه قطع شود؟</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler جزئیات ورود را فراموش می‌کند تا دوباره وارد شوید. جزئیات سرور ذخیره می‌ماند. انتقال‌های در حال اجرا به این حافظه ممکن است ناموفق شوند.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">افزودن حافظه شبکه</string>
@@ -359,6 +368,7 @@
     <string name="explorer_sftp_form_sign_in_title">ورود به %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">برای باز کردن این سرور، گذرواژه را دوباره وارد کنید.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">برای باز کردن این سرور، فایل کلید خصوصی را دوباره انتخاب کنید یا عبارت عبور آن را وارد کنید.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">برای باز کردن این سرور، عبارت عبور کلید را وارد کنید.</string>
     <string name="explorer_sftp_form_host_hint">build.lan یا 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">مسیر پایه (اختیاری)</string>
     <string name="explorer_sftp_form_base_path_help">خالی: پوشه شروع سرور. با / شروع شود: مسیر مطلق. در غیر این صورت: نسبت به پوشه شروع.</string>
@@ -371,10 +381,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">انتخاب فایل</string>
     <string name="explorer_sftp_form_passphrase_label">عبارت عبور کلید (اختیاری)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">برای حفظ عبارت عبور ذخیره‌شده، خالی بگذارید</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">برای استفاده از عبارت عبوری که از زمان شروع Butler وارد شده، خالی بگذارید</string>
     <string name="explorer_sftp_form_remember_label">به خاطر سپردن اطلاعات ورود</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">به خاطر سپردن عبارت عبور</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">همراه کلید ذخیره می‌شود</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler هنگام اتصال آن را می‌پرسد</string>
     <string name="explorer_sftp_form_error_username_malformed">نام کاربری نمی‌تواند نویسه‌های کنترلی داشته باشد</string>
     <string name="explorer_sftp_form_error_password_required">برای تغییر نام کاربری، روش ورود یا تنظیم به‌خاطرسپاری، گذرواژه را دوباره وارد کنید</string>
     <string name="explorer_sftp_form_error_key_required">یک فایل کلید خصوصی انتخاب کنید</string>
+    <string name="explorer_sftp_form_error_passphrase_required">عبارت عبور کلید را وارد کنید</string>
+    <string name="explorer_sftp_form_error_location_changed">این سرور در این فاصله تغییر کرده است. دوباره تلاش کنید.</string>
     <string name="explorer_sftp_form_error_key_too_large">این فایل بزرگ‌تر از %1$d KiB است و نمی‌تواند کلید خصوصی باشد</string>
     <string name="explorer_sftp_form_error_key_not_a_file">یک فایل انتخاب کنید، نه پوشه</string>
     <string name="explorer_sftp_form_error_key_unreadable">فایل کلید قابل خواندن نبود</string>
@@ -404,6 +420,11 @@
     <string name="explorer_sftp_host_key_retrust_title">کلید سرور جایگزین شود؟</string>
     <string name="explorer_sftp_host_key_retrust_message">فقط اگر می‌دانید %1$s چرا کلید خود را تغییر داده است، کلید را جایگزین کنید. Butler از این پس به کلید ارائه‌شده اعتماد می‌کند.</string>
     <string name="explorer_sftp_host_key_retrust_action">جایگزینی کلید</string>
+    <string name="explorer_sftp_unlock_title">باز کردن قفل %1$s</string>
+    <string name="explorer_sftp_unlock_message">عبارت عبور کلید را وارد کنید.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">عبارت عبور</string>
+    <string name="explorer_sftp_unlock_edit_action">ویرایش سرور</string>
+    <string name="explorer_sftp_unlock_action">باز کردن قفل</string>
     <string name="explorer_webdav_form_add_title">افزودن سرور WebDAV</string>
     <string name="explorer_webdav_form_edit_title">ویرایش سرور WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">ورود به %1$s</string>

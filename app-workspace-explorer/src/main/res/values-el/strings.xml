@@ -154,6 +154,8 @@
     <string name="explorer_info_sftp_private_key_label">Ιδιωτικό κλειδί</string>
     <string name="explorer_info_sftp_credential_stored">Αποθηκευμένο σε αυτή τη συσκευή</string>
     <string name="explorer_info_sftp_credential_session">Διατηρείται μέχρι να κλείσει το Butler</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Το κλειδί είναι αποθηκευμένο, η φράση πρόσβασης διατηρείται μέχρι να κλείσει το Butler</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Το κλειδί είναι αποθηκευμένο, απαιτείται φράση πρόσβασης για το άνοιγμα</string>
     <string name="explorer_info_sftp_host_key_type_label">Τύπος κλειδιού διακομιστή</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Αποτύπωμα κλειδιού διακομιστή</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -316,6 +318,13 @@
         <item quantity="other">Αφαίρεση %1$d δικτυακών αποθηκευτικών χώρων;</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Το Butler θα ξεχάσει τα στοιχεία του διακομιστή και τον αποθηκευμένο κωδικό πρόσβασης. Τίποτα στον διακομιστή δεν διαγράφεται.</string>
+    <string name="explorer_network_disconnect_location_action">Αποσύνδεση</string>
+    <string name="explorer_network_disconnect_confirmation_title">Αποσύνδεση από το %1$s;</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Αποσύνδεση από %1$d δικτυακό αποθηκευτικό χώρο;</item>
+        <item quantity="other">Αποσύνδεση από %1$d δικτυακούς αποθηκευτικούς χώρους;</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Το Butler ξεχνά τα στοιχεία σύνδεσης μέχρι να συνδεθείς ξανά. Τα στοιχεία του διακομιστή παραμένουν αποθηκευμένα. Οι μεταφορές προς αυτόν τον αποθηκευτικό χώρο που εξακολουθούν να εκτελούνται ίσως αποτύχουν.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">Προσθήκη δικτυακού αποθηκευτικού χώρου</string>
@@ -359,6 +368,7 @@
     <string name="explorer_sftp_form_sign_in_title">Σύνδεση στο %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Εισήγαγε ξανά τον κωδικό πρόσβασης για να ανοίξεις αυτόν τον διακομιστή.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Επίλεξε ξανά το αρχείο ιδιωτικού κλειδιού ή εισήγαγε τη φράση πρόσβασής του για να ανοίξεις αυτόν τον διακομιστή.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Εισήγαγε τη φράση πρόσβασης του κλειδιού για να ανοίξεις αυτόν τον διακομιστή.</string>
     <string name="explorer_sftp_form_host_hint">build.lan ή 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Βασική διαδρομή (προαιρετικό)</string>
     <string name="explorer_sftp_form_base_path_help">Κενό: ο αρχικός φάκελος του διακομιστή. Με αρχή το /: απόλυτη διαδρομή. Οτιδήποτε άλλο: σχετική με τον αρχικό φάκελο.</string>
@@ -371,10 +381,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Επιλογή αρχείου</string>
     <string name="explorer_sftp_form_passphrase_label">Φράση πρόσβασης κλειδιού (προαιρετικό)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Άφησέ το κενό για να διατηρηθεί η αποθηκευμένη φράση πρόσβασης</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Άφησέ το κενό για να χρησιμοποιηθεί η φράση πρόσβασης που εισήχθη από την έναρξη του Butler</string>
     <string name="explorer_sftp_form_remember_label">Απομνημόνευση διαπιστευτηρίων</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Απομνημόνευση φράσης πρόσβασης</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Αποθηκεύεται μαζί με το κλειδί</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Το Butler τη ζητά κατά τη σύνδεση</string>
     <string name="explorer_sftp_form_error_username_malformed">Το όνομα χρήστη δεν μπορεί να περιέχει χαρακτήρες ελέγχου</string>
     <string name="explorer_sftp_form_error_password_required">Εισήγαγε ξανά τον κωδικό πρόσβασης για να αλλάξεις το όνομα χρήστη, τον τρόπο σύνδεσης ή τη ρύθμιση απομνημόνευσης</string>
     <string name="explorer_sftp_form_error_key_required">Επίλεξε ένα αρχείο ιδιωτικού κλειδιού</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Εισήγαγε τη φράση πρόσβασης του κλειδιού</string>
+    <string name="explorer_sftp_form_error_location_changed">Αυτός ο διακομιστής άλλαξε στο μεταξύ. Δοκίμασε ξανά.</string>
     <string name="explorer_sftp_form_error_key_too_large">Αυτό το αρχείο είναι μεγαλύτερο από %1$d KiB και δεν μπορεί να είναι ιδιωτικό κλειδί</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Επίλεξε αρχείο, όχι φάκελο</string>
     <string name="explorer_sftp_form_error_key_unreadable">Δεν ήταν δυνατή η ανάγνωση του αρχείου κλειδιού</string>
@@ -404,6 +420,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Αντικατάσταση του κλειδιού του διακομιστή;</string>
     <string name="explorer_sftp_host_key_retrust_message">Αντικατάστησε το κλειδί μόνο αν ξέρεις γιατί το άλλαξε το %1$s. Από εδώ και στο εξής το Butler θα εμπιστεύεται το κλειδί που παρουσιάστηκε.</string>
     <string name="explorer_sftp_host_key_retrust_action">Αντικατάσταση κλειδιού</string>
+    <string name="explorer_sftp_unlock_title">Ξεκλείδωμα του %1$s</string>
+    <string name="explorer_sftp_unlock_message">Εισήγαγε τη φράση πρόσβασης του κλειδιού.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Φράση πρόσβασης</string>
+    <string name="explorer_sftp_unlock_edit_action">Επεξεργασία διακομιστή</string>
+    <string name="explorer_sftp_unlock_action">Ξεκλείδωμα</string>
     <string name="explorer_webdav_form_add_title">Προσθήκη διακομιστή WebDAV</string>
     <string name="explorer_webdav_form_edit_title">Επεξεργασία διακομιστή WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">Σύνδεση στο %1$s</string>

@@ -167,6 +167,8 @@
     <string name="explorer_info_sftp_private_key_label">المفتاح الخاص</string>
     <string name="explorer_info_sftp_credential_stored">مخزَّن على هذا الجهاز</string>
     <string name="explorer_info_sftp_credential_session">يُحفظ حتى إغلاق Butler</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">المفتاح مخزَّن، وعبارة المرور تُحفظ حتى إغلاق Butler</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">المفتاح مخزَّن، وعبارة المرور مطلوبة للفتح</string>
     <string name="explorer_info_sftp_host_key_type_label">نوع مفتاح المضيف</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">بصمة مفتاح المضيف</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -357,6 +359,17 @@
         <item quantity="other">إزالة %1$d تخزين شبكة؟</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">سينسى Butler تفاصيل الخادم وكلمة المرور المحفوظة. لن يُحذف أي شيء على الخادم.</string>
+    <string name="explorer_network_disconnect_location_action">قطع الاتصال</string>
+    <string name="explorer_network_disconnect_confirmation_title">قطع الاتصال بـ %1$s؟</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="zero">قطع الاتصال بتخزين الشبكة؟</item>
+        <item quantity="one">قطع الاتصال بتخزين شبكة واحد؟</item>
+        <item quantity="two">قطع الاتصال بتخزيني شبكة؟</item>
+        <item quantity="few">قطع الاتصال بـ %1$d تخزينات شبكة؟</item>
+        <item quantity="many">قطع الاتصال بـ %1$d تخزين شبكة؟</item>
+        <item quantity="other">قطع الاتصال بـ %1$d تخزين شبكة؟</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">سينسى Butler بيانات تسجيل الدخول إلى أن تسجّل الدخول مرة أخرى. تبقى تفاصيل الخادم محفوظة. قد تفشل عمليات النقل الجارية إلى مساحة التخزين هذه.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">إضافة تخزين شبكة</string>
@@ -400,6 +413,7 @@
     <string name="explorer_sftp_form_sign_in_title">تسجيل الدخول إلى %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">أدخل كلمة المرور مرة أخرى لفتح هذا الخادم.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">اختر ملف المفتاح الخاص مرة أخرى، أو أدخل عبارة المرور الخاصة به، لفتح هذا الخادم.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">أدخل عبارة مرور المفتاح لفتح هذا الخادم.</string>
     <string name="explorer_sftp_form_host_hint">build.lan أو 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">المسار الأساسي (اختياري)</string>
     <string name="explorer_sftp_form_base_path_help">فارغ: مجلد بداية الخادم. يبدأ بـ /: مسار مطلق. غير ذلك: نسبي إلى مجلد البداية.</string>
@@ -412,10 +426,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">اختيار ملف</string>
     <string name="explorer_sftp_form_passphrase_label">عبارة مرور المفتاح (اختياري)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">اتركه فارغًا للاحتفاظ بعبارة المرور المحفوظة</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">اتركه فارغًا لاستخدام عبارة المرور المُدخلة منذ بدء Butler</string>
     <string name="explorer_sftp_form_remember_label">تذكر بيانات الدخول</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">تذكر عبارة المرور</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">تُخزَّن مع المفتاح</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">يطلبها Butler عند الاتصال</string>
     <string name="explorer_sftp_form_error_username_malformed">لا يمكن أن يحتوي اسم المستخدم على أحرف تحكم</string>
     <string name="explorer_sftp_form_error_password_required">أدخل كلمة المرور مرة أخرى لتغيير اسم المستخدم أو طريقة تسجيل الدخول أو إعداد التذكر</string>
     <string name="explorer_sftp_form_error_key_required">اختر ملف مفتاح خاص</string>
+    <string name="explorer_sftp_form_error_passphrase_required">أدخل عبارة مرور المفتاح</string>
+    <string name="explorer_sftp_form_error_location_changed">تغيّر هذا الخادم في هذه الأثناء. حاول مرة أخرى.</string>
     <string name="explorer_sftp_form_error_key_too_large">هذا الملف أكبر من %1$d KiB ولا يمكن أن يكون مفتاحًا خاصًا</string>
     <string name="explorer_sftp_form_error_key_not_a_file">اختر ملفًا وليس مجلدًا</string>
     <string name="explorer_sftp_form_error_key_unreadable">تعذرت قراءة ملف المفتاح</string>
@@ -445,6 +465,11 @@
     <string name="explorer_sftp_host_key_retrust_title">استبدال مفتاح الخادم؟</string>
     <string name="explorer_sftp_host_key_retrust_message">استبدل المفتاح فقط إذا كنت تعرف سبب تغييره من قِبل %1$s. سيثق Butler بالمفتاح المقدَّم من الآن فصاعدًا.</string>
     <string name="explorer_sftp_host_key_retrust_action">استبدال المفتاح</string>
+    <string name="explorer_sftp_unlock_title">فتح قفل %1$s</string>
+    <string name="explorer_sftp_unlock_message">أدخل عبارة مرور المفتاح.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">عبارة المرور</string>
+    <string name="explorer_sftp_unlock_edit_action">تعديل الخادم</string>
+    <string name="explorer_sftp_unlock_action">فتح القفل</string>
     <string name="explorer_webdav_form_add_title">إضافة خادم WebDAV</string>
     <string name="explorer_webdav_form_edit_title">تعديل خادم WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">تسجيل الدخول إلى %1$s</string>

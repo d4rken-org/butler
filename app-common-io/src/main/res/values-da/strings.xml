@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">Den private nøgle er ikke i et format, som Butler kan læse. Nøglefiler i OpenSSH-, PEM- og PKCS#8-format understøttes.</string>
     <string name="sftp_error_key_passphrase_title">Forkert adgangssætning</string>
     <string name="sftp_error_key_passphrase_description">Den private nøgle er beskyttet, og adgangssætningen er forkert eller mangler.</string>
+    <string name="sftp_error_key_passphrase_required_title">Adgangssætning påkrævet</string>
+    <string name="sftp_error_key_passphrase_required_description">Indtast den private nøgles adgangssætning for at oprette forbindelse til denne server.</string>
+    <string name="sftp_error_location_changed_title">Serveren er ændret</string>
+    <string name="sftp_error_location_changed_description">Denne server blev ændret i mellemtiden. Prøv igen.</string>
     <string name="sftp_error_access_denied_title">Ingen adgang til denne mappe</string>
     <string name="sftp_error_access_denied_description">Denne konto har ikke tilladelse til at åbne den mappe, der er angivet for \"%1$s\". Kontroller mappens tilladelser på serveren.</string>
     <string name="sftp_error_pro_required_title">SFTP-servere kræver Butler Pro</string>
