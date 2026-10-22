@@ -147,6 +147,8 @@
     <string name="explorer_info_sftp_private_key_label">מפתח פרטי</string>
     <string name="explorer_info_sftp_credential_stored">שמור במכשיר הזה</string>
     <string name="explorer_info_sftp_credential_session">נשמר עד שהיישומון Butler ייסגר</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">המפתח שמור, ביטוי הסיסמה נשמר עד שהיישומון Butler ייסגר</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">המפתח שמור, נדרש ביטוי סיסמה לפתיחה</string>
     <string name="explorer_info_sftp_host_key_type_label">סוג מפתח השרת</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">טביעת האצבע של מפתח השרת</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -301,6 +303,15 @@
         <item quantity="other">להסיר %1$d מיקומי אחסון רשת?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler שוכח את פרטי השרת ואת הסיסמה השמורה. שום דבר בשרת לא נמחק.</string>
+    <string name="explorer_network_disconnect_location_action">ניתוק</string>
+    <string name="explorer_network_disconnect_confirmation_title">לנתק את %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">לנתק %1$d מיקום אחסון רשת?</item>
+        <item quantity="two">לנתק %1$d מיקומי אחסון רשת?</item>
+        <item quantity="many">לנתק %1$d מיקומי אחסון רשת?</item>
+        <item quantity="other">לנתק %1$d מיקומי אחסון רשת?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler שוכח את פרטי הכניסה עד לכניסה הבאה. פרטי השרת נשארים שמורים. העברות לאחסון הזה שעדיין מתבצעות עלולות להיכשל.</string>
     <string name="explorer_network_form_add_title">הוספת אחסון רשת</string>
     <string name="explorer_network_form_edit_title">עריכת אחסון רשת</string>
     <string name="explorer_network_form_label_label">שם (אופציונלי)</string>
@@ -342,6 +353,7 @@
     <string name="explorer_sftp_form_sign_in_title">כניסה אל %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">יש להזין שוב את הסיסמה כדי לפתוח את השרת הזה.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">יש לבחור שוב את קובץ המפתח הפרטי, או להזין את ביטוי הסיסמה שלו, כדי לפתוח את השרת הזה.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">יש להזין את ביטוי הסיסמה של המפתח כדי לפתוח את השרת הזה.</string>
     <string name="explorer_sftp_form_host_hint">build.lan או 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">נתיב בסיס (אופציונלי)</string>
     <string name="explorer_sftp_form_base_path_help">ריק: תיקיית ההתחלה של השרת. מתחיל ב־/: נתיב מוחלט. כל דבר אחר: יחסי לתיקיית ההתחלה.</string>
@@ -354,10 +366,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">בחירת קובץ</string>
     <string name="explorer_sftp_form_passphrase_label">ביטוי סיסמה למפתח (אופציונלי)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">אפשר להשאיר ריק כדי לשמור את ביטוי הסיסמה הקיים</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">אפשר להשאיר ריק כדי להשתמש בביטוי הסיסמה שהוזן מאז שהיישומון Butler הופעל</string>
     <string name="explorer_sftp_form_remember_label">זכירת פרטי הכניסה</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">זכירת ביטוי הסיסמה</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">נשמר יחד עם המפתח</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler יבקש אותו בעת ההתחברות</string>
     <string name="explorer_sftp_form_error_username_malformed">שם המשתמש אינו יכול להכיל תווי בקרה</string>
     <string name="explorer_sftp_form_error_password_required">יש להזין שוב את הסיסמה כדי לשנות את שם המשתמש, שיטת הכניסה או הגדרת הזכירה</string>
     <string name="explorer_sftp_form_error_key_required">יש לבחור קובץ מפתח פרטי</string>
+    <string name="explorer_sftp_form_error_passphrase_required">יש להזין את ביטוי הסיסמה של המפתח</string>
+    <string name="explorer_sftp_form_error_location_changed">השרת הזה השתנה בינתיים. יש לנסות שוב.</string>
     <string name="explorer_sftp_form_error_key_too_large">הקובץ הזה גדול מ־%1$d KiB ולכן אינו יכול להיות מפתח פרטי</string>
     <string name="explorer_sftp_form_error_key_not_a_file">יש לבחור קובץ, לא תיקייה</string>
     <string name="explorer_sftp_form_error_key_unreadable">לא ניתן היה לקרוא את קובץ המפתח</string>
@@ -387,6 +405,11 @@
     <string name="explorer_sftp_host_key_retrust_title">להחליף את מפתח השרת?</string>
     <string name="explorer_sftp_host_key_retrust_message">יש להחליף את המפתח רק אם ידוע לך מדוע %1$s שינה אותו. מעתה Butler ייתן אמון במפתח שהוצג.</string>
     <string name="explorer_sftp_host_key_retrust_action">החלפת המפתח</string>
+    <string name="explorer_sftp_unlock_title">ביטול הנעילה של %1$s</string>
+    <string name="explorer_sftp_unlock_message">יש להזין את ביטוי הסיסמה של המפתח.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">ביטוי סיסמה</string>
+    <string name="explorer_sftp_unlock_edit_action">עריכת השרת</string>
+    <string name="explorer_sftp_unlock_action">ביטול נעילה</string>
     <string name="explorer_webdav_form_add_title">הוספת שרת WebDAV</string>
     <string name="explorer_webdav_form_edit_title">עריכת שרת WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">כניסה אל %1$s</string>

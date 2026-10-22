@@ -85,6 +85,10 @@
     <string name="sftp_error_key_format_description">Kunci privat tidak dalam format yang dapat dibaca Butler. Berkas kunci OpenSSH, PEM, dan PKCS#8 didukung.</string>
     <string name="sftp_error_key_passphrase_title">Frasa sandi salah</string>
     <string name="sftp_error_key_passphrase_description">Kunci privat dilindungi dan frasa sandinya salah atau tidak ada.</string>
+    <string name="sftp_error_key_passphrase_required_title">Frasa sandi diperlukan</string>
+    <string name="sftp_error_key_passphrase_required_description">Masukkan frasa sandi kunci privat untuk terhubung ke server ini.</string>
+    <string name="sftp_error_location_changed_title">Server berubah</string>
+    <string name="sftp_error_location_changed_description">Server ini diubah sementara itu. Coba lagi.</string>
     <string name="sftp_error_access_denied_title">Tidak ada akses ke folder ini</string>
     <string name="sftp_error_access_denied_description">Akun ini mungkin tidak dapat membuka folder yang diatur untuk \"%1$s\". Periksa izin folder di server.</string>
     <string name="sftp_error_pro_required_title">Server SFTP memerlukan Butler Pro</string>

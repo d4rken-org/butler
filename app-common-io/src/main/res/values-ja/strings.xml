@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">秘密鍵が Butler で読み取れない形式です。OpenSSH、PEM、PKCS#8 の鍵ファイルに対応しています。</string>
     <string name="sftp_error_key_passphrase_title">パスフレーズが正しくありません</string>
     <string name="sftp_error_key_passphrase_description">秘密鍵は保護されていますが、パスフレーズが間違っているか未入力です。</string>
+    <string name="sftp_error_key_passphrase_required_title">パスフレーズが必要です</string>
+    <string name="sftp_error_key_passphrase_required_description">このサーバーに接続するには、秘密鍵のパスフレーズを入力してください。</string>
+    <string name="sftp_error_location_changed_title">サーバーが変更されました</string>
+    <string name="sftp_error_location_changed_description">このサーバーはその間に変更されました。もう一度お試しください。</string>
     <string name="sftp_error_access_denied_title">このフォルダにアクセスできません</string>
     <string name="sftp_error_access_denied_description">このアカウントは \"%1$s\" に設定されたフォルダを開けない可能性があります。サーバー上のフォルダのアクセス許可を確認してください。</string>
     <string name="sftp_error_pro_required_title">SFTP サーバーには Butler Pro が必要です</string>

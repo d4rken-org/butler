@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">Butler가 읽을 수 없는 형식의 개인 키예요. OpenSSH, PEM, PKCS#8 키 파일을 지원해요.</string>
     <string name="sftp_error_key_passphrase_title">잘못된 패스프레이즈</string>
     <string name="sftp_error_key_passphrase_description">개인 키가 보호되어 있는데 패스프레이즈가 틀렸거나 입력되지 않았어요.</string>
+    <string name="sftp_error_key_passphrase_required_title">패스프레이즈 필요</string>
+    <string name="sftp_error_key_passphrase_required_description">이 서버에 연결하려면 개인 키의 패스프레이즈를 입력해 주세요.</string>
+    <string name="sftp_error_location_changed_title">서버가 변경되었어요</string>
+    <string name="sftp_error_location_changed_description">그사이 이 서버가 변경되었어요. 다시 시도해 주세요.</string>
     <string name="sftp_error_access_denied_title">이 폴더에 접근할 수 없어요</string>
     <string name="sftp_error_access_denied_description">이 계정으로는 \"%1$s\"에 설정된 폴더를 열 수 없을 수 있어요. 서버에서 폴더 권한을 확인해 주세요.</string>
     <string name="sftp_error_pro_required_title">SFTP 서버는 Butler Pro 필요</string>

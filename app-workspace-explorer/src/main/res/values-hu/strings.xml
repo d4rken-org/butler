@@ -139,6 +139,8 @@
     <string name="explorer_info_sftp_private_key_label">Privát kulcs</string>
     <string name="explorer_info_sftp_credential_stored">Ezen az eszközön tárolva</string>
     <string name="explorer_info_sftp_credential_session">A Butler bezárásáig megőrizve</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Kulcs tárolva, a jelmondat a Butler bezárásáig megőrizve</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Kulcs tárolva, a megnyitáshoz jelmondat szükséges</string>
     <string name="explorer_info_sftp_host_key_type_label">Gazdakulcs típusa</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Gazdakulcs ujjlenyomata</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -279,6 +281,13 @@
         <item quantity="other">Eltávolítasz %1$d hálózati tárhelyet?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">A Butler elfelejti a kiszolgáló adatait és a mentett jelszót. A kiszolgálón semmi sem törlődik.</string>
+    <string name="explorer_network_disconnect_location_action">Kapcsolat bontása</string>
+    <string name="explorer_network_disconnect_confirmation_title">Bontod a kapcsolatot: %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Bontod %1$d hálózati tárhely kapcsolatát?</item>
+        <item quantity="other">Bontod %1$d hálózati tárhely kapcsolatát?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">A Butler elfelejti a bejelentkezési adatokat, amíg újra be nem jelentkezel. A kiszolgáló adatai mentve maradnak. Az ehhez a tárhelyhez tartozó, még futó átvitelek sikertelenek lehetnek.</string>
     <string name="explorer_network_form_add_title">Hálózati tárhely hozzáadása</string>
     <string name="explorer_network_form_edit_title">Hálózati tárhely szerkesztése</string>
     <string name="explorer_network_form_label_label">Név (nem kötelező)</string>
@@ -320,6 +329,7 @@
     <string name="explorer_sftp_form_sign_in_title">Bejelentkezés ide: %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">A kiszolgáló megnyitásához add meg újra a jelszót.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">A kiszolgáló megnyitásához válaszd ki újra a privát kulcs fájlját, vagy add meg a jelmondatát.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">A kiszolgáló megnyitásához add meg a kulcs jelmondatát.</string>
     <string name="explorer_sftp_form_host_hint">build.lan vagy 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Alapútvonal (nem kötelező)</string>
     <string name="explorer_sftp_form_base_path_help">Üres: a kiszolgáló kezdőmappája. / jellel kezdve: abszolút útvonal. Minden más: a kezdőmappához viszonyított útvonal.</string>
@@ -332,10 +342,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Fájl kiválasztása</string>
     <string name="explorer_sftp_form_passphrase_label">Kulcs jelmondata (nem kötelező)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">A mentett jelmondat megtartásához hagyd üresen</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">A Butler indítása óta megadott jelmondat használatához hagyd üresen</string>
     <string name="explorer_sftp_form_remember_label">Hitelesítő adatok megjegyzése</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Jelmondat megjegyzése</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">A kulccsal együtt tárolva</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">A Butler csatlakozáskor kéri be</string>
     <string name="explorer_sftp_form_error_username_malformed">A felhasználónév nem tartalmazhat vezérlőkaraktereket</string>
     <string name="explorer_sftp_form_error_password_required">A felhasználónév, a bejelentkezési mód vagy a megjegyzési beállítás módosításához add meg újra a jelszót</string>
     <string name="explorer_sftp_form_error_key_required">Válassz ki egy privát kulcs fájlt</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Add meg a kulcs jelmondatát</string>
+    <string name="explorer_sftp_form_error_location_changed">A kiszolgáló időközben megváltozott. Próbáld újra.</string>
     <string name="explorer_sftp_form_error_key_too_large">Ez a fájl nagyobb, mint %1$d KiB, ezért nem lehet privát kulcs</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Fájlt válassz, ne mappát</string>
     <string name="explorer_sftp_form_error_key_unreadable">A kulcsfájl nem olvasható</string>
@@ -365,6 +381,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Lecseréled a kiszolgáló kulcsát?</string>
     <string name="explorer_sftp_host_key_retrust_message">Csak akkor cseréld le a kulcsot, ha tudod, miért változtatta meg a(z) %1$s. A Butler ettől kezdve a bemutatott kulcsban fog megbízni.</string>
     <string name="explorer_sftp_host_key_retrust_action">Kulcs cseréje</string>
+    <string name="explorer_sftp_unlock_title">%1$s feloldása</string>
+    <string name="explorer_sftp_unlock_message">Add meg a kulcs jelmondatát.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Jelmondat</string>
+    <string name="explorer_sftp_unlock_edit_action">Kiszolgáló szerkesztése</string>
+    <string name="explorer_sftp_unlock_action">Feloldás</string>
     <string name="explorer_webdav_form_add_title">WebDAV-kiszolgáló hozzáadása</string>
     <string name="explorer_webdav_form_edit_title">WebDAV-kiszolgáló szerkesztése</string>
     <string name="explorer_webdav_form_sign_in_title">Bejelentkezés ide: %1$s</string>

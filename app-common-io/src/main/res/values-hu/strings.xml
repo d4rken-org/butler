@@ -64,6 +64,10 @@
     <string name="sftp_error_key_format_description">A privát kulcs olyan formátumú, amelyet a Butler nem tud olvasni. Az OpenSSH-, PEM- és PKCS#8-kulcsfájlok támogatottak.</string>
     <string name="sftp_error_key_passphrase_title">Hibás jelmondat</string>
     <string name="sftp_error_key_passphrase_description">A privát kulcs védett, és a jelmondat hibás vagy hiányzik.</string>
+    <string name="sftp_error_key_passphrase_required_title">Jelmondat szükséges</string>
+    <string name="sftp_error_key_passphrase_required_description">A kiszolgálóhoz való csatlakozáshoz add meg a privát kulcs jelmondatát.</string>
+    <string name="sftp_error_location_changed_title">A kiszolgáló megváltozott</string>
+    <string name="sftp_error_location_changed_description">A kiszolgáló időközben megváltozott. Próbáld újra.</string>
     <string name="sftp_error_access_denied_title">Nincs hozzáférés a mappához</string>
     <string name="sftp_error_access_denied_description">Ez a fiók nem nyithatja meg a(z) \"%1$s\" kiszolgálóhoz beállított mappát. Ellenőrizd a mappa engedélyeit a kiszolgálón.</string>
     <string name="sftp_error_pro_required_title">Az SFTP-kiszolgálókhoz Butler Pro szükséges</string>
