@@ -104,7 +104,7 @@ class ExtractOperation @AssistedInject constructor(
             } catch (e: ArchivePasswordRequiredException) {
                 if (!promptForPassword(ctx, attemptFailed || e.attemptFailed, e.mayBeDamaged)) {
                     log(tag, INFO) { "Password prompt dismissed before indexing, aborting extract" }
-                    completeEmpty(ctx)
+                    completeEmpty(ctx, CancellationException("Password prompt cancelled"))
                     return null
                 }
                 attemptFailed = true
@@ -150,9 +150,10 @@ class ExtractOperation @AssistedInject constructor(
         e
     }
 
-    private suspend fun ProducerScope<State>.completeEmpty(ctx: Operation.Context) = send(
+    private suspend fun ProducerScope<State>.completeEmpty(ctx: Operation.Context, error: Throwable) = send(
         State.Completed(
             startedAt = ctx.startedAt,
+            error = error,
             report = ExtractOperationReport.Builder(command.archive).build(),
         ),
     )
@@ -178,7 +179,7 @@ class ExtractOperation @AssistedInject constructor(
                 )
             ) {
                 log(tag, INFO) { "Password prompt dismissed, aborting extract" }
-                completeEmpty(ctx)
+                completeEmpty(ctx, CancellationException("Password prompt cancelled"))
                 return
             }
             attemptFailed = true // any subsequent loop means the previous attempt didn't verify
@@ -190,6 +191,7 @@ class ExtractOperation @AssistedInject constructor(
         // The up-front check reads only so far, so a wrong password can still surface mid-way. Then
         // the user is asked again and the pass resumes with what is left; finished entries stay.
         val remaining = LinkedHashSet(wanted)
+        var promptCancelled: CancellationException? = null
 
         try {
             while (true) {
@@ -219,6 +221,7 @@ class ExtractOperation @AssistedInject constructor(
                     ) {
                         log(tag, INFO) { "Password prompt dismissed mid-extraction, keeping what was written" }
                         remaining.forEach { session.reportBuilder.addSkipped(it.segments.joinToString("/")) }
+                        promptCancelled = CancellationException("Password prompt cancelled")
                         break
                     }
                 }
@@ -230,7 +233,7 @@ class ExtractOperation @AssistedInject constructor(
             finish(ctx, session, error = e)
             return
         }
-        finish(ctx, session, error = null)
+        finish(ctx, session, error = promptCancelled)
     }
 
     private suspend fun ProducerScope<State>.extractEntries(
@@ -298,6 +301,7 @@ class ExtractOperation @AssistedInject constructor(
                     send(
                     State.Completed(
                         startedAt = ctx.startedAt,
+                        error = CancellationException("Merge prompt cancelled"),
                         report = ExtractOperationReport.Builder(command.archive).build(),
                     ),
                 )
@@ -437,7 +441,7 @@ class ExtractOperation @AssistedInject constructor(
                     if (resolution !is PathActionIssue.ArchivePasswordRequired.Resolution.Submit) {
                         log(tag, INFO) { "Password prompt dismissed, aborting sequential extract" }
                         foldResults()
-                        finish(ctx, session, error = null)
+                        finish(ctx, session, error = CancellationException("Password prompt cancelled"))
                         return
                     }
                     // Restart: the resolved password was cached by the issue handler; committed

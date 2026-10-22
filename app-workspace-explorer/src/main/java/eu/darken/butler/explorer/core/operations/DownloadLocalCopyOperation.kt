@@ -30,6 +30,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -107,6 +108,7 @@ class DownloadLocalCopyOperation @AssistedInject constructor(
                     send(
                         State.Completed(
                             startedAt = operationContext.startedAt,
+                            error = CancellationException("Overwrite prompt cancelled"),
                             report = CopyOperationReport.Builder()
                                 .apply { setSubjectPath(destPath) }
                                 .build(),
