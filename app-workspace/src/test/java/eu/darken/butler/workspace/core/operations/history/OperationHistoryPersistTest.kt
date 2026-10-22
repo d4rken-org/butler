@@ -26,6 +26,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
@@ -48,6 +49,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
@@ -736,6 +738,38 @@ class OperationHistoryPersistTest : BaseTest() {
 
         database.operationHistoryDao().getById(id)!!.paths.shouldBeEmpty()
         allScopePaths(id).map { it.path } shouldContainAll listOf(target.path, "/sdcard/protected")
+    }
+
+    @Test
+    fun `a run cancelled at a prompt is stored as cancelled with what it already extracted`() = runTest {
+        val archive = LocalPath.build("/sdcard/Download/archive.zip")
+        val extracted = listOf(
+            LocalPath.build("/sdcard/Download/archive/a.txt"),
+            LocalPath.build("/sdcard/Download/archive/b.txt"),
+        )
+        val id = persist(
+            testSnapshot(
+                metadata = testMetadata(
+                    operationKind = Operation.Metadata.Kind.EXTRACT,
+                    plan = planInto(archive, destination = LocalPath.build("/sdcard/Download")),
+                ),
+                state = TestCompletedState(
+                    report = TestReport(
+                        affectedPaths = extracted.map {
+                            changeOf(it, Operation.Report.Paths.PathChange.Change.ADDED)
+                        },
+                        subjectPath = archive,
+                        partialErrorCount = 1,
+                    ),
+                    error = CancellationException("Password prompt cancelled"),
+                ),
+            )
+        )
+
+        val stored = database.operationHistoryDao().getById(id)!!
+        stored.entry.outcome shouldBe HistoryOutcome.CANCELLED.name
+        stored.paths.map { it.path } shouldContainExactlyInAnyOrder extracted.map { it.path }
+        stored.entry.affectedPathsCount shouldBe 2
     }
 
     @Test
