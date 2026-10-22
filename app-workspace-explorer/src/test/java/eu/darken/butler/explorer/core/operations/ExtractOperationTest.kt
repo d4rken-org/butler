@@ -25,8 +25,11 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.IssueHandler
+import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -43,7 +46,10 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
 import io.mockk.mockk
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.withTimeout
 import org.junit.Before
 import org.junit.Test
 import testhelpers.BaseTest
@@ -53,6 +59,7 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 class ExtractOperationTest : BaseTest() {
 
@@ -175,6 +182,12 @@ class ExtractOperationTest : BaseTest() {
 
     private fun List<ExplorerOperation.State>.completed() =
         filterIsInstance<ExplorerOperation.State.Completed>().single()
+
+    private suspend fun TestScope.runManaged(operation: Operation): ManagedOperation =
+        ManagedOperation(Operation.Id(), operation, this).apply {
+            start()
+            withTimeout(5.seconds) { state.first { it is Operation.State.Completed } }
+        }
 
     @Test
     fun `seekable flow writes entries via temp sibling and atomic move`() = runTest2 {
@@ -364,7 +377,7 @@ class ExtractOperationTest : BaseTest() {
         val states = operation(command()).perform(context()).toList()
 
         val completed = states.completed()
-        completed.error.shouldBeNull()
+        completed.error.shouldBeInstanceOf<CancellationException>()
         val report = completed.report as ExtractOperationReport
         report.extractedFiles shouldBe 0
         report.affectedPaths shouldBe emptyList()
@@ -674,7 +687,7 @@ class ExtractOperationTest : BaseTest() {
 
         val completed = operation(command()).perform(context()).toList().completed()
 
-        completed.error.shouldBeNull()
+        completed.error.shouldBeInstanceOf<CancellationException>()
         (completed.report as ExtractOperationReport).subjectPath shouldBe archivePath
         writtenStreams shouldBe emptyMap()
         coVerify(exactly = 0) { archiveService.useEntryStreams(any(), any(), any()) }
@@ -727,7 +740,7 @@ class ExtractOperationTest : BaseTest() {
 
         val completed = operation(command()).perform(context()).toList().completed()
 
-        completed.error.shouldBeNull()
+        completed.error.shouldBeInstanceOf<CancellationException>()
         val report = completed.report as ExtractOperationReport
         report.extractedFiles shouldBe 1
         report.skippedEntries shouldContain "b.txt"
@@ -854,9 +867,11 @@ class ExtractOperationTest : BaseTest() {
         coEvery { issueHandler.handleIssue(any(), any()) } returns
             PathActionIssue.PathAlreadyExists.Resolution.Skip()
 
-        val report = operation(command()).perform(context()).toList().completed().report
-            as ExtractOperationReport
+        val completed = operation(command()).perform(context()).toList().completed()
 
+        // An explicit Skip, not a Cancel.
+        completed.error.shouldBeNull()
+        val report = completed.report as ExtractOperationReport
         report.outputDir.shouldBeNull()
         addedHints.map { it.lookedUp } shouldNotContain baseDir
     }
@@ -1013,6 +1028,113 @@ class ExtractOperationTest : BaseTest() {
         }
 
         coVerify(exactly = 0) { fileSystemHinter.trackPathsAdded(any(), any()) }
+    }
+
+    /*
+     * Answering any prompt with Cancel has to end the run as cancelled, the same way the row, History
+     * and the failure notification read it.
+     */
+
+    @Test
+    fun `cancelling the password prompt for an encrypted entry list ends as cancelled`() = runTest2 {
+        coEvery { archiveService.index(archivePath) } throws ArchivePasswordRequiredException(archivePath)
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
+
+        val managed = runManaged(operation(command()))
+
+        coVerify(exactly = 1) { issueHandler.handleIssue(any(), any()) }
+        managed.toDisplayModel().state.shouldBeInstanceOf<OperationDisplay.State.Cancelled>()
+    }
+
+    @Test
+    fun `cancelling the up-front password prompt ends as cancelled`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { archiveService.requiresPassword(archivePath) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
+
+        val managed = runManaged(operation(command()))
+
+        coVerify(exactly = 1) { issueHandler.handleIssue(any(), any()) }
+        managed.toDisplayModel().state.shouldBeInstanceOf<OperationDisplay.State.Cancelled>()
+    }
+
+    @Test
+    fun `cancelling the mid-extraction password prompt ends as cancelled`() = runTest2 {
+        mockSeekable(meta("a.txt"), meta("b.txt"), meta("c.txt"))
+        val passes = mockPasswordFailingAfterFirstEntry()
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
+
+        val managed = runManaged(operation(command()))
+
+        coVerify(exactly = 1) { issueHandler.handleIssue(any(), any()) }
+        managed.toDisplayModel().state.shouldBeInstanceOf<OperationDisplay.State.Cancelled>()
+        val completed = managed.state.value.shouldBeInstanceOf<ExplorerOperation.State.Completed>()
+        completed.error.shouldBeInstanceOf<CancellationException>()
+        val report = completed.report as ExtractOperationReport
+        report.subjectPath shouldBe archivePath
+        report.affectedPaths.map { it.path } shouldContainExactly listOf(baseDir.child("a.txt"))
+        report.extractedBytes shouldBe "data-a.txt".length.toLong()
+        report.skippedEntries shouldContainExactlyInAnyOrder listOf("b.txt", "c.txt")
+        passes.size shouldBe 1
+    }
+
+    @Test
+    fun `cancelling the sequential merge prompt ends as cancelled`() = runTest2 {
+        mockNotSeekable()
+        coEvery { gatewaySwitch.exists(baseDir) } returns true
+        coEvery { gatewaySwitch.lookup(baseDir, any<LookupOptions>()) } returns typedLookupOf(baseDir, isDir = true)
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+
+        val managed = runManaged(operation(command()))
+
+        coVerify(exactly = 1) { issueHandler.handleIssue(any(), any()) }
+        managed.toDisplayModel().state.shouldBeInstanceOf<OperationDisplay.State.Cancelled>()
+    }
+
+    @Test
+    fun `cancelling the sequential password prompt ends as cancelled`() = runTest2 {
+        mockNotSeekable()
+        var calls = 0
+        coEvery { archiveService.extractZipSequential(any(), any(), any(), any(), any()) } coAnswers {
+            calls++
+            val action = arg<suspend (SequentialEntry, InputStream) -> SequentialOutcome>(4)
+            action(
+                SequentialEntry(ordinal = 0, segments = listOf("a.txt"), rawName = "a.txt", isEncrypted = false),
+                ByteArrayInputStream("alpha".toByteArray()),
+            )
+            throw ArchivePasswordRequiredException(archivePath)
+        }
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
+
+        val managed = runManaged(operation(command()))
+
+        coVerify(exactly = 1) { issueHandler.handleIssue(any(), any()) }
+        managed.toDisplayModel().state.shouldBeInstanceOf<OperationDisplay.State.Cancelled>()
+        val completed = managed.state.value.shouldBeInstanceOf<ExplorerOperation.State.Completed>()
+        completed.error.shouldBeInstanceOf<CancellationException>()
+        val report = completed.report as ExtractOperationReport
+        report.subjectPath shouldBe archivePath
+        report.affectedPaths.map { it.path } shouldContainExactly listOf(baseDir.child("a.txt"))
+        report.extractedBytes shouldBe "alpha".length.toLong()
+        calls shouldBe 1
+    }
+
+    @Test
+    fun `cancelling an entry conflict prompt ends as cancelled`() = runTest2 {
+        mockSeekable(meta("a.txt"))
+        coEvery { gatewaySwitch.exists(baseDir.child("a.txt")) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+
+        val managed = runManaged(operation(command()))
+
+        coVerify(exactly = 1) { issueHandler.handleIssue(any(), any()) }
+        managed.toDisplayModel().state.shouldBeInstanceOf<OperationDisplay.State.Cancelled>()
     }
 
     @Test

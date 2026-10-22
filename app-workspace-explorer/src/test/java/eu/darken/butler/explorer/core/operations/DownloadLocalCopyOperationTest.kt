@@ -15,8 +15,11 @@ import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.IssueHandler
+import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -31,8 +34,10 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.withTimeout
 import org.junit.Before
@@ -43,6 +48,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
@@ -107,6 +113,12 @@ class DownloadLocalCopyOperationTest : BaseTest() {
     private fun List<ExplorerOperation.State>.completed() =
         filterIsInstance<ExplorerOperation.State.Completed>().single()
 
+    private suspend fun TestScope.runManaged(operation: Operation): ManagedOperation =
+        ManagedOperation(Operation.Id(), operation, this).apply {
+            start()
+            withTimeout(5.seconds) { state.first { it is Operation.State.Completed } }
+        }
+
     @Test
     fun `copies the source via temp sibling and reports the destination`() = runTest2 {
         val states = operation().perform(context()).toList()
@@ -159,13 +171,25 @@ class DownloadLocalCopyOperationTest : BaseTest() {
         issue.captured.canOverwrite shouldBe true
         issue.captured.canSkip shouldBe false
         val completed = states.completed()
-        completed.error.shouldBeNull()
+        completed.error.shouldBeInstanceOf<CancellationException>()
         val report = completed.report as CopyOperationReport
         report.copiedFiles shouldBe 0
         report.affectedPaths.shouldBeEmpty()
         // The row still has to name the copy that was asked for, not fall back to the source.
         report.subjectPath shouldBe destPath
         coVerify(exactly = 0) { gatewaySwitch.openInputStream(any()) }
+    }
+
+    @Test
+    fun `a cancelled conflict prompt ends the operation as cancelled`() = runTest2 {
+        coEvery { gatewaySwitch.exists(destPath) } returns true
+        coEvery { issueHandler.handleIssue(any(), any()) } returns
+            PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+
+        val managed = runManaged(operation())
+
+        coVerify(exactly = 1) { issueHandler.handleIssue(any(), any()) }
+        managed.toDisplayModel().state.shouldBeInstanceOf<OperationDisplay.State.Cancelled>()
     }
 
     @Test
