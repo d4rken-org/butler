@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">Den private nøkkelen er ikke i et format Butler kan lese. Nøkkelfiler i OpenSSH-, PEM- og PKCS#8-format støttes.</string>
     <string name="sftp_error_key_passphrase_title">Feil passfrase</string>
     <string name="sftp_error_key_passphrase_description">Den private nøkkelen er beskyttet, og passfrasen er feil eller mangler.</string>
+    <string name="sftp_error_key_passphrase_required_title">Passfrase kreves</string>
+    <string name="sftp_error_key_passphrase_required_description">Skriv inn passfrasen til den private nøkkelen for å koble til denne serveren.</string>
+    <string name="sftp_error_location_changed_title">Serveren er endret</string>
+    <string name="sftp_error_location_changed_description">Denne serveren ble endret i mellomtiden. Prøv igjen.</string>
     <string name="sftp_error_access_denied_title">Ingen tilgang til denne mappen</string>
     <string name="sftp_error_access_denied_description">Denne kontoen har kanskje ikke tillatelse til å åpne mappen som er angitt for \"%1$s\". Sjekk tillatelsene for mappen på serveren.</string>
     <string name="sftp_error_pro_required_title">SFTP-servere krever Butler Pro</string>

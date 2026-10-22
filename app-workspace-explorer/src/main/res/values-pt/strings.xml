@@ -160,6 +160,8 @@
     <string name="explorer_info_sftp_private_key_label">Chave privada</string>
     <string name="explorer_info_sftp_credential_stored">Guardada neste dispositivo</string>
     <string name="explorer_info_sftp_credential_session">Mantida até o Butler fechar</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Chave guardada, frase de acesso mantida até o Butler fechar</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Chave guardada, é necessária a frase de acesso para abrir</string>
     <string name="explorer_info_sftp_host_key_type_label">Tipo de chave do anfitrião</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Impressão digital da chave do anfitrião</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -332,6 +334,14 @@
         <item quantity="other">Remover %1$d localizações de armazenamento de rede?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">O Butler esquece os dados do servidor e a palavra-passe guardada. Nada no servidor é eliminado.</string>
+    <string name="explorer_network_disconnect_location_action">Desligar</string>
+    <string name="explorer_network_disconnect_confirmation_title">Desligar %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Desligar %1$d armazenamento de rede?</item>
+        <item quantity="many">Desligar %1$d armazenamentos de rede?</item>
+        <item quantity="other">Desligar %1$d armazenamentos de rede?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">O Butler esquece os dados de início de sessão até voltares a iniciar sessão. Os dados do servidor continuam guardados. As transferências para este armazenamento que ainda estejam em curso podem falhar.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">Adicionar armazenamento de rede</string>
@@ -375,6 +385,7 @@
     <string name="explorer_sftp_form_sign_in_title">Iniciar sessão em %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Introduz novamente a palavra-passe para abrir este servidor.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Escolhe novamente o ficheiro da chave privada, ou introduz a respetiva frase de acesso, para abrir este servidor.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Introduz a frase de acesso da chave para abrir este servidor.</string>
     <string name="explorer_sftp_form_host_hint">build.lan ou 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Caminho base (opcional)</string>
     <string name="explorer_sftp_form_base_path_help">Vazio: a pasta inicial do servidor. Começa com /: um caminho absoluto. Qualquer outro valor: relativo à pasta inicial.</string>
@@ -387,10 +398,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Escolher ficheiro</string>
     <string name="explorer_sftp_form_passphrase_label">Frase de acesso da chave (opcional)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Deixa em branco para manter a frase de acesso guardada</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Deixa em branco para usar a frase de acesso introduzida desde que o Butler foi iniciado</string>
     <string name="explorer_sftp_form_remember_label">Memorizar credenciais</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Memorizar frase de acesso</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Guardada com a chave</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">O Butler pede-a ao ligar</string>
     <string name="explorer_sftp_form_error_username_malformed">O nome de utilizador não pode conter caracteres de controlo</string>
     <string name="explorer_sftp_form_error_password_required">Introduz novamente a palavra-passe para alterar o nome de utilizador, o método de início de sessão ou a opção de memorizar</string>
     <string name="explorer_sftp_form_error_key_required">Escolhe um ficheiro de chave privada</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Introduz a frase de acesso da chave</string>
+    <string name="explorer_sftp_form_error_location_changed">Este servidor foi alterado entretanto. Tenta novamente.</string>
     <string name="explorer_sftp_form_error_key_too_large">Este ficheiro tem mais de %1$d KiB e não pode ser uma chave privada</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Escolhe um ficheiro, não uma pasta</string>
     <string name="explorer_sftp_form_error_key_unreadable">Não foi possível ler o ficheiro da chave</string>
@@ -420,6 +437,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Substituir a chave do servidor?</string>
     <string name="explorer_sftp_host_key_retrust_message">Substitui a chave apenas se souberes porque é que %1$s a alterou. A partir de agora, o Butler vai confiar na chave apresentada.</string>
     <string name="explorer_sftp_host_key_retrust_action">Substituir chave</string>
+    <string name="explorer_sftp_unlock_title">Desbloquear %1$s</string>
+    <string name="explorer_sftp_unlock_message">Introduz a frase de acesso da chave.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Frase de acesso</string>
+    <string name="explorer_sftp_unlock_edit_action">Editar servidor</string>
+    <string name="explorer_sftp_unlock_action">Desbloquear</string>
     <string name="explorer_webdav_form_add_title">Adicionar servidor WebDAV</string>
     <string name="explorer_webdav_form_edit_title">Editar servidor WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">Iniciar sessão em %1$s</string>

@@ -135,6 +135,8 @@
     <string name="explorer_info_sftp_private_key_label">Kunci peribadi</string>
     <string name="explorer_info_sftp_credential_stored">Disimpan pada peranti ini</string>
     <string name="explorer_info_sftp_credential_session">Disimpan sehingga Butler ditutup</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Kunci disimpan, frasa laluan disimpan sehingga Butler ditutup</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Kunci disimpan, frasa laluan diperlukan untuk membuka</string>
     <string name="explorer_info_sftp_host_key_type_label">Jenis kunci hos</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Cap jari kunci hos</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -268,6 +270,12 @@
         <item quantity="other">Buang %1$d storan rangkaian?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler melupakan butiran pelayan dan kata laluan tersimpan. Tiada apa-apa pada pelayan dipadam.</string>
+    <string name="explorer_network_disconnect_location_action">Putuskan sambungan</string>
+    <string name="explorer_network_disconnect_confirmation_title">Putuskan sambungan %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="other">Putuskan sambungan %1$d storan rangkaian?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler melupakan butiran log masuk sehingga kamu log masuk semula. Butiran pelayan kekal disimpan. Pemindahan ke storan ini yang masih berjalan mungkin gagal.</string>
     <string name="explorer_network_form_add_title">Tambah storan rangkaian</string>
     <string name="explorer_network_form_edit_title">Edit storan rangkaian</string>
     <string name="explorer_network_form_label_label">Nama (pilihan)</string>
@@ -309,6 +317,7 @@
     <string name="explorer_sftp_form_sign_in_title">Log masuk ke %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Masukkan kata laluan semula untuk membuka pelayan ini.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Pilih fail kunci peribadi semula, atau masukkan frasa laluannya, untuk membuka pelayan ini.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Masukkan frasa laluan kunci untuk membuka pelayan ini.</string>
     <string name="explorer_sftp_form_host_hint">build.lan atau 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Laluan asas (pilihan)</string>
     <string name="explorer_sftp_form_base_path_help">Kosong: folder permulaan pelayan. Bermula dengan /: laluan mutlak. Selain itu: relatif kepada folder permulaan.</string>
@@ -321,10 +330,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Pilih fail</string>
     <string name="explorer_sftp_form_passphrase_label">Frasa laluan kunci (pilihan)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Biarkan kosong untuk mengekalkan frasa laluan tersimpan</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Biarkan kosong untuk menggunakan frasa laluan yang dimasukkan sejak Butler dimulakan</string>
     <string name="explorer_sftp_form_remember_label">Ingat bukti kelayakan</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Ingat frasa laluan</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Disimpan bersama kunci</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler memintanya semasa menyambung</string>
     <string name="explorer_sftp_form_error_username_malformed">Nama pengguna tidak boleh mengandungi aksara kawalan</string>
     <string name="explorer_sftp_form_error_password_required">Masukkan kata laluan semula untuk menukar nama pengguna, kaedah log masuk atau tetapan ingat</string>
     <string name="explorer_sftp_form_error_key_required">Pilih fail kunci peribadi</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Masukkan frasa laluan kunci</string>
+    <string name="explorer_sftp_form_error_location_changed">Pelayan ini telah diubah sementara itu. Cuba lagi.</string>
     <string name="explorer_sftp_form_error_key_too_large">Fail ini lebih besar daripada %1$d KiB dan tidak mungkin kunci peribadi</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Pilih fail, bukan folder</string>
     <string name="explorer_sftp_form_error_key_unreadable">Fail kunci tidak dapat dibaca</string>
@@ -354,6 +369,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Ganti kunci pelayan?</string>
     <string name="explorer_sftp_host_key_retrust_message">Ganti kunci hanya jika kamu tahu sebab %1$s mengubahnya. Butler akan mempercayai kunci yang dikemukakan mulai sekarang.</string>
     <string name="explorer_sftp_host_key_retrust_action">Ganti kunci</string>
+    <string name="explorer_sftp_unlock_title">Buka kunci %1$s</string>
+    <string name="explorer_sftp_unlock_message">Masukkan frasa laluan kunci.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Frasa laluan</string>
+    <string name="explorer_sftp_unlock_edit_action">Edit pelayan</string>
+    <string name="explorer_sftp_unlock_action">Buka kunci</string>
     <string name="explorer_webdav_form_add_title">Tambah pelayan WebDAV</string>
     <string name="explorer_webdav_form_edit_title">Edit pelayan WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">Log masuk ke %1$s</string>

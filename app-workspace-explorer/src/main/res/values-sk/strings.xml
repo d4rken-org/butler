@@ -161,6 +161,8 @@
     <string name="explorer_info_sftp_private_key_label">Súkromný kľúč</string>
     <string name="explorer_info_sftp_credential_stored">Uložené v tomto zariadení</string>
     <string name="explorer_info_sftp_credential_session">Uchované do zatvorenia aplikácie Butler</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Kľúč je uložený, prístupová fráza sa uchová do zatvorenia aplikácie Butler</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Kľúč je uložený, na otvorenie je potrebná prístupová fráza</string>
     <string name="explorer_info_sftp_host_key_type_label">Typ kľúča hostiteľa</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Odtlačok kľúča hostiteľa</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -337,6 +339,15 @@
         <item quantity="other">Odstrániť %1$d sieťových úložísk?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler zabudne údaje o serveri a uložené heslo. Na serveri sa nič neodstráni.</string>
+    <string name="explorer_network_disconnect_location_action">Odpojiť</string>
+    <string name="explorer_network_disconnect_confirmation_title">Odpojiť %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Odpojiť %1$d sieťové úložisko?</item>
+        <item quantity="few">Odpojiť %1$d sieťové úložiská?</item>
+        <item quantity="many">Odpojiť sieťové úložiská (počet: %1$d)?</item>
+        <item quantity="other">Odpojiť %1$d sieťových úložísk?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler zabudne prihlasovacie údaje, kým sa znova neprihlásiš. Údaje o serveri zostanú uložené. Prebiehajúce prenosy do tohto úložiska môžu zlyhať.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">Pridať sieťové úložisko</string>
@@ -380,6 +391,7 @@
     <string name="explorer_sftp_form_sign_in_title">Prihlásenie na server %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Zadaj heslo znova a otvor tento server.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Vyber súbor súkromného kľúča znova alebo zadaj jeho prístupovú frázu a otvor tento server.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Zadaj prístupovú frázu kľúča a otvor tento server.</string>
     <string name="explorer_sftp_form_host_hint">build.lan alebo 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Základná cesta (nepovinné)</string>
     <string name="explorer_sftp_form_base_path_help">Prázdne: východiskový priečinok servera. Začína sa znakom /: absolútna cesta. Čokoľvek iné: cesta relatívna k východiskovému priečinku.</string>
@@ -392,10 +404,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Vybrať súbor</string>
     <string name="explorer_sftp_form_passphrase_label">Prístupová fráza kľúča (nepovinné)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Nechaj prázdne, ak chceš ponechať uloženú prístupovú frázu</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Nechaj prázdne, ak chceš použiť prístupovú frázu zadanú od spustenia aplikácie Butler</string>
     <string name="explorer_sftp_form_remember_label">Zapamätať si prihlasovacie údaje</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Zapamätať si prístupovú frázu</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Uložená spolu s kľúčom</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler sa na ňu opýta pri pripájaní</string>
     <string name="explorer_sftp_form_error_username_malformed">Používateľské meno nesmie obsahovať riadiace znaky</string>
     <string name="explorer_sftp_form_error_password_required">Ak chceš zmeniť používateľské meno, spôsob prihlásenia alebo nastavenie zapamätania, zadaj heslo znova</string>
     <string name="explorer_sftp_form_error_key_required">Vyber súbor súkromného kľúča</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Zadaj prístupovú frázu kľúča</string>
+    <string name="explorer_sftp_form_error_location_changed">Tento server sa medzitým zmenil. Skús to znova.</string>
     <string name="explorer_sftp_form_error_key_too_large">Tento súbor je väčší než %1$d KiB, preto nemôže byť súkromným kľúčom</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Vyber súbor, nie priečinok</string>
     <string name="explorer_sftp_form_error_key_unreadable">Súbor kľúča sa nepodarilo prečítať</string>
@@ -425,6 +443,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Nahradiť kľúč servera?</string>
     <string name="explorer_sftp_host_key_retrust_message">Kľúč nahraď, len ak vieš, prečo ho server %1$s zmenil. Butler bude odteraz dôverovať predloženému kľúču.</string>
     <string name="explorer_sftp_host_key_retrust_action">Nahradiť kľúč</string>
+    <string name="explorer_sftp_unlock_title">Odomknúť %1$s</string>
+    <string name="explorer_sftp_unlock_message">Zadaj prístupovú frázu kľúča.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Prístupová fráza</string>
+    <string name="explorer_sftp_unlock_edit_action">Upraviť server</string>
+    <string name="explorer_sftp_unlock_action">Odomknúť</string>
     <string name="explorer_webdav_form_add_title">Pridať server WebDAV</string>
     <string name="explorer_webdav_form_edit_title">Upraviť server WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">Prihlásenie na server %1$s</string>

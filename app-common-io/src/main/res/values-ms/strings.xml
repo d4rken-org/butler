@@ -64,6 +64,10 @@
     <string name="sftp_error_key_format_description">Kunci peribadi tidak dalam format yang dapat dibaca oleh Butler. Fail kunci OpenSSH, PEM dan PKCS#8 disokong.</string>
     <string name="sftp_error_key_passphrase_title">Frasa laluan salah</string>
     <string name="sftp_error_key_passphrase_description">Kunci peribadi dilindungi dan frasa laluan salah atau tiada.</string>
+    <string name="sftp_error_key_passphrase_required_title">Frasa laluan diperlukan</string>
+    <string name="sftp_error_key_passphrase_required_description">Masukkan frasa laluan kunci peribadi untuk menyambung ke pelayan ini.</string>
+    <string name="sftp_error_location_changed_title">Pelayan berubah</string>
+    <string name="sftp_error_location_changed_description">Pelayan ini telah diubah sementara itu. Cuba lagi.</string>
     <string name="sftp_error_access_denied_title">Tiada akses ke folder ini</string>
     <string name="sftp_error_access_denied_description">Akaun ini tidak dibenarkan membuka folder yang ditetapkan untuk \"%1$s\". Semak kebenaran folder pada pelayan.</string>
     <string name="sftp_error_pro_required_title">Pelayan SFTP memerlukan Butler Pro</string>

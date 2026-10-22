@@ -143,6 +143,8 @@
     <string name="explorer_info_sftp_private_key_label">Cheie privată</string>
     <string name="explorer_info_sftp_credential_stored">Stocată pe acest dispozitiv</string>
     <string name="explorer_info_sftp_credential_session">Păstrată până se închide Butler</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Cheie stocată, fraza de acces este păstrată până se închide Butler</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Cheie stocată, este necesară fraza de acces pentru deschidere</string>
     <string name="explorer_info_sftp_host_key_type_label">Tipul cheii serverului</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Amprenta cheii serverului</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -290,6 +292,14 @@
         <item quantity="other">Elimini %1$d de spații de stocare în rețea?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler uită detaliile serverului și parola salvată. Nu se șterge nimic de pe server.</string>
+    <string name="explorer_network_disconnect_location_action">Deconectează</string>
+    <string name="explorer_network_disconnect_confirmation_title">Deconectezi %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Deconectezi %1$d spațiu de stocare în rețea?</item>
+        <item quantity="few">Deconectezi %1$d spații de stocare în rețea?</item>
+        <item quantity="other">Deconectezi %1$d de spații de stocare în rețea?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler uită detaliile de autentificare până te autentifici din nou. Detaliile serverului rămân salvate. Transferurile către acest spațiu de stocare care încă rulează pot eșua.</string>
     <string name="explorer_network_form_add_title">Adaugă stocare în rețea</string>
     <string name="explorer_network_form_edit_title">Editează stocarea în rețea</string>
     <string name="explorer_network_form_label_label">Nume (opțional)</string>
@@ -331,6 +341,7 @@
     <string name="explorer_sftp_form_sign_in_title">Autentifică-te la %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Introdu din nou parola pentru a deschide acest server.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Alege din nou fișierul cu cheia privată sau introdu fraza de acces pentru a deschide acest server.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Introdu fraza de acces a cheii pentru a deschide acest server.</string>
     <string name="explorer_sftp_form_host_hint">build.lan sau 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Cale de bază (opțional)</string>
     <string name="explorer_sftp_form_base_path_help">Gol: dosarul de pornire al serverului. Începe cu /: o cale absolută. Altfel: relativă la dosarul de pornire.</string>
@@ -343,10 +354,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Alege fișierul</string>
     <string name="explorer_sftp_form_passphrase_label">Fraza de acces a cheii (opțional)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Lasă gol pentru a păstra fraza de acces salvată</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Lasă gol pentru a folosi fraza de acces introdusă de la pornirea Butler</string>
     <string name="explorer_sftp_form_remember_label">Reține datele de autentificare</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Reține fraza de acces</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Stocată împreună cu cheia</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler o cere la conectare</string>
     <string name="explorer_sftp_form_error_username_malformed">Numele de utilizator nu poate conține caractere de control</string>
     <string name="explorer_sftp_form_error_password_required">Introdu din nou parola pentru a schimba numele de utilizator, metoda de autentificare sau setarea de reținere</string>
     <string name="explorer_sftp_form_error_key_required">Alege un fișier cu cheia privată</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Introdu fraza de acces a cheii</string>
+    <string name="explorer_sftp_form_error_location_changed">Acest server a fost modificat între timp. Încearcă din nou.</string>
     <string name="explorer_sftp_form_error_key_too_large">Acest fișier este mai mare de %1$d KiB și nu poate fi o cheie privată</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Alege un fișier, nu un dosar</string>
     <string name="explorer_sftp_form_error_key_unreadable">Fișierul cheii nu a putut fi citit</string>
@@ -376,6 +393,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Înlocuiești cheia serverului?</string>
     <string name="explorer_sftp_host_key_retrust_message">Înlocuiește cheia doar dacă știi de ce a schimbat-o %1$s. De acum, Butler va avea încredere în cheia prezentată.</string>
     <string name="explorer_sftp_host_key_retrust_action">Înlocuiește cheia</string>
+    <string name="explorer_sftp_unlock_title">Deblochează %1$s</string>
+    <string name="explorer_sftp_unlock_message">Introdu fraza de acces a cheii.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Frază de acces</string>
+    <string name="explorer_sftp_unlock_edit_action">Editează serverul</string>
+    <string name="explorer_sftp_unlock_action">Deblochează</string>
     <string name="explorer_webdav_form_add_title">Adaugă server WebDAV</string>
     <string name="explorer_webdav_form_edit_title">Editează serverul WebDAV</string>
     <string name="explorer_webdav_form_sign_in_title">Autentifică-te la %1$s</string>

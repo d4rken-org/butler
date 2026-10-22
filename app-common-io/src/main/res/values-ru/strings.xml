@@ -85,6 +85,10 @@
     <string name="sftp_error_key_format_description">Закрытый ключ имеет формат, который Butler не может прочитать. Поддерживаются файлы ключей OpenSSH, PEM и PKCS#8.</string>
     <string name="sftp_error_key_passphrase_title">Неверная парольная фраза</string>
     <string name="sftp_error_key_passphrase_description">Закрытый ключ защищён, а парольная фраза неверна или не указана.</string>
+    <string name="sftp_error_key_passphrase_required_title">Требуется парольная фраза</string>
+    <string name="sftp_error_key_passphrase_required_description">Введи парольную фразу закрытого ключа, чтобы подключиться к этому серверу.</string>
+    <string name="sftp_error_location_changed_title">Сервер изменился</string>
+    <string name="sftp_error_location_changed_description">Этот сервер был изменён за это время. Попробуй ещё раз.</string>
     <string name="sftp_error_access_denied_title">Нет доступа к этой папке</string>
     <string name="sftp_error_access_denied_description">Эта учётная запись, возможно, не может открыть папку, заданную для \"%1$s\". Проверь права доступа к папке на сервере.</string>
     <string name="sftp_error_pro_required_title">SFTP-серверы требуют Butler Pro</string>

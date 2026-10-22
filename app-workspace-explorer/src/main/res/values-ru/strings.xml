@@ -161,6 +161,8 @@
     <string name="explorer_info_sftp_private_key_label">Закрытый ключ</string>
     <string name="explorer_info_sftp_credential_stored">Хранится на этом устройстве</string>
     <string name="explorer_info_sftp_credential_session">Хранится, пока Butler не закроется</string>
+    <string name="explorer_info_sftp_credential_passphrase_session">Ключ сохранён, парольная фраза хранится, пока Butler не закроется</string>
+    <string name="explorer_info_sftp_credential_passphrase_missing">Ключ сохранён, для открытия нужна парольная фраза</string>
     <string name="explorer_info_sftp_host_key_type_label">Тип ключа хоста</string>
     <string name="explorer_info_sftp_host_key_fingerprint_label">Отпечаток ключа хоста</string>
     <string name="explorer_info_webdav_type_value">WebDAV</string>
@@ -337,6 +339,15 @@
         <item quantity="other">Удалить %1$d сетевых хранилища?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler забудет данные сервера и сохранённый пароль. На самом сервере ничего не будет удалено.</string>
+    <string name="explorer_network_disconnect_location_action">Отключить</string>
+    <string name="explorer_network_disconnect_confirmation_title">Отключить %1$s?</string>
+    <plurals name="explorer_network_disconnect_confirmation_title_multiple">
+        <item quantity="one">Отключить %1$d сетевое хранилище?</item>
+        <item quantity="few">Отключить %1$d сетевых хранилища?</item>
+        <item quantity="many">Отключить %1$d сетевых хранилищ?</item>
+        <item quantity="other">Отключить %1$d сетевых хранилища?</item>
+    </plurals>
+    <string name="explorer_network_disconnect_confirmation_message">Butler забудет данные для входа, пока ты не войдёшь снова. Данные сервера останутся сохранёнными. Передачи в это хранилище, которые ещё выполняются, могут завершиться ошибкой.</string>
 
     <!-- Network Storage Form -->
     <string name="explorer_network_form_add_title">Добавить сетевое хранилище</string>
@@ -380,6 +391,7 @@
     <string name="explorer_sftp_form_sign_in_title">Вход на %1$s</string>
     <string name="explorer_sftp_form_sign_in_password_hint">Введи пароль ещё раз, чтобы открыть этот сервер.</string>
     <string name="explorer_sftp_form_sign_in_key_hint">Выбери файл закрытого ключа ещё раз или введи его парольную фразу, чтобы открыть этот сервер.</string>
+    <string name="explorer_sftp_form_sign_in_passphrase_hint">Введи парольную фразу ключа, чтобы открыть этот сервер.</string>
     <string name="explorer_sftp_form_host_hint">build.lan или 192.168.1.10</string>
     <string name="explorer_sftp_form_base_path_label">Базовый путь (необязательно)</string>
     <string name="explorer_sftp_form_base_path_help">Пусто: начальная папка сервера. Начинается с /: абсолютный путь. Иначе: путь относительно начальной папки.</string>
@@ -392,10 +404,16 @@
     <string name="explorer_sftp_form_private_key_choose_action">Выбрать файл</string>
     <string name="explorer_sftp_form_passphrase_label">Парольная фраза ключа (необязательно)</string>
     <string name="explorer_sftp_form_passphrase_kept_hint">Оставь пустым, чтобы сохранить текущую парольную фразу</string>
+    <string name="explorer_sftp_form_passphrase_session_hint">Оставь пустым, чтобы использовать парольную фразу, введённую после запуска Butler</string>
     <string name="explorer_sftp_form_remember_label">Запомнить учётные данные</string>
+    <string name="explorer_sftp_form_remember_passphrase_label">Запомнить парольную фразу</string>
+    <string name="explorer_sftp_form_remember_passphrase_on_hint">Хранится вместе с ключом</string>
+    <string name="explorer_sftp_form_remember_passphrase_off_hint">Butler спросит её при подключении</string>
     <string name="explorer_sftp_form_error_username_malformed">Имя пользователя не может содержать управляющие символы</string>
     <string name="explorer_sftp_form_error_password_required">Введи пароль ещё раз, чтобы изменить имя пользователя, способ входа или настройку запоминания</string>
     <string name="explorer_sftp_form_error_key_required">Выбери файл закрытого ключа</string>
+    <string name="explorer_sftp_form_error_passphrase_required">Введи парольную фразу ключа</string>
+    <string name="explorer_sftp_form_error_location_changed">Этот сервер был изменён за это время. Попробуй ещё раз.</string>
     <string name="explorer_sftp_form_error_key_too_large">Этот файл больше %1$d KiB и не может быть закрытым ключом</string>
     <string name="explorer_sftp_form_error_key_not_a_file">Выбери файл, а не папку</string>
     <string name="explorer_sftp_form_error_key_unreadable">Не удалось прочитать файл ключа</string>
@@ -425,6 +443,11 @@
     <string name="explorer_sftp_host_key_retrust_title">Заменить ключ сервера?</string>
     <string name="explorer_sftp_host_key_retrust_message">Заменяй ключ, только если знаешь, почему %1$s его изменил. Butler будет доверять предъявленному ключу с этого момента.</string>
     <string name="explorer_sftp_host_key_retrust_action">Заменить ключ</string>
+    <string name="explorer_sftp_unlock_title">Разблокировать %1$s</string>
+    <string name="explorer_sftp_unlock_message">Введи парольную фразу ключа.</string>
+    <string name="explorer_sftp_unlock_passphrase_label">Парольная фраза</string>
+    <string name="explorer_sftp_unlock_edit_action">Изменить сервер</string>
+    <string name="explorer_sftp_unlock_action">Разблокировать</string>
     <string name="explorer_webdav_form_add_title">Добавить WebDAV-сервер</string>
     <string name="explorer_webdav_form_edit_title">Изменить WebDAV-сервер</string>
     <string name="explorer_webdav_form_sign_in_title">Вход на %1$s</string>

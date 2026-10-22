@@ -84,6 +84,10 @@
     <string name="sftp_error_key_format_description">Klucz prywatny nie jest w formacie, który Butler potrafi odczytać. Obsługiwane są pliki kluczy OpenSSH, PEM i PKCS#8.</string>
     <string name="sftp_error_key_passphrase_title">Błędna fraza hasła</string>
     <string name="sftp_error_key_passphrase_description">Klucz prywatny jest chroniony, a fraza hasła jest błędna lub jej brakuje.</string>
+    <string name="sftp_error_key_passphrase_required_title">Wymagana fraza hasła</string>
+    <string name="sftp_error_key_passphrase_required_description">Wpisz frazę hasła klucza prywatnego, aby połączyć się z tym serwerem.</string>
+    <string name="sftp_error_location_changed_title">Serwer został zmieniony</string>
+    <string name="sftp_error_location_changed_description">Ten serwer został w międzyczasie zmieniony. Spróbuj ponownie.</string>
     <string name="sftp_error_access_denied_title">Brak dostępu do tego folderu</string>
     <string name="sftp_error_access_denied_description">To konto może nie mieć dostępu do folderu ustawionego dla \"%1$s\". Sprawdź uprawnienia folderu na serwerze.</string>
     <string name="sftp_error_pro_required_title">Serwery SFTP wymagają Butler Pro</string>
