@@ -22,8 +22,11 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
+import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationPathPlan
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -46,8 +49,10 @@ import java.io.OutputStream
 import java.util.zip.ZipInputStream
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.withTimeout
 import org.junit.Before
@@ -214,6 +219,22 @@ class SaveFilesOperationTest : BaseTest() {
             .shouldBeInstanceOf<SaveFilesOperation.State.Completed>()
             .report
             .shouldBeInstanceOf<SaveFilesReport>()
+    }
+
+    private suspend fun TestScope.runManaged(operation: Operation): ManagedOperation =
+        ManagedOperation(Operation.Id(), operation, this).apply {
+            start()
+            withTimeout(5.seconds) { state.first { it is Operation.State.Completed } }
+        }
+
+    @Test
+    fun `cancelling the destination-exists prompt ends as cancelled`() = runTest2 {
+        conflictResolution = PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+
+        val managed = runManaged(operation())
+
+        capturedIssues.single().shouldBeInstanceOf<PathActionIssue.PathAlreadyExists>()
+        managed.toDisplayModel().state.shouldBeInstanceOf<OperationDisplay.State.Cancelled>()
     }
 
     @Test

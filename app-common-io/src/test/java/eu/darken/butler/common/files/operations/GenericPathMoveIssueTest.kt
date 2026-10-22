@@ -1077,6 +1077,63 @@ class GenericPathMoveIssueTest : BaseTest() {
     }
 
     @Test
+    fun `cancelling a destination-exists prompt cancels the move`() = runTest {
+        mockOps.addMockFile("/source/file.txt", "new content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.addMockFile("/dest/file.txt", "old content".toByteArray())
+        var issueCount = 0
+
+        shouldThrow<CancellationException> {
+            setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+                options = TransferStrategy.Options(attemptAtomicMove = false),
+                destination = LocalPath.build("/dest"),
+                sourceOps = mockOps,
+                destOps = mockOps,
+                strategy = strategy,
+                onIssue = { issue ->
+                    issueCount++
+                    when (issue) {
+                        is PathActionIssue.PathAlreadyExists -> PathActionIssue.PathAlreadyExists.Resolution.Cancel()
+                        else -> throw AssertionError("Unexpected issue: $issue")
+                    }
+                }
+            ).last()
+        }
+
+        issueCount shouldBe 1
+        mockOps.hasFile("/source/file.txt") shouldBe true
+        mockOps.getFileContent("/dest/file.txt") shouldBe "old content".toByteArray()
+    }
+
+    @Test
+    fun `cancelling an unknown-error prompt cancels the move`() = runTest {
+        mockOps.addMockFile("/source/file.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.setFailOpenOutputStream(1)
+        var issueCount = 0
+
+        shouldThrow<CancellationException> {
+            setOf(LocalPath.build("/source/file.txt")).moveGeneric(
+                options = TransferStrategy.Options(attemptAtomicMove = false),
+                destination = LocalPath.build("/dest"),
+                sourceOps = mockOps,
+                destOps = mockOps,
+                strategy = strategy,
+                onIssue = { issue ->
+                    issueCount++
+                    when (issue) {
+                        is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Cancel()
+                        else -> throw AssertionError("Unexpected issue: $issue")
+                    }
+                }
+            ).last()
+        }
+
+        issueCount shouldBe 1
+        mockOps.hasFile("/source/file.txt") shouldBe true
+    }
+
+    @Test
     fun `directory scan error during move then skip should appear only in skipped`() = runTest {
         // Given - directory with children that will fail during listFiles
         mockOps.addMockDir("/source/parent")
