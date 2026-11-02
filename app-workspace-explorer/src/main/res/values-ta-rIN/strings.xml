@@ -686,6 +686,9 @@
     <string name="explorer_compress_dialog_format_label">வடிவம்</string>
     <string name="explorer_compress_dialog_format_zip_hint">எந்தச் சாதனத்திலும் திறக்கலாம். கடவுச்சொல் மூலம் பாதுகாக்கலாம்.</string>
     <string name="explorer_compress_dialog_format_targz_hint">பல கோப்புகளுக்கு அளவு குறைவாக இருக்கும். கடவுச்சொல் பாதுகாப்பு இல்லை.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">மிகச் சிறிய அளவு, உருவாக்க மிக அதிக நேரம் ஆகும். கடவுச்சொல் பாதுகாப்பு இல்லை.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">tar.gz-ஐ விடச் சிறியது, உருவாக்க அதிக நேரம் ஆகும். கடவுச்சொல் பாதுகாப்பு இல்லை.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">கோப்புகளைச் சுருக்காமல் ஒன்றாகத் தொகுக்கும். கடவுச்சொல் பாதுகாப்பு இல்லை.</string>
     <string name="explorer_compress_dialog_create_action">உருவாக்கு</string>
     <string name="explorer_compress_dialog_level_label">சுருக்க நிலை</string>
     <string name="explorer_compress_dialog_level_fast">வேகமானது</string>

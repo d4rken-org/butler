@@ -614,6 +614,9 @@
     <string name="explorer_compress_dialog_format_label">Formátum</string>
     <string name="explorer_compress_dialog_format_zip_hint">Bármilyen eszközön megnyitható. Jelszóval védhető.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Sok fájl esetén kisebb. Nincs jelszavas védelem.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">A legkisebb méret, a leglassabb létrehozás. Nincs jelszavas védelem.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Kisebb, mint a tar.gz, lassabb létrehozás. Nincs jelszavas védelem.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Tömörítés nélkül fogja össze a fájlokat. Nincs jelszavas védelem.</string>
     <string name="explorer_compress_dialog_create_action">Létrehozás</string>
     <string name="explorer_compress_dialog_level_label">Tömörítési szint</string>
     <string name="explorer_compress_dialog_level_fast">Gyors</string>

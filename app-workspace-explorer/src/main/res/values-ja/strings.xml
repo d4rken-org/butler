@@ -661,6 +661,9 @@
     <string name="explorer_compress_dialog_format_label">形式</string>
     <string name="explorer_compress_dialog_format_zip_hint">どの端末でも開けます。パスワードで保護できます。</string>
     <string name="explorer_compress_dialog_format_targz_hint">ファイル数が多い場合により小さくなります。パスワード保護はできません。</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">最も小さくなりますが、作成に最も時間がかかります。パスワード保護はできません。</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">tar.gz より小さくなりますが、作成に時間がかかります。パスワード保護はできません。</string>
+    <string name="explorer_compress_dialog_format_tar_hint">ファイルを圧縮せずにまとめます。パスワード保護はできません。</string>
     <string name="explorer_compress_dialog_create_action">作成</string>
     <string name="explorer_compress_dialog_level_label">圧縮レベル</string>
     <string name="explorer_compress_dialog_level_fast">高速</string>

@@ -687,6 +687,9 @@
     <string name="explorer_compress_dialog_format_label">فارمیٹ</string>
     <string name="explorer_compress_dialog_format_zip_hint">کسی بھی آلے پر کھلتا ہے۔ پاس ورڈ سے محفوظ کیا جا سکتا ہے۔</string>
     <string name="explorer_compress_dialog_format_targz_hint">بہت سی فائلوں کے لیے چھوٹا حجم۔ پاس ورڈ کی حفاظت نہیں۔</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">سب سے چھوٹا حجم، بنانے میں سب سے زیادہ وقت۔ پاس ورڈ کی حفاظت نہیں۔</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">tar.gz سے چھوٹا، بنانے میں زیادہ وقت۔ پاس ورڈ کی حفاظت نہیں۔</string>
+    <string name="explorer_compress_dialog_format_tar_hint">فائلوں کو کمپریس کیے بغیر یکجا کرتا ہے۔ پاس ورڈ کی حفاظت نہیں۔</string>
     <string name="explorer_compress_dialog_create_action">بنائیں</string>
     <string name="explorer_compress_dialog_level_label">کمپریشن کی سطح</string>
     <string name="explorer_compress_dialog_level_fast">تیز</string>

@@ -614,6 +614,9 @@
     <string name="explorer_compress_dialog_format_label">फ़ॉर्मैट</string>
     <string name="explorer_compress_dialog_format_zip_hint">किसी भी डिवाइस पर खुलता है। पासवर्ड से सुरक्षित किया जा सकता है।</string>
     <string name="explorer_compress_dialog_format_targz_hint">कई फ़ाइलों के लिए छोटा आकार। पासवर्ड सुरक्षा नहीं।</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">सबसे छोटा आकार, बनने में सबसे धीमा। पासवर्ड सुरक्षा नहीं।</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">tar.gz से छोटा, बनने में धीमा। पासवर्ड सुरक्षा नहीं।</string>
+    <string name="explorer_compress_dialog_format_tar_hint">फ़ाइलों को संपीड़ित किए बिना एक साथ बंडल करता है। पासवर्ड सुरक्षा नहीं।</string>
     <string name="explorer_compress_dialog_create_action">बनाएँ</string>
     <string name="explorer_compress_dialog_level_label">संपीड़न स्तर</string>
     <string name="explorer_compress_dialog_level_fast">तेज़</string>

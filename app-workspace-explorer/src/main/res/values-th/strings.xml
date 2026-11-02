@@ -661,6 +661,9 @@
     <string name="explorer_compress_dialog_format_label">รูปแบบ</string>
     <string name="explorer_compress_dialog_format_zip_hint">เปิดได้บนทุกอุปกรณ์ ตั้งรหัสผ่านป้องกันได้</string>
     <string name="explorer_compress_dialog_format_targz_hint">ขนาดเล็กกว่าเมื่อมีไฟล์จำนวนมาก ไม่รองรับการป้องกันด้วยรหัสผ่าน</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">ขนาดเล็กที่สุด แต่สร้างช้าที่สุด ไม่รองรับการป้องกันด้วยรหัสผ่าน</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">เล็กกว่า tar.gz แต่สร้างช้ากว่า ไม่รองรับการป้องกันด้วยรหัสผ่าน</string>
+    <string name="explorer_compress_dialog_format_tar_hint">รวมไฟล์ไว้ด้วยกันโดยไม่บีบอัด ไม่รองรับการป้องกันด้วยรหัสผ่าน</string>
     <string name="explorer_compress_dialog_create_action">สร้าง</string>
     <string name="explorer_compress_dialog_level_label">ระดับการบีบอัด</string>
     <string name="explorer_compress_dialog_level_fast">เร็ว</string>

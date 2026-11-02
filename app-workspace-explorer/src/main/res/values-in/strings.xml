@@ -658,6 +658,9 @@
     <string name="explorer_compress_dialog_format_label">Format</string>
     <string name="explorer_compress_dialog_format_zip_hint">Terbuka di perangkat mana pun. Dapat dilindungi kata sandi.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Lebih kecil untuk banyak berkas. Tanpa perlindungan kata sandi.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Berkas terkecil, paling lambat dibuat. Tanpa perlindungan kata sandi.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Lebih kecil dari tar.gz, lebih lambat dibuat. Tanpa perlindungan kata sandi.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Menggabungkan berkas tanpa mengompresinya. Tanpa perlindungan kata sandi.</string>
     <string name="explorer_compress_dialog_create_action">Buat</string>
     <string name="explorer_compress_dialog_level_label">Tingkat kompresi</string>
     <string name="explorer_compress_dialog_level_fast">Cepat</string>

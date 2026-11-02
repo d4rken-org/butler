@@ -686,6 +686,9 @@
     <string name="explorer_compress_dialog_format_label">Format</string>
     <string name="explorer_compress_dialog_format_zip_hint">Kan åbnes på enhver enhed. Kan beskyttes med adgangskode.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Mindre ved mange filer. Ingen adgangskodebeskyttelse.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Mindste filer, langsomst at oprette. Ingen adgangskodebeskyttelse.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Mindre end tar.gz, langsommere at oprette. Ingen adgangskodebeskyttelse.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Samler filer uden at komprimere dem. Ingen adgangskodebeskyttelse.</string>
     <string name="explorer_compress_dialog_create_action">Opret</string>
     <string name="explorer_compress_dialog_level_label">Komprimeringsniveau</string>
     <string name="explorer_compress_dialog_level_fast">Hurtig</string>

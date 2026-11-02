@@ -681,6 +681,9 @@
     <string name="explorer_compress_dialog_format_label">Biçim</string>
     <string name="explorer_compress_dialog_format_zip_hint">Her cihazda açılır. Şifreyle korunabilir.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Çok sayıda dosya için daha küçük. Şifre koruması yok.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">En küçük boyut, oluşturması en yavaş. Şifre koruması yok.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">tar.gz\'den daha küçük, oluşturması daha yavaş. Şifre koruması yok.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Dosyaları sıkıştırmadan bir araya getirir. Şifre koruması yok.</string>
     <string name="explorer_compress_dialog_create_action">Oluştur</string>
     <string name="explorer_compress_dialog_level_label">Sıkıştırma düzeyi</string>
     <string name="explorer_compress_dialog_level_fast">Hızlı</string>

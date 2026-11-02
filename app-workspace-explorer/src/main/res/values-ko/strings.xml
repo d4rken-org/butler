@@ -661,6 +661,9 @@
     <string name="explorer_compress_dialog_format_label">형식</string>
     <string name="explorer_compress_dialog_format_zip_hint">모든 기기에서 열 수 있습니다. 비밀번호로 보호할 수 있습니다.</string>
     <string name="explorer_compress_dialog_format_targz_hint">파일이 많을 때 용량이 더 작습니다. 비밀번호 보호는 지원하지 않습니다.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">용량이 가장 작지만 생성 속도가 가장 느립니다. 비밀번호 보호는 지원하지 않습니다.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">tar.gz보다 작지만 생성 속도가 더 느립니다. 비밀번호 보호는 지원하지 않습니다.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">파일을 압축하지 않고 하나로 묶습니다. 비밀번호 보호는 지원하지 않습니다.</string>
     <string name="explorer_compress_dialog_create_action">만들기</string>
     <string name="explorer_compress_dialog_level_label">압축 수준</string>
     <string name="explorer_compress_dialog_level_fast">빠름</string>

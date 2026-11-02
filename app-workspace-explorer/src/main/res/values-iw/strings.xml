@@ -660,6 +660,9 @@
     <string name="explorer_compress_dialog_format_label">פורמט</string>
     <string name="explorer_compress_dialog_format_zip_hint">נפתח בכל מכשיר. ניתן להגנה בסיסמה.</string>
     <string name="explorer_compress_dialog_format_targz_hint">קטן יותר עבור קבצים רבים. ללא הגנת סיסמה.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">הקבצים הקטנים ביותר, היצירה האיטית ביותר. ללא הגנת סיסמה.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">קטן יותר מ-tar.gz, יצירה איטית יותר. ללא הגנת סיסמה.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">מאגד קבצים בלי לדחוס אותם. ללא הגנת סיסמה.</string>
     <string name="explorer_compress_dialog_create_action">יצירה</string>
     <string name="explorer_compress_dialog_level_label">רמת דחיסה</string>
     <string name="explorer_compress_dialog_level_fast">מהירה</string>

@@ -681,6 +681,9 @@
     <string name="explorer_compress_dialog_format_label">Formato</string>
     <string name="explorer_compress_dialog_format_zip_hint">Abre em qualquer dispositivo. Pode ser protegido por senha.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Menor para muitos arquivos. Sem proteção por senha.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">O menor tamanho, o mais lento para criar. Sem proteção por senha.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Menor que tar.gz, mais lento para criar. Sem proteção por senha.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Agrupa arquivos sem compactá-los. Sem proteção por senha.</string>
     <string name="explorer_compress_dialog_create_action">Criar</string>
     <string name="explorer_compress_dialog_level_label">Nível de compactação</string>
     <string name="explorer_compress_dialog_level_fast">Rápido</string>

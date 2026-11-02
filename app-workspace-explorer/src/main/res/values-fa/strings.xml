@@ -684,6 +684,9 @@
     <string name="explorer_compress_dialog_format_label">قالب</string>
     <string name="explorer_compress_dialog_format_zip_hint">روی هر دستگاهی باز می‌شود. می‌تواند با گذرواژه محافظت شود.</string>
     <string name="explorer_compress_dialog_format_targz_hint">برای تعداد زیاد فایل کوچک‌تر است. بدون محافظت با گذرواژه.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">کوچک‌ترین حجم، کندترین ساخت. بدون محافظت با گذرواژه.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">کوچک‌تر از tar.gz، ساخت کندتر. بدون محافظت با گذرواژه.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">فایل‌ها را بدون فشرده‌سازی در یک بسته جمع می‌کند. بدون محافظت با گذرواژه.</string>
     <string name="explorer_compress_dialog_create_action">ایجاد</string>
     <string name="explorer_compress_dialog_level_label">سطح فشرده‌سازی</string>
     <string name="explorer_compress_dialog_level_fast">سریع</string>

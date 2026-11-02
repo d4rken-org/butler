@@ -726,6 +726,9 @@
     <string name="explorer_compress_dialog_format_label">Formát</string>
     <string name="explorer_compress_dialog_format_zip_hint">Dá sa otvoriť na ľubovoľnom zariadení. Možno ho chrániť heslom.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Menší pri veľkom počte súborov. Bez ochrany heslom.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Najmenšie súbory, najpomalšie vytváranie. Bez ochrany heslom.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Menší ako tar.gz, pomalšie vytváranie. Bez ochrany heslom.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Spojí súbory bez kompresie. Bez ochrany heslom.</string>
     <string name="explorer_compress_dialog_create_action">Vytvoriť</string>
     <string name="explorer_compress_dialog_level_label">Úroveň kompresie</string>
     <string name="explorer_compress_dialog_level_fast">Rýchla</string>

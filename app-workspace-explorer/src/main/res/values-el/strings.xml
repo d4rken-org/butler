@@ -684,6 +684,9 @@
     <string name="explorer_compress_dialog_format_label">Μορφή</string>
     <string name="explorer_compress_dialog_format_zip_hint">Ανοίγει σε οποιαδήποτε συσκευή. Μπορεί να προστατευτεί με κωδικό πρόσβασης.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Μικρότερο μέγεθος για πολλά αρχεία. Χωρίς προστασία με κωδικό πρόσβασης.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Το μικρότερο μέγεθος, η πιο αργή δημιουργία. Χωρίς προστασία με κωδικό πρόσβασης.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Μικρότερο από το tar.gz, πιο αργή δημιουργία. Χωρίς προστασία με κωδικό πρόσβασης.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Ομαδοποιεί αρχεία χωρίς να τα συμπιέζει. Χωρίς προστασία με κωδικό πρόσβασης.</string>
     <string name="explorer_compress_dialog_create_action">Δημιουργία</string>
     <string name="explorer_compress_dialog_level_label">Επίπεδο συμπίεσης</string>
     <string name="explorer_compress_dialog_level_fast">Γρήγορο</string>

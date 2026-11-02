@@ -730,6 +730,9 @@
     <string name="explorer_compress_dialog_format_label">Formát</string>
     <string name="explorer_compress_dialog_format_zip_hint">Otevře se na jakémkoli zařízení. Lze chránit heslem.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Menší pro velké množství souborů. Bez ochrany heslem.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Nejmenší soubory, nejpomalejší vytváření. Bez ochrany heslem.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Menší než tar.gz, pomalejší vytváření. Bez ochrany heslem.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Spojí soubory bez komprese. Bez ochrany heslem.</string>
     <string name="explorer_compress_dialog_create_action">Vytvořit</string>
     <string name="explorer_compress_dialog_level_label">Úroveň komprese</string>
     <string name="explorer_compress_dialog_level_fast">Rychlá</string>

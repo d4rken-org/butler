@@ -663,6 +663,9 @@
     <string name="explorer_compress_dialog_format_label">格式</string>
     <string name="explorer_compress_dialog_format_zip_hint">可在任何设备上打开，可设置密码保护。</string>
     <string name="explorer_compress_dialog_format_targz_hint">对多文件更小，不支持密码保护。</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">体积最小，创建最慢，不支持密码保护。</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">比 tar.gz 更小，创建较慢，不支持密码保护。</string>
+    <string name="explorer_compress_dialog_format_tar_hint">仅打包文件，不压缩，不支持密码保护。</string>
     <string name="explorer_compress_dialog_create_action">创建</string>
     <string name="explorer_compress_dialog_level_label">压缩级别</string>
     <string name="explorer_compress_dialog_level_fast">快速</string>

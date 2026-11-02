@@ -686,6 +686,9 @@
     <string name="explorer_compress_dialog_format_label">Формат</string>
     <string name="explorer_compress_dialog_format_zip_hint">Отваря се на всяко устройство. Може да бъде защитен с парола.</string>
     <string name="explorer_compress_dialog_format_targz_hint">По-малък размер при много файлове. Без защита с парола.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Най-малък размер, най-бавно създаване. Без защита с парола.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">По-малък от tar.gz, по-бавно създаване. Без защита с парола.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Обединява файловете, без да ги компресира. Без защита с парола.</string>
     <string name="explorer_compress_dialog_create_action">Създай</string>
     <string name="explorer_compress_dialog_level_label">Ниво на компресия</string>
     <string name="explorer_compress_dialog_level_fast">Бързо</string>
