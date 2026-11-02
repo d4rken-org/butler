@@ -63,6 +63,7 @@ class SearcherWorkspaceSeedTest {
             every { operations } returns MutableStateFlow(emptyList<ManagedOperation>())
         },
         deleteOperationFactory = mockk(relaxed = true),
+        renameOperationFactory = mockk(relaxed = true),
         searchEngineFactory = mockk<SearchEngine.Factory>(relaxed = true).apply {
             every { create(any(), any()) } returns mockk<SearchEngine>(relaxed = true).apply {
                 every { targetState } returns engineTargets
@@ -75,6 +76,7 @@ class SearcherWorkspaceSeedTest {
         },
         folderPreviewResolver = mockk(relaxed = true),
         errorIncidentStore = recordingIncidentStore(),
+        gatewaySwitch = mockk(relaxed = true),
     )
 
     private fun assertSeedMatchesDerivation(arguments: SearcherArguments) {

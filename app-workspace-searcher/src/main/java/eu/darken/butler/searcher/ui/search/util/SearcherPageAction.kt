@@ -322,6 +322,14 @@ sealed interface SearcherPageAction {
         data class SortOptionsConfirmed(val result: SearchSortOptionsResult) : Dialogs
 
         /**
+         * A new name was confirmed for [result]
+         */
+        data class RenameConfirmed(
+            val result: SearchItem,
+            val newName: String,
+        ) : Dialogs
+
+        /**
          * Clear-history confirmed
          */
         data object ClearHistoryConfirmed : Dialogs

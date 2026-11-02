@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.SAFPathLookup
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchSortSettings
@@ -125,6 +126,7 @@ class SearcherSelectionShareTest {
             apiLevel = mockk(relaxed = true),
             errorIncidentStore = recordingIncidentStore(),
             appAttributor = noAppAttributions(),
+            filenameValidator = FilenameValidator(),
             itemSorterFactory = mockk {
                 every { create(any()) } returns mockk<SearchItemSorter> {
                     every { sortItems(any(), any()) } answers { firstArg() }

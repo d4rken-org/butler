@@ -13,8 +13,11 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.openPrivacyPolicy
+import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.elements.AccessErrorsSheetContent
@@ -63,6 +66,7 @@ fun SearcherWorkspaceOverlaysHost(
         overlayState = overlayState,
         showErrorShareConsent = pendingErrorShare != null,
         onPageAction = vm::onPageAction,
+        onValidateName = vm::validateFilename,
     )
 
     // Last on purpose: layers stack in composition order, so an error raised while one of
@@ -79,6 +83,9 @@ fun SearcherWorkspaceOverlays(
     overlayState: SearcherWorkspaceViewModel.OverlayState = SearcherWorkspaceViewModel.OverlayState(),
     showErrorShareConsent: Boolean = false,
     onPageAction: (SearcherPageAction) -> Unit = {},
+    onValidateName: (name: String, parent: APath<*>) -> FilenameValidator.ValidationResult = { _, _ ->
+        FilenameValidator.ValidationResult.Valid
+    },
 ) {
     // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
     val mainState by stateSource.collectAsState(
@@ -158,6 +165,7 @@ fun SearcherWorkspaceOverlays(
             SearchResultItemDetails(
                 result = result,
                 trashEnabled = currentState.trashEnabled,
+                isSearching = currentState.workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING,
                 onAction = { action ->
                     onPageAction(SearcherPageAction.WorkspaceAction(action))
                     onPageAction(SearcherPageAction.Results.HideQuickActions)
@@ -210,6 +218,10 @@ fun SearcherWorkspaceOverlays(
             },
             onViewStyleApplyToTab = { onPageAction(SearcherPageAction.ViewStyle.ApplyToTab(it)) },
             onViewStyleSetAsDefault = { onPageAction(SearcherPageAction.ViewStyle.SetAsDefault(it)) },
+            onValidateName = onValidateName,
+            onRenameConfirmed = { result, newName ->
+                onPageAction(SearcherPageAction.Dialogs.RenameConfirmed(result, newName))
+            },
             topInset = statusBarInset,
             bottomInset = navBarInset,
         )

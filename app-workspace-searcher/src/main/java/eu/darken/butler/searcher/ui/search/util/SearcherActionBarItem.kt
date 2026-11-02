@@ -9,6 +9,7 @@ import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.Deselect
+import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.InstallMobile
@@ -114,6 +115,14 @@ sealed interface SearcherActionBarItem : WorkspaceActionBarItem {
     ) : SearcherActionBarItem {
         override val icon = Workspace.Type.EXPLORER.icon
         override val label = R.string.searcher_action_open_in_explorer.toCaString()
+    }
+
+    data class Rename(
+        val result: SearchItem,
+        override val isEnabled: Boolean = true,
+    ) : SearcherActionBarItem {
+        override val icon = Icons.TwoTone.DriveFileRenameOutline
+        override val label = CommonR.string.general_rename_action.toCaString()
     }
 
     data class CopyPath(

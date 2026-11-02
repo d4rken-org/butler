@@ -3,6 +3,7 @@ package eu.darken.butler.searcher.ui.search
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchSortSettings
@@ -101,6 +102,7 @@ class SearcherInstallActionTest {
             apiLevel = mockk(relaxed = true),
             errorIncidentStore = recordingIncidentStore(),
             appAttributor = noAppAttributions(),
+            filenameValidator = FilenameValidator(),
             itemSorterFactory = mockk {
                 every { create(any()) } returns mockk(relaxed = true)
             },

@@ -6,10 +6,18 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.searcher.R
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.core.OpenSelectionMode
@@ -20,6 +28,8 @@ import eu.darken.butler.workspace.ui.dialogs.FileInfo
 import eu.darken.butler.workspace.ui.dialogs.FileInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.OpenSelectionDialog
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
+import eu.darken.butler.workspace.ui.issues.PathIssueRenameDialog
+import eu.darken.butler.workspace.ui.issues.initialRenameSelection
 
 @Composable
 fun SearcherDialogHost(
@@ -38,6 +48,10 @@ fun SearcherDialogHost(
     onConditionApply: (existing: FilterCondition?, new: FilterCondition) -> Unit = { _, _ -> },
     onViewStyleApplyToTab: (SearcherViewStyle) -> Unit = {},
     onViewStyleSetAsDefault: (SearcherViewStyle) -> Unit = {},
+    onValidateName: (name: String, parent: APath<*>) -> FilenameValidator.ValidationResult = { _, _ ->
+        FilenameValidator.ValidationResult.Valid
+    },
+    onRenameConfirmed: (result: SearchItem, newName: String) -> Unit = { _, _ -> },
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -53,6 +67,19 @@ fun SearcherDialogHost(
                 initialPermanentDelete = dialogState.initialPermanentDelete,
                 onDismiss = onDismiss,
                 onConfirm = onDeleteConfirmed,
+            )
+        }
+        is SearcherDialogState.Rename -> {
+            val result = dialogState.result
+            PathIssueRenameDialog(
+                currentName = result.name,
+                initialSelection = initialRenameSelection(result.name),
+                onValidate = { name ->
+                    result.path.parent?.let { onValidateName(name, it) } ?: FilenameValidator.ValidationResult.Valid
+                },
+                onConfirm = { newName -> onRenameConfirmed(result, newName) },
+                onDismiss = onDismiss,
+                dialogTitle = stringResource(eu.darken.butler.common.R.string.general_rename_action),
             )
         }
         is SearcherDialogState.OpenSelection -> {
@@ -174,5 +201,32 @@ fun SearcherDialogHost(
         onApply = { onConditionApply(typeState?.existing, it) },
         topInset = topInset,
         bottomInset = bottomInset,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearcherDialogHostRenamePreview() {
+    SearcherDialogHost(
+        dialogState = SearcherDialogState.Rename(
+            SearchItem.fromLookup(
+                lookup = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/DCIM/photo.jpg"),
+                    fileType = FileType.FILE,
+                    size = 2048L,
+                    modifiedAt = null,
+                ),
+                matchedQuery = "photo",
+            )
+        ),
+        viewStyle = SearcherViewStyle.default(),
+        trashEnabled = false,
+        onDismiss = {},
+        onDeleteConfirmed = { _, _ -> },
+        onCopyToClipboard = {},
+        onNavigateToClipboardSource = {},
+        onRemoveClipboardEntry = {},
+        onOpenSelectionModePicked = { _, _ -> },
     )
 }

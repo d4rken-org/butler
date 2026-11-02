@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
@@ -77,7 +79,7 @@ class SearchResultItemDetailsTest : ComposeTest() {
     /** Swapping this restages the sheet without a second `setContent` call. */
     private var currentResult by mutableStateOf<SearchItem>(localResult("notes.txt"))
 
-    private fun setSheetContent(result: SearchItem) {
+    private fun setSheetContent(result: SearchItem, isSearching: Boolean = false) {
         currentResult = result
         lastAction = null
         composeTestRule.setContent {
@@ -86,6 +88,7 @@ class SearchResultItemDetailsTest : ComposeTest() {
                     SearchResultItemDetails(
                         result = currentResult,
                         trashEnabled = false,
+                        isSearching = isSearching,
                         onAction = { lastAction = it },
                         onLongPress = {},
                         onDismiss = {},
@@ -165,5 +168,34 @@ class SearchResultItemDetailsTest : ComposeTest() {
         countOf("Open with") shouldBe 0
         countOf("Share") shouldBe 0
         countOf("Copy") shouldBe 1
+    }
+
+    @Test
+    fun `a file can be renamed`() {
+        val file = localResult("notes.txt")
+        setSheetContent(file)
+
+        composeTestRule.onNodeWithText("Rename").performScrollTo().assertIsEnabled().performClick()
+
+        lastAction.shouldBeInstanceOf<SearcherActionBarItem.Rename>().result shouldBe file
+    }
+
+    @Test
+    fun `a folder can be renamed`() {
+        val folder = localResult("Photos", fileType = FileType.DIRECTORY)
+        setSheetContent(folder)
+
+        composeTestRule.onNodeWithText("Rename").performScrollTo().assertIsEnabled().performClick()
+
+        lastAction.shouldBeInstanceOf<SearcherActionBarItem.Rename>().result shouldBe folder
+    }
+
+    @Test
+    fun `rename is disabled while a search runs`() {
+        setSheetContent(localResult("notes.txt"), isSearching = true)
+
+        composeTestRule.onNodeWithText("Rename").performScrollTo().assertIsNotEnabled().performClick()
+
+        lastAction shouldBe null
     }
 }

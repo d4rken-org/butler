@@ -1,9 +1,11 @@
 package eu.darken.butler.searcher.core
 
 import eu.darken.butler.common.error.ErrorIncident
+import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.searcher.core.operations.DeleteOperation
+import eu.darken.butler.searcher.core.operations.RenameOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
 import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
@@ -56,12 +58,14 @@ class SearcherWorkspaceErrorIncidentTest : BaseTest() {
                 every { operations } returns MutableStateFlow(emptyList<ManagedOperation>())
             },
             deleteOperationFactory = mockk<DeleteOperation.Factory>(),
+            renameOperationFactory = mockk<RenameOperation.Factory>(),
             searchEngineFactory = mockk<SearchEngine.Factory> {
                 every { create(any(), any()) } returns engine
             },
             fileSystemHinter = FileSystemHinter(),
             folderPreviewResolver = mockk<FolderPreviewResolver>(relaxUnitFun = true),
             errorIncidentStore = incidentStore,
+            gatewaySwitch = mockk<GatewaySwitch>(),
         )
     }
 
