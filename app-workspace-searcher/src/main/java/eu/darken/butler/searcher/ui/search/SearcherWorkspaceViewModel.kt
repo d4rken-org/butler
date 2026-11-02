@@ -921,16 +921,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherActionBarItem.OpenInExplorer -> {
                 launch {
-                    val startPath = if (action.result.fileType == FileType.DIRECTORY) {
-                        action.result.path
-                    } else {
-                        action.result.path.parent
-                    }
+                    val isDirectory = action.result.fileType == FileType.DIRECTORY
+                    val startPath = if (isDirectory) action.result.path else action.result.path.parent
                     if (startPath != null) {
                         workspaceRemote.createAndFocus(
                             type = Workspace.Type.EXPLORER,
                             arguments = ExplorerArguments.Default(
                                 startPath = startPath,
+                                revealPath = if (isDirectory) null else action.result.path,
                             ),
                             sourceWorkspaceId = id,
                         )
