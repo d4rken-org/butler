@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.LayoutDirection
@@ -38,14 +39,15 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.asPathStyle
 import eu.darken.butler.common.theming.onScrim
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
-import eu.darken.butler.explorer.ui.explorer.items.ItemMoreButton
 import eu.darken.butler.explorer.ui.explorer.items.LeadingIconSlot
 import eu.darken.butler.explorer.ui.explorer.items.gridBadgeSize
 import eu.darken.butler.explorer.ui.explorer.items.gridIconSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.common.ItemMoreButton
 
 @Composable
 internal fun FileGridBase(
@@ -229,6 +231,7 @@ internal fun FileGridBase(
                     Spacer(modifier = Modifier.width(4.dp))
                     ItemMoreButton(
                         onClick = it,
+                        contentDescription = stringResource(R.string.explorer_file_more_actions_content_desc),
                         size = density.gridIconSize,
                         tint = MaterialTheme.colorScheme.onScrim,
                     )

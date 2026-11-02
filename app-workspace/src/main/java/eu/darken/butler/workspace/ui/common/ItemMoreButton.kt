@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.items
+package eu.darken.butler.workspace.ui.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -20,16 +20,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.explorer.R
+import eu.darken.butler.workspace.R
 
 /**
  * Opens a file's actions sheet while a tap on the file opens it. A [size] shrinks the button, touch
  * target included, so it fits a row or tile without growing it; null keeps Material's 48dp button.
  */
 @Composable
-internal fun ItemMoreButton(
+fun ItemMoreButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
+    contentDescription: String,
     size: Dp? = null,
     tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
@@ -46,7 +47,7 @@ internal fun ItemMoreButton(
         ) {
             Icon(
                 imageVector = Icons.TwoTone.MoreVert,
-                contentDescription = stringResource(R.string.explorer_file_more_actions_content_desc),
+                contentDescription = contentDescription,
                 tint = tint,
                 modifier = if (size != null) Modifier.size(size.coerceAtMost(24.dp)) else Modifier,
             )
@@ -62,9 +63,10 @@ private fun ItemMoreButtonPreview() {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ItemMoreButton(onClick = {}, size = 16.dp)
-        ItemMoreButton(onClick = {}, size = 24.dp)
-        ItemMoreButton(onClick = {}, size = 32.dp)
-        ItemMoreButton(onClick = {})
+        val label = stringResource(R.string.workspace_action_more)
+        ItemMoreButton(onClick = {}, contentDescription = label, size = 16.dp)
+        ItemMoreButton(onClick = {}, contentDescription = label, size = 24.dp)
+        ItemMoreButton(onClick = {}, contentDescription = label, size = 32.dp)
+        ItemMoreButton(onClick = {}, contentDescription = label)
     }
 }

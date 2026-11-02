@@ -20,11 +20,11 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
-import eu.darken.butler.explorer.ui.explorer.items.ItemMoreButton
 import eu.darken.butler.explorer.ui.explorer.items.rowMoreButtonSize
 import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.items.usesShortFileSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.common.ItemMoreButton
 import kotlin.time.Instant
 
 /**
@@ -74,7 +74,13 @@ internal fun RecentItemRow(
         secondaryText = item.lookup.size?.let { formatFileSize(it, shortFormat = density.usesShortFileSize) },
         secondaryEndText = indexedAt?.let { formatSmartTime(it, absoluteStyle = DateTimeStyle.COMPACT) },
         trailingContent = if (onMoreClick != null) {
-            { ItemMoreButton(onClick = onMoreClick, size = density.rowMoreButtonSize) }
+            {
+                ItemMoreButton(
+                    onClick = onMoreClick,
+                    contentDescription = stringResource(R.string.explorer_file_more_actions_content_desc),
+                    size = density.rowMoreButtonSize,
+                )
+            }
         } else {
             null
         },
