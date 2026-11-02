@@ -90,7 +90,9 @@ data class MimeInfo(
                 // Archives
                 "zip" -> "application/zip"
                 "tar" -> "application/x-tar"
-                "gz" -> "application/gzip"
+                "gz", "tgz" -> "application/gzip"
+                "xz", "txz" -> "application/x-xz"
+                "bz2", "tbz2" -> "application/x-bzip2"
                 "7z" -> "application/x-7z-compressed"
                 "rar" -> "application/vnd.rar"
 
