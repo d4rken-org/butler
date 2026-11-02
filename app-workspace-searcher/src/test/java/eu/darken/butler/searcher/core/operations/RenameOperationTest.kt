@@ -85,7 +85,7 @@ class RenameOperationTest : BaseTest() {
         }
 
         coVerify(exactly = 0) { gatewaySwitch.move(any(), any(), any(), any()) }
-        coVerify(exactly = 0) { moveListener.onMoved(any(), any()) }
+        coVerify(exactly = 0) { moveListener.onMoved(any(), any(), any()) }
     }
 
     /** On a case-insensitive filesystem the new spelling finds the folder being renamed itself. */
@@ -94,11 +94,28 @@ class RenameOperationTest : BaseTest() {
         val source = parent.child("docs")
         val destination = parent.child("Docs")
         destinationIs(destination, FileType.DIRECTORY)
+        coEvery { gatewaySwitch.listFiles(parent) } returns listOf(source)
         moveCompletes(setOf(lookupOf(source, FileType.DIRECTORY) to lookupOf(destination, FileType.DIRECTORY)))
 
         operation(item(source, FileType.DIRECTORY), "Docs").perform(context()).toList()
 
         coVerify(exactly = 1) { gatewaySwitch.move(setOf(source), destination, any(), any()) }
+    }
+
+    @Test
+    fun `case variant that is a separate directory is refused`() = runTest2 {
+        val source = parent.child("docs")
+        val destination = parent.child("Docs")
+        destinationIs(destination, FileType.DIRECTORY)
+        coEvery { gatewaySwitch.listFiles(parent) } returns listOf(source, destination)
+        moveCompletes(setOf(lookupOf(source, FileType.DIRECTORY) to lookupOf(destination.child("docs"), FileType.DIRECTORY)))
+
+        shouldThrow<PathAlreadyExistsException> {
+            operation(item(source, FileType.DIRECTORY), "Docs").perform(context()).toList()
+        }
+
+        coVerify(exactly = 0) { gatewaySwitch.move(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { moveListener.onMoved(any(), any(), any()) }
     }
 
     @Test
@@ -121,7 +138,7 @@ class RenameOperationTest : BaseTest() {
             fileSystemHinter.trackPathsAdded(context.id, setOf(movedChild.second, movedRoot.second))
         }
         coVerify(exactly = 1) {
-            moveListener.onMoved(setOf(movedChild, movedRoot), setOf(skippedChild))
+            moveListener.onMoved(context.id, setOf(movedChild, movedRoot), setOf(skippedChild))
         }
     }
 
@@ -135,7 +152,7 @@ class RenameOperationTest : BaseTest() {
         operation(item(source), "journal.txt").perform(context()).toList()
 
         coVerifyOrder {
-            moveListener.onMoved(any(), any())
+            moveListener.onMoved(any(), any(), any())
             fileSystemHinter.trackPathsRemoved(any(), any())
             fileSystemHinter.trackPathsAdded(any(), any())
         }
