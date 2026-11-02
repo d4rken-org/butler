@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -53,9 +54,11 @@ import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.workspace.core.appattribution.AppAttribution
 import eu.darken.butler.workspace.ui.common.AppAttributionBadge
+import eu.darken.butler.workspace.ui.common.ItemMoreButton
 import eu.darken.butler.workspace.ui.common.withLocationNames
 import eu.darken.butler.workspace.ui.preview.FolderPreviewCollage
 import eu.darken.butler.workspace.ui.preview.rememberFolderPreviewChildren
+import eu.darken.butler.workspace.R as WorkspaceR
 
 internal const val TEST_TAG_SEARCHER_GRID_THUMBNAIL = "searcher.grid.thumbnail"
 
@@ -73,6 +76,8 @@ fun SelectableFileGrid(
     modifier: Modifier = Modifier,
     previewsSettled: State<Boolean> = PREVIEWS_ALWAYS_SETTLED,
     appAttribution: AppAttribution? = null,
+    /** Shows the ⋮ that opens the result's quick actions, for when a tap opens the file. */
+    onMoreClick: (() -> Unit)? = null,
 ) {
     // Type-specific background color (match Explorer's transparency)
     val backgroundColor = when (result.fileType) {
@@ -202,15 +207,16 @@ fun SelectableFileGrid(
             }
 
             // Bottom overlay bar with filename and parent path
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
                     // Primary: Filename
@@ -250,6 +256,16 @@ fun SelectableFileGrid(
                             )
                         }
                     }
+                }
+
+                onMoreClick?.let {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    ItemMoreButton(
+                        onClick = it,
+                        contentDescription = stringResource(WorkspaceR.string.workspace_action_more),
+                        size = density.gridMoreButtonSize,
+                        tint = MaterialTheme.colorScheme.onScrim,
+                    )
                 }
             }
         }
@@ -302,6 +318,27 @@ private fun SelectableFileGridPreview() {
             isSelectionMode = false,
             onClick = {},
             onLongPress = {}
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SelectableFileGridMoreButtonPreview() {
+    PreviewWrapper {
+        SelectableFileGrid(
+            result = SearcherMockDataProvider.createMockTextFile(
+                name = "very-long-filename-that-has-to-make-room.txt",
+                sizeKB = 1,
+                hoursAgo = 1,
+            ),
+            density = SearcherViewStyle.Density.COMFORTABLE,
+            isSelected = false,
+            isSelectionMode = false,
+            onClick = {},
+            onLongPress = {},
+            onMoreClick = {},
         )
     }
 }

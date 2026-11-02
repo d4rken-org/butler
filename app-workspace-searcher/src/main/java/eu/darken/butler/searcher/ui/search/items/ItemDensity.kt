@@ -11,6 +11,17 @@ val SearcherViewStyle.Density.rowIconSize: Dp
         SearcherViewStyle.Density.DETAILED -> 48.dp
     }
 
+/**
+ * The ⋮ on a file row. Null is Material's 48dp button, which only a detailed row is tall enough for;
+ * the other densities shrink it to the icon slot so the row keeps its height.
+ */
+val SearcherViewStyle.Density.rowMoreButtonSize: Dp?
+    get() = when (this) {
+        SearcherViewStyle.Density.COMPACT -> rowIconSize
+        SearcherViewStyle.Density.COMFORTABLE -> rowIconSize
+        SearcherViewStyle.Density.DETAILED -> null
+    }
+
 val SearcherViewStyle.Density.rowPadding: Dp
     get() = when (this) {
         SearcherViewStyle.Density.COMPACT -> 6.dp
@@ -86,6 +97,10 @@ val SearcherViewStyle.Density.gridIconSize: Dp
         SearcherViewStyle.Density.COMFORTABLE -> 20.dp
         SearcherViewStyle.Density.DETAILED -> 24.dp
     }
+
+/** The ⋮ on a file tile, sized like the tile's type icon. */
+val SearcherViewStyle.Density.gridMoreButtonSize: Dp
+    get() = gridIconSize
 
 /** Larger than a glyph badge: a launcher icon has to stay recognizable. */
 val SearcherViewStyle.Density.rowAppBadgeSize: Dp

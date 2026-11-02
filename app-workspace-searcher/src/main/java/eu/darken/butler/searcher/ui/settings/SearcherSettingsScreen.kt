@@ -11,6 +11,7 @@ import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.History
 import androidx.compose.material.icons.twotone.Numbers
 import androidx.compose.material.icons.twotone.Storage
+import androidx.compose.material.icons.twotone.TouchApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +54,7 @@ fun SearcherSettingsScreen(
     onMaxHistoryItemsChange: (Int) -> Unit,
     onSaveHistoryChange: (Boolean) -> Unit,
     onContentSearchBinariesChange: (Boolean) -> Unit,
+    onOpenFilesOnTapChange: (Boolean) -> Unit,
     onClearSearchHistory: () -> Unit,
     eventSource: Flow<SearcherSettingsViewModel.Event>? = null,
 ) {
@@ -95,6 +97,21 @@ fun SearcherSettingsScreen(
                 .padding(paddingValues),
             verticalArrangement = Arrangement.Top
         ) {
+            item {
+                SettingsCategoryHeader(text = stringResource(R.string.searcher_settings_search_category))
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.TouchApp,
+                    title = stringResource(R.string.searcher_settings_open_on_tap_title),
+                    subtitle = stringResource(R.string.searcher_settings_open_on_tap_desc),
+                    checked = state.openFilesOnTap,
+                    onCheckedChange = onOpenFilesOnTapChange,
+                )
+                SettingsDivider()
+            }
+
             item {
                 SettingsCategoryHeader(text = stringResource(R.string.searcher_settings_search_performance))
             }
@@ -232,6 +249,7 @@ private fun SearcherSettingsScreenPreview() {
             maxHistoryItems = 15,
             saveHistory = true,
             contentSearchBinaries = false,
+            openFilesOnTap = true,
             currentHistoryCount = 7
         ),
         onNavigateUp = {},
@@ -239,6 +257,7 @@ private fun SearcherSettingsScreenPreview() {
         onMaxHistoryItemsChange = {},
         onSaveHistoryChange = {},
         onContentSearchBinariesChange = {},
+        onOpenFilesOnTapChange = {},
         onClearSearchHistory = {},
     )
 }
@@ -258,6 +277,7 @@ fun SearcherSettingsScreenHost(vm: SearcherSettingsViewModel = hiltViewModel()) 
             onMaxHistoryItemsChange = { vm.updateMaxHistoryItems(it) },
             onSaveHistoryChange = { vm.updateSaveHistory(it) },
             onContentSearchBinariesChange = { vm.updateContentSearchBinaries(it) },
+            onOpenFilesOnTapChange = { vm.updateOpenFilesOnTap(it) },
             onClearSearchHistory = { vm.clearSearchHistory() },
             eventSource = vm.events,
         )

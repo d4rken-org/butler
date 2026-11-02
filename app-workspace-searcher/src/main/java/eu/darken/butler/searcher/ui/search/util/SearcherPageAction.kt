@@ -198,6 +198,11 @@ sealed interface SearcherPageAction {
         data class Click(val item: SearchItem) : Results
 
         /**
+         * The ⋮ on a result: its quick actions, while a tap opens the file
+         */
+        data class ShowQuickActions(val item: SearchItem) : Results
+
+        /**
          * Enter selection mode with initial item
          */
         data class EnterSelectionMode(val item: SearchItem) : Results
