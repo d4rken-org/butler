@@ -286,6 +286,16 @@ private fun FormatOption(
     }
 }
 
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FormatOptionPreview() {
+    Column {
+        FormatOption(option = CompressFormat.ZIP, selected = true, onClick = {})
+        FormatOption(option = CompressFormat.TAR_XZ, selected = false, onClick = {})
+    }
+}
+
 /** A section label and the control it belongs to, held closer to each other than to their neighbours. */
 @Composable
 private fun Section(
