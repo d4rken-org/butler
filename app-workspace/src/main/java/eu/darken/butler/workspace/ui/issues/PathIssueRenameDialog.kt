@@ -15,7 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -25,16 +27,30 @@ import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
 import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 
+/**
+ * Selection to apply when opening a rename dialog: the filename stem (without its extension).
+ * For dotfiles (e.g. ".gitignore") the dot is at index 0, so the whole name is selected instead.
+ */
+fun initialRenameSelection(currentName: String): TextRange {
+    val dot = currentName.lastIndexOf('.')
+    val end = if (dot > 0) dot else currentName.length
+    return TextRange(0, end)
+}
+
 @Composable
 fun PathIssueRenameDialog(
     currentName: String,
     initialValue: String? = null,
+    initialSelection: TextRange? = null,
     onValidate: (String) -> FilenameValidator.ValidationResult = { FilenameValidator.ValidationResult.Valid },
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
     dialogTitle: String = stringResource(R.string.workspace_issue_common_rename),
 ) {
-    var newName by remember { mutableStateOf(initialValue ?: currentName) }
+    var textFieldValue by remember {
+        mutableStateOf(TextFieldValue(initialValue ?: currentName, initialSelection ?: TextRange.Zero))
+    }
+    val newName = textFieldValue.text
     val validation = remember(newName) { onValidate(newName) }
     val isError = validation is FilenameValidator.ValidationResult.Invalid
     val trimmedName = remember(newName) { newName.trim() }
@@ -58,8 +74,8 @@ fun PathIssueRenameDialog(
         title = { Text(dialogTitle) },
         text = {
             OutlinedTextField(
-                value = newName,
-                onValueChange = { newName = it },
+                value = textFieldValue,
+                onValueChange = { textFieldValue = it },
                 label = { Text(stringResource(R.string.workspace_issue_rename_new_name)) },
                 modifier = Modifier.focusRequester(focusRequester),
                 singleLine = true,
@@ -96,6 +112,18 @@ fun PathIssueRenameDialog(
 private fun PathIssueRenameDialogPreview() {
     PathIssueRenameDialog(
         currentName = "document.pdf",
+        onConfirm = {},
+        onDismiss = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PathIssueRenameDialogStemSelectedPreview() {
+    PathIssueRenameDialog(
+        currentName = "document.pdf",
+        initialSelection = initialRenameSelection("document.pdf"),
         onConfirm = {},
         onDismiss = {},
     )

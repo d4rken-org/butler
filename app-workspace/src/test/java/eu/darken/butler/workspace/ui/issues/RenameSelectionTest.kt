@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.dialogs
+package eu.darken.butler.workspace.ui.issues
 
 import androidx.compose.ui.text.TextRange
 import io.kotest.matchers.shouldBe
