@@ -72,6 +72,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
 
@@ -242,11 +243,21 @@ class SearcherWorkspace @AssistedInject constructor(
      */
     private val searchGeneration = AtomicLong(0L)
 
-    private fun updateGuarded(generation: Long, transform: (State) -> State) {
+    /** Returns whether [transform] was applied, i.e. [generation] was still current. */
+    private fun updateGuarded(generation: Long, transform: (State) -> State): Boolean {
+        var applied = false
         _searchState.update { state ->
-            if (searchGeneration.get() == generation) transform(state) else state
+            applied = searchGeneration.get() == generation
+            if (applied) transform(state) else state
         }
+        return applied
     }
+
+    /**
+     * Renames whose rows [onRenamed] already rewrote, by operation and the generation they were
+     * published under. Their own Removed event would otherwise prune the rows kept for skipped items.
+     */
+    private val reconciledRenames: MutableSet<Pair<Operation.Id, Long>> = ConcurrentHashMap.newKeySet()
 
     @Volatile
     private var visibleResultsCache: Triple<List<SearchItem>, Set<APath<*>>, List<SearchItem>>? = null
@@ -299,6 +310,14 @@ class SearcherWorkspace @AssistedInject constructor(
 
     private fun onFileSystemEvent(event: FileSystemEvent) {
         if (event !is FileSystemEvent.Removed) return
+
+        reconciledRenames.firstOrNull { it.first == event.operationId }?.let { entry ->
+            reconciledRenames.remove(entry)
+            if (entry.second == searchGeneration.get()) {
+                log(tag) { "onFileSystemEvent(): ${event.operationId} was already reconciled by onRenamed()" }
+                return
+            }
+        }
 
         // Scope against the query that produced the displayed results, not the editable engine
         // targets — editing targets without re-searching must not stop pruning of old results.
@@ -693,7 +712,9 @@ class SearcherWorkspace @AssistedInject constructor(
                     val executable = renameOperationFactory.create(
                         workspaceId = id,
                         command = command,
-                        moveListener = { moved, skipped -> onRenamed(generation, command.source, moved, skipped) },
+                        moveListener = { operationId, moved, skipped ->
+                            onRenamed(operationId, generation, command.source, moved, skipped)
+                        },
                     )
                     operationsManager.submit(executable)
                 }
@@ -710,6 +731,7 @@ class SearcherWorkspace @AssistedInject constructor(
      * search started meanwhile keeps its own results.
      */
     private suspend fun onRenamed(
+        operationId: Operation.Id,
         generation: Long,
         source: SearchItem,
         moved: Set<Pair<APathLookup<*>, APathLookup<*>>>,
@@ -748,7 +770,7 @@ class SearcherWorkspace @AssistedInject constructor(
 
         val replacementItems = replacements.values.filterNotNull()
         val replacementKeys = replacementItems.mapTo(mutableSetOf()) { it.resultKey }
-        updateGuarded(generation) { state ->
+        val applied = updateGuarded(generation) { state ->
             val seen = mutableSetOf<String>()
             val results = state.results
                 .mapNotNull { item ->
@@ -764,6 +786,7 @@ class SearcherWorkspace @AssistedInject constructor(
                 }
             state.copy(results = results)
         }
+        if (applied) reconciledRenames.add(operationId to generation)
     }
 
     private fun SearchItem.movedTo(lookup: APathLookup<*>): SearchItem = SearchItem.fromLookup(

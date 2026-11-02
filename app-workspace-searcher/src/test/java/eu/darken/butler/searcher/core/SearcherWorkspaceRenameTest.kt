@@ -22,6 +22,7 @@ import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -169,6 +170,7 @@ class SearcherWorkspaceRenameTest : BaseTest() {
 
         val listener = workspace.requestRename(renamed, "journal.txt")
         listener.onMoved(
+            operationId = Operation.Id(),
             moved = setOf(lookup(defaultRoot.at("notes.txt")) to lookup(defaultRoot.at("journal.txt"))),
             skipped = emptySet(),
         )
@@ -188,6 +190,7 @@ class SearcherWorkspaceRenameTest : BaseTest() {
 
         val listener = workspace.requestRename(renamed, "journal.txt")
         listener.onMoved(
+            operationId = Operation.Id(),
             moved = setOf(lookup(defaultRoot.at("notes.txt")) to lookup(defaultRoot.at("journal (1).txt"))),
             skipped = emptySet(),
         )
@@ -205,6 +208,7 @@ class SearcherWorkspaceRenameTest : BaseTest() {
 
         val listener = workspace.requestRename(renamed, "journal.txt")
         listener.onMoved(
+            operationId = Operation.Id(),
             moved = setOf(lookup(defaultRoot.at("notes.txt")) to lookup(defaultRoot.at("journal.txt"), size = 7L)),
             skipped = emptySet(),
         )
@@ -229,6 +233,7 @@ class SearcherWorkspaceRenameTest : BaseTest() {
 
             val listener = workspace.requestRename(renamed, "journal.txt")
             listener.onMoved(
+                operationId = Operation.Id(),
                 moved = setOf(lookup(defaultRoot.at("notes.txt")) to lookup(defaultRoot.at("journal.txt"), size = 7L)),
                 skipped = emptySet(),
             )
@@ -246,7 +251,11 @@ class SearcherWorkspaceRenameTest : BaseTest() {
         val workspace = searched(listOf(renamed, other))
 
         val listener = workspace.requestRename(renamed, "journal.txt")
-        listener.onMoved(moved = emptySet(), skipped = setOf(lookup(defaultRoot.at("notes.txt"))))
+        listener.onMoved(
+            operationId = Operation.Id(),
+            moved = emptySet(),
+            skipped = setOf(lookup(defaultRoot.at("notes.txt"))),
+        )
 
         workspace.results() shouldBe listOf(renamed, other)
     }
@@ -272,6 +281,7 @@ class SearcherWorkspaceRenameTest : BaseTest() {
 
         val listener = workspace.requestRename(folder, "papers")
         listener.onMoved(
+            operationId = Operation.Id(),
             moved = setOf(
                 lookup(defaultRoot.at("docs"), FileType.DIRECTORY) to
                     lookup(defaultRoot.at("papers"), FileType.DIRECTORY),
@@ -304,6 +314,7 @@ class SearcherWorkspaceRenameTest : BaseTest() {
         val listener = workspace.requestRename(renamed, "journal.txt")
         workspace.execute(SearcherCommand.Clear)
         listener.onMoved(
+            operationId = Operation.Id(),
             moved = setOf(lookup(defaultRoot.at("notes.txt")) to lookup(defaultRoot.at("journal.txt"))),
             skipped = emptySet(),
         )
@@ -327,6 +338,7 @@ class SearcherWorkspaceRenameTest : BaseTest() {
             }
         }
         listener.onMoved(
+            operationId = Operation.Id(),
             moved = setOf(lookup(defaultRoot.at("notes.txt")) to lookup(defaultRoot.at("journal.txt"))),
             skipped = emptySet(),
         )
@@ -343,8 +355,8 @@ class SearcherWorkspaceRenameTest : BaseTest() {
 
         val listener = renaming.requestRename(renamed, "journal.txt")
         val moved = setOf(lookup(defaultRoot.at("notes.txt")) to lookup(defaultRoot.at("journal.txt")))
-        listener.onMoved(moved = moved, skipped = emptySet())
         val operationId = Operation.Id()
+        listener.onMoved(operationId = operationId, moved = moved, skipped = emptySet())
         hinter.trackPathsRemoved(operationId, moved.map { it.first })
         hinter.trackPathsAdded(operationId, moved.map { it.second })
 
@@ -367,6 +379,7 @@ class SearcherWorkspaceRenameTest : BaseTest() {
             val aliasSource = fileItem(aliasRoot.at("notes.txt"))
             val listener = workspace.requestRename(aliasSource, "journal.txt")
             listener.onMoved(
+                operationId = Operation.Id(),
                 moved = setOf(lookup(aliasRoot.at("notes.txt")) to lookup(aliasRoot.at("journal.txt"))),
                 skipped = emptySet(),
             )
@@ -377,5 +390,32 @@ class SearcherWorkspaceRenameTest : BaseTest() {
         } finally {
             ResultPathKeys.primaryStorage = original
         }
+    }
+
+    @Test
+    fun `own removal event keeps a skipped child`(): Unit = runBlocking {
+        val root = LocalPath.build("/storage/emulated/0")
+        val folder = dirItem(root.at("A"))
+        val kept = fileItem(root.at("A/kept.txt"))
+        val moving = fileItem(root.at("A/moved.txt"))
+        val workspace = searched(listOf(folder, kept, moving), root = root)
+        val bystander = searched(listOf(folder, kept, moving), root = root)
+
+        val listener = workspace.requestRename(folder, "B")
+        val moved = setOf(
+            lookup(root.at("A"), FileType.DIRECTORY) to lookup(root.at("B"), FileType.DIRECTORY),
+            lookup(root.at("A/moved.txt")) to lookup(root.at("B/moved.txt")),
+        )
+        val operationId = Operation.Id()
+        listener.onMoved(operationId = operationId, moved = moved, skipped = setOf(lookup(root.at("A/kept.txt"))))
+        hinter.trackPathsRemoved(operationId, moved.map { it.first }.toSet())
+        hinter.trackPathsAdded(operationId, moved.map { it.second }.toSet())
+
+        // Barrier: the bystander tab has processed the same Removed event.
+        withTimeout(10_000) { bystander.state.first { it.results.isEmpty() } }
+
+        val paths = workspace.paths()
+        paths shouldContain root.at("A/kept.txt")
+        paths shouldContain root.at("B/moved.txt")
     }
 }

@@ -48,6 +48,7 @@ class RenameOperation @AssistedInject constructor(
     /** Receives what the move confirmed, before the filesystem events about it go out. */
     fun interface MoveListener {
         suspend fun onMoved(
+            operationId: Operation.Id,
             moved: Set<Pair<APathLookup<*>, APathLookup<*>>>,
             skipped: Set<APathLookup<*>>,
         )
@@ -83,8 +84,7 @@ class RenameOperation @AssistedInject constructor(
 
         val target = destination ?: throw WriteException("Can't rename a path without a parent", source)
 
-        // An existing directory under the new name turns the rename into a move INTO it. A
-        // case-only rename finds the source itself under that name and is left to the move engine.
+        // An existing directory under the new name turns the rename into a move INTO it.
         val existing = try {
             gatewaySwitch.lookup(target, LookupOptions(fallbackToUnknown = true))
         } catch (e: CancellationException) {
@@ -93,8 +93,7 @@ class RenameOperation @AssistedInject constructor(
             log(tag, WARN) { "perform(): Destination lookup failed, leaving it to the move: ${e.asLog()}" }
             null
         }
-        val isCaseOnly = source.name.equals(command.newName, ignoreCase = true)
-        if (existing?.fileType == FileType.DIRECTORY && !isCaseOnly) {
+        if (existing?.fileType == FileType.DIRECTORY && !isLookupOfSourceItself(target)) {
             log(tag, WARN) { "perform(): $target is an existing directory, not renaming $source" }
             throw PathAlreadyExistsException(path = target)
         }
@@ -140,7 +139,7 @@ class RenameOperation @AssistedInject constructor(
 
         // Before the hints, so whatever the listener rewrites is in place when the Removed event
         // for the old path goes out.
-        moveListener.onMoved(moved, skipped)
+        moveListener.onMoved(operationContext.id, moved, skipped)
 
         // Confirmed pairs only, so skipped items aren't reported as removed.
         fileSystemHinter.trackPathsRemoved(operationContext.id, moved.map { it.first }.toSet())
@@ -160,6 +159,24 @@ class RenameOperation @AssistedInject constructor(
                 report = reportBuilder.build(),
             )
         )
+    }
+
+    /**
+     * A case-only rename on case-insensitive storage finds the source itself under the new name.
+     * With `docs` and `Docs` both listed in the parent, `Docs` is a separate directory.
+     */
+    private suspend fun isLookupOfSourceItself(target: APath<*>): Boolean {
+        if (!source.name.equals(command.newName, ignoreCase = true)) return false
+        val parent = source.parent ?: return false
+        val names = try {
+            gatewaySwitch.listFiles(parent).map { it.name }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "perform(): Listing $parent failed, can't tell $target from $source: ${e.asLog()}" }
+            return false
+        }
+        return source.name in names && command.newName !in names
     }
 
     @AssistedFactory
