@@ -18,7 +18,22 @@ class ArchiveFormatTest : BaseTest() {
         ArchiveFormat.fromFileName("backup.tgz") shouldBe ArchiveFormat.TAR_GZ
         ArchiveFormat.fromFileName("backup.tar.bz2") shouldBe ArchiveFormat.TAR_BZ2
         ArchiveFormat.fromFileName("backup.tbz2") shouldBe ArchiveFormat.TAR_BZ2
+        ArchiveFormat.fromFileName("backup.tar.xz") shouldBe ArchiveFormat.TAR_XZ
+        ArchiveFormat.fromFileName("backup.txz") shouldBe ArchiveFormat.TAR_XZ
         ArchiveFormat.fromFileName("backup.tar") shouldBe ArchiveFormat.TAR
+    }
+
+    @Test
+    fun `detect tar xz case-insensitively`() {
+        ArchiveFormat.fromFileName("BACKUP.TAR.XZ") shouldBe ArchiveFormat.TAR_XZ
+        ArchiveFormat.fromFileName("Backup.TXZ") shouldBe ArchiveFormat.TAR_XZ
+        ArchiveFormat.TAR_XZ.displayExtension shouldBe "tar.xz"
+        ArchiveFormat.TAR_XZ.isWritable shouldBe true
+    }
+
+    @Test
+    fun `plain xz is not a browsable archive`() {
+        ArchiveFormat.fromFileName("notes.txt.xz") shouldBe null
     }
 
     @Test
@@ -105,14 +120,17 @@ class ArchiveFormatTest : BaseTest() {
         // Compound suffixes strip whole, not just the last component.
         ArchiveFormat.stemOf("backup.tar.gz") shouldBe "backup"
         ArchiveFormat.stemOf("backup.tar.bz2") shouldBe "backup"
+        ArchiveFormat.stemOf("backup.tar.xz") shouldBe "backup"
         // Alias suffixes.
         ArchiveFormat.stemOf("backup.tgz") shouldBe "backup"
         ArchiveFormat.stemOf("backup.tbz2") shouldBe "backup"
+        ArchiveFormat.stemOf("backup.txz") shouldBe "backup"
     }
 
     @Test
     fun `stemOf is case-insensitive`() {
         ArchiveFormat.stemOf("Backup.TAR.GZ") shouldBe "Backup"
+        ArchiveFormat.stemOf("Backup.TAR.XZ") shouldBe "Backup"
         ArchiveFormat.stemOf("PHOTOS.ZIP") shouldBe "PHOTOS"
     }
 

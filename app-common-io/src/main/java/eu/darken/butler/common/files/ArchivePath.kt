@@ -7,7 +7,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Virtual path addressing an entry INSIDE an archive file (zip, tar, tar.gz, tar.bz2).
+ * Virtual path addressing an entry INSIDE an archive file (zip, tar, tar.gz, tar.bz2, tar.xz).
  *
  * [container] is the real path of the archive file itself (a [eu.darken.butler.common.files.LocalPath]
  * or [eu.darken.butler.common.files.SAFPath]; nested archive containers are rejected by the gateway).
