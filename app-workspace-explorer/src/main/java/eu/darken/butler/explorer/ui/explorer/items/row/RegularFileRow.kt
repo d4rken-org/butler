@@ -17,7 +17,6 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
-import eu.darken.butler.explorer.ui.explorer.items.ItemMoreButton
 import eu.darken.butler.explorer.ui.explorer.items.rowMoreButtonSize
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
@@ -32,6 +31,7 @@ import eu.darken.butler.explorer.ui.explorer.items.rowIconSize
 import eu.darken.butler.explorer.ui.explorer.items.showsFileAttributes
 import eu.darken.butler.explorer.ui.explorer.items.usesShortFileSize
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.common.ItemMoreButton
 
 @Composable
 internal fun RegularFileRow(
@@ -106,7 +106,13 @@ internal fun RegularFileRow(
                 )
             },
         trailingContent = if (onMoreClick != null) {
-            { ItemMoreButton(onClick = onMoreClick, size = density.rowMoreButtonSize) }
+            {
+                ItemMoreButton(
+                    onClick = onMoreClick,
+                    contentDescription = stringResource(R.string.explorer_file_more_actions_content_desc),
+                    size = density.rowMoreButtonSize,
+                )
+            }
         } else {
             null
         },
