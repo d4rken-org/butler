@@ -1,6 +1,7 @@
 package eu.darken.butler.searcher.core
 
 import android.content.Context
+import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -8,6 +9,7 @@ import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.searcher.core.engine.backend.SearchBackend
 import eu.darken.butler.searcher.core.operations.DeleteOperation
+import eu.darken.butler.searcher.core.operations.RenameOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
 import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
@@ -91,10 +93,12 @@ class SearcherWorkspacePausableTest : BaseTest() {
             issueHandler = mockk<IssueHandler>(),
             operationsManager = operationsManager,
             deleteOperationFactory = mockk<DeleteOperation.Factory>(),
+            renameOperationFactory = mockk<RenameOperation.Factory>(),
             searchEngineFactory = engineFactory,
             fileSystemHinter = FileSystemHinter(),
             folderPreviewResolver = mockk<FolderPreviewResolver>(relaxUnitFun = true),
             errorIncidentStore = recordingIncidentStore(),
+            gatewaySwitch = mockk<GatewaySwitch>(),
         )
     }
 

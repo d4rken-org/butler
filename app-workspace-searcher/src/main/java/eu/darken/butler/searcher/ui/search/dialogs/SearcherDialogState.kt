@@ -47,6 +47,8 @@ sealed interface SearcherDialogState {
 
     data class ShowItemProperties(val result: SearchItem) : SearcherDialogState
 
+    data class Rename(val result: SearchItem) : SearcherDialogState
+
     /**
      * The selected results as they were when "Open" was tapped, in display order. The chosen mode
      * opens this snapshot, not the live selection.

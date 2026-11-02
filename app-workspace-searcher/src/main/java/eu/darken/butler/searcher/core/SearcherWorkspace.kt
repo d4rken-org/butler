@@ -15,15 +15,21 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorIncidentStore
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
+import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.extensions.isAncestorOf
 import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.chunked
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.engine.SearchConfig
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.searcher.core.operations.DeleteOperation
+import eu.darken.butler.searcher.core.operations.RenameOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.contracts.searcher.ContentQuery
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
@@ -76,10 +82,12 @@ class SearcherWorkspace @AssistedInject constructor(
     private val issueHandler: IssueHandler,
     private val operationsManager: OperationsManager,
     private val deleteOperationFactory: DeleteOperation.Factory,
+    private val renameOperationFactory: RenameOperation.Factory,
     searchEngineFactory: SearchEngine.Factory,
     private val fileSystemHinter: FileSystemHinter,
     private val folderPreviewResolver: FolderPreviewResolver,
     private val errorIncidentStore: ErrorIncidentStore,
+    private val gatewaySwitch: GatewaySwitch,
 ) : Workspace<SearcherArguments> {
 
     private val tag = logTag("Searcher", "Workspace", id.shortTag)
@@ -679,9 +687,103 @@ class SearcherWorkspace @AssistedInject constructor(
                     operationsManager.submit(executable)
                 }
             }
+            is SearcherCommand.Rename -> {
+                val generation = searchGeneration.get()
+                scope.launch {
+                    val executable = renameOperationFactory.create(
+                        workspaceId = id,
+                        command = command,
+                        moveListener = { moved, skipped -> onRenamed(generation, command.source, moved, skipped) },
+                    )
+                    operationsManager.submit(executable)
+                }
+            }
 
             // Target management
             is SearcherCommand.AddDefaultPaths -> searchEngine.addDefaultPaths()
+        }
+    }
+
+    /**
+     * Keeps a renamed result in this tab under its new path, even if the new name no longer matches
+     * the query. Published under the [generation] the rename was requested in, so a clear or a new
+     * search started meanwhile keeps its own results.
+     */
+    private suspend fun onRenamed(
+        generation: Long,
+        source: SearchItem,
+        moved: Set<Pair<APathLookup<*>, APathLookup<*>>>,
+        skipped: Set<APathLookup<*>>,
+    ) {
+        if (moved.isEmpty()) return
+        val sourceKey = source.resultKey
+        val movedByKey = moved.associate { (from, to) -> ResultPathKeys.keyOf(from.lookedUp) to to }
+        val topLevel = movedByKey[sourceKey]
+        log(tag) { "onRenamed(): ${source.path} -> ${topLevel?.lookedUp}, ${moved.size} moved, ${skipped.size} skipped" }
+
+        // Old key -> replacement; null drops the row
+        val replacements = mutableMapOf<String, SearchItem?>()
+        val current = _searchState.value.results
+        current.firstOrNull { it.resultKey == sourceKey }?.let { old ->
+            if (topLevel != null) replacements[sourceKey] = old.movedTo(topLevel)
+        }
+
+        if (source.fileType == FileType.DIRECTORY) {
+            val oldRoot = ResultPathKeys.comparable(source.path)
+            val skippedKeys = skipped.mapTo(mutableSetOf()) { ResultPathKeys.keyOf(it.lookedUp) }
+            current
+                .filter { oldRoot.isAncestorOf(ResultPathKeys.comparable(it.path)) }
+                .forEach { item ->
+                    val key = item.resultKey
+                    val explicit = movedByKey[key]
+                    replacements[key] = when {
+                        explicit != null -> item.movedTo(explicit)
+                        key in skippedKeys -> item
+                        topLevel != null -> item.rebasedLookup(oldRoot, topLevel.lookedUp)
+                        else -> item
+                    }
+                }
+        }
+        if (replacements.isEmpty()) return
+
+        val replacementItems = replacements.values.filterNotNull()
+        val replacementKeys = replacementItems.mapTo(mutableSetOf()) { it.resultKey }
+        updateGuarded(generation) { state ->
+            val seen = mutableSetOf<String>()
+            val results = state.results
+                .mapNotNull { item ->
+                    val key = item.resultKey
+                    if (key in replacements) replacements[key] else item
+                }
+                // A replacement can land on a name that already was a result: one row, the
+                // renamed item's, at the renamed item's position.
+                .filter { item ->
+                    val key = item.resultKey
+                    val isPreexisting = key in replacementKeys && replacementItems.none { it === item }
+                    !isPreexisting && seen.add(key)
+                }
+            state.copy(results = results)
+        }
+    }
+
+    private fun SearchItem.movedTo(lookup: APathLookup<*>): SearchItem = SearchItem.fromLookup(
+        lookup = lookup,
+        matchedQuery = matchedQuery,
+        matchContext = matchContext,
+        metadata = metadata,
+    )
+
+    /** Looks this descendant up again below [newRoot]; null if it can't be found there. */
+    private suspend fun SearchItem.rebasedLookup(oldRoot: APath<*>, newRoot: APath<*>): SearchItem? {
+        val relative = ResultPathKeys.comparable(path).segments.drop(oldRoot.segments.size)
+        val rebased = newRoot.child(*relative.toTypedArray())
+        return try {
+            movedTo(gatewaySwitch.lookup(rebased, LookupOptions.BASE))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "onRenamed(): Dropping $path, not found at $rebased: ${e.asLog()}" }
+            null
         }
     }
 

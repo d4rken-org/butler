@@ -26,6 +26,7 @@ import eu.darken.butler.common.files.extensions.commonParent
 import eu.darken.butler.common.files.extensions.shownPath
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
@@ -136,6 +137,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val apiLevel: ApiLevel,
     private val errorIncidentStore: ErrorIncidentStore,
     private val appAttributor: AppAttributor,
+    private val filenameValidator: FilenameValidator,
     itemSorterFactory: SearchItemSorter.Factory,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
@@ -1025,6 +1027,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherActionBarItem.ShowProperties -> {
                 dialogStateFlow.value = SearcherDialogState.ShowItemProperties(action.result)
             }
+            is SearcherActionBarItem.Rename -> launch {
+                if (isSearching()) {
+                    log(TAG, WARN) { "Rename of ${action.result.path} ignored, a search is running" }
+                    return@launch
+                }
+                dialogStateFlow.value = SearcherDialogState.Rename(action.result)
+            }
             is SearcherActionBarItem.SelectAll -> selectAll()
             is SearcherActionBarItem.SelectAllFolders -> selectAllFolders()
             is SearcherActionBarItem.SelectAllFiles -> selectAllFiles()
@@ -1327,6 +1336,22 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    private fun onRenameConfirmed(result: SearchItem, newName: String) = launch {
+        log(TAG, INFO) { "onRenameConfirmed(${result.path}, $newName)" }
+        dialogStateFlow.value = SearcherDialogState.None
+        if (isSearching()) {
+            log(TAG, WARN) { "Rename of ${result.path} dropped, a search is running" }
+            return@launch
+        }
+        getWorkspace().execute(SearcherCommand.Rename(source = result, newName = newName))
+    }
+
+    private suspend fun isSearching(): Boolean =
+        workspaceSearchState.first().searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
+
+    fun validateFilename(name: String, parent: APath<*>): FilenameValidator.ValidationResult =
+        filenameValidator.validate(name, parent)
+
     private fun onSortOptions(result: eu.darken.butler.searcher.ui.search.dialogs.SearchSortOptionsResult) = launch {
         log(tag) { "onSortOptions($result)" }
         dialogStateFlow.value = SearcherDialogState.None
@@ -1626,6 +1651,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             // Dialogs
             is SearcherPageAction.Dialogs.Dismiss -> dismissDialog()
             is SearcherPageAction.Dialogs.DeleteConfirmed -> onDeleteConfirmed(action.paths, action.forcePermDelete)
+            is SearcherPageAction.Dialogs.RenameConfirmed -> onRenameConfirmed(action.result, action.newName)
             is SearcherPageAction.Dialogs.SortOptionsConfirmed -> onSortOptions(action.result)
             is SearcherPageAction.Dialogs.ClearHistoryConfirmed -> onClearHistoryConfirmed()
             is SearcherPageAction.Dialogs.OpenSelectionModePicked ->

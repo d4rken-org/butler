@@ -1,6 +1,7 @@
 package eu.darken.butler.searcher.ui.search
 
 import eu.darken.butler.common.error.ErrorIncident
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.searcher.core.SearcherSettings
@@ -93,6 +94,7 @@ class SearcherErrorShareTest {
             apiLevel = mockk(relaxed = true),
             errorIncidentStore = incidentStore,
             appAttributor = noAppAttributions(),
+            filenameValidator = FilenameValidator(),
             itemSorterFactory = mockk {
                 every { create(any()) } returns mockk(relaxed = true)
             },

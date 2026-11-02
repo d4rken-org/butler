@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -55,6 +56,7 @@ fun SearchResultItemDetails(
     onLongPress: (SearchItem) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    isSearching: Boolean = false,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -268,6 +270,11 @@ fun SearchResultItemDetails(
                 )
 
                 // Additional actions
+                QuickActionItem(
+                    action = SearcherActionBarItem.Rename(result, isEnabled = !isSearching),
+                    onClick = onAction
+                )
+
                 if (caps.canHandOffToOtherApps) {
                     QuickActionItem(
                         action = SearcherActionBarItem.Share(listOf(result)),
@@ -313,7 +320,8 @@ private fun QuickActionItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick(action) }
+            .clickable(enabled = action.isEnabled) { onClick(action) }
+            .alpha(if (action.isEnabled) 1f else 0.38f)
             .padding(horizontal = 24.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
@@ -363,6 +371,33 @@ private fun SearchResultItemDetailsPreview() {
                 matchedQuery = "example",
             ),
             trashEnabled = true,
+            onAction = {},
+            onLongPress = {},
+            onDismiss = {},
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearchResultItemDetailsSearchingPreview() {
+    val mockLookup = LocalPathLookup(
+        lookedUp = LocalPath.build("/storage/emulated/0/Documents/example.txt"),
+        fileType = FileType.FILE,
+        size = 1024L,
+        modifiedAt = Clock.System.now(),
+        target = null
+    )
+
+    PreviewWrapper {
+        SearchResultItemDetails(
+            result = SearchItem.fromLookup(
+                lookup = mockLookup,
+                matchedQuery = "example",
+            ),
+            trashEnabled = true,
+            isSearching = true,
             onAction = {},
             onLongPress = {},
             onDismiss = {},

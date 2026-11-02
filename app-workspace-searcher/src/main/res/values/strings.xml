@@ -195,6 +195,11 @@
     <string name="searcher_action_sort">Sort</string>
     <string name="searcher_action_view">Layout</string>
 
+    <!-- Rename operation -->
+    <string name="searcher_operation_rename_title">File rename</string>
+    <string name="searcher_operation_rename_description">Rename \"%1$s\" to \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Renamed to \"%1$s\".</string>
+
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Sort by</string>
     <string name="searcher_sort_mode_name_label">Name</string>

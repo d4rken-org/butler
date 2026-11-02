@@ -1,6 +1,7 @@
 package eu.darken.butler.searcher.core.operations
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.workspace.contracts.searcher.ContentQuery
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
@@ -28,6 +29,12 @@ sealed interface SearcherCommand {
             val forcePermDelete: Boolean = false,
         )
     }
+
+    /** Renames [source] inside its parent; the tab's row follows the renamed item. */
+    data class Rename(
+        val source: SearchItem,
+        val newName: String,
+    ) : SearcherCommand
 
     /**
      * Target management command
