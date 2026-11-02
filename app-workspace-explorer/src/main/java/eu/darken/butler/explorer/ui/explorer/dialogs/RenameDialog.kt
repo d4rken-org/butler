@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -29,6 +28,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.ui.dialogs.PaneBoundAlertDialog
+import eu.darken.butler.workspace.ui.issues.initialRenameSelection
 import eu.darken.butler.workspace.ui.modal.LocalLayerActive
 import eu.darken.butler.common.R as CommonR
 
@@ -36,16 +36,6 @@ data class RenameResult(
     val item: APath<*>,
     val newName: String,
 )
-
-/**
- * Selection to apply when opening the rename dialog: the filename stem (without its extension).
- * For dotfiles (e.g. ".gitignore") the dot is at index 0, so the whole name is selected instead.
- */
-internal fun initialRenameSelection(currentName: String): TextRange {
-    val dot = currentName.lastIndexOf('.')
-    val end = if (dot > 0) dot else currentName.length
-    return TextRange(0, end)
-}
 
 @Composable
 fun RenameDialog(
