@@ -78,7 +78,6 @@ class LazyTextEditorSelectionHandleTest : ComposeTest() {
                     totalLines = 2L,
                     cursorPosition = cursor,
                     selection = selection,
-                    visibleRange = 0L..1L,
                     windowToken = EditorEngine.DocumentToken(engineEpoch, 0L),
                     showLineNumbers = false,
                     onEnqueueDelta = {

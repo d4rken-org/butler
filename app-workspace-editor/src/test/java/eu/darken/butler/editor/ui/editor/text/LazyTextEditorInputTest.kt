@@ -130,7 +130,6 @@ class LazyTextEditorInputTest : ComposeTest() {
                     totalLines = display.split('\n').size.toLong(),
                     cursorPosition = cursor,
                     selection = null,
-                    visibleRange = 0L..(display.split('\n').size.toLong() - 1),
                     truncatedLines = truncated,
                     startColumns = startCols,
                     windowToken = windowToken,
@@ -204,7 +203,6 @@ class LazyTextEditorInputTest : ComposeTest() {
                     totalLines = text.split('\n').size.toLong(),
                     cursorPosition = host.cursor.value,
                     selection = null,
-                    visibleRange = 0L..(text.split('\n').size.toLong() - 1),
                     windowToken = host.token.value,
                     windowRangeStart = 0L,
                     onEnqueueDelta = { delta ->

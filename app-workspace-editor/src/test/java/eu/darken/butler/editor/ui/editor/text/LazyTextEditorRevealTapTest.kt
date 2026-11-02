@@ -93,7 +93,6 @@ class LazyTextEditorRevealTapTest : ComposeTest() {
                     totalLines = display.split('\n').size.toLong(),
                     cursorPosition = cursor,
                     selection = null,
-                    visibleRange = 0L..(display.split('\n').size.toLong() - 1),
                     truncatedLines = truncated,
                     startColumns = startCols,
                     windowToken = EditorEngine.DocumentToken(engineEpoch, version),
