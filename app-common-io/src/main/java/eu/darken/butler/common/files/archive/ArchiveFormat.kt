@@ -16,6 +16,7 @@ enum class ArchiveFormat(val displayExtension: String) {
     @SerialName("tar") TAR("tar"),
     @SerialName("tar_gz") TAR_GZ("tar.gz"),
     @SerialName("tar_bz2") TAR_BZ2("tar.bz2"),
+    @SerialName("tar_xz") TAR_XZ("tar.xz"),
     @SerialName("seven_z") SEVEN_Z("7z"),
     @SerialName("rar") RAR("rar"),
     ;
@@ -23,7 +24,7 @@ enum class ArchiveFormat(val displayExtension: String) {
     val capabilities: ArchiveCapabilities
         get() = when (this) {
             ZIP -> ZipArchiveHandler.CAPABILITIES
-            TAR, TAR_GZ, TAR_BZ2 -> TarArchiveHandler.CAPABILITIES
+            TAR, TAR_GZ, TAR_BZ2, TAR_XZ -> TarArchiveHandler.CAPABILITIES
             SEVEN_Z -> SevenZArchiveHandler.CAPABILITIES
             RAR -> RarArchiveHandler.CAPABILITIES
         }
@@ -42,6 +43,7 @@ enum class ArchiveFormat(val displayExtension: String) {
                 lower.endsWith(".apks") || lower.endsWith(".xapk") || lower.endsWith(".apkm") -> ZIP
                 lower.endsWith(".tar.gz") || lower.endsWith(".tgz") -> TAR_GZ
                 lower.endsWith(".tar.bz2") || lower.endsWith(".tbz2") -> TAR_BZ2
+                lower.endsWith(".tar.xz") || lower.endsWith(".txz") -> TAR_XZ
                 lower.endsWith(".tar") -> TAR
                 lower.endsWith(".7z") -> SEVEN_Z
                 // Of a legacy multi-part set (.rar, .r00, .r01, …) only the first file is opened.
@@ -52,7 +54,8 @@ enum class ArchiveFormat(val displayExtension: String) {
 
         // Compound suffixes first so ".tar.gz" is stripped whole rather than leaving ".tar".
         private val STEM_SUFFIXES = listOf(
-            ".tar.gz", ".tar.bz2", ".tbz2", ".tgz", ".tar", ".apks", ".xapk", ".apkm", ".zip", ".7z", ".rar",
+            ".tar.gz", ".tar.bz2", ".tar.xz", ".tbz2", ".tgz", ".txz", ".tar",
+            ".apks", ".xapk", ".apkm", ".zip", ".7z", ".rar",
         )
 
         private val RAR_PART_SUFFIX = Regex("""\.part\d+\.rar$""", RegexOption.IGNORE_CASE)

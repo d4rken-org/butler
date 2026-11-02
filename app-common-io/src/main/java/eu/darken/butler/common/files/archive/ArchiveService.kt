@@ -55,7 +55,7 @@ class ArchiveService @Inject constructor(
 
     private fun handlerFor(format: ArchiveFormat): ArchiveHandler = when (format) {
         ArchiveFormat.ZIP -> zipHandler
-        ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2 -> tarHandler
+        ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2, ArchiveFormat.TAR_XZ -> tarHandler
         ArchiveFormat.SEVEN_Z -> sevenZHandler
         ArchiveFormat.RAR -> rarHandler
     }

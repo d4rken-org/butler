@@ -2,14 +2,18 @@ package eu.darken.butler.common.files.archive
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -22,16 +26,20 @@ import kotlinx.coroutines.cancel
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
+import org.apache.commons.compress.MemoryLimitException
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
+import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.tukaani.xz.LZMA2Options
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import kotlin.time.Instant
@@ -93,8 +101,47 @@ class ArchiveServiceTarTest : BaseTest() {
         ArchiveFormat.TAR -> raw
         ArchiveFormat.TAR_GZ -> GzipCompressorOutputStream(raw)
         ArchiveFormat.TAR_BZ2 -> BZip2CompressorOutputStream(raw)
+        ArchiveFormat.TAR_XZ -> xz(raw)
         else -> error("Not a tar format: $format")
     }
+
+    private fun xz(raw: OutputStream, preset: Int = LZMA2Options.PRESET_DEFAULT): OutputStream =
+        XZCompressorOutputStream.builder().setOutputStream(raw).setLzma2Options(LZMA2Options(preset)).get()
+
+    private fun xzBytes(data: ByteArray, from: Int, to: Int, preset: Int): ByteArray {
+        val out = ByteArrayOutputStream()
+        xz(out, preset).use { it.write(data, from, to - from) }
+        return out.toByteArray()
+    }
+
+    /**
+     * Writes [entries] as one tar byte sequence split at [splitAt], each part compressed as an
+     * independent xz stream, and the two streams concatenated into one file.
+     */
+    private fun buildConcatenatedTarXz(
+        entries: List<Pair<String, ByteArray>>,
+        splitAt: Int,
+        firstPreset: Int = LZMA2Options.PRESET_DEFAULT,
+        secondPreset: Int = LZMA2Options.PRESET_DEFAULT,
+    ): LocalPath {
+        val tarOut = ByteArrayOutputStream()
+        TarArchiveOutputStream(tarOut).use { tar ->
+            entries.forEach { (name, content) ->
+                tar.putArchiveEntry(TarArchiveEntry(name).apply { size = content.size.toLong() })
+                tar.write(content)
+                tar.closeArchiveEntry()
+            }
+        }
+        val tar = tarOut.toByteArray()
+        val file = File(workDir, "concatenated.tar.xz")
+        file.writeBytes(xzBytes(tar, 0, splitAt, firstPreset) + xzBytes(tar, splitAt, tar.size, secondPreset))
+        return LocalPath.build(file)
+    }
+
+    private fun xzHandler(decoderMemoryLimitKiB: Int) = TarArchiveHandler(
+        ArchiveHandlerContext({ gatewaySwitch }, passwordStore, volumeFingerprint = { "test" }),
+        decoderMemoryLimitKiB = decoderMemoryLimitKiB,
+    )
 
     /** Writes [entries] in order; a name may repeat, as tar allows. */
     private fun buildTar(format: ArchiveFormat, entries: List<Pair<String, ByteArray>>): LocalPath {
@@ -109,7 +156,7 @@ class ArchiveServiceTarTest : BaseTest() {
         return LocalPath.build(file)
     }
 
-    private val tarFormats = listOf(ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2)
+    private val tarFormats = listOf(ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2, ArchiveFormat.TAR_XZ)
 
     private val contents = listOf(
         "a.txt" to "alpha".toByteArray(),
@@ -234,5 +281,69 @@ class ArchiveServiceTarTest : BaseTest() {
                 got.second.toList() shouldBe expected.second.toList()
             }
         }
+    }
+
+    // Tar layout of [contents]: three 512-byte headers, each entry's data padded to 512 bytes, so
+    // c.bin's data starts at 2560. Splitting there plus 50_000 lands mid-content.
+    private val midContentSplit = 2560 + 50_000
+
+    @Test
+    fun `tar xz of concatenated streams reads as one archive`() = runTest2 {
+        val container = buildConcatenatedTarXz(contents, splitAt = midContentSplit)
+        val service = create()
+
+        val index = service.index(container)
+        index.entriesBySegments.values.filter { !it.isDirectory }.map { it.rawName }
+            .shouldContainExactlyInAnyOrder(contents.map { it.first })
+        contents.forEach { (name, content) ->
+            index.entriesBySegments.getValue(name.split('/')).size shouldBe content.size.toLong()
+            service.readEntry(container, name).toList() shouldBe content.toList()
+        }
+
+        val metas = contents.map { (name, _) -> index.entriesBySegments.getValue(name.split('/')) }
+        val delivered = service.streamEntries(container, metas)
+        delivered.map { it.first } shouldContainExactly contents.map { it.first }
+        delivered.zip(contents).forEach { (got, expected) ->
+            got.second.toList() shouldBe expected.second.toList()
+        }
+    }
+
+    private fun ReadException.isMemoryLimit() =
+        message!!.startsWith("Not enough memory to unpack this archive") &&
+            causeChain.any { it is MemoryLimitException }
+
+    @Test
+    fun `tar xz dictionary over the decoder limit fails the scan with a ReadException`() = runTest2 {
+        // wrap() writes xz's default preset 6, whose decoder needs ~8 MiB.
+        val container = buildTar(ArchiveFormat.TAR_XZ, contents)
+
+        shouldThrow<ReadException> {
+            xzHandler(decoderMemoryLimitKiB = 2048).scan(container, ArchiveFormat.TAR_XZ)
+        }.isMemoryLimit().shouldBeTrue()
+    }
+
+    @Test
+    fun `tar xz dictionary over the decoder limit in a later stream fails the scan`() = runTest2 {
+        val container = buildConcatenatedTarXz(contents, splitAt = midContentSplit, firstPreset = 1, secondPreset = 6)
+
+        shouldThrow<ReadException> {
+            xzHandler(decoderMemoryLimitKiB = 2048).scan(container, ArchiveFormat.TAR_XZ)
+        }.isMemoryLimit().shouldBeTrue()
+    }
+
+    @Test
+    fun `tar xz dictionary over the decoder limit fails entry reads past the stream boundary`() = runTest2 {
+        val container = buildConcatenatedTarXz(contents, splitAt = midContentSplit, firstPreset = 1, secondPreset = 6)
+        val index = create().index(container)
+        val cBin = index.entriesBySegments.getValue(listOf("dir", "sub", "c.bin"))
+        val handler = xzHandler(decoderMemoryLimitKiB = 2048)
+
+        shouldThrow<ReadException> {
+            handler.openEntry(container, index, cBin).use { it.readBytes() }
+        }.isMemoryLimit().shouldBeTrue()
+
+        shouldThrow<ReadException> {
+            handler.useEntryStreams(container, index, listOf(cBin)) { _, stream -> stream.readBytes() }
+        }.isMemoryLimit().shouldBeTrue()
     }
 }

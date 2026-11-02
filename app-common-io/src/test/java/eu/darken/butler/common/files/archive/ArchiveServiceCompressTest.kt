@@ -29,6 +29,7 @@ import kotlinx.coroutines.cancel
 import net.lingala.zip4j.model.enums.AesKeyStrength
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import okio.Path.Companion.toOkioPath
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -251,6 +252,54 @@ class ArchiveServiceCompressTest : BaseTest() {
     }
 
     @Test
+    fun `tar xz round trip preserves entries and content`() = runTest2 {
+        val service = create()
+        val (fileA, _) = sourceFile("a.txt", "alpha content")
+        val (fileB, _) = sourceFile("sub/b.txt", "beta content")
+        val container = LocalPath.build(File(workDir, "out.tar.xz"))
+
+        service.compress(
+            ArchiveWriteOptions(ArchiveFormat.TAR_XZ),
+            container,
+            listOf(fileA, dirEntry("sub"), fileB),
+        ) { _, _ -> }
+
+        val index = service.index(container)
+        index.format shouldBe ArchiveFormat.TAR_XZ
+        index.entriesBySegments[listOf("a.txt")]?.isDirectory shouldBe false
+        index.entriesBySegments[listOf("sub")]?.isDirectory shouldBe true
+        service.readEntryText(container, "a.txt") shouldBe "alpha content"
+        service.readEntryText(container, "sub", "b.txt") shouldBe "beta content"
+    }
+
+    @Test
+    fun `tar xz preset maps to xz presets 1, 4 and 6 via decoder memory`() = runTest2 {
+        val service = create()
+
+        suspend fun decoderKiBAt(preset: CompressionPreset): Long {
+            val (entry, _) = sourceFile("data_$preset.txt", "payload".repeat(100))
+            val container = LocalPath.build(File(workDir, "preset_$preset.tar.xz"))
+            service.compress(ArchiveWriteOptions(ArchiveFormat.TAR_XZ, preset), container, listOf(entry)) { _, _ -> }
+            val e = container.file.inputStream().use { input ->
+                shouldThrow<org.apache.commons.compress.MemoryLimitException> {
+                    XZCompressorInputStream.builder()
+                        .setInputStream(input)
+                        .setDecompressConcatenated(false)
+                        .setMemoryLimitKiB(1)
+                        .get()
+                        .read()
+                }
+            }
+            return e.memoryNeededInKb
+        }
+
+        // Decoder memory of xz presets 1, 4 and 6 (dictionary 1, 4 and 8 MiB plus decoder overhead).
+        decoderKiBAt(CompressionPreset.FAST) shouldBe 1128L
+        decoderKiBAt(CompressionPreset.NORMAL) shouldBe 4200L
+        decoderKiBAt(CompressionPreset.BEST) shouldBe 8296L
+    }
+
+    @Test
     fun `tar round trip resolves unknown entry sizes at write time`() = runTest2 {
         val service = create()
         val (known, _) = sourceFile("known.txt", "known size")
@@ -382,6 +431,9 @@ class ArchiveServiceCompressTest : BaseTest() {
         }
         shouldThrow<IllegalArgumentException> {
             ArchiveWriteOptions(ArchiveFormat.TAR_GZ, password = "secret".toCharArray())
+        }
+        shouldThrow<IllegalArgumentException> {
+            ArchiveWriteOptions(ArchiveFormat.TAR_XZ, password = "secret".toCharArray())
         }
         val options = ArchiveWriteOptions(ArchiveFormat.ZIP, password = "hunter2".toCharArray())
         options.toString() shouldNotContain "hunter2"

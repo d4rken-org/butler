@@ -33,6 +33,7 @@ class ArchiveCapabilitiesTest : BaseTest() {
         ArchiveFormat.TAR.capabilities shouldBe expected
         ArchiveFormat.TAR_GZ.capabilities shouldBe expected
         ArchiveFormat.TAR_BZ2.capabilities shouldBe expected
+        ArchiveFormat.TAR_XZ.capabilities shouldBe expected
     }
 
     @Test
