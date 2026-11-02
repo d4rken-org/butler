@@ -31,13 +31,15 @@ constructor(
         searcherSettings.maxHistoryItems.flow,
         searcherSettings.saveHistory.flow,
         searcherSettings.contentSearchBinaries.flow,
+        searcherSettings.openFilesOnTap.flow,
         searchHistory.observeHistoryCount(),
-    ) { maxSearchResults, maxHistoryItems, saveHistory, contentSearchBinaries, historyCount ->
+    ) { maxSearchResults, maxHistoryItems, saveHistory, contentSearchBinaries, openFilesOnTap, historyCount ->
         State(
             maxSearchResults = maxSearchResults,
             maxHistoryItems = maxHistoryItems,
             saveHistory = saveHistory,
             contentSearchBinaries = contentSearchBinaries,
+            openFilesOnTap = openFilesOnTap,
             currentHistoryCount = historyCount,
         )
     }.asStateFlow()
@@ -71,6 +73,11 @@ constructor(
         searcherSettings.contentSearchBinaries.value(enabled)
     }
 
+    fun updateOpenFilesOnTap(enabled: Boolean) = launch {
+        log(tag) { "updateOpenFilesOnTap($enabled)" }
+        searcherSettings.openFilesOnTap.value(enabled)
+    }
+
     sealed interface Event {
         data object HistoryCleared : Event
     }
@@ -80,6 +87,7 @@ constructor(
         val maxHistoryItems: Int = 10,
         val saveHistory: Boolean = true,
         val contentSearchBinaries: Boolean = false,
+        val openFilesOnTap: Boolean = false,
         val currentHistoryCount: Int = 0,
     )
 }

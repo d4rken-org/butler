@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Content Search</string>
     <string name="searcher_settings_include_binaries_title">Include binary files</string>
     <string name="searcher_settings_include_binaries_subtitle">Search content of binary files (may be slow and produce irrelevant results)</string>
+    <string name="searcher_settings_open_on_tap_title">Open files on tap</string>
+    <string name="searcher_settings_open_on_tap_desc">Tap a file in the results to open it. Use the ⋮ button on a file for its other actions.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Recent searches</string>

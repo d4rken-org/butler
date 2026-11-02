@@ -413,6 +413,11 @@ fun SearcherWorkspacePage(
                                                 }
                                                 wrappedOnEnterSelectionMode(item.searchItem)
                                             },
+                                            onMoreClick = if (currentState.showsMoreButton(item.searchItem)) {
+                                                { onPageAction(SearcherPageAction.Results.ShowQuickActions(item.searchItem)) }
+                                            } else {
+                                                null
+                                            },
                                         )
                                     }
 
@@ -544,6 +549,11 @@ fun SearcherWorkspacePage(
                                         wrappedOnEnterSelectionMode(item.searchItem)
                                     },
                                     previewsSettled = previewsSettled,
+                                    onMoreClick = if (currentState.showsMoreButton(item.searchItem)) {
+                                        { onPageAction(SearcherPageAction.Results.ShowQuickActions(item.searchItem)) }
+                                    } else {
+                                        null
+                                    },
                                 )
                             }
                         }
@@ -689,6 +699,20 @@ private fun SearcherWorkspacePageWithResultsPreview() {
     SearcherWorkspacePage(
         workspaceId = workspaceId,
         stateSource = flowOf(SearcherMockDataProvider.createMockResultsState()),
+        clipboardStateSource = flowOf(ClipboardDisplayState()),
+        operationsStateSource = flowOf(OperationsDisplayState()),
+        onPageAction = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearcherWorkspacePageOpenOnTapPreview() {
+    val workspaceId = Workspace.Id()
+    SearcherWorkspacePage(
+        workspaceId = workspaceId,
+        stateSource = flowOf(SearcherMockDataProvider.createMockResultsState().copy(openFilesOnTap = true)),
         clipboardStateSource = flowOf(ClipboardDisplayState()),
         operationsStateSource = flowOf(OperationsDisplayState()),
         onPageAction = {},

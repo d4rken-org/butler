@@ -46,9 +46,11 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.util.getEllipsizedMatchLine
+import eu.darken.butler.workspace.R as WorkspaceR
 import eu.darken.butler.workspace.core.appattribution.AppAttribution
 import eu.darken.butler.workspace.ui.common.AppAttributionBadge
 import eu.darken.butler.workspace.ui.common.CornerBadgeBox
+import eu.darken.butler.workspace.ui.common.ItemMoreButton
 import eu.darken.butler.workspace.ui.common.withLocationNames
 
 /**
@@ -86,6 +88,8 @@ fun SelectableFileRow(
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier,
     appAttribution: AppAttribution? = null,
+    /** Shows the ⋮ that opens the result's quick actions, for when a tap opens the file. */
+    onMoreClick: (() -> Unit)? = null,
 ) {
     val backgroundColor = if (isSelected) {
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -135,7 +139,7 @@ fun SelectableFileRow(
 
         // File info
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             val isDirectory = result.fileType == FileType.DIRECTORY
@@ -268,6 +272,15 @@ fun SelectableFileRow(
                 )
             }
         }
+
+        onMoreClick?.let {
+            Spacer(modifier = Modifier.width(8.dp))
+            ItemMoreButton(
+                onClick = it,
+                contentDescription = stringResource(WorkspaceR.string.workspace_action_more),
+                size = density.rowMoreButtonSize,
+            )
+        }
     }
 }
 
@@ -294,6 +307,17 @@ private fun SelectableFileRowPreview() {
                 isSelectionMode = false,
                 onClick = {},
                 onLongPress = {},
+            )
+
+            // Open on tap: the quick actions sit behind the ⋮
+            SelectableFileRow(
+                result = searchResult,
+                density = SearcherViewStyle.Density.COMFORTABLE,
+                isSelected = false,
+                isSelectionMode = false,
+                onClick = {},
+                onLongPress = {},
+                onMoreClick = {},
             )
 
             // Selection mode - unselected
@@ -371,6 +395,34 @@ private fun SelectableFileRowWithMatchPreview() {
                 onClick = {},
                 onLongPress = {},
             )
+        }
+    }
+}
+
+/** The ⋮ at every density, next to a name long enough to have to give way to it. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SelectableFileRowMoreButtonPreview() {
+    val searchResult = SearcherMockDataProvider.createMockTextFile(
+        name = "a-very-long-file-name-that-has-to-make-room-for-the-more-button.txt",
+        sizeKB = 12,
+        hoursAgo = 3,
+    )
+
+    PreviewWrapper {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            SearcherViewStyle.Density.entries.forEach { density ->
+                SelectableFileRow(
+                    result = searchResult,
+                    density = density,
+                    isSelected = false,
+                    isSelectionMode = false,
+                    onClick = {},
+                    onLongPress = {},
+                    onMoreClick = {},
+                )
+            }
         }
     }
 }

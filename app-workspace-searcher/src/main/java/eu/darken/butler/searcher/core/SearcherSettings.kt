@@ -40,6 +40,8 @@ class SearcherSettings @Inject constructor(
 
     val contentSearchBinaries = dataStore.createValue("searcher.content.include.binaries", false)
 
+    val openFilesOnTap = dataStore.createValue("searcher.results.open_on_tap", false)
+
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         searchDefaultQuery,
@@ -50,6 +52,7 @@ class SearcherSettings @Inject constructor(
         defaultSort,
         defaultViewStyle,
         contentSearchBinaries,
+        openFilesOnTap,
     )
 
     companion object {

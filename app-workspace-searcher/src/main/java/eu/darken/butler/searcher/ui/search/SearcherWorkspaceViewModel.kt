@@ -30,6 +30,7 @@ import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.destSetup
+import eu.darken.butler.common.pkgs.installer.AppInstallFormat
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.searcher.core.SearchItem
@@ -60,6 +61,7 @@ import eu.darken.butler.workspace.contracts.searcher.SearchFilter
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
 import eu.darken.butler.workspace.contracts.viewer.ViewerArguments
+import eu.darken.butler.workspace.contracts.viewer.ViewerSupport
 import eu.darken.butler.workspace.core.NoAppForFileException
 import eu.darken.butler.workspace.core.appattribution.AppAttribution
 import eu.darken.butler.workspace.core.appattribution.AppAttributor
@@ -108,6 +110,10 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 import eu.darken.butler.workspace.R as WorkspaceR
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
@@ -156,6 +162,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val currentFilter = MutableStateFlow(SearchFilter())
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
+    private val openOnTapEnabled: StateFlow<Boolean> = searcherSettings.openFilesOnTap.flow
+        .stateIn(vmScope, SharingStarted.Eagerly, false)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
     private val currentSortSettings = MutableStateFlow(searcherSettings.defaultSort.valueBlocking)
     private val viewStyleSeed: SearcherViewStyle =
@@ -453,7 +461,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         viewStyleFlow,
         trashSettings.enabled.flow,
         appAttributions,
-    ) { filenameQ: String, contentQ: String, fnOptions: FilenameQuery, ctOptions: ContentQuery, contentSearchOn: Boolean, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchFilter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean, appAttributions: Map<String, AppAttribution> ->
+        openOnTapEnabled,
+    ) { filenameQ: String, contentQ: String, fnOptions: FilenameQuery, ctOptions: ContentQuery, contentSearchOn: Boolean, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchFilter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean, appAttributions: Map<String, AppAttribution>, openOnTap: Boolean ->
         val sortedResults = displayResults(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -515,6 +524,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             sortSettings = sortSettings,
             trashEnabled = trashEnabled,
             appAttributions = appAttributions,
+            openFilesOnTap = openOnTap,
             addableMediaCollections = SearchTarget.MediaStore.Collection.entries.filter { collection ->
                 apiLevel.has(collection.minApiLevel) &&
                     workspaceState.searchTargets.none { it.identity == collection }
@@ -792,6 +802,79 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     // Selection and action methods
     private fun hideQuickActions() {
         quickActionsResult.value = null
+    }
+
+    private fun showQuickActions(result: SearchItem) {
+        log(TAG) { "Showing quick actions for: ${result.path}" }
+        quickActionsResult.value = result
+    }
+
+    private val directOpenInFlight = AtomicBoolean(false)
+
+    private data class DirectOpen(val resultKey: String, val at: TimeMark)
+
+    @Volatile private var lastDirectOpen: DirectOpen? = null
+
+    // internal (module-scoped) so a test can step through the cooldown
+    internal var directOpenTimeSource: TimeSource = TimeSource.Monotonic
+
+    private fun onResultClick(result: SearchItem) = launch {
+        if (result.fileType == FileType.DIRECTORY || !searcherSettings.openFilesOnTap.value()) {
+            showQuickActions(result)
+            return@launch
+        }
+        if (!directOpenInFlight.compareAndSet(false, true)) {
+            log(TAG) { "Open on tap: ${result.name} ignored, an open is already running" }
+            return@launch
+        }
+        try {
+            // A hand-off returns before the other app is on screen, so the flag alone lets a quick
+            // second tap start it again.
+            val last = lastDirectOpen
+            val justOpened = last != null && last.resultKey == result.resultKey &&
+                last.at.elapsedNow() < DIRECT_OPEN_COOLDOWN
+            if (justOpened) {
+                log(TAG) { "Open on tap: ${result.name} ignored, it was just opened" }
+                return@launch
+            }
+            openDirectly(result)
+            lastDirectOpen = DirectOpen(result.resultKey, directOpenTimeSource.markNow())
+        } finally {
+            directOpenInFlight.set(false)
+        }
+    }
+
+    private suspend fun openDirectly(result: SearchItem) {
+        val mime = MimeInfo.fromFileName(result.name)
+        val isBundle = AppInstallFormat.fromFileName(result.name)?.isBundle == true
+        when {
+            isBundle || ViewerSupport.canDisplay(mime) -> {
+                log(TAG, INFO) { "Open on tap: ${result.name} in the viewer" }
+                openResultInPlace(result)
+            }
+            FileActionCapabilities.canHandOffToOtherApps(result.path) && openWithIntentUseCase.openWithDefault(
+                path = result.path,
+                mime = mime.rawType,
+                chooserTitle = appContext.getString(WorkspaceR.string.workspace_open_with_chooser_title),
+            ) -> {
+                log(TAG, INFO) { "Open on tap: ${result.name} handed to another app" }
+            }
+            else -> {
+                log(TAG, INFO) { "Open on tap: no route for ${result.name}, showing the quick actions" }
+                showQuickActions(result)
+            }
+        }
+    }
+
+    private suspend fun openResultInPlace(result: SearchItem) {
+        try {
+            openResult(result = result, asDrillDown = true)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Failed to open ${result.name}: ${e.asLog()}" }
+            errorEvents.emit(e)
+        }
     }
 
     private fun enterSelectionMode(result: SearchItem) {
@@ -1150,6 +1233,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             val addableMediaCollections: List<SearchTarget.MediaStore.Collection> = emptyList(),
             /** App badges for package-named folders, keyed by result key. */
             val appAttributions: Map<String, AppAttribution> = emptyMap(),
+            /** A tap on a file result opens it; the quick actions move to the result's ⋮ button. */
+            val openFilesOnTap: Boolean = false,
         ) : State {
             val isSearching: Boolean
                 get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
@@ -1162,6 +1247,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
             val hasActiveFilter: Boolean
                 get() = currentFilter.hasConditions()
+
+            /** Whether [result] carries the ⋮: only files, and only while a tap opens them. */
+            fun showsMoreButton(result: SearchItem): Boolean = openFilesOnTap &&
+                !selectionState.isSelectionMode &&
+                result.fileType != FileType.DIRECTORY
 
             val needsSetup: Boolean
                 get() = workspaceState.setupRequirements.needsSetup
@@ -1506,10 +1596,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
 
             // Results
-            is SearcherPageAction.Results.Click -> {
-                log(TAG) { "Showing quick actions for: ${action.item.path}" }
-                quickActionsResult.value = action.item
-            }
+            is SearcherPageAction.Results.Click -> onResultClick(action.item)
+            is SearcherPageAction.Results.ShowQuickActions -> showQuickActions(action.item)
             is SearcherPageAction.Results.EnterSelectionMode -> enterSelectionMode(action.item)
             is SearcherPageAction.Results.ToggleSelection -> toggleSelection(action.item)
             is SearcherPageAction.Results.SetSelection -> setSelection(action.resultIds)
@@ -1629,6 +1717,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     companion object {
         private val TAG = logTag("Searcher", "Workspace", "ViewModel")
+
+        /** How long a repeated tap on the same result that was just opened on tap is ignored. */
+        private val DIRECT_OPEN_COOLDOWN = 500.milliseconds
 
         // Assembles the executed pattern queries; the content pattern only applies while the
         // content-search toggle is enabled.
