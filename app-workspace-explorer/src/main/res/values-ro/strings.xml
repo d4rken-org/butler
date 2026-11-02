@@ -637,6 +637,9 @@
     <string name="explorer_compress_dialog_format_label">Format</string>
     <string name="explorer_compress_dialog_format_zip_hint">Se deschide pe orice dispozitiv. Poate fi protejată cu parolă.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Dimensiune mai mică pentru multe fișiere. Fără protecție cu parolă.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Cea mai mică dimensiune, cea mai lentă creare. Fără protecție cu parolă.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Mai mică decât tar.gz, creare mai lentă. Fără protecție cu parolă.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Grupează fișierele fără să le comprime. Fără protecție cu parolă.</string>
     <string name="explorer_compress_dialog_create_action">Creează</string>
     <string name="explorer_compress_dialog_level_label">Nivel de comprimare</string>
     <string name="explorer_compress_dialog_level_fast">Rapid</string>

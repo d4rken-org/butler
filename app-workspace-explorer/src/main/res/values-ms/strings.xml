@@ -591,6 +591,9 @@
     <string name="explorer_compress_dialog_format_label">Format</string>
     <string name="explorer_compress_dialog_format_zip_hint">Boleh dibuka pada mana-mana peranti. Boleh dilindungi kata laluan.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Lebih kecil untuk banyak fail. Tiada perlindungan kata laluan.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Fail terkecil, paling perlahan untuk dicipta. Tiada perlindungan kata laluan.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Lebih kecil daripada tar.gz, lebih perlahan untuk dicipta. Tiada perlindungan kata laluan.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Menghimpunkan fail tanpa memampatkannya. Tiada perlindungan kata laluan.</string>
     <string name="explorer_compress_dialog_create_action">Cipta</string>
     <string name="explorer_compress_dialog_level_label">Aras pemampatan</string>
     <string name="explorer_compress_dialog_level_fast">Pantas</string>

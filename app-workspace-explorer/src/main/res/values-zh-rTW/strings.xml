@@ -661,6 +661,9 @@
     <string name="explorer_compress_dialog_format_label">格式</string>
     <string name="explorer_compress_dialog_format_zip_hint">可在任何裝置上開啟，可設定密碼保護。</string>
     <string name="explorer_compress_dialog_format_targz_hint">檔案較多時體積較小，不支援密碼保護。</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">體積最小，建立最慢，不支援密碼保護。</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">比 tar.gz 更小，建立較慢，不支援密碼保護。</string>
+    <string name="explorer_compress_dialog_format_tar_hint">僅打包檔案，不壓縮，不支援密碼保護。</string>
     <string name="explorer_compress_dialog_create_action">建立</string>
     <string name="explorer_compress_dialog_level_label">壓縮等級</string>
     <string name="explorer_compress_dialog_level_fast">快速</string>

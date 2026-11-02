@@ -709,6 +709,9 @@
     <string name="explorer_compress_dialog_format_label">Format</string>
     <string name="explorer_compress_dialog_format_zip_hint">Otvara se na svakom uređaju. Može se zaštititi lozinkom.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Manja arhiva za velik broj datoteka. Bez zaštite lozinkom.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Najmanja arhiva, najsporije stvaranje. Bez zaštite lozinkom.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Manja od tar.gz, sporije stvaranje. Bez zaštite lozinkom.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Objedinjuje datoteke bez kompresije. Bez zaštite lozinkom.</string>
     <string name="explorer_compress_dialog_create_action">Stvori</string>
     <string name="explorer_compress_dialog_level_label">Razina kompresije</string>
     <string name="explorer_compress_dialog_level_fast">Brza</string>

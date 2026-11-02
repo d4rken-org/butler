@@ -686,6 +686,9 @@
     <string name="explorer_compress_dialog_format_label">Format</string>
     <string name="explorer_compress_dialog_format_zip_hint">Nabubuksan sa anumang device. Maaaring protektahan ng password.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Mas maliit para sa maraming file. Walang proteksyon ng password.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Pinakamaliit na file, pinakamabagal gawin. Walang proteksyon ng password.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Mas maliit kaysa sa tar.gz, mas mabagal gawin. Walang proteksyon ng password.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Pinagsasama ang mga file nang hindi kino-compress. Walang proteksyon ng password.</string>
     <string name="explorer_compress_dialog_create_action">Gumawa</string>
     <string name="explorer_compress_dialog_level_label">Antas ng compression</string>
     <string name="explorer_compress_dialog_level_fast">Mabilis</string>

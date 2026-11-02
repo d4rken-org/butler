@@ -689,6 +689,9 @@
     <string name="explorer_compress_dialog_format_label">ফরম্যাট</string>
     <string name="explorer_compress_dialog_format_zip_hint">যেকোনো ডিভাইসে খোলে। পাসওয়ার্ড দিয়ে সুরক্ষিত করা যায়।</string>
     <string name="explorer_compress_dialog_format_targz_hint">অনেক ফাইলের ক্ষেত্রে ছোট হয়। পাসওয়ার্ড সুরক্ষা নেই।</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">সবচেয়ে ছোট আকার, তৈরি করতে সবচেয়ে বেশি সময় লাগে। পাসওয়ার্ড সুরক্ষা নেই।</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">tar.gz-এর চেয়ে ছোট, তৈরি করতে বেশি সময় লাগে। পাসওয়ার্ড সুরক্ষা নেই।</string>
+    <string name="explorer_compress_dialog_format_tar_hint">ফাইলগুলো সংকুচিত না করে একসাথে রাখে। পাসওয়ার্ড সুরক্ষা নেই।</string>
     <string name="explorer_compress_dialog_create_action">তৈরি করুন</string>
     <string name="explorer_compress_dialog_level_label">সংকোচনের স্তর</string>
     <string name="explorer_compress_dialog_level_fast">দ্রুত</string>

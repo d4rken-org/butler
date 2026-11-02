@@ -661,6 +661,9 @@
     <string name="explorer_compress_dialog_format_label">Định dạng</string>
     <string name="explorer_compress_dialog_format_zip_hint">Mở được trên mọi thiết bị. Có thể đặt mật khẩu bảo vệ.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Nhỏ hơn khi có nhiều tệp. Không hỗ trợ mật khẩu bảo vệ.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Nhỏ nhất, tạo chậm nhất. Không hỗ trợ mật khẩu bảo vệ.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Nhỏ hơn tar.gz, tạo chậm hơn. Không hỗ trợ mật khẩu bảo vệ.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Gộp tệp mà không nén. Không hỗ trợ mật khẩu bảo vệ.</string>
     <string name="explorer_compress_dialog_create_action">Tạo</string>
     <string name="explorer_compress_dialog_level_label">Mức độ nén</string>
     <string name="explorer_compress_dialog_level_fast">Nhanh</string>

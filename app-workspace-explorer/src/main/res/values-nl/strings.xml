@@ -684,6 +684,9 @@
     <string name="explorer_compress_dialog_format_label">Formaat</string>
     <string name="explorer_compress_dialog_format_zip_hint">Opent op elk apparaat. Kan met een wachtwoord worden beveiligd.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Kleiner bij veel bestanden. Geen wachtwoordbeveiliging.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Kleinste bestanden, langzaamst om te maken. Geen wachtwoordbeveiliging.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Kleiner dan tar.gz, langzamer om te maken. Geen wachtwoordbeveiliging.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Bundelt bestanden zonder ze te comprimeren. Geen wachtwoordbeveiliging.</string>
     <string name="explorer_compress_dialog_create_action">Maken</string>
     <string name="explorer_compress_dialog_level_label">Compressieniveau</string>
     <string name="explorer_compress_dialog_level_fast">Snel</string>

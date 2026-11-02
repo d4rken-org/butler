@@ -773,6 +773,9 @@
     <string name="explorer_compress_dialog_format_label">الصيغة</string>
     <string name="explorer_compress_dialog_format_zip_hint">يفتح على أي جهاز. يمكن حمايته بكلمة مرور.</string>
     <string name="explorer_compress_dialog_format_targz_hint">أصغر حجمًا للملفات الكثيرة. بلا حماية بكلمة مرور.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">أصغر حجم، وأبطأ في الإنشاء. بلا حماية بكلمة مرور.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">أصغر من tar.gz، وأبطأ في الإنشاء. بلا حماية بكلمة مرور.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">يجمع الملفات دون ضغطها. بلا حماية بكلمة مرور.</string>
     <string name="explorer_compress_dialog_create_action">إنشاء</string>
     <string name="explorer_compress_dialog_level_label">مستوى الضغط</string>
     <string name="explorer_compress_dialog_level_fast">سريع</string>

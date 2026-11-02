@@ -686,6 +686,9 @@
     <string name="explorer_compress_dialog_format_label">Muoto</string>
     <string name="explorer_compress_dialog_format_zip_hint">Avautuu millä tahansa laitteella. Voidaan suojata salasanalla.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Pienempi, kun tiedostoja on paljon. Ei salasanasuojausta.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Pienin koko, hitain luoda. Ei salasanasuojausta.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Pienempi kuin tar.gz, hitaampi luoda. Ei salasanasuojausta.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Kokoaa tiedostot yhteen pakkaamatta niitä. Ei salasanasuojausta.</string>
     <string name="explorer_compress_dialog_create_action">Luo</string>
     <string name="explorer_compress_dialog_level_label">Pakkaustaso</string>
     <string name="explorer_compress_dialog_level_fast">Nopea</string>

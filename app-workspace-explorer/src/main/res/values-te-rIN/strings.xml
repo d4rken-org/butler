@@ -689,6 +689,9 @@
     <string name="explorer_compress_dialog_format_label">ఫార్మాట్</string>
     <string name="explorer_compress_dialog_format_zip_hint">ఏ పరికరంలోనైనా తెరుచుకుంటుంది. పాస్‌వర్డ్‌తో రక్షించవచ్చు.</string>
     <string name="explorer_compress_dialog_format_targz_hint">చాలా ఫైళ్లకు పరిమాణం తగ్గుతుంది. పాస్‌వర్డ్ రక్షణ లేదు.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">అతి చిన్న పరిమాణం, సృష్టించడానికి అత్యధిక సమయం పడుతుంది. పాస్‌వర్డ్ రక్షణ లేదు.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">tar.gz కంటే చిన్నది, సృష్టించడానికి ఎక్కువ సమయం పడుతుంది. పాస్‌వర్డ్ రక్షణ లేదు.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">ఫైళ్లను కంప్రెస్ చేయకుండా ఒకటిగా కలుపుతుంది. పాస్‌వర్డ్ రక్షణ లేదు.</string>
     <string name="explorer_compress_dialog_create_action">సృష్టించండి</string>
     <string name="explorer_compress_dialog_level_label">కంప్రెషన్ స్థాయి</string>
     <string name="explorer_compress_dialog_level_fast">వేగవంతం</string>

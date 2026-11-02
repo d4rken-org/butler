@@ -727,6 +727,9 @@
     <string name="explorer_compress_dialog_format_label">Format</string>
     <string name="explorer_compress_dialog_format_zip_hint">Otwiera się na każdym urządzeniu. Można zabezpieczyć hasłem.</string>
     <string name="explorer_compress_dialog_format_targz_hint">Mniejszy rozmiar przy wielu plikach. Bez ochrony hasłem.</string>
+    <string name="explorer_compress_dialog_format_tarxz_hint">Najmniejszy rozmiar, najwolniejsze tworzenie. Bez ochrony hasłem.</string>
+    <string name="explorer_compress_dialog_format_tarbz2_hint">Mniejszy niż tar.gz, wolniejsze tworzenie. Bez ochrony hasłem.</string>
+    <string name="explorer_compress_dialog_format_tar_hint">Łączy pliki bez kompresji. Bez ochrony hasłem.</string>
     <string name="explorer_compress_dialog_create_action">Utwórz</string>
     <string name="explorer_compress_dialog_level_label">Poziom kompresji</string>
     <string name="explorer_compress_dialog_level_fast">Szybki</string>
