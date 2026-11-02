@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -19,8 +22,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -34,11 +39,11 @@ import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.common.R as CommonR
 
 /**
- * Formats offered for creating a new archive, each paired with the trade it makes.
+ * Formats offered for creating a new archive, in display order, each paired with the trade it makes.
  *
  * The caption is bound here rather than in a `when` over [ArchiveFormat]: that enum carries entries
  * this sheet does not offer, so a fallback branch would hand a newly offered format someone else's
- * caption, claiming password support for a format that has none.
+ * caption, claiming password support or compression for a format that has neither.
  */
 private enum class CompressFormat(
     val format: ArchiveFormat,
@@ -50,9 +55,39 @@ private enum class CompressFormat(
      * `ArchiveWriteOptions` enforces the same rule at the domain boundary.
      */
     val encryptable: Boolean,
+    /** Whether this format compresses at all, which decides whether the level section is shown. */
+    val compressible: Boolean,
 ) {
-    ZIP(ArchiveFormat.ZIP, R.string.explorer_compress_dialog_format_zip_hint, encryptable = true),
-    TAR_GZ(ArchiveFormat.TAR_GZ, R.string.explorer_compress_dialog_format_targz_hint, encryptable = false),
+    ZIP(
+        ArchiveFormat.ZIP,
+        R.string.explorer_compress_dialog_format_zip_hint,
+        encryptable = true,
+        compressible = true,
+    ),
+    TAR_GZ(
+        ArchiveFormat.TAR_GZ,
+        R.string.explorer_compress_dialog_format_targz_hint,
+        encryptable = false,
+        compressible = true,
+    ),
+    TAR_XZ(
+        ArchiveFormat.TAR_XZ,
+        R.string.explorer_compress_dialog_format_tarxz_hint,
+        encryptable = false,
+        compressible = true,
+    ),
+    TAR_BZ2(
+        ArchiveFormat.TAR_BZ2,
+        R.string.explorer_compress_dialog_format_tarbz2_hint,
+        encryptable = false,
+        compressible = true,
+    ),
+    TAR(
+        ArchiveFormat.TAR,
+        R.string.explorer_compress_dialog_format_tar_hint,
+        encryptable = false,
+        compressible = false,
+    ),
     ;
 
     companion object {
@@ -116,9 +151,9 @@ private fun CompressOptionsContent(
 
     val validation = remember(name) { onValidate(name) }
     val nameInvalid = validation is FilenameValidator.ValidationResult.Invalid
-    // Gated on the format: a half-typed password left behind by a switch to tar.gz would otherwise
-    // keep Create disabled with no visible field to explain why. The text is kept rather than
-    // cleared so switching back to zip does not silently discard what was typed.
+    // Gated on the format: a half-typed password left behind by a switch to a tar format would
+    // otherwise keep Create disabled with no visible field to explain why. The text is kept rather
+    // than cleared so switching back to zip does not silently discard what was typed.
     val passwordsMatch = !format.encryptable || password.isEmpty() || password == confirmPassword
 
     Column(
@@ -152,41 +187,33 @@ private fun CompressOptionsContent(
         )
 
         Section(label = stringResource(R.string.explorer_compress_dialog_format_label)) {
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                CompressFormat.entries.forEachIndexed { index, option ->
-                    SegmentedButton(
+            Column(modifier = Modifier.selectableGroup()) {
+                CompressFormat.entries.forEach { option ->
+                    FormatOption(
+                        option = option,
                         selected = format == option,
                         onClick = { format = option },
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = CompressFormat.entries.size,
-                        ),
-                    ) {
-                        Text(option.format.displayExtension)
-                    }
+                    )
                 }
             }
-            // States the trade the choice actually makes, and pre-explains why the password fields
-            // below disappear for tar.gz instead of letting them silently blink out.
-            Text(
-                text = stringResource(format.hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
 
-        Section(label = stringResource(R.string.explorer_compress_dialog_level_label)) {
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                CompressionPreset.entries.forEachIndexed { index, option ->
-                    SegmentedButton(
-                        selected = preset == option,
-                        onClick = { preset = option },
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = CompressionPreset.entries.size,
-                        ),
-                    ) {
-                        Text(stringResource(option.label))
+        // Hidden rather than disabled for plain tar, but the preset stays in state so switching back
+        // to a compressing format keeps the chosen level.
+        if (format.compressible) {
+            Section(label = stringResource(R.string.explorer_compress_dialog_level_label)) {
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    CompressionPreset.entries.forEachIndexed { index, option ->
+                        SegmentedButton(
+                            selected = preset == option,
+                            onClick = { preset = option },
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = CompressionPreset.entries.size,
+                            ),
+                        ) {
+                            Text(stringResource(option.label))
+                        }
                     }
                 }
             }
@@ -225,6 +252,36 @@ private fun CompressOptionsContent(
             ) {
                 Text(stringResource(R.string.explorer_compress_dialog_create_action))
             }
+        }
+    }
+}
+
+/**
+ * One format choice. Its caption states the trade the format makes, and pre-explains why the password
+ * fields disappear for the tar formats instead of letting them silently blink out.
+ */
+@Composable
+private fun FormatOption(
+    modifier: Modifier = Modifier,
+    option: CompressFormat,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = null)
+        Column(modifier = Modifier.padding(start = 12.dp)) {
+            Text(text = option.format.displayExtension, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = stringResource(option.hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -274,6 +331,18 @@ private fun CompressOptionsSheetTarGzPreview() {
         suggestedName = "backup",
         defaultFormat = ArchiveFormat.TAR_GZ,
         defaultPreset = CompressionPreset.BEST,
+        onDismiss = {},
+        onConfirm = { _, _, _, _ -> },
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun CompressOptionsSheetTarPreview() {
+    CompressOptionsSheet(
+        suggestedName = "backup",
+        defaultFormat = ArchiveFormat.TAR,
         onDismiss = {},
         onConfirm = { _, _, _, _ -> },
     )
