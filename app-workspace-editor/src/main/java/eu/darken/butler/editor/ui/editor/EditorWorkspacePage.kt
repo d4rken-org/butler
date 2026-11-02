@@ -322,7 +322,6 @@ fun EditorWorkspacePage(
                     totalLines = state.totalLines,
                     cursorPosition = state.cursorPosition,
                     selection = state.selectionRange,
-                    visibleRange = state.visibleRange,
                     truncatedLines = state.truncatedLines,
                     startColumns = state.startColumns,
                     windowToken = state.windowToken,

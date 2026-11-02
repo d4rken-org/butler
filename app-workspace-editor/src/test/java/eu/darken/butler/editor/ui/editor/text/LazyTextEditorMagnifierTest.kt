@@ -79,7 +79,6 @@ class LazyTextEditorMagnifierTest : ComposeTest() {
                         totalLines = lines.size.toLong(),
                         cursorPosition = cursor,
                         selection = selection,
-                        visibleRange = 0L until lines.size.toLong(),
                         windowToken = EditorEngine.DocumentToken(engineEpoch, 0L),
                         showLineNumbers = false,
                         onEnqueueDelta = {

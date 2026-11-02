@@ -115,7 +115,6 @@ fun LazyTextEditor(
     totalLines: Long,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
-    visibleRange: LongRange,
     truncatedLines: Map<Long, Long> = emptyMap(),
     startColumns: Map<Long, Long> = emptyMap(),
     /** Identity of the document state [content] was read at; null before the first window load. */
@@ -140,13 +139,13 @@ fun LazyTextEditor(
     onForwardDelete: () -> Unit,
 ) {
     // Create a map of visible line content indexed by line number
-    val visibleLineContent = remember(content, visibleRange) {
+    val visibleLineContent = remember(content, windowRangeStart) {
         if (content.isEmpty()) {
             mapOf(0L to "")
         } else {
             val contentLines = content.split('\n')
             contentLines.mapIndexed { index, line ->
-                (visibleRange.first + index) to line
+                (windowRangeStart + index) to line
             }.toMap()
         }
     }
@@ -350,7 +349,6 @@ fun LazyTextEditor(
         contentPadding = contentPadding,
         totalLines = totalLines,
         visibleLineContent = visibleLineContent,
-        visibleRange = visibleRange,
         truncatedLines = truncatedLines,
         startColumns = startColumns,
         windowToken = windowToken,
@@ -391,7 +389,6 @@ private fun DualColumnEditorContent(
     contentPadding: PaddingValues,
     totalLines: Long,
     visibleLineContent: Map<Long, String>,
-    visibleRange: LongRange,
     truncatedLines: Map<Long, Long>,
     startColumns: Map<Long, Long>,
     windowToken: EditorEngine.DocumentToken?,
@@ -1162,7 +1159,6 @@ private fun LazyTextEditorPreview() {
         totalLines = sampleContent.split('\n').size.toLong(),
         cursorPosition = TextPosition(offset = 50, line = 1, column = 10),
         selection = null,
-        visibleRange = 0L..7L,
         showLineNumbers = true,
         wordWrap = false,
         fontSize = 14,
