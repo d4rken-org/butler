@@ -44,6 +44,8 @@ fun MimeInfo.toCaString(): CaString {
             "application/x-zip",
             "application/x-tar",
             "application/gzip",
+            "application/x-xz",
+            "application/x-bzip2",
             "application/x-7z-compressed",
             "application/vnd.rar",
         ) -> R.string.common_mimetype_archive.toCaString()
