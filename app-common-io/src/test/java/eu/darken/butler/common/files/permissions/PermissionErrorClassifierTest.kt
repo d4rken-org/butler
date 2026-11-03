@@ -5,6 +5,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.error.LocalizedError
 import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.errors.CaseOnlyRenameException
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.PathGoneError
 import eu.darken.butler.common.files.errors.PathNotFoundException
@@ -291,6 +292,18 @@ class PermissionErrorClassifierTest : BaseTest() {
         val e = PathAlreadyExistsException(
             path = LocalPath.build("/sdcard/foo"),
             cause = java.nio.file.FileAlreadyExistsException("/sdcard/foo"),
+        )
+
+        PermissionErrorClassifier.classify(e) shouldBe null
+        PermissionErrorClassifier.isPermissionError(e) shouldBe false
+    }
+
+    @Test
+    fun `a refused case-only rename is not a permission failure`() {
+        val e = CaseOnlyRenameException(
+            path = LocalPath.build("/sdcard/photos"),
+            sourceName = "photos",
+            destinationName = "Photos",
         )
 
         PermissionErrorClassifier.classify(e) shouldBe null

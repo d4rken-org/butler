@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Operation failed</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler can\'t change only the letter case of \"%1$s\" here. Rename it to a different name first, then to \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Replacement unfinished</string>
     <string name="path_action_data_kept_new_data_description">Butler could not finish writing \"%1$s\". Your new data is kept in the same folder as \"%2$s\". Rename it to recover it, or delete it to discard it.</string>
