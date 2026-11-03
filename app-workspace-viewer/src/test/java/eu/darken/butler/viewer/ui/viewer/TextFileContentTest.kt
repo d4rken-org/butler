@@ -1,14 +1,18 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import android.content.Context
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.viewer.R
 import eu.darken.butler.viewer.core.TextPreview
+import io.kotest.matchers.floats.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -185,4 +189,34 @@ class TextFileContentTest : ComposeTest() {
             )
             .assertIsDisplayed()
     }
+
+    private fun horizontalScrollOf(text: String): Float = composeTestRule
+        .onNodeWithText(text)
+        .fetchSemanticsNode()
+        .config[SemanticsProperties.HorizontalScrollAxisRange]
+        .value()
+
+    /** Users asked to keep this (#335): swiping one overflowing line leaves its neighbours where they are. */
+    private fun assertLinesScrollIndependently(swipeToStep: Boolean) {
+        val swiped = "alpha ".repeat(60)
+        val neighbour = "bravo ".repeat(60)
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TextFileContent(preview = preview(swiped, neighbour), swipeToStep = swipeToStep)
+            }
+        }
+
+        composeTestRule.onNodeWithText(swiped).performTouchInput { swipeLeft() }
+        composeTestRule.waitForIdle()
+
+        horizontalScrollOf(swiped) shouldBeGreaterThan 0f
+        horizontalScrollOf(neighbour) shouldBe 0f
+    }
+
+    @Test
+    fun `each line scrolls horizontally on its own`() = assertLinesScrollIndependently(swipeToStep = false)
+
+    @Test
+    fun `each line scrolls on its own while swiping steps through files`() =
+        assertLinesScrollIndependently(swipeToStep = true)
 }
