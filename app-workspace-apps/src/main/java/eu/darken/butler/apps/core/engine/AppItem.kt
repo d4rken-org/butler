@@ -74,7 +74,7 @@ data class AppItem(
                 icon = pkg.icon,
                 packageName = pkg.id.name,
                 versionName = pkgInfo.versionName,
-                versionCode = pkgInfo.longVersionCode,
+                versionCode = pkg.versionCode,
                 appSize = appSize,
                 isSystemApp = installDetails?.isSystemApp == true,
                 isEnabled = installDetails?.isEnabled ?: true,
