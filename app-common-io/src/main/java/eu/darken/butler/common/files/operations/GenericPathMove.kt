@@ -277,8 +277,11 @@ internal class GenericPathMove<
         /** The destination name resolves to the source itself, see [renameCaseOnly]. */
         data class SourceAlias<P>(val parent: P) : CaseOnlyRename<P>
 
-        /** Neither can be shown, or the rename needs steps this storage is not trusted with. */
+        /** The listing shows neither case, or the rename needs steps this storage is not trusted with. */
         data class Unsupported(val reason: String) : CaseOnlyRename<Nothing>
+
+        /** Storage access failed while telling the two apart, [cause] is the failure if there was one. */
+        data class Undetermined(val reason: String, val cause: Throwable?) : CaseOnlyRename<Nothing>
     }
 
     /**
@@ -298,11 +301,11 @@ internal class GenericPathMove<
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                return CaseOnlyRename.Unsupported("existence check failed: ${e.asLog()}")
+                return CaseOnlyRename.Undetermined("existence check failed", e)
             }
             when (existence) {
                 Existence.ABSENT -> return CaseOnlyRename.Regular("destination absent")
-                Existence.UNKNOWN -> return CaseOnlyRename.Unsupported("destination existence unknown")
+                Existence.UNKNOWN -> return CaseOnlyRename.Undetermined("destination existence unknown", null)
                 Existence.PRESENT -> Unit
             }
         }
@@ -312,7 +315,7 @@ internal class GenericPathMove<
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            return CaseOnlyRename.Unsupported("could not list $parent: ${e.asLog()}")
+            return CaseOnlyRename.Undetermined("could not list $parent", e)
         }
         val sourceListed = source.name in siblings
         val destinationListed = destination.name in siblings
@@ -486,6 +489,12 @@ internal class GenericPathMove<
                     path = source,
                     sourceName = source.name,
                     destinationName = destination.name,
+                )
+
+                is CaseOnlyRename.Undetermined -> throw WriteException(
+                    message = "Could not tell whether ${destination.name} is ${source.name} itself: ${caseOnly.reason}",
+                    path = source,
+                    cause = caseOnly.cause,
                 )
             }
         }
