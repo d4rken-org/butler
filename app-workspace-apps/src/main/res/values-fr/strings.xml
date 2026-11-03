@@ -241,31 +241,31 @@
 
     <!-- Package operations -->
     <plurals name="apps_operation_enable_title">
-        <item quantity="one">Activer l’application</item>
+        <item quantity="one">Activer %d application</item>
         <item quantity="other">Activer %d applications</item>
     </plurals>
     <plurals name="apps_operation_disable_title">
-        <item quantity="one">Désactiver l’application</item>
+        <item quantity="one">Désactiver %d application</item>
         <item quantity="other">Désactiver %d applications</item>
     </plurals>
     <plurals name="apps_operation_force_stop_title">
-        <item quantity="one">Forcer l’arrêt de l’application</item>
+        <item quantity="one">Forcer l’arrêt de %d application</item>
         <item quantity="other">Forcer l’arrêt de %d applications</item>
     </plurals>
     <plurals name="apps_operation_uninstall_title">
-        <item quantity="one">Désinstaller l’application</item>
+        <item quantity="one">Désinstaller %d application</item>
         <item quantity="other">Désinstaller %d applications</item>
     </plurals>
     <plurals name="apps_operation_clear_data_title">
-        <item quantity="one">Effacer les données de l’application</item>
+        <item quantity="one">Effacer les données de %d application</item>
         <item quantity="other">Effacer les données de %d applications</item>
     </plurals>
     <plurals name="apps_operation_components_enable_title">
-        <item quantity="one">Activer le composant</item>
+        <item quantity="one">Activer %d composant</item>
         <item quantity="other">Activer %d composants</item>
     </plurals>
     <plurals name="apps_operation_components_disable_title">
-        <item quantity="one">Désactiver le composant</item>
+        <item quantity="one">Désactiver %d composant</item>
         <item quantity="other">Désactiver %d composants</item>
     </plurals>
     <plurals name="apps_operation_targets_description">

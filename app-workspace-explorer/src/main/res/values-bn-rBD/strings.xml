@@ -485,7 +485,7 @@
 
     <!-- Recent -->
     <plurals name="explorer_recent_window_subtitle">
-        <item quantity="one">গত এক দিনে যোগ করা</item>
+        <item quantity="one">গত %d দিনে যোগ করা</item>
         <item quantity="other">গত %d দিনে যোগ করা</item>
     </plurals>
     <string name="explorer_recent_empty_title">এখানে নতুন কিছু নেই</string>

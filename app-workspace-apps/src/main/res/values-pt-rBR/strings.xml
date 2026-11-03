@@ -241,31 +241,31 @@
 
     <!-- Package operations -->
     <plurals name="apps_operation_enable_title">
-        <item quantity="one">Ativar app</item>
+        <item quantity="one">Ativar %d app</item>
         <item quantity="other">Ativar %d apps</item>
     </plurals>
     <plurals name="apps_operation_disable_title">
-        <item quantity="one">Desativar app</item>
+        <item quantity="one">Desativar %d app</item>
         <item quantity="other">Desativar %d apps</item>
     </plurals>
     <plurals name="apps_operation_force_stop_title">
-        <item quantity="one">Forçar parada do app</item>
+        <item quantity="one">Forçar parada de %d app</item>
         <item quantity="other">Forçar parada de %d apps</item>
     </plurals>
     <plurals name="apps_operation_uninstall_title">
-        <item quantity="one">Desinstalar app</item>
+        <item quantity="one">Desinstalar %d app</item>
         <item quantity="other">Desinstalar %d apps</item>
     </plurals>
     <plurals name="apps_operation_clear_data_title">
-        <item quantity="one">Limpar dados do app</item>
+        <item quantity="one">Limpar dados de %d app</item>
         <item quantity="other">Limpar dados de %d apps</item>
     </plurals>
     <plurals name="apps_operation_components_enable_title">
-        <item quantity="one">Ativar componente</item>
+        <item quantity="one">Ativar %d componente</item>
         <item quantity="other">Ativar %d componentes</item>
     </plurals>
     <plurals name="apps_operation_components_disable_title">
-        <item quantity="one">Desativar componente</item>
+        <item quantity="one">Desativar %d componente</item>
         <item quantity="other">Desativar %d componentes</item>
     </plurals>
     <plurals name="apps_operation_targets_description">

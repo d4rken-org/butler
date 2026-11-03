@@ -497,7 +497,7 @@
 
     <!-- Recent -->
     <plurals name="explorer_recent_window_subtitle">
-        <item quantity="one">Adicionados no último dia</item>
+        <item quantity="one">Adicionados no último %d dia</item>
         <item quantity="many">Adicionados nos últimos %d dias</item>
         <item quantity="other">Adicionados nos últimos %d dias</item>
     </plurals>

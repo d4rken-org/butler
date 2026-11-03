@@ -242,31 +242,31 @@
 
     <!-- Package operations -->
     <plurals name="apps_operation_enable_title">
-        <item quantity="one">অ্যাপ সক্রিয় করুন</item>
+        <item quantity="one">%dটি অ্যাপ সক্রিয় করুন</item>
         <item quantity="other">%dটি অ্যাপ সক্রিয় করুন</item>
     </plurals>
     <plurals name="apps_operation_disable_title">
-        <item quantity="one">অ্যাপ বন্ধ করুন</item>
+        <item quantity="one">%dটি অ্যাপ বন্ধ করুন</item>
         <item quantity="other">%dটি অ্যাপ বন্ধ করুন</item>
     </plurals>
     <plurals name="apps_operation_force_stop_title">
-        <item quantity="one">অ্যাপ জোর করে থামান</item>
+        <item quantity="one">%dটি অ্যাপ জোর করে থামান</item>
         <item quantity="other">%dটি অ্যাপ জোর করে থামান</item>
     </plurals>
     <plurals name="apps_operation_uninstall_title">
-        <item quantity="one">অ্যাপ আনইনস্টল করুন</item>
+        <item quantity="one">%dটি অ্যাপ আনইনস্টল করুন</item>
         <item quantity="other">%dটি অ্যাপ আনইনস্টল করুন</item>
     </plurals>
     <plurals name="apps_operation_clear_data_title">
-        <item quantity="one">অ্যাপের তথ্য মুছুন</item>
+        <item quantity="one">%dটি অ্যাপের তথ্য মুছুন</item>
         <item quantity="other">%dটি অ্যাপের তথ্য মুছুন</item>
     </plurals>
     <plurals name="apps_operation_components_enable_title">
-        <item quantity="one">কম্পোনেন্ট সক্রিয় করুন</item>
+        <item quantity="one">%dটি কম্পোনেন্ট সক্রিয় করুন</item>
         <item quantity="other">%dটি কম্পোনেন্ট সক্রিয় করুন</item>
     </plurals>
     <plurals name="apps_operation_components_disable_title">
-        <item quantity="one">কম্পোনেন্ট বন্ধ করুন</item>
+        <item quantity="one">%dটি কম্পোনেন্ট বন্ধ করুন</item>
         <item quantity="other">%dটি কম্পোনেন্ট বন্ধ করুন</item>
     </plurals>
     <plurals name="apps_operation_targets_description">
