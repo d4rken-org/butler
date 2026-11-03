@@ -90,7 +90,7 @@ fun PathAlreadyExistsIssueSheet(
         issue.source?.let { source ->
             Text(
                 text = stringResource(
-                    if (isDirectory) R.string.workspace_issue_collision_new_folder
+                    if (source.fileType == FileType.DIRECTORY) R.string.workspace_issue_collision_new_folder
                     else R.string.workspace_issue_collision_new_file
                 ),
                 style = MaterialTheme.typography.labelMedium,
@@ -413,6 +413,33 @@ private fun PathAlreadyExistsIssueSheetFolderPreview() {
             canOverwrite = true,
             canRenameSource = true,
             canRenameDestination = true,
+        ),
+        onResolution = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PathAlreadyExistsIssueSheetFileOntoFolderPreview() {
+    PathAlreadyExistsIssueSheet(
+        issue = PathActionIssue.PathAlreadyExists(
+            destination = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Download/Photos"),
+                fileType = FileType.DIRECTORY,
+                size = 0,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 604800000),
+                target = null,
+            ),
+            source = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Download/report.txt"),
+                fileType = FileType.FILE,
+                size = 12 * 1024,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                target = null,
+            ),
+            canSkip = true,
+            canRenameSource = true,
         ),
         onResolution = {},
     )
