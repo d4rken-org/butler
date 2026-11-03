@@ -23,9 +23,9 @@ data class OperationPathPlan(
     val allPaths: List<APath<*>> get() = scopePaths
 
     /**
-     * Where the operation puts things. The distinction is what the user asked for, not what the
-     * gateway ends up doing: renaming `foo` to `bar` while `bar` exists as a directory is a
-     * [RequestedTarget] that the filesystem resolves as a move into that directory.
+     * Where the operation puts things, as the user asked for it: pasting into `bar` is a [Container]
+     * (`bar/foo`), renaming `foo` to `bar` is a [RequestedTarget] (`bar` itself, even if a directory
+     * `bar` already exists).
      */
     sealed interface Destination {
         val path: APath<*>

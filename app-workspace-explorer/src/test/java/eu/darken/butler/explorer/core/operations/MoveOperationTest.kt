@@ -16,6 +16,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import org.junit.Test
@@ -47,11 +48,13 @@ class MoveOperationTest : BaseTest() {
         ) as APathLookup<APath<*>>
     }
 
-    private fun operation() = MoveOperation(
+    private fun operation(
+        destination: OperationPathPlan.Destination = OperationPathPlan.Destination.Container(destinationDir),
+    ) = MoveOperation(
         workspaceId = Workspace.Id(),
         command = ExplorerCommand.Move(
             sources = setOf(sourceDir),
-            destination = OperationPathPlan.Destination.Container(destinationDir),
+            destination = destination,
         ),
         issueHandler = mockk<IssueHandler>(),
         gatewaySwitch = gatewaySwitch,
@@ -96,5 +99,31 @@ class MoveOperationTest : BaseTest() {
             .filterIsInstance<ExplorerOperation.State.Completed>().single()
 
         (completed.report as MoveOperationReport).subjectPath shouldBe null
+    }
+
+    private suspend fun capturedOptions(destination: OperationPathPlan.Destination): MoveAction.Options {
+        val options = slot<MoveAction.Options>()
+        coEvery { gatewaySwitch.move(any(), any(), any(), capture(options)) } returns flowOf(
+            MoveAction.State.Completed(
+                movedFiles = emptySet(),
+                bytesMoved = 0L,
+            )
+        )
+
+        operation(destination).perform(context()).toList()
+
+        return options.captured
+    }
+
+    @Test
+    fun `a requested target is moved to exactly that path`() = runTest2 {
+        val renamed = LocalPath.build("/sdcard/Download/renamed")
+
+        capturedOptions(OperationPathPlan.Destination.RequestedTarget(renamed)).exactTarget shouldBe true
+    }
+
+    @Test
+    fun `a container destination keeps moving items inside it`() = runTest2 {
+        capturedOptions(OperationPathPlan.Destination.Container(destinationDir)).exactTarget shouldBe false
     }
 }
