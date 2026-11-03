@@ -32,6 +32,8 @@
 
     <string name="path_action_unknown_error_title">Nabigo ang operasyon</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Hindi mababago ng Butler dito ang malaki/maliit na titik lang ng \"%1$s\". Palitan muna ang pangalan nito ng ibang pangalan, saka gawing \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Hindi natapos ang pagpapalit</string>
     <string name="path_action_data_kept_new_data_description">Hindi natapos ng Butler ang pagsulat sa \"%1$s\". Nananatili ang bagong data mo sa parehong folder sa pangalang \"%2$s\". Palitan ang pangalan nito para mabawi ito, o tanggalin ito para itapon ito.</string>

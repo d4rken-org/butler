@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Operacja nie powiodła się</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler nie może tutaj zmienić tylko wielkości liter w \"%1$s\". Najpierw zmień nazwę na inną, a potem na \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Zamiana niekompletna</string>
     <string name="path_action_data_kept_new_data_description">Butler nie mógł dokończyć pisania \"%1$s\". Twoje nowe dane są zachowane w tym samym folderze co \"%2$s\". Zmień mu nazwę, aby je odzyskać, lub usuń je, aby je odrzucić.</string>

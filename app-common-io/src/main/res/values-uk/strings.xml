@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Операція не вдалась</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler не може змінити тут лише регістр літер у \"%1$s\". Спочатку перейменуйте його на іншу назву, а потім на \"%2$s\".</string>
+
     <!-- Failed replacement: where the user’s data ended up -->
     <string name="path_action_data_kept_title">Заміну не завершено</string>
     <string name="path_action_data_kept_new_data_description">Butler не зміг завершити запис \"%1$s\". Ваші нові дані збережено в тій же теці, де \"%2$s\". Перейменуйте його, щоб відновити, або видаліть, щоб відкинути.</string>

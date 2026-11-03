@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">操作失败</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler 无法在此处仅更改 \"%1$s\" 的大小写。请先将其重命名为其他名称，再重命名为 \"%2$s\"。</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">替换未完成</string>
     <string name="path_action_data_kept_new_data_description">Butler 无法完成对 \"%1$s\" 的写入。新数据保留在 \"%2$s\" 的同一文件夹中。重命名该文件来恢复它，或删除它来丢弃它。</string>

@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Операцията е неуспешна</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler не може да промени тук само главните и малките букви в \"%1$s\". Първо го преименувай с друго име, а след това на \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Замяната не е завършена</string>
     <string name="path_action_data_kept_new_data_description">Butler не успя да завърши записването на \"%1$s\". Новите ти данни са запазени в същата папка под името \"%2$s\". Преименувай файла, за да ги възстановиш, или го изтрий, за да ги премахнеш.</string>

@@ -18,6 +18,8 @@
     <string name="path_action_insufficient_space_title">पर्याप्त जगह नहीं है</string>
     <string name="path_action_insufficient_space_description">\"%2$s\" से \"%1$s\" कॉपी करने के लिए पर्याप्त स्टोरेज जगह उपलब्ध नहीं है।</string>
     <string name="path_action_unknown_error_title">प्रक्रिया विफल हुई</string>
+
+    <string name="path_action_case_only_rename_unsupported_msg">Butler यहाँ \"%1$s\" के केवल अक्षरों का छोटा-बड़ा रूप नहीं बदल सकता। पहले इसका नाम किसी दूसरे नाम में बदलें, फिर \"%2$s\" में।</string>
     <string name="path_action_data_kept_title">बदलने की प्रक्रिया अधूरी है</string>
     <string name="path_action_data_kept_new_data_description">Butler \"%1$s\" में लिखना पूरा नहीं कर सका। आपका नया डेटा उसी फ़ोल्डर में \"%2$s\" के रूप में रखा है। उसे वापस पाने के लिए उसका नाम बदलें, या हटाने के लिए उसे मिटाएँ।</string>
     <string name="path_action_data_kept_original_in_place_description">Butler \"%1$s\" में लिखना पूरा नहीं कर सका, पिछली फ़ाइल अपरिवर्तित है। आपका नया डेटा उसी फ़ोल्डर में \"%2$s\" के रूप में रखा है। उसे वापस पाने के लिए उसका नाम बदलें, या हटाने के लिए उसे मिटाएँ।</string>

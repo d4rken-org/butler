@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Η λειτουργία απέτυχε</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Το Butler δεν μπορεί να αλλάξει εδώ μόνο τα κεφαλαία/πεζά γράμματα του \"%1$s\". Μετονομάστε το πρώτα σε ένα διαφορετικό όνομα και μετά σε \"%2$s\".</string>
+
     <!-- Failed replacement: where the user’s data ended up -->
     <string name="path_action_data_kept_title">Αντικατάσταση ημιτελής</string>
     <string name="path_action_data_kept_new_data_description">Το Butler δεν μπόρεσε να ολοκληρώσει την εγγραφή του \"%1$s\". Τα νέα σας δεδομένα διατηρήθηκαν στον ίδιο φάκελο με το \"%2$s\". Μετονομάστε το για να το ανακτήσετε ή διαγράψτε το για να το απορρίψετε.</string>

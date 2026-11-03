@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">فشلت العملية</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">لا يستطيع Butler هنا تغيير حالة الأحرف (الكبيرة والصغيرة) فقط في \"%1$s\". أعد تسميته أولاً إلى اسم مختلف، ثم إلى \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">الاستبدال لم يكتمل</string>
     <string name="path_action_data_kept_new_data_description">تعذر على Butler إنهاء كتابة \"%1$s\". بيانتك الجديدة محفوظة في نفس مجلد \"%2$s\". أعد تسميتها لاستردادها أو احذفها للتخلي عنها.</string>

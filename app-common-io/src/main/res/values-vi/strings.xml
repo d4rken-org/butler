@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Thao tác thất bại</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler không thể chỉ thay đổi chữ hoa/chữ thường của \"%1$s\" tại đây. Hãy đổi tên thành một tên khác trước, rồi đổi thành \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Thay thế không hoàn tất</string>
     <string name="path_action_data_kept_new_data_description">Butler không thể hoàn tất việc ghi \"%1$s\". Dữ liệu mới của bạn được giữ lại trong cùng thư mục với \"%2$s\". Hãy đổi tên để khôi phục nó hoặc xóa để loại bỏ nó.</string>

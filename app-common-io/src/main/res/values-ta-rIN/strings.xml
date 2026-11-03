@@ -32,6 +32,8 @@
 
     <string name="path_action_unknown_error_title">செயல்பாடு தோல்வியடைந்தது</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">இங்கே \"%1$s\" இன் எழுத்துகளின் பெரிய/சிறிய வடிவத்தை மட்டும் Butler ஆல் மாற்ற முடியாது. முதலில் வேறொரு பெயருக்கு மறுபெயரிட்டு, பின்னர் \"%2$s\" என மாற்றுங்கள்.</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">மாற்றீடு நிறைவடையவில்லை</string>
     <string name="path_action_data_kept_new_data_description">\"%1$s\" ஐ எழுதி முடிக்க Butler ஆல் முடியவில்லை. உங்கள் புதிய தரவு அதே கோப்புறையில் \"%2$s\" என்ற பெயரில் பாதுகாக்கப்பட்டுள்ளது. அதை மீட்டெடுக்க மறுபெயரிடுங்கள், அல்லது வேண்டாமெனில் நீக்குங்கள்.</string>

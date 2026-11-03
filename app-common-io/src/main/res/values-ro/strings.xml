@@ -18,6 +18,8 @@
     <string name="path_action_insufficient_space_title">Spațiu insuficient</string>
     <string name="path_action_insufficient_space_description">Nu există suficient spațiu de stocare disponibil pentru a copia \"%1$s\" din \"%2$s\".</string>
     <string name="path_action_unknown_error_title">Operația a eșuat</string>
+
+    <string name="path_action_case_only_rename_unsupported_msg">Butler nu poate schimba aici doar literele mari și mici din \"%1$s\". Redenumește-l mai întâi cu alt nume, apoi în \"%2$s\".</string>
     <string name="path_action_data_kept_title">Înlocuire neterminată</string>
     <string name="path_action_data_kept_new_data_description">Butler nu a putut termina scrierea fișierului \"%1$s\". Datele tale noi sunt păstrate în același dosar sub numele \"%2$s\". Redenumește fișierul pentru a le recupera sau șterge-l pentru a renunța la ele.</string>
     <string name="path_action_data_kept_original_in_place_description">Butler nu a putut termina scrierea fișierului \"%1$s\"; fișierul anterior este neschimbat. Datele tale noi sunt păstrate în același dosar sub numele \"%2$s\". Redenumește fișierul pentru a le recupera sau șterge-l pentru a renunța la ele.</string>

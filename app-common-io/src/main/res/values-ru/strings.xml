@@ -32,6 +32,8 @@
 
     <string name="path_action_unknown_error_title">Операция не выполнена</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler не может изменить здесь только регистр букв в \"%1$s\". Сначала переименуйте его во что-то другое, а затем в \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Замена не завершена</string>
     <string name="path_action_data_kept_new_data_description">Butler не смог завершить запись \"%1$s\". Ваши новые данные сохранены в папке рядом с \"%2$s\". Переименуйте файл, чтобы восстановить его, или удалите, чтобы отбросить.</string>

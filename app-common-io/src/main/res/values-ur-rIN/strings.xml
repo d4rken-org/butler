@@ -32,6 +32,8 @@
 
     <string name="path_action_unknown_error_title">کارروائی ناکام ہو گئی</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler یہاں \"%1$s\" میں صرف حروف کا چھوٹا/بڑا ہونا تبدیل نہیں کر سکتا۔ پہلے اس کا نام کسی دوسرے نام میں بدلیں، پھر \"%2$s\" میں۔</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">فائل بدلنے کا عمل نامکمل ہے</string>
     <string name="path_action_data_kept_new_data_description">Butler \"%1$s\" کو لکھنے کا عمل مکمل نہیں کر سکا۔ آپ کا نیا ڈیٹا اسی فولڈر میں \"%2$s\" کے نام سے محفوظ ہے۔ اسے بحال کرنے کے لیے اس کا نام بدلیں، یا اسے ضائع کرنے کے لیے حذف کریں۔</string>
