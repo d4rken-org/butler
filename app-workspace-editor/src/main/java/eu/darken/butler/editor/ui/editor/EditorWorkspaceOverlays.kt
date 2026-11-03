@@ -9,6 +9,7 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.collectAsStateCurrentOr
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.EncodingDialog
@@ -23,7 +24,6 @@ import eu.darken.butler.workspace.ui.insets.paneInsets
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 /**
@@ -65,8 +65,7 @@ fun EditorWorkspaceOverlays(
     clipboardInfoClip: ClipboardClip? = null,
     onPageAction: (EditorPageAction) -> Unit,
 ) {
-    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
-    val stateOrNull by stateSource.collectAsState(initial = (stateSource as? StateFlow)?.value)
+    val stateOrNull by stateSource.collectAsStateCurrentOr(null)
     val state = stateOrNull ?: return
     val paneInsets = design.paneInsets()
 

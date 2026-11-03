@@ -22,6 +22,7 @@ import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.collectAsStateCurrentOr
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
@@ -37,7 +38,6 @@ import eu.darken.butler.workspace.ui.operations.bar.WorkspaceOperationsFloatingB
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
@@ -48,10 +48,7 @@ fun AppsWorkspacePage(
     operationsState: OperationsDisplayState = OperationsDisplayState(),
     onPageAction: (AppsPageAction) -> Unit = {},
 ) {
-    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
-    val mainStateRaw by stateSource.collectAsState(
-        initial = (stateSource as? StateFlow)?.value ?: AppsWorkspaceViewModel.State.Initializing
-    )
+    val mainStateRaw by stateSource.collectAsStateCurrentOr(AppsWorkspaceViewModel.State.Initializing)
 
     // Only render when Ready - WorkspaceMapper handles Init/Error overlays
     val state = mainStateRaw as? AppsWorkspaceViewModel.State.Ready ?: return

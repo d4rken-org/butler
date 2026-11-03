@@ -12,6 +12,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.collectAsStateCurrentOr
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.openPrivacyPolicy
@@ -33,7 +34,6 @@ import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 /**
@@ -80,13 +80,10 @@ fun SearcherWorkspaceOverlays(
     showErrorShareConsent: Boolean = false,
     onPageAction: (SearcherPageAction) -> Unit = {},
 ) {
-    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
-    val mainState by stateSource.collectAsState(
-        initial = (stateSource as? StateFlow)?.value ?: SearcherWorkspaceViewModel.State.Initializing
-    )
+    val mainState by stateSource.collectAsStateCurrentOr(SearcherWorkspaceViewModel.State.Initializing)
     val operationsStateRaw by operationsStateSource.collectAsState(initial = null)
     val operationsState = operationsStateRaw ?: OperationsDisplayState()
-    val issueState by issueStateSource.collectAsState(initial = (issueStateSource as? StateFlow)?.value)
+    val issueState by issueStateSource.collectAsStateCurrentOr(null)
 
     val paneInsets = design.paneInsets()
     val navBarInset = paneInsets.bottom

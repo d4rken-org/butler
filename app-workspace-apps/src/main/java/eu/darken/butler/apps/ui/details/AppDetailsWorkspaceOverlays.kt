@@ -18,6 +18,7 @@ import eu.darken.butler.apps.ui.details.components.ComponentsConfirmRequest
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.collectAsStateCurrentOr
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.openPrivacyPolicy
@@ -32,7 +33,6 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBarAction
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 /**
@@ -115,19 +115,10 @@ fun AppDetailsWorkspaceOverlays(
 ) {
     // The real sources are eagerly shared StateFlows, so a remount reads the current values with no
     // null first frame — which would briefly unmount the sheet's layer.
-    val selected by selectedSource.collectAsState(
-        initial = (selectedSource as? StateFlow<ComponentEntry?>)?.value
-    )
-    val toggleState by toggleStateSource.collectAsState(
-        initial = (toggleStateSource as? StateFlow<ComponentToggleState>)?.value
-            ?: ComponentToggleState.UNSUPPORTED
-    )
-    val confirmRequest by confirmSource.collectAsState(
-        initial = (confirmSource as? StateFlow<ComponentsConfirmRequest?>)?.value
-    )
-    val appConfirmRequest by appConfirmSource.collectAsState(
-        initial = (appConfirmSource as? StateFlow<AppDetailsConfirmRequest?>)?.value
-    )
+    val selected by selectedSource.collectAsStateCurrentOr(null)
+    val toggleState by toggleStateSource.collectAsStateCurrentOr(ComponentToggleState.UNSUPPORTED)
+    val confirmRequest by confirmSource.collectAsStateCurrentOr(null)
+    val appConfirmRequest by appConfirmSource.collectAsStateCurrentOr(null)
 
     val paneInsets = design.paneInsets()
     val launchable = selected?.takeIf { it.kind == ComponentKind.ACTIVITY }

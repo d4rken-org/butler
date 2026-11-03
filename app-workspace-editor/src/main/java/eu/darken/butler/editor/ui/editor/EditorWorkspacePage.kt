@@ -24,6 +24,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.collectAsStateCurrentOr
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
@@ -50,7 +51,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Duration.Companion.seconds
 
@@ -109,8 +109,7 @@ fun EditorWorkspacePage(
     onActionExecute: (EditorActionBarItem) -> Unit = {},
 ) {
     // Page is hidden by WorkspaceMapper during Init/Error states, so nothing to render until Ready
-    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
-    val stateOrNull by mainStateSource.collectAsState(initial = (mainStateSource as? StateFlow)?.value)
+    val stateOrNull by mainStateSource.collectAsStateCurrentOr(null)
     val clipboardState by clipboardStateSource.collectAsState(ClipboardDisplayState())
 
     val state = stateOrNull ?: return
