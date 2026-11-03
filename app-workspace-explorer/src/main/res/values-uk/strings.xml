@@ -504,7 +504,7 @@
 
     <!-- Recent -->
     <plurals name="explorer_recent_window_subtitle">
-        <item quantity="one">Додано за останній день</item>
+        <item quantity="one">Додано за останній %d день</item>
         <item quantity="few">Додано за останні %d дні</item>
         <item quantity="many">Додано за останні %d днів</item>
         <item quantity="other">Додано за останні %d дня</item>

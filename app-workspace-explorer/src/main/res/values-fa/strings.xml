@@ -480,7 +480,7 @@
 
     <!-- Recent -->
     <plurals name="explorer_recent_window_subtitle">
-        <item quantity="one">افزوده‌شده در روز گذشته</item>
+        <item quantity="one">افزوده‌شده در %d روز گذشته</item>
         <item quantity="other">افزوده‌شده در %d روز گذشته</item>
     </plurals>
     <string name="explorer_recent_empty_title">چیز جدیدی اینجا نیست</string>

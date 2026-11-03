@@ -437,7 +437,7 @@
     <string name="explorer_location_name_hint">डिफ़ॉल्ट नाम इस्तेमाल करने के लिए खाली छोड़ें</string>
     <string name="explorer_location_rename_action">स्थान का नाम बदलें</string>
     <plurals name="explorer_recent_window_subtitle">
-        <item quantity="one">पिछले एक दिन में जोड़ी गईं</item>
+        <item quantity="one">पिछले %d दिन में जोड़ी गईं</item>
         <item quantity="other">पिछले %d दिनों में जोड़ी गईं</item>
     </plurals>
     <string name="explorer_recent_empty_title">यहाँ कुछ नया नहीं</string>

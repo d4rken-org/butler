@@ -194,31 +194,31 @@
         <item quantity="other">%d घटक चुने गए</item>
     </plurals>
     <plurals name="apps_operation_enable_title">
-        <item quantity="one">ऐप चालू करें</item>
+        <item quantity="one">%d ऐप चालू करें</item>
         <item quantity="other">%d ऐप चालू करें</item>
     </plurals>
     <plurals name="apps_operation_disable_title">
-        <item quantity="one">ऐप बंद करें</item>
+        <item quantity="one">%d ऐप बंद करें</item>
         <item quantity="other">%d ऐप बंद करें</item>
     </plurals>
     <plurals name="apps_operation_force_stop_title">
-        <item quantity="one">ऐप ज़बरन रोकें</item>
+        <item quantity="one">%d ऐप ज़बरन रोकें</item>
         <item quantity="other">%d ऐप ज़बरन रोकें</item>
     </plurals>
     <plurals name="apps_operation_uninstall_title">
-        <item quantity="one">ऐप अनइंस्टॉल करें</item>
+        <item quantity="one">%d ऐप अनइंस्टॉल करें</item>
         <item quantity="other">%d ऐप अनइंस्टॉल करें</item>
     </plurals>
     <plurals name="apps_operation_clear_data_title">
-        <item quantity="one">ऐप डेटा साफ़ करें</item>
+        <item quantity="one">%d ऐप का डेटा साफ़ करें</item>
         <item quantity="other">%d ऐप का डेटा साफ़ करें</item>
     </plurals>
     <plurals name="apps_operation_components_enable_title">
-        <item quantity="one">घटक चालू करें</item>
+        <item quantity="one">%d घटक चालू करें</item>
         <item quantity="other">%d घटक चालू करें</item>
     </plurals>
     <plurals name="apps_operation_components_disable_title">
-        <item quantity="one">घटक बंद करें</item>
+        <item quantity="one">%d घटक बंद करें</item>
         <item quantity="other">%d घटक बंद करें</item>
     </plurals>
     <plurals name="apps_operation_targets_description">
