@@ -136,6 +136,10 @@ internal class GenericPathMove<
     // Destination state
     private var destinationExistedAsDirectory = false
 
+    // Off once an exact-target move found its destination taken: a child folder moved atomically during
+    // the scan would land in the existing destination before the user has answered that conflict
+    private var atomicSubtreeMoves = options.attemptAtomicMove
+
     // Staging files a failed attempt kept per source, because it could not rule out that they hold
     // the only copy of the data
     private val retainedStaging = mutableMapOf<SP, MutableList<DP>>()
@@ -387,6 +391,29 @@ internal class GenericPathMove<
         return aside.name in siblings && siblings.none { it.equals(target.name, ignoreCase = true) }
     }
 
+    /**
+     * Renaming `a.txt` to `A.txt` in the same folder only targets a different entry if the listing has
+     * an `A.txt` of its own. Otherwise the destination is the source under another spelling, and an
+     * exact target would make the source conflict with itself.
+     */
+    private suspend fun usesExactTarget(): Boolean {
+        if (!options.exactTarget) return false
+        val source = sources.singleOrNull() ?: return false
+        if (source.name == destination.name || !source.name.equals(destination.name, ignoreCase = true)) return true
+        val sourceParent: APath<*>? = source.parent
+        val parent = destination.parent?.takeIf { it == sourceParent } ?: return true
+
+        val siblings = try {
+            destOps.listFiles(parent).map { it.name }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, WARN) { "usesExactTarget(): Could not list $parent: ${e.asLog()}" }
+            return false
+        }
+        return destination.name in siblings
+    }
+
     private suspend fun caseRenameSiblingFor(parent: DP): SP {
         repeat(CASE_RENAME_NAME_ATTEMPTS) {
             val candidate = parent.child(".${Uuid.random().toString().take(8)}.rename")
@@ -407,6 +434,12 @@ internal class GenericPathMove<
         if (renameCaseOnly(destLookup)) {
             send(MoveAction.State.Completed(movedFiles = moved, skippedFiles = skipped, bytesMoved = totalBytesTransferred))
             return@channelFlow
+        }
+
+        if (destLookup.fileType != FileType.UNKNOWN && usesExactTarget()) {
+            log(TAG, DEBUG) { "execute(): Exact target $destination exists, treating it as a conflict" }
+            destinationExistedAsDirectory = false
+            atomicSubtreeMoves = false
         }
 
         // Initialize work queue with scan items for all sources
@@ -554,7 +587,7 @@ internal class GenericPathMove<
                 }
 
                 // Try atomic directory move FIRST if enabled (optimization)
-                if (options.attemptAtomicMove) {
+                if (atomicSubtreeMoves) {
                     // Check for destination conflicts BEFORE attempting atomic move
                     val destLookup = destOps.lookup(destPath, LookupOptions.BASE.copy(fallbackToUnknown = true))
                     if (destLookup.fileType != FileType.UNKNOWN) {

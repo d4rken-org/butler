@@ -24,6 +24,7 @@ import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.GenericCrossTypeCopyStrategy
 import eu.darken.butler.common.files.operations.GenericCrossTypeMoveStrategy
 import eu.darken.butler.common.files.operations.TransferStrategy
+import eu.darken.butler.common.files.operations.toTransferOptions
 import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
 import eu.darken.butler.common.files.saf.SAFGateway
@@ -611,11 +612,7 @@ class GatewaySwitch @Inject constructor(
     ): Flow<MoveAction.State<*, *, *, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayMove(): ${sources.size} sources -> $target" }
 
-        val transferOptions = TransferStrategy.Options(
-            preserveAttributes = options.preserveAttributes,
-            followSymlinks = false,  // MoveAction doesn't have followSymlinks option
-            attemptAtomicMove = options.attemptAtomicMove
-        )
+        val transferOptions = options.toTransferOptions(overwrite = false)
 
         when (sources.first()) {
             is LocalPath -> {

@@ -54,6 +54,7 @@ import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.deleteGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
 import eu.darken.butler.common.files.operations.TransferStrategy
+import eu.darken.butler.common.files.operations.toTransferOptions
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.RootUnavailableException
 import eu.darken.butler.common.root.canUseRootNow
@@ -1095,12 +1096,7 @@ class LocalGateway @Inject constructor(
                     sources.forEach { sourceOps.ensurePlanned(it, AccessIntent.Delete) }
                     destOps.ensurePlanned(destination, AccessIntent.Write)
 
-                    val transferOptions = TransferStrategy.Options(
-                        preserveAttributes = options.preserveAttributes,
-                        followSymlinks = false,
-                        overwrite = options.overwrite,
-                        attemptAtomicMove = false,
-                    )
+                    val transferOptions = options.toTransferOptions(attemptAtomicMove = false)
 
                     relay(
                         sources.moveGeneric(

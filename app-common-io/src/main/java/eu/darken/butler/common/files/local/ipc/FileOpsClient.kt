@@ -357,6 +357,7 @@ class FileOpsClient @AssistedInject constructor(
      * @param onIssue Issue handler for conflict resolution (optional)
      * @param options Move options (overwrite, preserve attributes, atomic move)
      * @return Flow of State updates (scan progress, move progress, and final result)
+     * @throws IllegalArgumentException if [MoveAction.Options.exactTarget] is set
      */
     override suspend fun move(
         sources: Set<LocalPath>,
@@ -365,6 +366,10 @@ class FileOpsClient @AssistedInject constructor(
         options: MoveAction.Options,
     ): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = try {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources → $destination" }
+
+        if (options.exactTarget) {
+            throw IllegalArgumentException("exactTarget cannot cross the IPC boundary")
+        }
 
         // Create AIDL callback wrapper if onIssue is provided
         val callback: FileOperationCallback? = onIssue?.let { issueHandler ->

@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.operations.strategies.LocalPathMoveStrategy
 import eu.darken.butler.common.files.operations.moveGeneric
+import eu.darken.butler.common.files.operations.toTransferOptions
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Clock
 
@@ -45,13 +46,7 @@ fun Collection<LocalPath>.move(
         "move(): Moving $size targets to $destination (options=$options)"
     }
 
-    // Convert MoveAction.Options to TransferStrategy.Options
-    val transferOptions = eu.darken.butler.common.files.operations.TransferStrategy.Options(
-        preserveAttributes = options.preserveAttributes,
-        followSymlinks = false, // MoveAction doesn't have followSymlinks option
-        overwrite = options.overwrite,
-        attemptAtomicMove = options.attemptAtomicMove
-    )
+    val transferOptions = options.toTransferOptions()
 
     // Delegate to generic operation (new implementation)
     return this.moveGeneric(

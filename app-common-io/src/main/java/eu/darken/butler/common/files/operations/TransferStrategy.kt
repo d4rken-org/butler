@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.actions.MoveAction
 
 /**
  * Generic strategy interface for transferring files (copy or move).
@@ -100,6 +101,13 @@ interface TransferStrategy<
          * - May provide more granular progress tracking
          */
         val attemptAtomicMove: Boolean = true,
+
+        /**
+         * Whether a single source moves to exactly the destination path, even when that path is an
+         * existing directory: `a.txt` onto an existing `photos/` conflicts with `photos` instead of
+         * becoming `photos/a.txt`. Ignored for multiple sources.
+         */
+        val exactTarget: Boolean = false,
     )
 
     /**
@@ -229,3 +237,17 @@ interface TransferStrategy<
         options: Options
     ): TransferResult<SP, DP>
 }
+
+/**
+ * [MoveAction.Options] has no symlink option, a move always transfers symlinks as symlinks.
+ */
+fun MoveAction.Options.toTransferOptions(
+    overwrite: Boolean = this.overwrite,
+    attemptAtomicMove: Boolean = this.attemptAtomicMove,
+): TransferStrategy.Options = TransferStrategy.Options(
+    preserveAttributes = preserveAttributes,
+    followSymlinks = false,
+    overwrite = overwrite,
+    attemptAtomicMove = attemptAtomicMove,
+    exactTarget = exactTarget,
+)

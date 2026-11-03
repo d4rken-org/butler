@@ -21,6 +21,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.operations.TransferStrategy
+import eu.darken.butler.common.files.operations.toTransferOptions
 import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.createGeneric
 import eu.darken.butler.common.files.operations.deleteGeneric
@@ -208,12 +209,7 @@ class WebDavGateway @Inject constructor(
             sourceOps = fileSystemOps,
             destOps = fileSystemOps,
             strategy = WebDavPathMoveStrategy(fileSystemOps),
-            options = TransferStrategy.Options(
-                preserveAttributes = options.preserveAttributes,
-                followSymlinks = false,
-                overwrite = options.overwrite,
-                attemptAtomicMove = options.attemptAtomicMove,
-            ),
+            options = options.toTransferOptions(),
             onIssue = onIssue,
         ).collect { state ->
             emit(state)

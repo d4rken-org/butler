@@ -21,6 +21,7 @@ interface MoveAction<
         val preserveAttributes: Boolean = true,
         val overwrite: Boolean = false,
         val attemptAtomicMove: Boolean = true,
+        val exactTarget: Boolean = false,
     )
 
     sealed interface State<

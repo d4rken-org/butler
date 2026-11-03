@@ -6,6 +6,7 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.operations.TransferStrategy
+import eu.darken.butler.common.files.operations.toTransferOptions
 import eu.darken.butler.common.files.operations.copyGeneric
 import eu.darken.butler.common.files.operations.deleteGeneric
 import eu.darken.butler.common.files.operations.moveGeneric
@@ -117,12 +118,7 @@ fun Collection<SAFPath>.move(
     sourceOps = fileSystemOps,
     destOps = fileSystemOps,
     strategy = SAFPathMoveStrategy(),
-    options = TransferStrategy.Options(
-        preserveAttributes = options.preserveAttributes,
-        followSymlinks = false, // MoveAction doesn't have followSymlinks option
-        overwrite = options.overwrite,
-        attemptAtomicMove = options.attemptAtomicMove,
-    ),
+    options = options.toTransferOptions(),
     onIssue = onIssue
 )
 
