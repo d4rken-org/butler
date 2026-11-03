@@ -309,4 +309,16 @@ class PermissionErrorClassifierTest : BaseTest() {
         PermissionErrorClassifier.classify(e) shouldBe null
         PermissionErrorClassifier.isPermissionError(e) shouldBe false
     }
+
+    @Test
+    fun `a refused case-only rename of a name containing permission is not a permission failure`() {
+        val e = CaseOnlyRenameException(
+            path = LocalPath.build("/sdcard/permissions"),
+            sourceName = "permissions",
+            destinationName = "Permissions",
+        )
+
+        PermissionErrorClassifier.classify(e) shouldBe null
+        PermissionErrorClassifier.isPermissionError(e) shouldBe false
+    }
 }

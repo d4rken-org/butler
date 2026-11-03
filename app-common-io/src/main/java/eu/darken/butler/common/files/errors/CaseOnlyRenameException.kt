@@ -10,9 +10,6 @@ import eu.darken.butler.common.io.R
 /**
  * A rename of [path] that only changes the letter case, `photos` to `Photos`, on storage where it
  * could not be done safely. Thrown before anything was touched.
- *
- * Deliberately without a cause: a denied listing in the chain would otherwise be classified as a
- * permission failure (see `PermissionErrorClassifierTest`).
  */
 class CaseOnlyRenameException(
     path: APath<*>,
