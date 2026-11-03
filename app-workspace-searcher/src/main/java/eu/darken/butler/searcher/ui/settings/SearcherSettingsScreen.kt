@@ -26,9 +26,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -59,13 +59,13 @@ fun SearcherSettingsScreen(
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     var showMaxHistoryDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
+    val historyClearedMessage by rememberUpdatedState(stringResource(R.string.searcher_history_cleared_success))
 
     LaunchedEffect(eventSource) {
         eventSource?.collect { event ->
             when (event) {
                 SearcherSettingsViewModel.Event.HistoryCleared -> snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.searcher_history_cleared_success),
+                    message = historyClearedMessage,
                 )
             }
         }

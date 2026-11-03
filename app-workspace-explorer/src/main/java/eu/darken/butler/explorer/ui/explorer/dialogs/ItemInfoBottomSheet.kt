@@ -393,11 +393,12 @@ private fun SingleSAFInfo(
             valueStyle = InfoValueStyle.MONOSPACE,
         )
 
-        val context = LocalContext.current
+        val readLabel = stringResource(R.string.explorer_info_saf_permission_read)
+        val writeLabel = stringResource(R.string.explorer_info_saf_permission_write)
         val permissionText = buildString {
-            if (item.location.hasReadPermission) append(context.getString(R.string.explorer_info_saf_permission_read))
+            if (item.location.hasReadPermission) append(readLabel)
             if (item.location.hasReadPermission && item.location.hasWritePermission) append(" + ")
-            if (item.location.hasWritePermission) append(context.getString(R.string.explorer_info_saf_permission_write))
+            if (item.location.hasWritePermission) append(writeLabel)
         }
 
         InfoField(
