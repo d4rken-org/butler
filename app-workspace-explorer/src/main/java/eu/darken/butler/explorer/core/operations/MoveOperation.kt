@@ -88,6 +88,7 @@ class MoveOperation @AssistedInject constructor(
                 destination = command.destination.path,
                 options = MoveAction.Options(
                     preserveAttributes = command.options.preserveAttributes,
+                    exactTarget = command.destination is OperationPathPlan.Destination.RequestedTarget,
                 ),
                 onIssue = { issue ->
                     send(
