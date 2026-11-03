@@ -134,6 +134,74 @@ class SearcherRenameTest {
     private fun SearcherWorkspaceViewModel.rename(item: SearchItem) =
         onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.Rename(item)))
 
+    private fun SearcherWorkspaceViewModel.select(vararg items: SearchItem) =
+        items.forEach { onPageAction(SearcherPageAction.Results.ToggleSelection(it)) }
+
+    private val SearcherWorkspaceViewModel.selectionRename: SearcherActionBarItem.Rename?
+        get() = ready.availableActions.filterIsInstance<SearcherActionBarItem.Rename>().singleOrNull()
+
+    @Test
+    fun `the selection bar offers rename for a single selected result`() = runTest2 {
+        val notes = result("notes.txt")
+        val todo = result("todo.txt")
+        workspaceState.value = SearcherWorkspace.State(
+            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+            results = listOf(notes, todo),
+        )
+        val vm = makeViewModel()
+
+        vm.select(notes)
+
+        vm.selectionRename shouldBe SearcherActionBarItem.Rename(result = notes, isEnabled = true)
+    }
+
+    @Test
+    fun `the selection bar offers no rename for two selected results`() = runTest2 {
+        val notes = result("notes.txt")
+        val todo = result("todo.txt")
+        workspaceState.value = SearcherWorkspace.State(
+            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+            results = listOf(notes, todo),
+        )
+        val vm = makeViewModel()
+
+        vm.select(notes, todo)
+
+        vm.selectionRename shouldBe null
+    }
+
+    @Test
+    fun `the selection bar rename is disabled while a search runs`() = runTest2 {
+        val notes = result("notes.txt")
+        workspaceState.value = SearcherWorkspace.State(
+            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
+            results = listOf(notes),
+        )
+        val vm = makeViewModel()
+
+        vm.select(notes)
+
+        vm.selectionRename shouldBe SearcherActionBarItem.Rename(result = notes, isEnabled = false)
+    }
+
+    @Test
+    fun `confirming a rename of the single selected result clears the selection`() = runTest2 {
+        val notes = result("notes.txt")
+        val todo = result("todo.txt")
+        workspaceState.value = SearcherWorkspace.State(
+            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+            results = listOf(notes, todo),
+        )
+        val vm = makeViewModel()
+        vm.select(notes)
+        vm.onPageAction(SearcherPageAction.WorkspaceAction(vm.selectionRename!!))
+
+        vm.onPageAction(SearcherPageAction.Dialogs.RenameConfirmed(notes, "journal.txt"))
+
+        verify { workspace.execute(SearcherCommand.Rename(source = notes, newName = "journal.txt")) }
+        vm.ready.selectionState.selectedResultIds shouldBe emptySet()
+    }
+
     @Test
     fun `the rename action opens the rename dialog for the result`() = runTest2 {
         val notes = result("notes.txt")

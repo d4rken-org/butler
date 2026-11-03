@@ -468,6 +468,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val sortedResults = displayResults(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
+        val searchRunning = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
 
         // Calculate available actions based on selection state
         val actions = if (updatedSelectionState.selectedResultIds.isNotEmpty()) {
@@ -479,6 +480,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
                 // Open
                 add(SearcherActionBarItem.OpenSelection(updatedSelectionState.selectedResults))
+
+                // Rename
+                if (updatedSelectionState.selectionCount == 1) {
+                    updatedSelectionState.selectedResults.singleOrNull()?.let {
+                        add(SearcherActionBarItem.Rename(result = it, isEnabled = !searchRunning))
+                    }
+                }
 
                 // Copy
                 add(SearcherActionBarItem.Copy(updatedSelectionState.selectedResults))
@@ -1344,6 +1352,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             return@launch
         }
         getWorkspace().execute(SearcherCommand.Rename(source = result, newName = newName))
+        // The renamed result gets a new key, so a selection of just this result would point at nothing
+        if (selectionState.value.selectedResultIds == setOf(result.resultKey)) deselectAll()
     }
 
     private suspend fun isSearching(): Boolean =
