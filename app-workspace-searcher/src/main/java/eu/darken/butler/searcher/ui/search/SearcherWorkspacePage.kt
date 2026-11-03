@@ -38,6 +38,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.collectAsStateCurrentOr
 import eu.darken.butler.common.compose.dragselect.gridDragSelect
 import eu.darken.butler.common.compose.dragselect.listDragSelect
 import eu.darken.butler.common.keyboard.KeyboardShortcut
@@ -82,7 +83,6 @@ import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
@@ -94,10 +94,7 @@ fun SearcherWorkspacePage(
     operationsStateSource: Flow<OperationsDisplayState?>,
     onPageAction: (SearcherPageAction) -> Unit = {},
 ) {
-    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
-    val mainState by stateSource.collectAsState(
-        initial = (stateSource as? StateFlow)?.value ?: SearcherWorkspaceViewModel.State.Initializing
-    )
+    val mainState by stateSource.collectAsStateCurrentOr(SearcherWorkspaceViewModel.State.Initializing)
     val clipboardStateRaw by clipboardStateSource.collectAsState(initial = null)
     val clipboardState = clipboardStateRaw ?: ClipboardDisplayState()
     val operationsStateRaw by operationsStateSource.collectAsState(initial = null)

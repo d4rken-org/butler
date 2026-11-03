@@ -12,6 +12,7 @@ import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.collectAsStateCurrentOr
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.openPrivacyPolicy
@@ -28,7 +29,6 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBarAction
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 /**
@@ -131,10 +131,7 @@ fun AppsWorkspaceOverlays(
 
     // Below the operation overlays: those belong to the whole tab, while everything from here on
     // needs a Ready state to describe.
-    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
-    val mainState by stateSource.collectAsState(
-        initial = (stateSource as? StateFlow)?.value ?: AppsWorkspaceViewModel.State.Initializing
-    )
+    val mainState by stateSource.collectAsStateCurrentOr(AppsWorkspaceViewModel.State.Initializing)
     val state = mainState as? AppsWorkspaceViewModel.State.Ready ?: return
 
     AppsDialogHost(

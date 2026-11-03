@@ -13,7 +13,6 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +30,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.OnValueChange
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.collectAsStateCurrentOr
 import eu.darken.butler.common.compose.rememberDelayedState
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -66,7 +66,6 @@ import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyGridState
 import eu.darken.butler.workspace.ui.scroll.rememberWorkspaceLazyListState
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -84,20 +83,12 @@ fun ExplorerWorkspacePage(
     initialClipboardExpanded: Boolean = false,
 ) {
     // Early return - don't render until state is available (mapper shows loading)
-    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
-    val nullableState by mainStateSource.collectAsState(initial = (mainStateSource as? StateFlow)?.value)
+    val nullableState by mainStateSource.collectAsStateCurrentOr(null)
     val state = nullableState ?: return
 
-    // Same StateFlow unwrap as the main state above: a single-frame renderer never runs the
-    // collection, so `initial = null` would leave the operations and clipboard bars permanently
-    // hidden in screenshot tests and IDE previews.
-    val operationsStateRaw by operationsStateSource.collectAsState(
-        initial = (operationsStateSource as? StateFlow)?.value,
-    )
+    val operationsStateRaw by operationsStateSource.collectAsStateCurrentOr(null)
     val operationsState = operationsStateRaw ?: OperationsDisplayState()
-    val clipboardStateRaw by clipboardStateSource.collectAsState(
-        initial = (clipboardStateSource as? StateFlow)?.value,
-    )
+    val clipboardStateRaw by clipboardStateSource.collectAsStateCurrentOr(null)
     val clipboardState = clipboardStateRaw ?: ClipboardDisplayState()
     val isWorkspaceFocused = LocalWorkspaceFocused.current
 
