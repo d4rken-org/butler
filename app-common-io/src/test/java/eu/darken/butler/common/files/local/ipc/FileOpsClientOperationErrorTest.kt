@@ -16,6 +16,7 @@ import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -225,6 +226,17 @@ class FileOpsClientOperationErrorTest : BaseTest() {
         runBlocking {
             shouldThrow<IOException> { collectMove() }.message!! shouldContain "truncated"
         }
+    }
+
+    @Test
+    fun `an exact-target move is refused before it reaches the host`() {
+        runBlocking {
+            shouldThrow<IllegalArgumentException> {
+                client.move(setOf(target), destination, null, MoveAction.Options(exactTarget = true))
+            }.message!! shouldContain "exactTarget"
+        }
+
+        verify(exactly = 0) { connection.moveStream(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test

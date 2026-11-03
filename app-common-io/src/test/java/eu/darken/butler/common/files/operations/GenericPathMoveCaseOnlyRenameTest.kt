@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -96,18 +97,56 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
         }
     }
 
+    /** Lists everything but [path], like a folder whose route refuses a listing. */
+    private inner class UnlistableFolderOps(private val folder: String) :
+        MockFileSystemOps<LocalPath, LocalPathLookup>(lookupFactory) {
+        override suspend fun listFiles(path: LocalPath): List<LocalPath> {
+            if (path.path == folder) throw IOException("Cannot list $folder")
+            return super.listFiles(path)
+        }
+    }
+
     private fun MockFileSystemOps<LocalPath, LocalPathLookup>.rename(
         from: String,
         to: String,
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup> = this,
+        exactTarget: Boolean = false,
     ) = setOf(LocalPath.build(from)).moveGeneric(
             destination = LocalPath.build(to),
             sourceOps = sourceOps,
             destOps = this,
             strategy = GenericCrossTypeMoveStrategy(),
-            options = TransferStrategy.Options(attemptAtomicMove = false),
+            options = TransferStrategy.Options(attemptAtomicMove = false, exactTarget = exactTarget),
             onIssue = skipAll,
         )
+
+    /** Everything a rename leaves behind, to compare an exact-target rename with a plain one. */
+    private data class Outcome(val result: Any, val files: Map<String, Any>, val issues: List<Any?>)
+
+    private suspend fun outcomeOf(
+        exactTarget: Boolean,
+        setup: () -> MockFileSystemOps<LocalPath, LocalPathLookup>,
+        from: String,
+        to: String,
+    ): Outcome {
+        issues.clear()
+        val ops = setup()
+        val result: Any = runCatching { ops.rename(from, to, exactTarget = exactTarget).last() }.fold(
+            onSuccess = { state ->
+                state as MoveAction.State.Completed<*, *, *, *>
+                state.movedFiles.map { (source, destination) -> source.lookedUp.path to destination.lookedUp.path } to
+                    state.skippedFiles.map { it.lookedUp.path }
+            },
+            onFailure = { it::class to it.message },
+        )
+        val files = ops.files.mapValues { (_, file) ->
+            Triple(file.type, file.content.decodeToString(), file.children.toList())
+        }
+        val raised = issues.map { issue ->
+            issue::class to (issue as? PathActionIssue.PathAlreadyExists)?.destination?.lookedUp?.path
+        }
+        return Outcome(result, files, raised)
+    }
 
     private fun MockFileSystemOps<LocalPath, LocalPathLookup>.asideKeys() = files.keys.filter { it.endsWith(".rename") }
 
@@ -341,5 +380,65 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
         val recovery = error.recovery.shouldBeInstanceOf<DataKeptException.Recovery.Intermediate>()
         aside shouldBe "/dir/${recovery.intermediate}"
         ops.files[aside]!!.content.decodeToString() shouldBe "content"
+    }
+
+    @Test
+    fun `exactTarget on a file that only changes case behaves like a plain rename`() = runTest {
+        // The case-only rename cannot list the folder and declines, the listing after it succeeds
+        val setup = {
+            CaseInsensitiveOps().apply {
+                addMockFile("/dir/a.txt", "content".toByteArray())
+                setFailListFiles(1)
+            }
+        }
+
+        val exact = outcomeOf(exactTarget = true, setup, "/dir/a.txt", "/dir/A.txt")
+
+        exact shouldBe outcomeOf(exactTarget = false, setup, "/dir/a.txt", "/dir/A.txt")
+    }
+
+    @Test
+    fun `exactTarget on a folder that only changes case behaves like a plain rename`() = runTest {
+        val setup = {
+            CaseInsensitiveOps().apply {
+                addMockFile("/dir/photos/x.txt", "x".toByteArray())
+                setFailListFiles(1)
+            }
+        }
+
+        val exact = outcomeOf(exactTarget = true, setup, "/dir/photos", "/dir/Photos")
+
+        exact shouldBe outcomeOf(exactTarget = false, setup, "/dir/photos", "/dir/Photos")
+    }
+
+    @Test
+    fun `exactTarget behaves like a plain rename when the folder cannot be listed`() = runTest {
+        val setup = {
+            UnlistableFolderOps("/dir").apply {
+                addMockFile("/dir/photos/x.txt", "x".toByteArray())
+                addMockFile("/dir/Photos/y.txt", "y".toByteArray())
+            }
+        }
+
+        val exact = outcomeOf(exactTarget = true, setup, "/dir/photos", "/dir/Photos")
+
+        exact shouldBe outcomeOf(exactTarget = false, setup, "/dir/photos", "/dir/Photos")
+        exact.files.keys shouldContain "/dir/Photos/photos/x.txt"
+    }
+
+    @Test
+    fun `exactTarget conflicts with a real entry that differs only in case`() = runTest {
+        val ops = MockFileSystemOps(lookupFactory).apply {
+            addMockFile("/dir/photos/x.txt", "x".toByteArray())
+            addMockFile("/dir/Photos/y.txt", "y".toByteArray())
+        }
+
+        ops.rename("/dir/photos", "/dir/Photos", exactTarget = true).last()
+
+        val issue = issues.single().shouldBeInstanceOf<PathActionIssue.PathAlreadyExists>()
+        issue.destination.lookedUp shouldBe LocalPath.build("/dir/Photos")
+        ops.files["/dir"]!!.children shouldBe mutableListOf("photos", "Photos")
+        ops.files["/dir/photos"]!!.children shouldBe mutableListOf("x.txt")
+        ops.files["/dir/Photos"]!!.children shouldBe mutableListOf("y.txt")
     }
 }
