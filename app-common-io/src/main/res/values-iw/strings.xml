@@ -18,6 +18,8 @@
     <string name="path_action_insufficient_space_title">אין מספיק מקום</string>
     <string name="path_action_insufficient_space_description">אין מספיק מקום פנוי באחסון להעתקת \"%1$s\" מתוך \"%2$s\".</string>
     <string name="path_action_unknown_error_title">הפעולה נכשלה</string>
+
+    <string name="path_action_case_only_rename_unsupported_msg">Butler לא יכול לשנות כאן רק את גודל האותיות (גדולות/קטנות) של \"%1$s\". אפשר לשנות קודם את השם לשם אחר, ואז ל־\"%2$s\".</string>
     <string name="path_action_data_kept_title">ההחלפה לא הושלמה</string>
     <string name="path_action_data_kept_new_data_description">Butler לא הצליח לסיים את כתיבת \"%1$s\". הנתונים החדשים נשמרו באותה תיקייה בשם \"%2$s\". אפשר לשנות את שמו כדי לשחזר אותם, או למחוק אותו כדי לוותר עליהם.</string>
     <string name="path_action_data_kept_original_in_place_description">Butler לא הצליח לסיים את כתיבת \"%1$s\", הקובץ הקודם לא השתנה. הנתונים החדשים נשמרו באותה תיקייה בשם \"%2$s\". אפשר לשנות את שמו כדי לשחזר אותם, או למחוק אותו כדי לוותר עליהם.</string>

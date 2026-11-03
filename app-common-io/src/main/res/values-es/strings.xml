@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Error en la operación</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler no puede cambiar aquí solo las mayúsculas y minúsculas de \"%1$s\". Renómbralo primero con otro nombre y después a \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Reemplazo sin terminar</string>
     <string name="path_action_data_kept_new_data_description">Butler no pudo terminar de escribir \"%1$s\". Los datos nuevos se guardan en la misma carpeta que \"%2$s\". Renómbralo para recuperarlo o elimínalo para descartarlo.</string>

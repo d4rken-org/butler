@@ -32,6 +32,8 @@
 
     <string name="path_action_unknown_error_title">Opération échouée</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler ne peut pas modifier uniquement la casse de « %1$s » ici. Renommez-le d’abord sous un autre nom, puis en « %2$s ».</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Remplacement inachevé</string>
     <string name="path_action_data_kept_new_data_description">Butler n’a pas pu terminer l’écriture de « %1$s ». Vos nouvelles données sont conservées dans le même dossier que « %2$s ». Renommez-les pour les récupérer ou supprimez-les pour les abandonner.</string>

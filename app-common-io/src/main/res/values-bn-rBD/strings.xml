@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">কাজ ব্যর্থ হয়েছে</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler এখানে \"%1$s\"-এর শুধু বড় হাতের/ছোট হাতের অক্ষর বদলাতে পারে না। প্রথমে অন্য কোনো নামে নাম বদলান, তারপর \"%2$s\" নামে।</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">প্রতিস্থাপন অসম্পূর্ণ</string>
     <string name="path_action_data_kept_new_data_description">Butler \"%1$s\" লেখা শেষ করতে পারেনি। আপনার নতুন তথ্য একই ফোল্ডারে \"%2$s\" হিসেবে রাখা আছে। পুনরুদ্ধার করতে নাম বদলান, অথবা বাদ দিতে মুছে ফেলুন।</string>

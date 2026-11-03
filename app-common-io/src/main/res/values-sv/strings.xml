@@ -32,6 +32,8 @@
 
     <string name="path_action_unknown_error_title">Åtgärden misslyckades</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler kan inte ändra enbart versaler och gemener i \"%1$s\" här. Byt först namn till något annat och sedan till \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Ersättningen slutfördes inte</string>
     <string name="path_action_data_kept_new_data_description">Butler kunde inte slutföra skrivningen av \"%1$s\". Dina nya data finns kvar i samma mapp under namnet \"%2$s\". Byt namn på filen för att återställa dina data, eller radera den för att kasta dem.</string>

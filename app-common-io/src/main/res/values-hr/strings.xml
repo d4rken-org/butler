@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Operacija nije uspjela</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler ovdje ne može promijeniti samo velika i mala slova u \"%1$s\". Najprije ga preimenuj u neki drugi naziv, a zatim u \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Zamjena nije dovršena</string>
     <string name="path_action_data_kept_new_data_description">Butler nije uspio dovršiti zapisivanje datoteke \"%1$s\". Tvoji novi podaci sačuvani su u istoj mapi pod nazivom \"%2$s\". Preimenuj tu datoteku da ih vratiš ili je izbriši da ih odbaciš.</string>

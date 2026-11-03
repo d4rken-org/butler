@@ -18,6 +18,8 @@
     <string name="path_action_insufficient_space_title">Nincs elég hely</string>
     <string name="path_action_insufficient_space_description">Nincs elegendő szabad tárhely a(z) \"%1$s\" másolásához innen: \"%2$s\".</string>
     <string name="path_action_unknown_error_title">A művelet sikertelen</string>
+
+    <string name="path_action_case_only_rename_unsupported_msg">A Butler itt nem tudja csak a kis- és nagybetűket megváltoztatni a(z) \"%1$s\" nevében. Előbb nevezd át valami másra, majd erre: \"%2$s\".</string>
     <string name="path_action_data_kept_title">A csere nem fejeződött be</string>
     <string name="path_action_data_kept_new_data_description">A Butler nem tudta befejezni a(z) \"%1$s\" írását. Az új adatok ugyanabban a mappában maradtak, \"%2$s\" néven. Nevezd át a helyreállításhoz, vagy töröld az elvetéshez.</string>
     <string name="path_action_data_kept_original_in_place_description">A Butler nem tudta befejezni a(z) \"%1$s\" írását, a korábbi fájl változatlan. Az új adatok ugyanabban a mappában maradtak, \"%2$s\" néven. Nevezd át a helyreállításhoz, vagy töröld az elvetéshez.</string>

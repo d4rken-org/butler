@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">操作に失敗しました</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler はここでは \"%1$s\" の大文字と小文字だけを変更できません。まず別の名前に変更してから、\"%2$s\" に変更してください。</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">置き換えが未完了</string>
     <string name="path_action_data_kept_new_data_description">Butler は \"%1$s\" への書き込みを完了できませんでした。新しいデータは \"%2$s\" と同じフォルダに保持されています。名前を変更して復元するか、削除して破棄してください。</string>

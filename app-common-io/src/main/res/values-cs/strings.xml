@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Operace selhala</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler zde nemůže u \"%1$s\" změnit pouze velikost písmen. Nejprve položku přejmenujte na jiný název a poté na \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Nahrazení nedokončeno</string>
     <string name="path_action_data_kept_new_data_description">Butler nemohl dokončit zápis \"%1$s\". Vaše nová data jsou zachována ve stejné složce jako \"%2$s\". Přejmenujte je pro obnovení, nebo je smažte.</string>

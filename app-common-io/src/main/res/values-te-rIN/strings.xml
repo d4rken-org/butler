@@ -32,6 +32,8 @@
 
     <string name="path_action_unknown_error_title">చర్య విఫలమైంది</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler ఇక్కడ \"%1$s\"లో అక్షరాల పెద్ద/చిన్న రూపాన్ని మాత్రమే మార్చలేదు. ముందుగా దాన్ని వేరే పేరుకు మార్చి, ఆ తర్వాత \"%2$s\"గా మార్చండి.</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">భర్తీ పూర్తి కాలేదు</string>
     <string name="path_action_data_kept_new_data_description">Butler \"%1$s\"కు రాయడం పూర్తి చేయలేకపోయింది. మీ కొత్త డేటా అదే ఫోల్డర్‌లో \"%2$s\" పేరుతో ఉంది. దాన్ని తిరిగి పొందడానికి దాని పేరు మార్చండి లేదా వద్దనుకుంటే తొలగించండి.</string>

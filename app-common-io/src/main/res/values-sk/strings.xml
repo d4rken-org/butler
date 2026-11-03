@@ -32,6 +32,8 @@
 
     <string name="path_action_unknown_error_title">Operácia zlyhala</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler tu nemôže zmeniť iba veľkosť písmen v \"%1$s\". Najprv ho premenuj na iný názov a potom na \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Nahradenie nedokončené</string>
     <string name="path_action_data_kept_new_data_description">Butler nedokázal dokončiť zápis do súboru \"%1$s\". Tvoje nové údaje sú zachované v tom istom priečinku pod názvom \"%2$s\". Premenuj tento súbor, ak chceš údaje obnoviť, alebo ho odstráň, ak ich chceš zahodiť.</string>

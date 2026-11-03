@@ -32,6 +32,8 @@
 
     <string name="path_action_unknown_error_title">Operasi gagal</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler tidak dapat mengubah huruf besar/kecil saja pada \"%1$s\" di sini. Ubah namanya terlebih dahulu ke nama lain, lalu ke \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Penggantian tidak selesai</string>
     <string name="path_action_data_kept_new_data_description">Butler tidak dapat menyelesaikan penulisan \"%1$s\". Data baru Anda disimpan di folder yang sama dengan \"%2$s\". Ubah nama untuk memulihkannya, atau hapus untuk menghapusnya.</string>

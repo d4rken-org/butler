@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">작업 실패</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler는 여기서 \"%1$s\"의 대소문자만 변경할 수 없습니다. 먼저 다른 이름으로 변경한 다음 \"%2$s\"(으)로 변경하십시오.</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">교체 미완료</string>
     <string name="path_action_data_kept_new_data_description">Butler가 \"%1$s\" 쓰기를 완료하지 못했습니다. 새 데이터는 \"%2$s\"와 같은 폴더에 보존됩니다. 이름을 변경하여 복구하거나 삭제하십시오.</string>

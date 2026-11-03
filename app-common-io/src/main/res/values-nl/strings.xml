@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Bewerking mislukt</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler kan hier bij \"%1$s\" niet uitsluitend de hoofdletters en kleine letters wijzigen. Hernoem het eerst naar een andere naam en daarna naar \"%2$s\".</string>
+
     <!-- Failed replacement: where the user’s data ended up -->
     <string name="path_action_data_kept_title">Vervanging niet voltooid</string>
     <string name="path_action_data_kept_new_data_description">Butler kon het schrijven van \"%1$s\" niet voltooien. Je nieuwe gegevens worden bewaard in dezelfde map als \"%2$s\". Hernoem het om het terug te krijgen, of verwijder het om het weg te gooien.</string>

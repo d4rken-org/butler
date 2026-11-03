@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">عملیات ناموفق بود</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler در اینجا نمی‌تواند فقط بزرگی و کوچکی حروف \"%1$s\" را تغییر دهد. ابتدا نام آن را به نام دیگری تغییر دهید، سپس به \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">جایگزینی تمام نشد</string>
     <string name="path_action_data_kept_new_data_description">Butler نتوانست نوشتن \"%1$s\" را تمام کند. داده‌های جدید شما در همان پوشه \"%2$s\" نگه داشته شدند. برای بازیابی نام آن را تغییر دهید یا برای حذف آن را حذف کنید.</string>

@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">İşlem başarısız</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler burada \"%1$s\" öğesinin yalnızca büyük/küçük harflerini değiştiremez. Önce farklı bir adla yeniden adlandırın, ardından \"%2$s\" olarak adlandırın.</string>
+
     <!-- Failed replacement: where the user\'s data ended up -->
     <string name="path_action_data_kept_title">Değiştirme tamamlanmadı</string>
     <string name="path_action_data_kept_new_data_description">Butler \"%1$s\" dosyasını yazamadı. Yeni verileriniz, \"%2$s\" dosyasıyla aynı klasörde korunmuş. İşe yaramadıysa sil, kurtarmak için yeniden adlandır.</string>

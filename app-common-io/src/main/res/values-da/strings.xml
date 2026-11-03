@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">Handlingen mislykkedes</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler kan ikke kun ændre store og små bogstaver i \"%1$s\" her. Omdøb det først til et andet navn og derefter til \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Erstatning ikke fuldført</string>
     <string name="path_action_data_kept_new_data_description">Butler kunne ikke færdiggøre skrivningen af \"%1$s\". Dine nye data er gemt i samme mappe under navnet \"%2$s\". Omdøb filen for at gendanne dine data, eller slet den for at kassere dem.</string>

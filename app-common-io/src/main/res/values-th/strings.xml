@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">การดำเนินการล้มเหลว</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">Butler ไม่สามารถเปลี่ยนเฉพาะตัวพิมพ์ใหญ่-เล็กของ \"%1$s\" ที่นี่ได้ เปลี่ยนชื่อเป็นชื่ออื่นก่อน แล้วจึงเปลี่ยนเป็น \"%2$s\"</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">การแทนที่ยังไม่เสร็จสมบูรณ์</string>
     <string name="path_action_data_kept_new_data_description">Butler ไม่สามารถเขียน \"%1$s\" เสร็จสิ้น ข้อมูลใหม่ของคุณเก็บไว้ในโฟลเดอร์เดียวกันกับ \"%2$s\" เปลี่ยนชื่อเพื่อกู้คืน หรือลบเพื่อยกเลิก</string>

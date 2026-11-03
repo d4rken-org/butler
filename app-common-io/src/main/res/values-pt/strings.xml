@@ -31,6 +31,8 @@
 
     <string name="path_action_unknown_error_title">A operação falhou</string>
 
+    <string name="path_action_case_only_rename_unsupported_msg">O Butler não consegue alterar aqui apenas as maiúsculas e minúsculas de \"%1$s\". Muda primeiro o nome para outro e depois para \"%2$s\".</string>
+
     <!-- Failed replacement: where the user's data ended up -->
     <string name="path_action_data_kept_title">Substituição incompleta</string>
     <string name="path_action_data_kept_new_data_description">O Butler não conseguiu terminar a escrita de \"%1$s\". Os teus novos dados estão guardados na mesma pasta com o nome \"%2$s\". Muda o nome desse ficheiro para os recuperar ou elimina-o para os descartar.</string>
