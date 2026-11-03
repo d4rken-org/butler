@@ -19,7 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,12 +39,11 @@ fun MaxHistoryItemsDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit,
 ) {
-    val context = LocalContext.current
-
     var sliderValue by remember { mutableFloatStateOf(currentValue.toFloat()) }
     var textValue by remember { mutableStateOf(currentValue.toString()) }
     var isError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val invalidInputLabel = stringResource(eu.darken.butler.common.R.string.general_error_invalid_input_label)
 
     fun updateFromSlider(newValue: Float) {
         sliderValue = newValue
@@ -69,7 +67,7 @@ fun MaxHistoryItemsDialog(
             }
             else -> {
                 isError = true
-                errorMessage = context.getString(eu.darken.butler.common.R.string.general_error_invalid_input_label)
+                errorMessage = invalidInputLabel
             }
         }
     }

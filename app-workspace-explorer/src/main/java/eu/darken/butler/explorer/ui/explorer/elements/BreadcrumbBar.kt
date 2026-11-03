@@ -501,7 +501,7 @@ private fun BreadcrumbEditRowPreview() {
         ),
         textValue = TextFieldValue("storage/emulated/0/Documents"),
         onTextValueChange = {},
-        focusRequester = FocusRequester(),
+        focusRequester = remember { FocusRequester() },
         onPrefixClick = {},
         onEscape = {},
         onCommit = {},

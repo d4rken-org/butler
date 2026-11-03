@@ -155,9 +155,9 @@ private fun TrashItemOptionsContent(
 
                 // Type
                 val typeValue = when (lookup.fileType) {
-                    FileType.FILE -> context.getString(R.string.explorer_info_type_file)
-                    FileType.DIRECTORY -> context.getString(R.string.explorer_info_type_directory)
-                    else -> context.getString(R.string.explorer_info_unknown)
+                    FileType.FILE -> stringResource(R.string.explorer_info_type_file)
+                    FileType.DIRECTORY -> stringResource(R.string.explorer_info_type_directory)
+                    else -> stringResource(R.string.explorer_info_unknown)
                 }
                 InfoField(
                     label = stringResource(R.string.explorer_info_type_label),
