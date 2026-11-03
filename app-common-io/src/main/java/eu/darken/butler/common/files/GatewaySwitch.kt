@@ -492,6 +492,9 @@ class GatewaySwitch @Inject constructor(
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: MoveAction.Options
     ): Flow<MoveAction.State<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>> = flow {
+        // exactTarget applies to a single-source move only, never to each per-type group
+        val effectiveOptions = options.copy(exactTarget = options.exactTarget && sources.size == 1)
+
         // Group sources by gateway type for optimal processing
         val sourcesByType = sources.groupBy { it::class }
         val destinationType = destination::class
@@ -505,7 +508,7 @@ class GatewaySwitch @Inject constructor(
                 // Same gateway type - use native batch implementation
                 sourceType == destinationType -> {
                     useGateway(sourcesGroup.first()) {
-                        move(sourcesGroup.toSet(), destination, onIssue, options)
+                        move(sourcesGroup.toSet(), destination, onIssue, effectiveOptions)
                     }.collect { state ->
                         when (state) {
                             is MoveAction.State.Active<*, *, *, *> -> {
@@ -523,7 +526,7 @@ class GatewaySwitch @Inject constructor(
                 }
                 // Cross-gateway move - use batch implementation
                 else -> {
-                    performCrossGatewayMove(sourcesGroup, destination, onIssue, options).collect { state ->
+                    performCrossGatewayMove(sourcesGroup, destination, onIssue, effectiveOptions).collect { state ->
                         when (state) {
                             is MoveAction.State.Active<*, *, *, *> -> {
                                 @Suppress("UNCHECKED_CAST")
