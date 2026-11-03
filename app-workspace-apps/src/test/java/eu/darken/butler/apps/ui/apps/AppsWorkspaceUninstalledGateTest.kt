@@ -36,9 +36,8 @@ class AppsWorkspaceUninstalledGateTest : BaseTest() {
         packageName = "com.example.installed",
         label = "Installed App",
     )
-    // Assembled by hand instead of via AppItem.from(): that reads PackageInfo.longVersionCode,
-    // which an unmocked android.jar stub refuses to answer in a plain unit test. What the gate
-    // reads is AppItem.isUninstalled, and that derives from the pkg being an UninstalledPkg.
+    // What the gate reads is AppItem.isUninstalled, and that derives from the pkg being an
+    // UninstalledPkg.
     private val uninstalledApp = AppItem(
         pkg = UninstalledPkg(
             packageInfo = PackageInfo().apply { packageName = "com.example.uninstalled" },
