@@ -29,11 +29,13 @@ object PermissionErrorClassifier {
         // renders the path into its message, so a file called "permission-notes.txt" would otherwise
         // read as a denial in pass 2 and never reach the gone check in pass 4.
         if (error is PathGoneError) return null
-        // Pass 1: Our own typed exceptions are authoritative — their reason is set deliberately
-        // and message-matching against them would re-classify (their message contains "permission").
+        // Pass 1: Our own typed exceptions are authoritative — their verdict is set deliberately
+        // and message-matching against them would re-classify (their message contains "permission",
+        // or a file name that does).
         for (t in error.causeChain) {
             if (t is PathPermissionDeniedException) return t.reason
             if (t is ElevatedAccessUnavailableException) return Reason.NO_MECHANISM
+            if (t is CaseOnlyRenameException) return null
         }
         // Pass 2: Specific kernel-level reason found anywhere in the chain. Wins over generic
         // wrappers like WriteException that would otherwise mask an inner EROFS as ACCESS_DENIED.
@@ -48,7 +50,6 @@ object PermissionErrorClassifier {
         // access cannot fix anyway: it frees no disk space and unmakes no existing file.
         for (t in error.causeChain) {
             if (t is PathAlreadyExistsException) return null
-            if (t is CaseOnlyRenameException) return null
             if (t.matchesNonPermissionError()) return null
         }
         // Pass 4: Generic permission-style exception types without a more specific message.
