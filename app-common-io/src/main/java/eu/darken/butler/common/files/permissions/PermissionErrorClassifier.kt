@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.permissions
 
 import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.error.causeChain
+import eu.darken.butler.common.files.errors.CaseOnlyRenameException
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.PathException
 import eu.darken.butler.common.files.errors.PathGoneError
@@ -47,6 +48,7 @@ object PermissionErrorClassifier {
         // access cannot fix anyway: it frees no disk space and unmakes no existing file.
         for (t in error.causeChain) {
             if (t is PathAlreadyExistsException) return null
+            if (t is CaseOnlyRenameException) return null
             if (t.matchesNonPermissionError()) return null
         }
         // Pass 4: Generic permission-style exception types without a more specific message.

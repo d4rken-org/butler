@@ -124,6 +124,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     val createFileCalls = mutableListOf<String>()
     val openInputStreamCalls = mutableListOf<String>()
     val openOutputStreamCalls = mutableListOf<String>()
+    val moveCalls = mutableListOf<Pair<String, String>>()
 
     /**
      * Answers for [existsStrict], per path and as a fallback. Deliberately not derived from the
@@ -517,6 +518,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     }
 
     override suspend fun move(source: P, destination: P): MoveOutcome {
+        moveCalls.add(source.path to destination.path)
         moveNotSupportedWhen?.invoke(source.path, destination.path)?.let {
             return MoveOutcome.NotSupported(it)
         }
@@ -690,6 +692,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         createFileCalls.clear()
         openInputStreamCalls.clear()
         openOutputStreamCalls.clear()
+        moveCalls.clear()
         clearFailureInjection()
     }
 

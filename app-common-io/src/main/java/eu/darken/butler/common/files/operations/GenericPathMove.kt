@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.CaseOnlyRenameException
 import eu.darken.butler.common.files.errors.DataKeptException
 import eu.darken.butler.common.files.errors.UnknownFileTypeException
 import eu.darken.butler.common.files.errors.WriteException
@@ -268,31 +269,71 @@ internal class GenericPathMove<
         }
     }
 
+    /** How a single-source move to a sibling whose name differs only in letter case is carried out. */
+    private sealed interface CaseOnlyRename<out P> {
+        /** The destination is absent or a separate entry, the regular flow handles it. */
+        data class Regular(val reason: String) : CaseOnlyRename<Nothing>
+
+        /** The destination name resolves to the source itself, see [renameCaseOnly]. */
+        data class SourceAlias<P>(val parent: P) : CaseOnlyRename<P>
+
+        /** Neither can be shown, or the rename needs steps this storage is not trusted with. */
+        data class Unsupported(val reason: String) : CaseOnlyRename<Nothing>
+    }
+
     /**
-     * `a.txt` to `A.txt` on a case-insensitive mount such as shared storage: the destination lookup
-     * finds the source itself, so a file would conflict with itself and a folder would be moved into
-     * itself. Only for local paths, where a listing that holds the source's spelling but not the
-     * requested one shows that the lookup matched the source.
-     *
-     * Goes through a hidden sibling, a direct rename is not guaranteed to change the case.
+     * Null unless this is a single source moved to a sibling that differs only in letter case. The
+     * destination counts as a separate entry only if a listing holds both spellings: a case-insensitive
+     * mount answers the lookup with the source itself, and an UNKNOWN lookup does not mean absent.
      */
-    private suspend fun renameCaseOnly(destLookup: DPL): Boolean {
-        val source = sources.singleOrNull() ?: return false
-        if (source !is LocalPath || destination !is LocalPath) return false
-        if (destLookup.fileType == FileType.UNKNOWN) return false
-        if (source.name == destination.name || !source.name.equals(destination.name, ignoreCase = true)) return false
-        val parent = destination.parent?.takeIf { it == source.parent } ?: return false
+    private suspend fun classifyCaseOnlyRename(destLookup: DPL): CaseOnlyRename<DP>? {
+        val source = sources.singleOrNull() ?: return null
+        val parent = destination.parent ?: return null
+        if (parent != source.parent) return null
+        if (source.name == destination.name || !source.name.equals(destination.name, ignoreCase = true)) return null
+
+        if (destLookup.fileType == FileType.UNKNOWN) {
+            val existence = try {
+                destOps.existsStrict(destination)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                return CaseOnlyRename.Unsupported("existence check failed: ${e.asLog()}")
+            }
+            when (existence) {
+                Existence.ABSENT -> return CaseOnlyRename.Regular("destination absent")
+                Existence.UNKNOWN -> return CaseOnlyRename.Unsupported("destination existence unknown")
+                Existence.PRESENT -> Unit
+            }
+        }
 
         val siblings = try {
             destOps.listFiles(parent).map { it.name }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            log(TAG, WARN) { "renameCaseOnly(): Could not list $parent: ${e.asLog()}" }
-            return false
+            return CaseOnlyRename.Unsupported("could not list $parent: ${e.asLog()}")
         }
-        if (source.name !in siblings || destination.name in siblings) return false
+        val sourceListed = source.name in siblings
+        val destinationListed = destination.name in siblings
+        return when {
+            sourceListed && destinationListed -> CaseOnlyRename.Regular("both spellings listed")
+            sourceListed && source is LocalPath && destination is LocalPath -> CaseOnlyRename.SourceAlias(parent)
+            sourceListed -> CaseOnlyRename.Unsupported("destination resolves to the source")
+            destinationListed -> CaseOnlyRename.Unsupported("only the destination spelling is listed")
+            else -> CaseOnlyRename.Unsupported("neither spelling is listed")
+        }
+    }
 
+    /**
+     * `a.txt` to `A.txt` on a case-insensitive local mount such as shared storage, where [parent]'s
+     * listing holds the source's spelling but not the requested one: the destination lookup finds the
+     * source itself, so a file would conflict with itself and a folder would be moved into itself.
+     *
+     * Goes through a hidden sibling, a direct rename is not guaranteed to change the case.
+     */
+    private suspend fun renameCaseOnly(parent: DP) {
+        val source = sources.single()
         @Suppress("UNCHECKED_CAST")
         val target = destination as SP
         val sourceLookup = sourceOps.lookup(source, LookupOptions.BASE)
@@ -322,7 +363,6 @@ internal class GenericPathMove<
         moved.add(sourceLookup to destOps.lookup(destination, LookupOptions.BASE))
         if (sourceLookup.fileType != FileType.DIRECTORY) totalBytesTransferred += sourceLookup.size ?: 0L
         log(TAG, INFO) { "renameCaseOnly(): $source -> $destination" }
-        return true
     }
 
     /**
@@ -431,9 +471,23 @@ internal class GenericPathMove<
         val destLookup = destOps.lookupForIntent(destination, AccessIntent.Write, LookupOptions(fallbackToUnknown = true))
         destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
 
-        if (renameCaseOnly(destLookup)) {
-            send(MoveAction.State.Completed(movedFiles = moved, skippedFiles = skipped, bytesMoved = totalBytesTransferred))
-            return@channelFlow
+        classifyCaseOnlyRename(destLookup)?.let { caseOnly ->
+            val source = sources.single()
+            log(TAG, DEBUG) { "execute(): case-only rename $source -> $destination classified as $caseOnly" }
+            when (caseOnly) {
+                is CaseOnlyRename.Regular -> Unit
+                is CaseOnlyRename.SourceAlias -> {
+                    renameCaseOnly(caseOnly.parent)
+                    send(MoveAction.State.Completed(movedFiles = moved, skippedFiles = skipped, bytesMoved = totalBytesTransferred))
+                    return@channelFlow
+                }
+
+                is CaseOnlyRename.Unsupported -> throw CaseOnlyRenameException(
+                    path = source,
+                    sourceName = source.name,
+                    destinationName = destination.name,
+                )
+            }
         }
 
         if (destLookup.fileType != FileType.UNKNOWN && usesExactTarget()) {

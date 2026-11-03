@@ -5,18 +5,22 @@ import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
+import eu.darken.butler.common.files.SftpPath
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.CaseOnlyRenameException
 import eu.darken.butler.common.files.errors.DataKeptException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.sftp.SftpPathLookup
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldNotBeInstanceOf
@@ -26,7 +30,9 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import testhelpers.BaseTest
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 /**
  * Renames that only change the letter case, on a filesystem that matches names case-insensitively
@@ -84,6 +90,53 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
         private val delegate: FileSystemOps<LocalPath, LocalPathLookup>,
     ) : FileSystemOps<LocalPath, LocalPathLookup> by delegate {
         override suspend fun listFiles(path: LocalPath): List<LocalPath> = throw SecurityException("No route")
+    }
+
+    private val location = Uuid.parse("11111111-2222-3333-4444-555555555555")
+
+    private fun sftp(vararg segments: String) = SftpPath(location, segments.toList())
+
+    private val sftpLookupFactory: (SftpPath, FileType, Long?, Instant?, Permissions?, Ownership?, Instant?) -> SftpPathLookup =
+        { path, type, size, modifiedAt, _, _, _ ->
+            SftpPathLookup(lookedUp = path, fileType = type, size = size, modifiedAt = modifiedAt)
+        }
+
+    /** [CaseInsensitiveOps] for an SFTP server whose file system matches names case-insensitively. */
+    private inner class CaseInsensitiveSftpOps : MockFileSystemOps<SftpPath, SftpPathLookup>(sftpLookupFactory) {
+        var existence: (String) -> Existence? = { null }
+
+        /** Lookups that fail, which a lookup with fallbackToUnknown reports as UNKNOWN, like SftpGateway. */
+        var lookupFails: (String) -> Boolean = { false }
+
+        private fun resolve(path: SftpPath): SftpPath {
+            val match = files.keys.firstOrNull { it.equals(path.path, ignoreCase = true) } ?: return path
+            return path.parent?.child(match.substringAfterLast('/')) ?: path
+        }
+
+        override suspend fun lookup(path: SftpPath, options: LookupOptions): SftpPathLookup {
+            if (options.fallbackToUnknown && lookupFails(path.path)) {
+                return SftpPathLookup(lookedUp = path, fileType = FileType.UNKNOWN, size = null, modifiedAt = null)
+            }
+            return super.lookup(resolve(path), options)
+        }
+
+        override suspend fun exists(path: SftpPath): Boolean = super.exists(resolve(path))
+
+        override suspend fun move(source: SftpPath, destination: SftpPath): MoveOutcome {
+            val existing = resolve(destination)
+            if (existing != source && files.containsKey(existing.path)) {
+                return MoveOutcome.NotSupported("Destination already exists: ${destination.path}")
+            }
+            return super.move(source, destination)
+        }
+
+        override suspend fun existsStrict(path: SftpPath): Existence {
+            existsStrictCalls.add(path.path)
+            return existence(path.path) ?: when {
+                files.keys.any { it.equals(path.path, ignoreCase = true) } -> Existence.PRESENT
+                else -> Existence.ABSENT
+            }
+        }
     }
 
     private val issues = mutableListOf<PathActionIssue>()
@@ -149,6 +202,30 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
     }
 
     private fun MockFileSystemOps<LocalPath, LocalPathLookup>.asideKeys() = files.keys.filter { it.endsWith(".rename") }
+
+    private fun MockFileSystemOps<SftpPath, SftpPathLookup>.rename(from: SftpPath, to: SftpPath) =
+        setOf(from).moveGeneric(
+            destination = to,
+            sourceOps = this,
+            destOps = this,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            onIssue = skipAll,
+        )
+
+    private fun MockFileSystemOps<*, *>.snapshot() = files.mapValues { (_, file) -> file.copy(children = file.children.toMutableList()) }
+
+    /** A refused rename: no prompt, nothing moved, deleted, created or written, no hidden sibling left behind. */
+    private fun MockFileSystemOps<*, *>.shouldBeUntouched(before: Map<String, MockFileSystemOps.MockFile>) {
+        issues.shouldBeEmpty()
+        moveCalls.shouldBeEmpty()
+        deleteCalls.shouldBeEmpty()
+        createDirCalls.shouldBeEmpty()
+        createFileCalls.shouldBeEmpty()
+        openOutputStreamCalls.shouldBeEmpty()
+        files shouldBe before
+        files.keys.filter { it.endsWith(".rename") }.shouldBeEmpty()
+    }
 
     @Test
     fun `file rename that only changes case renames without a conflict`() = runTest {
@@ -384,7 +461,7 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
 
     @Test
     fun `exactTarget on a file that only changes case behaves like a plain rename`() = runTest {
-        // The case-only rename cannot list the folder and declines, the listing after it succeeds
+        // The listing fails, so both renames stop before touching anything
         val setup = {
             CaseInsensitiveOps().apply {
                 addMockFile("/dir/a.txt", "content".toByteArray())
@@ -423,7 +500,10 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
         val exact = outcomeOf(exactTarget = true, setup, "/dir/photos", "/dir/Photos")
 
         exact shouldBe outcomeOf(exactTarget = false, setup, "/dir/photos", "/dir/Photos")
-        exact.files.keys shouldContain "/dir/Photos/photos/x.txt"
+        exact.files.keys shouldContain "/dir/photos/x.txt"
+        exact.files.keys shouldContain "/dir/Photos/y.txt"
+        exact.files.keys shouldNotContain "/dir/Photos/photos/x.txt"
+        exact.issues.shouldBeEmpty()
     }
 
     @Test
@@ -440,5 +520,207 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
         ops.files["/dir"]!!.children shouldBe mutableListOf("photos", "Photos")
         ops.files["/dir/photos"]!!.children shouldBe mutableListOf("x.txt")
         ops.files["/dir/Photos"]!!.children shouldBe mutableListOf("y.txt")
+    }
+
+    @Test
+    fun `non-local file rename that only changes case stops before touching anything`() = runTest {
+        val ops = CaseInsensitiveSftpOps().apply { addMockFile(sftp("dir", "a.txt").path, "content".toByteArray()) }
+        val before = ops.snapshot()
+
+        val error = shouldThrow<CaseOnlyRenameException> {
+            ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect()
+        }
+
+        error.path shouldBe sftp("dir", "a.txt")
+        error.sourceName shouldBe "a.txt"
+        error.destinationName shouldBe "A.txt"
+        ops.shouldBeUntouched(before)
+    }
+
+    @Test
+    fun `non-local folder rename that only changes case is not moved into itself`() = runTest {
+        val ops = CaseInsensitiveSftpOps().apply { addMockFile(sftp("dir", "photos", "x.jpg").path, "jpg".toByteArray()) }
+        val before = ops.snapshot()
+
+        shouldThrow<CaseOnlyRenameException> { ops.rename(sftp("dir", "photos"), sftp("dir", "Photos")).collect() }
+
+        ops.shouldBeUntouched(before)
+        ops.files[sftp("dir", "photos").path]!!.children shouldBe mutableListOf("x.jpg")
+    }
+
+    @Test
+    fun `non-local entries that differ only in case still conflict`() = runTest {
+        val ops = MockFileSystemOps(sftpLookupFactory).apply {
+            addMockFile(sftp("dir", "a.txt").path, "lower".toByteArray())
+            addMockFile(sftp("dir", "A.txt").path, "upper".toByteArray())
+        }
+
+        ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).last()
+
+        issues.single().shouldBeInstanceOf<PathActionIssue.PathAlreadyExists>()
+        ops.files[sftp("dir", "a.txt").path]!!.content.decodeToString() shouldBe "lower"
+        ops.files[sftp("dir", "A.txt").path]!!.content.decodeToString() shouldBe "upper"
+    }
+
+    @Test
+    fun `non-local case-sensitive storage renames a case variant like any other name`() = runTest {
+        val ops = MockFileSystemOps(sftpLookupFactory).apply {
+            addMockFile(sftp("dir", "a.txt").path, "content".toByteArray())
+            existsStrictAnswers[sftp("dir", "A.txt").path] = Existence.ABSENT
+        }
+
+        val result = ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).last()
+
+        result.shouldBeInstanceOf<MoveAction.State.Completed<*, *, *, *>>().movedFiles shouldHaveSize 1
+        issues.shouldBeEmpty()
+        ops.files[sftp("dir", "A.txt").path]!!.content.decodeToString() shouldBe "content"
+        ops.hasFile(sftp("dir", "a.txt").path) shouldBe false
+    }
+
+    @Test
+    fun `local case-only rename whose listing fails stops`() = runTest {
+        val ops = CaseInsensitiveOps().apply {
+            addMockFile("/dir/a.txt", "content".toByteArray())
+            setFailListFiles(1)
+        }
+        val before = ops.snapshot()
+
+        shouldThrow<CaseOnlyRenameException> { ops.rename("/dir/a.txt", "/dir/A.txt").collect() }
+
+        ops.shouldBeUntouched(before)
+    }
+
+    @Test
+    fun `non-local case-only rename whose listing fails stops`() = runTest {
+        val ops = CaseInsensitiveSftpOps().apply {
+            addMockFile(sftp("dir", "a.txt").path, "content".toByteArray())
+            setFailListFiles(1)
+        }
+        val before = ops.snapshot()
+
+        shouldThrow<CaseOnlyRenameException> { ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect() }
+
+        ops.shouldBeUntouched(before)
+    }
+
+    @Test
+    fun `case-only rename whose listing holds neither spelling stops`() = runTest {
+        val local = CaseInsensitiveOps().apply {
+            addMockFile("/dir/a.txt", "content".toByteArray())
+            files["/dir"]!!.children.clear()
+        }
+        val localBefore = local.snapshot()
+
+        shouldThrow<CaseOnlyRenameException> { local.rename("/dir/a.txt", "/dir/A.txt").collect() }
+
+        local.shouldBeUntouched(localBefore)
+
+        val remote = CaseInsensitiveSftpOps().apply {
+            addMockFile(sftp("dir", "a.txt").path, "content".toByteArray())
+            files[sftp("dir").path]!!.children.clear()
+        }
+        val remoteBefore = remote.snapshot()
+
+        shouldThrow<CaseOnlyRenameException> { remote.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect() }
+
+        remote.shouldBeUntouched(remoteBefore)
+    }
+
+    @Test
+    fun `local case-only rename onto a listing that holds only the new spelling stops`() = runTest {
+        val ops = CaseInsensitiveOps().apply {
+            addMockFile("/dir/A.txt", "content".toByteArray())
+            addMockFile("/dir/Photos/x.jpg", "jpg".toByteArray())
+        }
+        val before = ops.snapshot()
+
+        shouldThrow<CaseOnlyRenameException> { ops.rename("/dir/a.txt", "/dir/A.txt").collect() }
+        shouldThrow<CaseOnlyRenameException> { ops.rename("/dir/photos", "/dir/Photos").collect() }
+
+        ops.shouldBeUntouched(before)
+    }
+
+    @Test
+    fun `non-local case-only rename onto a listing that holds only the new spelling stops`() = runTest {
+        val ops = CaseInsensitiveSftpOps().apply {
+            addMockFile(sftp("dir", "A.txt").path, "content".toByteArray())
+            addMockFile(sftp("dir", "Photos", "x.jpg").path, "jpg".toByteArray())
+        }
+        val before = ops.snapshot()
+
+        shouldThrow<CaseOnlyRenameException> { ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect() }
+        shouldThrow<CaseOnlyRenameException> { ops.rename(sftp("dir", "photos"), sftp("dir", "Photos")).collect() }
+
+        ops.shouldBeUntouched(before)
+    }
+
+    @Test
+    fun `non-local case-only rename with a failed lookup but a present destination stops`() = runTest {
+        val ops = CaseInsensitiveSftpOps().apply {
+            addMockFile(sftp("dir", "a.txt").path, "content".toByteArray())
+            lookupFails = { it == sftp("dir", "A.txt").path }
+        }
+        val before = ops.snapshot()
+
+        shouldThrow<CaseOnlyRenameException> { ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect() }
+
+        ops.existsStrictCalls shouldContain sftp("dir", "A.txt").path
+        ops.listFilesCalls shouldContain sftp("dir").path
+        ops.shouldBeUntouched(before)
+    }
+
+    @Test
+    fun `case-only rename whose destination existence is unknown stops`() = runTest {
+        val ops = CaseInsensitiveSftpOps().apply {
+            addMockFile(sftp("dir", "a.txt").path, "content".toByteArray())
+            lookupFails = { it == sftp("dir", "A.txt").path }
+            existence = { if (it == sftp("dir", "A.txt").path) Existence.UNKNOWN else null }
+        }
+        val before = ops.snapshot()
+
+        shouldThrow<CaseOnlyRenameException> { ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect() }
+
+        ops.listFilesCalls.shouldBeEmpty()
+        ops.shouldBeUntouched(before)
+    }
+
+    @Test
+    fun `cancelled listing propagates as cancellation`() = runTest {
+        val ops = CaseInsensitiveSftpOps().apply {
+            addMockFile(sftp("dir", "a.txt").path, "content".toByteArray())
+            setFailListFiles(1) { CancellationException("cancel case-only rename") }
+        }
+        val before = ops.snapshot()
+
+        val error = shouldThrow<CancellationException> {
+            ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect()
+        }
+
+        error.shouldNotBeInstanceOf<CaseOnlyRenameException>()
+        ops.shouldBeUntouched(before)
+    }
+
+    @Test
+    fun `move of two sources onto a case variant of one is not a case-only rename`() = runTest {
+        val ops = MockFileSystemOps(lookupFactory).apply {
+            addMockFile("/dir/photos/x.jpg", "jpg".toByteArray())
+            addMockFile("/dir/b.txt", "b".toByteArray())
+            addMockDir("/dir/Photos")
+        }
+
+        val result = setOf(LocalPath.build("/dir/photos"), LocalPath.build("/dir/b.txt")).moveGeneric(
+            destination = LocalPath.build("/dir/Photos"),
+            sourceOps = ops,
+            destOps = ops,
+            strategy = GenericCrossTypeMoveStrategy(),
+            options = TransferStrategy.Options(attemptAtomicMove = false),
+            onIssue = skipAll,
+        ).last()
+
+        result.shouldBeInstanceOf<MoveAction.State.Completed<*, *, *, *>>()
+        issues.shouldBeEmpty()
+        ops.listFilesCalls shouldNotContain "/dir"
+        ops.files["/dir/Photos/photos/x.jpg"]!!.content.decodeToString() shouldBe "jpg"
+        ops.files["/dir/Photos/b.txt"]!!.content.decodeToString() shouldBe "b"
     }
 }
