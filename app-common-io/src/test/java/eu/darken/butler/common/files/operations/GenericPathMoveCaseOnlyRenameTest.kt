@@ -578,32 +578,6 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
     }
 
     @Test
-    fun `local case-only rename whose listing fails stops`() = runTest {
-        val ops = CaseInsensitiveOps().apply {
-            addMockFile("/dir/a.txt", "content".toByteArray())
-            setFailListFiles(1)
-        }
-        val before = ops.snapshot()
-
-        shouldThrow<CaseOnlyRenameException> { ops.rename("/dir/a.txt", "/dir/A.txt").collect() }
-
-        ops.shouldBeUntouched(before)
-    }
-
-    @Test
-    fun `non-local case-only rename whose listing fails stops`() = runTest {
-        val ops = CaseInsensitiveSftpOps().apply {
-            addMockFile(sftp("dir", "a.txt").path, "content".toByteArray())
-            setFailListFiles(1)
-        }
-        val before = ops.snapshot()
-
-        shouldThrow<CaseOnlyRenameException> { ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect() }
-
-        ops.shouldBeUntouched(before)
-    }
-
-    @Test
     fun `case-only rename whose listing holds neither spelling stops`() = runTest {
         val local = CaseInsensitiveOps().apply {
             addMockFile("/dir/a.txt", "content".toByteArray())
@@ -670,7 +644,39 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
     }
 
     @Test
-    fun `case-only rename whose destination existence is unknown stops`() = runTest {
+    fun `case-only rename whose listing fails stops with the access error and its cause`() = runTest {
+        val ops = CaseInsensitiveSftpOps().apply {
+            addMockFile(sftp("dir", "a.txt").path, "content".toByteArray())
+            setFailListFiles(1) { IOException("listing broke") }
+        }
+        val before = ops.snapshot()
+
+        val error = shouldThrow<WriteException> { ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect() }
+
+        error.shouldNotBeInstanceOf<CaseOnlyRenameException>()
+        error.path shouldBe sftp("dir", "a.txt")
+        error.cause.shouldBeInstanceOf<IOException>().message shouldBe "listing broke"
+        ops.shouldBeUntouched(before)
+    }
+
+    @Test
+    fun `local case-only rename whose listing fails stops with the access error and its cause`() = runTest {
+        val ops = CaseInsensitiveOps().apply {
+            addMockFile("/dir/a.txt", "content".toByteArray())
+            setFailListFiles(1) { IOException("listing broke") }
+        }
+        val before = ops.snapshot()
+
+        val error = shouldThrow<WriteException> { ops.rename("/dir/a.txt", "/dir/A.txt").collect() }
+
+        error.shouldNotBeInstanceOf<CaseOnlyRenameException>()
+        error.path shouldBe LocalPath.build("/dir/a.txt")
+        error.cause.shouldBeInstanceOf<IOException>().message shouldBe "listing broke"
+        ops.shouldBeUntouched(before)
+    }
+
+    @Test
+    fun `case-only rename whose destination existence is unknown stops with the access error`() = runTest {
         val ops = CaseInsensitiveSftpOps().apply {
             addMockFile(sftp("dir", "a.txt").path, "content".toByteArray())
             lookupFails = { it == sftp("dir", "A.txt").path }
@@ -678,9 +684,30 @@ class GenericPathMoveCaseOnlyRenameTest : BaseTest() {
         }
         val before = ops.snapshot()
 
-        shouldThrow<CaseOnlyRenameException> { ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect() }
+        val error = shouldThrow<WriteException> { ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect() }
 
+        error.shouldNotBeInstanceOf<CaseOnlyRenameException>()
+        error.path shouldBe sftp("dir", "a.txt")
+        error.cause shouldBe null
+        ops.shouldBeUntouched(before)
         ops.listFilesCalls.shouldBeEmpty()
+    }
+
+    @Test
+    fun `case-only rename whose existence check throws stops with the access error and its cause`() = runTest {
+        val ops = CaseInsensitiveSftpOps().apply {
+            addMockFile(sftp("dir", "a.txt").path, "content".toByteArray())
+            lookupFails = { it == sftp("dir", "A.txt").path }
+            existence = { if (it == sftp("dir", "A.txt").path) throw IOException("stat broke") else null }
+        }
+        val before = ops.snapshot()
+
+        val error = shouldThrow<WriteException> { ops.rename(sftp("dir", "a.txt"), sftp("dir", "A.txt")).collect() }
+
+        error.shouldNotBeInstanceOf<CaseOnlyRenameException>()
+        error.path shouldBe sftp("dir", "a.txt")
+        error.cause.shouldBeInstanceOf<IOException>().message shouldBe "stat broke"
+        ops.existsStrictCalls shouldContain sftp("dir", "A.txt").path
         ops.shouldBeUntouched(before)
     }
 
