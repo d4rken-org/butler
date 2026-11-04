@@ -47,6 +47,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
@@ -768,6 +769,7 @@ private fun DualColumnEditorContent(
             ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.None),
             keyboardActions = KeyboardActions(),
+            cursorBrush = SolidColor(Color.Unspecified),
             decorationBox = { _ -> }
         )
 
