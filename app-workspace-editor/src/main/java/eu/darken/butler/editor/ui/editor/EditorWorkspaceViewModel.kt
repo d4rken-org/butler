@@ -676,6 +676,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditCommand.Navigate.SetSelection -> workspace.setSelection(command.start, command.end)
             is EditCommand.Navigate.SelectAll -> workspace.selectAll()
             is EditCommand.Navigate.GoToLine -> workspace.goToLine(command.lineNumber)
+                .onSuccess { searchController.requestScroll() }
         }
     }
 

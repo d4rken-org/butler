@@ -170,6 +170,10 @@ class EditorSearchController(
         }
     }
 
+    fun requestScroll() {
+        _scrollTrigger.value++
+    }
+
     fun toggleCaseSensitivity() {
         _caseSensitive.value = !_caseSensitive.value
         reSearchIfActive()
