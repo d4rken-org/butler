@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,6 +74,14 @@ private const val PLACEHOLDER_PAGE_KEY = "classic-pager-placeholder"
 internal fun WorkspaceStacks.creationAllowedFor(rootId: Workspace.Id?): Boolean {
     val unit = rootId?.let { unitOf(it) } ?: return true
     return unit.none { it.isSubWorkspace && !it.pausableAsChild }
+}
+
+@Composable
+internal fun PagerState.rememberIsPageVisible(page: Int): Boolean {
+    val isVisible by remember(this, page) {
+        derivedStateOf { layoutInfo.visiblePagesInfo.any { it.index == page } }
+    }
+    return isVisible
 }
 
 @Composable
@@ -306,6 +316,7 @@ internal fun WorkspacePagerContainer(
                         // index while the list changes under the finger.
                         modifier = Modifier.suppressPressesUnless { restState.isRestingOn(page) },
                         isCreating = isPlaceholderPage && creationController.isCreating,
+                        isVisible = pagerState.rememberIsPageVisible(page),
                         newTabTypeName = state.newTabTypeName,
                         onClick = { creationController.onPlaceholderClick() },
                     )
