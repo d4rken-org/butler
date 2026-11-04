@@ -2,6 +2,7 @@ package eu.darken.butler.editor.core.engine.text
 
 import eu.darken.butler.common.files.text.CharsetDetector
 import eu.darken.butler.editor.core.engine.LineEnding
+import io.kotest.assertions.withClue
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -307,5 +308,114 @@ class BlockIndexBuilderTest : BaseTest() {
     @Test
     fun `max line length for a single line without breaks`() = runTest {
         build("0123456789".repeat(5).toByteArray(), blockSize = 8).maxLineLength shouldBe 50L
+    }
+
+    private class LineMetrics(val crlf: Long, val lf: Long, val cr: Long, val maxLineLength: Long) {
+        val breaks: Long get() = crlf + lf + cr
+    }
+
+    /** Whole-string reference scan, independent of the builder's per-block bookkeeping. */
+    private fun scanWhole(text: String): LineMetrics {
+        var crlf = 0L
+        var lf = 0L
+        var cr = 0L
+        var run = 0L
+        var max = 0L
+        var i = 0
+        while (i < text.length) {
+            val c = text[i]
+            if (c == '\r' || c == '\n') {
+                max = maxOf(max, run)
+                run = 0L
+                when {
+                    c == '\n' -> lf++
+                    i + 1 < text.length && text[i + 1] == '\n' -> {
+                        crlf++
+                        i++
+                    }
+                    else -> cr++
+                }
+            } else {
+                run++
+            }
+            i++
+        }
+        return LineMetrics(crlf, lf, cr, maxOf(max, run))
+    }
+
+    private enum class Seam { CRLF_STRADDLE, LONE_CR_AT_BLOCK_END }
+
+    private class OracleCase(val label: String, val text: String, val seam: Seam? = null)
+
+    private val oracleCases = listOf(
+        OracleCase("LF only", "one\ntwo\nthree\n"),
+        OracleCase("CRLF only", "one\r\ntwo\r\nthree"),
+        OracleCase("CR only", "one\rtwo\rthree"),
+        OracleCase("mixed", "a\nbb\r\nccc\rdddd\n"),
+        OracleCase("CRLF straddle", "aaaaaaa\r\nbb\r\nccc", Seam.CRLF_STRADDLE),
+        OracleCase("lone CR at block end", "abc\rdefg\rhij", Seam.LONE_CR_AT_BLOCK_END),
+        OracleCase("trailing CR at EOF", "ab\ncd\r"),
+        OracleCase("empty LF lines", "a\n\n\nb\n\n"),
+        OracleCase("empty CRLF lines", "a\r\n\r\n\r\nb\r\n\r\n"),
+        OracleCase("empty CR lines", "a\r\r\rb\r\r"),
+        OracleCase("longest line in the middle", "ab\n" + "x".repeat(150) + "\ncd\n"),
+        OracleCase("longest line at the start", "x".repeat(150) + "\nab\ncd"),
+        OracleCase("longest line at the end", "ab\ncd\n" + "x".repeat(150)),
+        OracleCase("multibyte long line", "ab\n" + "中😀é".repeat(40) + "\r\nxyz"),
+        OracleCase("supplementary char", "a😀b\r\nx"),
+        OracleCase("no breaks", "0123456789".repeat(15)),
+        OracleCase("empty", ""),
+    )
+
+    private val oracleCharsets = listOf(Charsets.UTF_8, Charsets.UTF_16LE, Charsets.UTF_16BE)
+
+    private val oracleBlockSizes = listOf(4, 5, 7, 8, 16, 64, BlockIndexBuilder.DEFAULT_BLOCK_SIZE)
+
+    private fun BlockIndex.hasCrSeam(lfFollows: Boolean): Boolean =
+        blocks.zipWithNext().any { (a, b) -> a.endsWithCr && b.startsWithLf == lfFollows }
+
+    @Test
+    fun `whole-string scan reference values`() {
+        scanWhole("a😀b\r\nx").maxLineLength shouldBe 4L
+        scanWhole("a\nbb\r\nccc\rdddd\n").run {
+            lf shouldBe 2L
+            crlf shouldBe 1L
+            cr shouldBe 1L
+            maxLineLength shouldBe 4L
+        }
+        scanWhole("ab\ncd\r").cr shouldBe 1L
+        scanWhole("").breaks shouldBe 0L
+    }
+
+    @Test
+    fun `line metrics match a whole-string scan across block sizes`() = runTest {
+        for (case in oracleCases) {
+            var seamSeen = false
+            for (charset in oracleCharsets) {
+                val bytes = case.text.toByteArray(charset)
+                val decoded = String(bytes, charset)
+                val expected = scanWhole(decoded)
+                for (blockSize in oracleBlockSizes) {
+                    val index = build(bytes, charset, blockSize)
+                    withClue("input='${case.label}' charset=$charset blockSize=$blockSize") {
+                        index.lineEnding shouldBe TextMetrics.detectLineEnding(expected.crlf, expected.lf, expected.cr)
+                        index.maxLineLength shouldBe expected.maxLineLength
+                        index.lineBreakCount shouldBe expected.breaks
+                        index.charLength shouldBe decoded.length.toLong()
+                        index.byteLength shouldBe bytes.size.toLong()
+                    }
+                    seamSeen = seamSeen || when (case.seam) {
+                        Seam.CRLF_STRADDLE -> index.hasCrSeam(lfFollows = true)
+                        Seam.LONE_CR_AT_BLOCK_END -> index.hasCrSeam(lfFollows = false)
+                        null -> false
+                    }
+                }
+            }
+            if (case.seam != null) {
+                withClue("input='${case.label}' never produced ${case.seam} at a block edge") {
+                    seamSeen.shouldBeTrue()
+                }
+            }
+        }
     }
 }
