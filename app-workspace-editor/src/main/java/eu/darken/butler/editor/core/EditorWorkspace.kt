@@ -472,8 +472,7 @@ class EditorWorkspace @AssistedInject constructor(
     /**
      * Swaps in a fresh engine for [newFilePath]. [discardOld] releases the previous engine
      * WITHOUT flushing unsaved changes - required for every flow where the user explicitly
-     * discarded (close-with-discard, reopen-with-encoding) or redirected them (Save-As);
-     * the default flush-on-release stays as the safety net for unprompted teardown.
+     * discarded (close-with-discard, reopen-with-encoding) or redirected them (Save-As).
      */
     private suspend fun switchEngine(
         newFilePath: APath<*>?,
@@ -738,7 +737,8 @@ class EditorWorkspace @AssistedInject constructor(
         log(tag, INFO) { "release()" }
         workspaceScope.cancel()
         try {
-            _engine.value?.release()
+            // A dirty tab is only released after the user agreed to discard its changes
+            _engine.value?.release(flush = false)
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to release engine: ${e.asLog()}" }
         }
