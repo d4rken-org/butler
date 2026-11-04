@@ -737,7 +737,7 @@ class EditorWorkspace @AssistedInject constructor(
         log(tag, INFO) { "release()" }
         workspaceScope.cancel()
         try {
-            // A dirty tab is only released after the user agreed to discard its changes
+            // Teardown never saves: unsaved changes are dropped with the tab
             _engine.value?.release(flush = false)
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to release engine: ${e.asLog()}" }

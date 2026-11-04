@@ -262,9 +262,7 @@ class DocumentBuffer @AssistedInject constructor(
     }
 
     /**
-     * Releases the buffer. [flush] true writes unsaved changes to disk first: opening another file
-     * in the same tab passes it for the old document. Tab teardown and the discard flows
-     * (close-with-discard, reopen-with-encoding, reload-from-disk, Save-As) pass false.
+     * Releases the buffer. [flush] true writes unsaved changes to disk first; false drops them.
      */
     suspend fun release(flush: Boolean = true): Result<Unit> = bufferMutex.withLock {
         try {
