@@ -2,14 +2,15 @@ package eu.darken.butler.editor.ui.editor.text
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -56,7 +58,15 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.MeasureScope
+import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.node.LayoutModifierNode
+import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.invalidateMeasurement
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -70,6 +80,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -153,7 +164,6 @@ fun LazyTextEditor(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val isWorkspaceFocused = LocalWorkspaceFocused.current
-    val lineNumbersListState = rememberLazyListState()
     val contentListState = rememberLazyListState()
 
     // Release focus and hide keyboard when workspace loses focus
@@ -267,7 +277,6 @@ fun LazyTextEditor(
                 val centerOffset = (visibleCount / 2).coerceAtLeast(0)
                 val scrollTarget = (targetLine - centerOffset).coerceAtLeast(0).toIntSaturated()
                 contentListState.scrollToItem(scrollTarget)
-                lineNumbersListState.scrollToItem(scrollTarget)
             } catch (_: Exception) {
                 // Ignore scroll errors - layout might not be ready yet
             }
@@ -357,7 +366,6 @@ fun LazyTextEditor(
         highlightedLines = highlightedLines,
         cursorPosition = cursorPosition,
         selection = selection,
-        lineNumbersListState = lineNumbersListState,
         contentListState = contentListState,
         horizontalScrollState = horizontalScrollState,
         focusRequester = focusRequester,
@@ -385,6 +393,120 @@ fun LazyTextEditor(
     )
 }
 
+/**
+ * Lets the content list remeasure the gutter inside the layout pass that moved the content. A state
+ * read alone reaches the gutter only through snapshot apply notifications, a frame late when the
+ * content is remeasured mid-pass (row height change, animated padding).
+ */
+private class GutterLink {
+    var gutter: GutterLinkNode? = null
+
+    fun contentLaidOut() {
+        gutter?.invalidateMeasurement()
+    }
+}
+
+private class GutterLinkElement(private val link: GutterLink) : ModifierNodeElement<GutterLinkNode>() {
+    override fun create() = GutterLinkNode(link)
+    override fun update(node: GutterLinkNode) {
+        node.link = link
+        link.gutter = node
+    }
+    override fun equals(other: Any?) = other is GutterLinkElement && other.link === link
+    override fun hashCode() = link.hashCode()
+}
+
+private class GutterLinkNode(var link: GutterLink) : Modifier.Node(), LayoutModifierNode {
+    override fun onAttach() {
+        link.gutter = this
+    }
+
+    override fun onDetach() {
+        if (link.gutter === this) link.gutter = null
+    }
+
+    override fun MeasureScope.measure(measurable: Measurable, constraints: Constraints): MeasureResult {
+        val placeable = measurable.measure(constraints)
+        return layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+    }
+}
+
+private fun Modifier.notifyGutter(link: GutterLink) = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    link.contentLaidOut()
+    layout(placeable.width, placeable.height) {
+        placeable.place(0, 0)
+    }
+}
+
+/**
+ * Line numbers positioned from the content list's own layout, so a label moves in the same layout
+ * pass as its row instead of chasing it through a second list. Labels are composed in measure for
+ * the visible lines plus a margin, but placed from the layout info read at placement: the Row
+ * measures this before the content, so only placement is guaranteed to see the content's newest
+ * offsets. Drags here scroll the content list.
+ */
+@Composable
+private fun LineNumberGutter(
+    listState: LazyListState,
+    link: GutterLink,
+    fontSize: Int,
+    modifier: Modifier = Modifier,
+) {
+    val textStyle = TextStyle(
+        fontSize = fontSize.sp,
+        fontFamily = FontFamily.Monospace,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    val composedRange by remember(listState) {
+        derivedStateOf {
+            val visible = listState.layoutInfo.visibleItemsInfo
+            if (visible.isEmpty()) {
+                IntRange.EMPTY
+            } else {
+                (visible.first().index - GUTTER_MARGIN_LINES).coerceAtLeast(0)..
+                    (visible.last().index + GUTTER_MARGIN_LINES)
+                        .coerceAtMost(listState.layoutInfo.totalItemsCount - 1)
+            }
+        }
+    }
+    SubcomposeLayout(
+        modifier = Modifier
+            .then(GutterLinkElement(link))
+            .then(modifier)
+            .clipToBounds()
+            .scrollable(listState, Orientation.Vertical, reverseDirection = true),
+    ) { constraints ->
+        val labelConstraints = Constraints(maxWidth = constraints.maxWidth)
+        val labels = composedRange.associateWith { index ->
+            subcompose(index) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 2.dp),
+                    contentAlignment = Alignment.TopEnd,
+                ) {
+                    Text(
+                        text = (index + 1).toString(),
+                        style = textStyle,
+                        softWrap = false,
+                        maxLines = 1,
+                        overflow = TextOverflow.Visible,
+                    )
+                }
+            }.first().measure(labelConstraints)
+        }
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            val info = listState.layoutInfo
+            info.visibleItemsInfo.forEach { item ->
+                labels[item.index]?.place(0, item.offset - info.viewportStartOffset)
+            }
+        }
+    }
+}
+
+private const val GUTTER_MARGIN_LINES = 5
+
 @Composable
 private fun DualColumnEditorContent(
     contentPadding: PaddingValues,
@@ -397,7 +519,6 @@ private fun DualColumnEditorContent(
     highlightedLines: Map<Long, List<Token>>,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
-    lineNumbersListState: LazyListState,
     contentListState: LazyListState,
     horizontalScrollState: ScrollState,
     focusRequester: FocusRequester,
@@ -464,9 +585,6 @@ private fun DualColumnEditorContent(
     }
     rememberCoroutineScope()
     val density = LocalDensity.current
-
-    // Track measured heights for each line when word wrap is enabled
-    val lineHeights = remember { mutableStateMapOf<Long, Int>() }
 
     // The hidden field text is the visible lines joined by '\n'.
     val currentContent = remember(visibleLineContent) {
@@ -599,39 +717,6 @@ private fun DualColumnEditorContent(
         }
     } else {
         0.dp
-    }
-
-    // Synchronize vertical scrolling between line numbers and content
-    LaunchedEffect(Unit) {
-        snapshotFlow {
-            contentListState.firstVisibleItemIndex to contentListState.firstVisibleItemScrollOffset
-        }.collect { (index, offset) ->
-            if (lineNumbersListState.firstVisibleItemIndex != index ||
-                lineNumbersListState.firstVisibleItemScrollOffset != offset
-            ) {
-                try {
-                    lineNumbersListState.scrollToItem(index, offset)
-                } catch (_: Exception) {
-                    // Ignore sync errors
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        snapshotFlow {
-            lineNumbersListState.firstVisibleItemIndex to lineNumbersListState.firstVisibleItemScrollOffset
-        }.collect { (index, offset) ->
-            if (contentListState.firstVisibleItemIndex != index ||
-                contentListState.firstVisibleItemScrollOffset != offset
-            ) {
-                try {
-                    contentListState.scrollToItem(index, offset)
-                } catch (_: Exception) {
-                    // Ignore sync errors
-                }
-            }
-        }
     }
 
     // The handles are translated in this Box, so the magnifier works in the same coordinates.
@@ -773,52 +858,20 @@ private fun DualColumnEditorContent(
             decorationBox = { _ -> }
         )
 
+        val gutterLink = remember { GutterLink() }
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
             if (showLineNumbers) {
-                LazyColumn(
-                    state = lineNumbersListState,
-                    contentPadding = contentPadding,
+                LineNumberGutter(
+                    listState = contentListState,
+                    link = gutterLink,
+                    fontSize = fontSize,
                     modifier = Modifier
                         .width(lineNumberWidth)
                         .fillMaxHeight()
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clipToBounds()
-                ) {
-                    items(
-                        count = totalLines.toIntSaturated(),
-                        key = { index -> "line_num_$index" }
-                    ) { lineIndex ->
-                        val measuredHeight = if (wordWrap) lineHeights[lineIndex.toLong()] else null
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .then(
-                                    if (measuredHeight != null) {
-                                        Modifier.height(with(density) { measuredHeight.toDp() })
-                                    } else {
-                                        Modifier
-                                    }
-                                )
-                                .padding(horizontal = 8.dp, vertical = 2.dp),
-                            contentAlignment = Alignment.TopEnd
-                        ) {
-                            Text(
-                                text = (lineIndex + 1).toString(),
-                                style = TextStyle(
-                                    fontSize = fontSize.sp,
-                                    fontFamily = FontFamily.Monospace,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                ),
-                                softWrap = false,
-                                maxLines = 1,
-                                overflow = TextOverflow.Visible
-                            )
-                        }
-                    }
-                }
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                )
             }
 
             val contentModifier = if (wordWrap) {
@@ -833,6 +886,7 @@ private fun DualColumnEditorContent(
                 state = contentListState,
                 contentPadding = contentPadding,
                 modifier = modifier
+                    .notifyGutter(gutterLink)
                     .testTag(EDITOR_CONTENT_TEST_TAG)
                     .then(contentModifier)
                     // charWidthPx/tabSize feed the hit-testing math below: the gesture scope must
@@ -992,9 +1046,6 @@ private fun DualColumnEditorContent(
                         searchHighlights = searchResultsByLine[lineIndex] ?: emptyList(),
                         currentSearchResultIndex = currentSearchResultIndex,
                         modifier = Modifier.fillMaxWidth(),
-                        onHeightMeasured = if (wordWrap) { height ->
-                            lineHeights[lineIndex] = height
-                        } else null,
                         // Report the layout for BOTH wrap modes so tap/scroll hit-testing has exact
                         // glyph geometry (not just the measured-advance fallback).
                         onTextLayoutResult = { layoutResult ->

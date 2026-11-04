@@ -26,7 +26,6 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -84,7 +83,6 @@ internal fun TextLineItem(
     searchHighlights: List<Pair<Int, SearchResult>> = emptyList(),
     currentSearchResultIndex: Int = 0,
     modifier: Modifier = Modifier,
-    onHeightMeasured: ((Int) -> Unit)? = null,
     onTextLayoutResult: ((TextLayoutResult) -> Unit)? = null,
     onRevealTap: ((forward: Boolean) -> Unit)? = null,
 ) {
@@ -259,9 +257,6 @@ internal fun TextLineItem(
 
     Box(
         modifier = modifier
-            .onGloballyPositioned { coordinates ->
-                onHeightMeasured?.invoke(coordinates.size.height)
-            }
             .background(backgroundColor)
             .padding(horizontal = 8.dp, vertical = 2.dp)
             .then(cursorModifier)
