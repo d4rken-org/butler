@@ -255,11 +255,14 @@ fun LazyTextEditor(
 
     // Scroll to cursor position when it changes (line, column, or offset)
     // Triggers on any cursor change to ensure cursor is always visible during typing
-    // Also triggers on scrollTrigger to force scroll when navigating search results
+    // Also triggers on scrollTrigger: each change forces one scroll (search navigation, Go to line)
     // Also triggers on startColumns: when a long line's window SLIDES to follow the caret, the caret's
     // local pixel position changes even though its (absolute) column may not, so re-run to re-centre.
+    var handledScrollTrigger by remember { mutableIntStateOf(scrollTrigger) }
     LaunchedEffect(cursorPosition, scrollTrigger, startColumns) {
         if (totalLines <= 0 || contentListState.layoutInfo.totalItemsCount <= 0) return@LaunchedEffect
+        val forceScroll = scrollTrigger != handledScrollTrigger
+        handledScrollTrigger = scrollTrigger
 
         val targetLine = cursorPosition.line.coerceIn(0, totalLines - 1)
 
@@ -269,7 +272,6 @@ fun LazyTextEditor(
         val lastVisibleLine = firstVisibleLine + visibleCount - 1
 
         val needsVerticalScroll = targetLine < firstVisibleLine || targetLine > lastVisibleLine
-        val forceScroll = scrollTrigger > 0
 
         if (needsVerticalScroll || forceScroll) {
             try {
