@@ -55,9 +55,8 @@ import testhelpers.ComposeTest
  * container resolving one owning-tab id and driving the pager, pane focus and the visibility
  * publisher from it.
  *
- * On-demand creation is off in every fixture: the trailing placeholder animates forever, so
- * composing it would stall the Robolectric clock. Its own rules are covered by
- * [PlaceholderCreationScopeTest] and [PlaceholderCreationControllerTest].
+ * On-demand creation is off in every fixture. The placeholder's own rules are covered by
+ * [PlaceholderCreationScopeTest], [PlaceholderCreationControllerTest] and [PlaceholderIdleTest].
  */
 class ClassicWorkspacePagerTest : ComposeTest() {
 
