@@ -177,6 +177,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             searchRegexEnabled = search.regexEnabled,
             searchWholeWord = search.wholeWord,
             scrollTrigger = search.scrollTrigger,
+            scrollTargetLine = search.scrollTargetLine,
             replaceQueryInput = search.replaceQueryInput,
             showReplaceRow = search.showReplaceRow,
             replaceNotice = search.replaceNotice,
@@ -676,7 +677,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditCommand.Navigate.SetSelection -> workspace.setSelection(command.start, command.end)
             is EditCommand.Navigate.SelectAll -> workspace.selectAll()
             is EditCommand.Navigate.GoToLine -> workspace.goToLine(command.lineNumber)
-                .onSuccess { searchController.requestScroll() }
+                .onSuccess { searchController.requestScroll(command.lineNumber) }
         }
     }
 
@@ -1008,6 +1009,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val searchRegexEnabled: Boolean = false,
         val searchWholeWord: Boolean = false,
         val scrollTrigger: Int = 0,
+        val scrollTargetLine: Long? = null,
         val replaceQueryInput: TextFieldValue = TextFieldValue(""),
         val showReplaceRow: Boolean = false,
         val replaceNotice: EditorSearchController.ReplaceNotice? = null,
