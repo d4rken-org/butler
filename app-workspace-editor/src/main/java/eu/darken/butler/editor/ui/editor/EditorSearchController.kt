@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -32,7 +33,7 @@ class EditorSearchController(
     private val _caseSensitive = MutableStateFlow(false)
     private val _regexEnabled = MutableStateFlow(false)
     private val _wholeWord = MutableStateFlow(false)
-    private val _scrollTrigger = MutableStateFlow(0)
+    private val _scrollRequest = MutableStateFlow(ScrollRequest())
     private val _showSearchBar = MutableStateFlow(false)
     private val _replaceQueryInput = MutableStateFlow(TextFieldValue(""))
     private val _showReplaceRow = MutableStateFlow(false)
@@ -44,6 +45,8 @@ class EditorSearchController(
     // hasn't run yet, and replacing against mixed query/results would mutate the wrong match.
     private var activeQuery: String = ""
     private var activeOptions: SearchOptions = SearchOptions()
+
+    private data class ScrollRequest(val trigger: Int = 0, val targetLine: Long? = null)
 
     /** Outcome of the last replace-all, shown transiently in the search bar. */
     data class ReplaceNotice(
@@ -58,6 +61,7 @@ class EditorSearchController(
         val regexEnabled: Boolean = false,
         val wholeWord: Boolean = false,
         val scrollTrigger: Int = 0,
+        val scrollTargetLine: Long? = null,
         val showSearchBar: Boolean = false,
         val replaceQueryInput: TextFieldValue = TextFieldValue(""),
         val showReplaceRow: Boolean = false,
@@ -70,20 +74,21 @@ class EditorSearchController(
         _caseSensitive,
         _regexEnabled,
         _wholeWord,
-        _scrollTrigger,
+        _scrollRequest,
         _showSearchBar,
         _replaceQueryInput,
         _showReplaceRow,
         _replaceNotice,
     ) { queryInput, currentResultIndex, caseSensitive, regexEnabled, wholeWord,
-        scrollTrigger, showSearchBar, replaceQueryInput, showReplaceRow, replaceNotice ->
+        scrollRequest, showSearchBar, replaceQueryInput, showReplaceRow, replaceNotice ->
         SearchUiState(
             queryInput = queryInput,
             currentResultIndex = currentResultIndex,
             caseSensitive = caseSensitive,
             regexEnabled = regexEnabled,
             wholeWord = wholeWord,
-            scrollTrigger = scrollTrigger,
+            scrollTrigger = scrollRequest.trigger,
+            scrollTargetLine = scrollRequest.targetLine,
             showSearchBar = showSearchBar,
             replaceQueryInput = replaceQueryInput,
             showReplaceRow = showReplaceRow,
@@ -155,7 +160,7 @@ class EditorSearchController(
         if (results.isNotEmpty()) {
             val newIndex = (_currentResultIndex.value + 1) % results.size
             _currentResultIndex.value = newIndex
-            _scrollTrigger.value++
+            _scrollRequest.update { ScrollRequest(it.trigger + 1, results[newIndex].position.line) }
             workspace().setCursorPosition(results[newIndex].position)
         }
     }
@@ -165,13 +170,13 @@ class EditorSearchController(
         if (results.isNotEmpty()) {
             val newIndex = if (_currentResultIndex.value == 0) results.size - 1 else _currentResultIndex.value - 1
             _currentResultIndex.value = newIndex
-            _scrollTrigger.value++
+            _scrollRequest.update { ScrollRequest(it.trigger + 1, results[newIndex].position.line) }
             workspace().setCursorPosition(results[newIndex].position)
         }
     }
 
-    fun requestScroll() {
-        _scrollTrigger.value++
+    fun requestScroll(targetLine: Long) {
+        _scrollRequest.update { ScrollRequest(it.trigger + 1, targetLine) }
     }
 
     fun toggleCaseSensitivity() {
@@ -224,7 +229,7 @@ class EditorSearchController(
 
         if (outcome.results.isNotEmpty()) {
             _currentResultIndex.value = outcome.nextIndex
-            _scrollTrigger.value++
+            _scrollRequest.update { ScrollRequest(it.trigger + 1, outcome.results[outcome.nextIndex].position.line) }
             workspace().setCursorPosition(outcome.results[outcome.nextIndex].position)
         } else {
             _currentResultIndex.value = 0

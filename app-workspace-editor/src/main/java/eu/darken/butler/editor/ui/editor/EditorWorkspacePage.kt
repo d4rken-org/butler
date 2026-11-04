@@ -334,6 +334,7 @@ fun EditorWorkspacePage(
                     searchResults = state.searchResults,
                     currentSearchResultIndex = state.currentSearchResultIndex,
                     scrollTrigger = state.scrollTrigger,
+                    scrollTargetLine = state.scrollTargetLine,
                     onEnqueueDelta = onEnqueueDelta,
                     onCursorPositionChange = { position ->
                         onPageAction(EditorPageAction.Navigation.SetCursor(position))
