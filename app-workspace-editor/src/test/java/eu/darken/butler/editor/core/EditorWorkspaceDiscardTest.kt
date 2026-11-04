@@ -34,9 +34,8 @@ import java.nio.charset.Charset
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Discard flows must actually discard: releasing an engine after the user explicitly chose to
- * drop unsaved changes (close-with-discard, reopen-with-encoding) must NOT flush them to disk.
- * The default flush-on-release stays as the safety net for unprompted teardown.
+ * Discard flows must actually discard: closing the file, reopening it with another encoding and
+ * releasing the tab must NOT flush unsaved changes to disk.
  */
 class EditorWorkspaceDiscardTest : BaseTest() {
 
@@ -195,17 +194,37 @@ class EditorWorkspaceDiscardTest : BaseTest() {
     }
 
     @Test
-    fun `unprompted release still flushes as a safety net`(@TempDir tempDir: File) = runTest {
-        val content = "original content"
-        val file = File(tempDir, "doc.txt").apply { writeText(content) }
+    fun `releasing a modified tab leaves the file unchanged`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("original content") }
+        val originalBytes = file.readBytes()
         val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
 
         workspace.awaitFileLoaded()
-        workspace.performInsert("KEEP ME ")
+        workspace.performInsert("DISCARD ME ")
         workspace.awaitModified()
 
         workspace.release()
 
-        file.readText() shouldBe "KEEP ME $content"
+        file.readBytes() shouldBe originalBytes
+    }
+
+    @Test
+    fun `release keeps saved content and drops later unsaved edits`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("original content") }
+        val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
+
+        workspace.awaitFileLoaded()
+        workspace.performInsert("A ")
+        workspace.awaitModified()
+        workspace.saveFile()
+        workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == false }
+        val savedBytes = file.readBytes()
+
+        workspace.performInsert("B ")
+        workspace.awaitModified()
+
+        workspace.release()
+
+        file.readBytes() shouldBe savedBytes
     }
 }
