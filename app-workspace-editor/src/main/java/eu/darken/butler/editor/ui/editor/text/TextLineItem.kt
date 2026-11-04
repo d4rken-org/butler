@@ -259,12 +259,12 @@ internal fun TextLineItem(
 
     Box(
         modifier = modifier
-            .background(backgroundColor)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
-            .then(cursorModifier)
             .onGloballyPositioned { coordinates ->
                 onHeightMeasured?.invoke(coordinates.size.height)
             }
+            .background(backgroundColor)
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .then(cursorModifier)
     ) {
         SelectableText(
             text = displayText.ifEmpty { " " },
