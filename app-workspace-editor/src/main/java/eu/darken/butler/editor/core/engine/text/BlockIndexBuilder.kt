@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.core.engine.text
 
+import eu.darken.butler.editor.core.engine.LineEnding
 import kotlinx.coroutines.ensureActive
 import okio.BufferedSource
 import java.nio.ByteBuffer
@@ -45,19 +46,7 @@ class BlockIndexBuilder(
         var carry = ByteArray(0)
         var bytesAttributed = 0L
         var charsAttributed = 0L
-        var crlf = 0L
-        var lf = 0L
-        var cr = 0L
-        var pendingCr = false
-        // Longest line's content length in UTF-16 chars; a run ends at each break's FIRST char,
-        // so a pending '\r' resolved in the next block must not end the (already ended) run again
-        var currentRun = 0L
-        var maxLineLength = 0L
-
-        fun endLineRun() {
-            if (currentRun > maxLineLength) maxLineLength = currentRun
-            currentRun = 0L
-        }
+        val scanner = LineScanner()
 
         while (true) {
             coroutineContext.ensureActive()
@@ -90,37 +79,7 @@ class BlockIndexBuilder(
                 if (eof) break else continue
             }
 
-            var i = 0
-            if (pendingCr) {
-                if (text[0] == '\n') {
-                    crlf++
-                    i = 1
-                } else {
-                    cr++
-                }
-                pendingCr = false
-            }
-            while (i < text.length) {
-                when (text[i]) {
-                    '\r' -> {
-                        when {
-                            i + 1 >= text.length -> pendingCr = true
-                            text[i + 1] == '\n' -> {
-                                crlf++
-                                i++
-                            }
-                            else -> cr++
-                        }
-                        endLineRun()
-                    }
-                    '\n' -> {
-                        lf++
-                        endLineRun()
-                    }
-                    else -> currentRun++
-                }
-                i++
-            }
+            scanner.scan(text)
 
             blocks += BlockIndex.Block(
                 byteStart = bytesAttributed,
@@ -140,10 +99,72 @@ class BlockIndexBuilder(
 
             if (eof) break
         }
-        if (pendingCr) cr++
-        endLineRun()
+        scanner.finish()
 
-        return BlockIndex(blocks, TextMetrics.detectLineEnding(crlf, lf, cr), digests.toLongArray(), maxLineLength)
+        return BlockIndex(blocks, scanner.lineEnding, digests.toLongArray(), scanner.maxLineLength)
+    }
+
+    /**
+     * Whole-file break counts and longest line's content length in UTF-16 chars, fed one decoded
+     * block at a time. A run ends at each break's FIRST char, so a pending '\r' resolved in the
+     * next block must not end the (already ended) run again.
+     */
+    private class LineScanner {
+        private var crlf = 0L
+        private var lf = 0L
+        private var cr = 0L
+        private var pendingCr = false
+        private var currentRun = 0L
+
+        var maxLineLength = 0L
+            private set
+
+        val lineEnding: LineEnding
+            get() = TextMetrics.detectLineEnding(crlf, lf, cr)
+
+        fun scan(text: String) {
+            val length = text.length
+            var i = 0
+            if (pendingCr) {
+                if (text[0] == '\n') {
+                    crlf += 1
+                    i = 1
+                } else {
+                    cr += 1
+                }
+                pendingCr = false
+            }
+            while (i < length) {
+                val c = text[i]
+                if (c == '\r') {
+                    if (i + 1 >= length) {
+                        pendingCr = true
+                    } else if (text[i + 1] == '\n') {
+                        crlf += 1
+                        i += 1
+                    } else {
+                        cr += 1
+                    }
+                    endLineRun()
+                } else if (c == '\n') {
+                    lf += 1
+                    endLineRun()
+                } else {
+                    currentRun += 1
+                }
+                i += 1
+            }
+        }
+
+        fun finish() {
+            if (pendingCr) cr += 1
+            endLineRun()
+        }
+
+        private fun endLineRun() {
+            if (currentRun > maxLineLength) maxLineLength = currentRun
+            currentRun = 0L
+        }
     }
 
     private fun decodeRange(bytes: ByteArray, length: Int, charset: Charset): String {
