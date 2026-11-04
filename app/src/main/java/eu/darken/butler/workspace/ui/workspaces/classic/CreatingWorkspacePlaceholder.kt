@@ -26,6 +26,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -40,10 +42,13 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.label
 
+private const val ARROW_ALPHA_MIN = 0.4f
+
 @Composable
 internal fun CreatingWorkspacePlaceholder(
     modifier: Modifier = Modifier,
     isCreating: Boolean = false,
+    isVisible: Boolean = true,
     newTabTypeName: CaString = Workspace.Type.TEMPLATES.label,
     onClick: () -> Unit = {},
 ) {
@@ -67,17 +72,21 @@ internal fun CreatingWorkspacePlaceholder(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
-            // Ready state: card with animated swipe hint
-            val infiniteTransition = rememberInfiniteTransition(label = "arrowPulse")
-            val arrowAlpha by infiniteTransition.animateFloat(
-                initialValue = 0.4f,
-                targetValue = 1.0f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1500),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "arrowAlpha"
-            )
+            // Ready state: card with animated swipe hint. Pulses only while on screen: the pager's
+            // cache window (foundation 1.12) keeps this page composed next to the last tab.
+            val arrowAlpha by if (isVisible) {
+                rememberInfiniteTransition(label = "arrowPulse").animateFloat(
+                    initialValue = ARROW_ALPHA_MIN,
+                    targetValue = 1.0f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1500),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "arrowAlpha"
+                )
+            } else {
+                remember { mutableFloatStateOf(ARROW_ALPHA_MIN) }
+            }
 
             Card(
                 colors = CardDefaults.cardColors(
@@ -141,6 +150,13 @@ private fun CreatingWorkspacePlaceholderPreviewReady() {
 @Composable
 private fun CreatingWorkspacePlaceholderPreviewReadyExplorer() {
     CreatingWorkspacePlaceholder(isCreating = false, newTabTypeName = Workspace.Type.EXPLORER.label)
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun CreatingWorkspacePlaceholderPreviewHidden() {
+    CreatingWorkspacePlaceholder(isVisible = false, newTabTypeName = Workspace.Type.TEMPLATES.label)
 }
 
 @Preview2
