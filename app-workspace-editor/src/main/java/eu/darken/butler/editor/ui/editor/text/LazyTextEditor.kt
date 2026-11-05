@@ -6,6 +6,8 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.interaction.DragInteraction
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -99,12 +101,19 @@ import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.core.syntax.Token
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.math.abs
 
 private val tag = logTag("Editor", "LazyTextEditor")
 
@@ -256,6 +265,116 @@ fun LazyTextEditor(
         }
     }
 
+    // Every automatic vertical scroll goes through one coordinator, so a newer request cancels the
+    // older one's work instead of racing it for the list's scroll mutex. A user drag on the content
+    // or the gutter bumps the gesture generation, which abandons the request that was in flight.
+    var caretScrollRequest by remember { mutableStateOf<CaretScrollRequest?>(null) }
+    var caretScrollRequestCount by remember { mutableIntStateOf(0) }
+    var userGestureGeneration by remember { mutableIntStateOf(0) }
+    val gutterInteractionSource = remember { MutableInteractionSource() }
+    LaunchedEffect(contentListState, gutterInteractionSource) {
+        merge(contentListState.interactionSource.interactions, gutterInteractionSource.interactions)
+            .filterIsInstance<DragInteraction.Start>()
+            .collect { userGestureGeneration++ }
+    }
+
+    val latestCursor by rememberUpdatedState(cursorPosition)
+    val latestLineContent by rememberUpdatedState(visibleLineContent)
+    val latestStartColumns by rememberUpdatedState(startColumns)
+    val latestTabSize by rememberUpdatedState(tabSize)
+    val latestWordWrap by rememberUpdatedState(wordWrap)
+    val latestRowInsetPx by rememberUpdatedState(with(density) { 2.dp.toPx() })
+    LaunchedEffect(contentListState) {
+        snapshotFlow { caretScrollRequest }.filterNotNull().collectLatest { request ->
+            val index = request.line.toIntSaturated()
+            val isAbandoned = { userGestureGeneration != request.gestureGeneration }
+
+            // The caret's visual line in item space, and whether it was measured from a layout of the
+            // line's loaded content. A layout of other text (stale, or a line edited since) falls
+            // back to the item's bounds; a line outside the loaded window renders a placeholder whose
+            // geometry is used but never counts as measured.
+            fun caretBand(item: LazyListItemInfo): Pair<ClosedFloatingPointRange<Float>, Boolean> {
+                val rawLine = latestLineContent[request.line]
+                val layout = textLayouts[request.line]?.takeIf {
+                    it.layoutInput.text.text == (rawLine ?: "").toDisplayText(latestTabSize).ifEmpty { " " }
+                }
+                val caretLine = layout?.let {
+                    caretGeometry(
+                        layout = it,
+                        rawLine = rawLine ?: "",
+                        localColumn = latestCursor.column - (latestStartColumns[request.line] ?: 0L).toInt(),
+                        tabSize = latestTabSize,
+                    ).measuredLine
+                }
+                return if (caretLine != null) {
+                    val textTop = item.offset + latestRowInsetPx
+                    (textTop + caretLine.top)..(textTop + caretLine.bottom) to (rawLine != null)
+                } else {
+                    item.offset.toFloat()..(item.offset + item.size).toFloat() to false
+                }
+            }
+
+            // VERTICAL: rows under the content paddings are composed but hidden by the floating bars
+            suspend fun position() {
+                try {
+                    when (request.mode) {
+                        CaretScrollMode.Centre ->
+                            contentListState.centreOnCaretLine(request.line, { caretBand(it).first }, isAbandoned)
+                        CaretScrollMode.Reveal ->
+                            contentListState.revealCaretLine(request.line, { caretBand(it).first }, isAbandoned)
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    // Ignore scroll errors - layout might not be ready yet
+                }
+            }
+
+            fun isSettled(): Boolean {
+                val info = contentListState.layoutInfo
+                val visibleHeight = info.visibleContentEnd
+                if (visibleHeight <= 0) return true
+                val item = info.visibleItemsInfo.find { it.index == index } ?: return false
+                val (band, measured) = caretBand(item)
+                if (!measured) return false
+                val delta = if (band.endInclusive - band.start > visibleHeight) {
+                    band.start
+                } else {
+                    (band.start + band.endInclusive) / 2f - visibleHeight / 2f
+                }
+                return abs(delta) <= 1f ||
+                    (delta > 0f && !contentListState.canScrollForward) ||
+                    (delta < 0f && !contentListState.canScrollBackward)
+            }
+
+            fun geometry(): Any = listOf(
+                latestLineContent[request.line],
+                textLayouts[request.line]?.layoutInput?.text?.text,
+                contentListState.layoutInfo.visibleItemsInfo.map { Triple(it.index, it.offset, it.size) },
+            )
+
+            try {
+                if (isAbandoned()) return@collectLatest
+                position()
+            } finally {
+                request.positioned.complete(Unit)
+            }
+
+            // Lines that arrive after a jump with wrap on are taller than the placeholders it was
+            // centred against, and the list keeps its anchor while they grow: follow the reflow.
+            if (request.mode != CaretScrollMode.Centre || !latestWordWrap) return@collectLatest
+            withTimeoutOrNull(WRAP_SETTLE_TIMEOUT_MS) {
+                while (!isAbandoned() && !isSettled()) {
+                    val seen = geometry()
+                    snapshotFlow { geometry() to userGestureGeneration }
+                        .first { (now, generation) -> now != seen || generation != request.gestureGeneration }
+                    if (isAbandoned()) break
+                    position()
+                }
+            }
+        }
+    }
+
     // Scroll to cursor position when it changes (line, column, or offset)
     // Triggers on any cursor change to ensure cursor is always visible during typing
     // Also triggers on scrollTrigger: each change forces one scroll once the cursor is on scrollTargetLine
@@ -269,33 +388,14 @@ fun LazyTextEditor(
         val forceScroll = pending && (scrollTargetLine == null || cursorPosition.line == scrollTargetLine)
         if (forceScroll) handledScrollTrigger = scrollTrigger
 
-        val targetLine = cursorPosition.line.coerceIn(0, totalLines - 1)
-
-        val caretBand: (LazyListItemInfo) -> ClosedFloatingPointRange<Float> = { item ->
-            val caretLine = caretGeometry(
-                layout = textLayouts[targetLine],
-                rawLine = visibleLineContent[targetLine] ?: "",
-                localColumn = cursorPosition.column - (startColumns[targetLine] ?: 0L).toInt(),
-                tabSize = tabSize,
-            ).measuredLine
-            if (caretLine != null) {
-                val textTop = item.offset + with(density) { 2.dp.toPx() }
-                (textTop + caretLine.top)..(textTop + caretLine.bottom)
-            } else {
-                item.offset.toFloat()..(item.offset + item.size).toFloat()
-            }
-        }
-
-        // VERTICAL: rows under the content paddings are composed but hidden by the floating bars
-        try {
-            if (forceScroll) {
-                contentListState.centreOnCaretLine(targetLine, caretBand)
-            } else {
-                contentListState.revealCaretLine(targetLine, caretBand)
-            }
-        } catch (_: Exception) {
-            // Ignore scroll errors - layout might not be ready yet
-        }
+        val request = CaretScrollRequest(
+            id = ++caretScrollRequestCount,
+            mode = if (forceScroll) CaretScrollMode.Centre else CaretScrollMode.Reveal,
+            line = cursorPosition.line.coerceIn(0, totalLines - 1),
+            gestureGeneration = userGestureGeneration,
+        )
+        caretScrollRequest = request
+        request.positioned.await()
 
         // HORIZONTAL: Only when word wrap is disabled
         if (!wordWrap) {
@@ -391,6 +491,7 @@ fun LazyTextEditor(
         tabSize = tabSize,
         charWidthPx = charWidth,
         textLayouts = textLayouts,
+        gutterInteractionSource = gutterInteractionSource,
         searchResultsByLine = searchResultsByLine,
         currentSearchResultIndex = currentSearchResultIndex,
         onEnqueueDelta = onEnqueueDelta,
@@ -465,6 +566,7 @@ private fun Modifier.notifyGutter(link: GutterLink) = layout { measurable, const
 private fun LineNumberGutter(
     listState: LazyListState,
     link: GutterLink,
+    interactionSource: MutableInteractionSource,
     fontSize: Int,
     modifier: Modifier = Modifier,
 ) {
@@ -490,7 +592,12 @@ private fun LineNumberGutter(
             .then(GutterLinkElement(link))
             .then(modifier)
             .clipToBounds()
-            .scrollable(listState, Orientation.Vertical, reverseDirection = true),
+            .scrollable(
+                listState,
+                Orientation.Vertical,
+                reverseDirection = true,
+                interactionSource = interactionSource,
+            ),
     ) { constraints ->
         val labelConstraints = Constraints(maxWidth = constraints.maxWidth)
         val labels = composedRange.associateWith { index ->
@@ -544,6 +651,7 @@ private fun DualColumnEditorContent(
     tabSize: Int,
     charWidthPx: Float,
     textLayouts: MutableMap<Long, TextLayoutResult>,
+    gutterInteractionSource: MutableInteractionSource,
     searchResultsByLine: Map<Long, List<Pair<Int, SearchResult>>>,
     currentSearchResultIndex: Int,
     onEnqueueDelta: (SessionDelta) -> Deferred<EditorEngine.MutationResult>,
@@ -881,6 +989,7 @@ private fun DualColumnEditorContent(
                 LineNumberGutter(
                     listState = contentListState,
                     link = gutterLink,
+                    interactionSource = gutterInteractionSource,
                     fontSize = fontSize,
                     modifier = Modifier
                         .width(lineNumberWidth)
@@ -1167,17 +1276,36 @@ private fun DualColumnEditorContent(
     }
 }
 
+private enum class CaretScrollMode { Centre, Reveal }
+
+private class CaretScrollRequest(
+    val id: Int,
+    val mode: CaretScrollMode,
+    val line: Long,
+    val gestureGeneration: Int,
+) {
+    /** Completed once the first positioning ran, or the request was abandoned or superseded. */
+    val positioned = CompletableDeferred<Unit>()
+}
+
+private const val WRAP_SETTLE_TIMEOUT_MS = 2_000L
+
 /**
  * Scrolls so the [caretBand] of [line] (item-space span, given the line's laid-out item) is centred
  * between the content paddings, or its top lands at the region's top when the band is taller than
- * the region. When the paddings fill the viewport, only brings [line] into the layout.
+ * the region. When the paddings fill the viewport, only brings [line] into the layout. Scrolls
+ * nothing once [isAbandoned] holds.
  */
 private suspend fun LazyListState.centreOnCaretLine(
     line: Long,
     caretBand: (LazyListItemInfo) -> ClosedFloatingPointRange<Float>,
+    isAbandoned: () -> Boolean,
 ) {
     val index = line.toIntSaturated()
-    if (layoutInfo.visibleItemsInfo.none { it.index == index }) scrollToItem(index)
+    if (layoutInfo.visibleItemsInfo.none { it.index == index }) {
+        if (isAbandoned()) return
+        scrollToItem(index)
+    }
     val visibleHeight = layoutInfo.visibleContentEnd
     if (visibleHeight <= 0) return
     val item = layoutInfo.visibleItemsInfo.find { it.index == index } ?: return
@@ -1187,6 +1315,7 @@ private suspend fun LazyListState.centreOnCaretLine(
     } else {
         (band.start + band.endInclusive) / 2f - visibleHeight / 2f
     }
+    if (isAbandoned()) return
     scrollBy(delta)
 }
 
@@ -1194,26 +1323,28 @@ private suspend fun LazyListState.centreOnCaretLine(
  * Keeps the [caretBand] of [line] inside the region between the content paddings without moving the
  * view needlessly: a band already inside stays put, one sticking out of an edge (or lying within one
  * band height past it) is nudged just inside, and one deeper in a padding or not laid out is centred.
- * A band taller than the region that overlaps it is left alone.
+ * A band taller than the region that overlaps it is left alone. Scrolls nothing once [isAbandoned]
+ * holds.
  */
 private suspend fun LazyListState.revealCaretLine(
     line: Long,
     caretBand: (LazyListItemInfo) -> ClosedFloatingPointRange<Float>,
+    isAbandoned: () -> Boolean,
 ) {
     val visibleHeight = layoutInfo.visibleContentEnd.toFloat()
     if (visibleHeight <= 0f) return
     val index = line.toIntSaturated()
     val item = layoutInfo.visibleItemsInfo.find { it.index == index }
-        ?: return centreOnCaretLine(line, caretBand)
+        ?: return centreOnCaretLine(line, caretBand, isAbandoned)
     val band = caretBand(item)
     val bandHeight = band.endInclusive - band.start
     when {
         band.start >= 0f && band.endInclusive <= visibleHeight -> Unit
         bandHeight > visibleHeight && band.endInclusive > 0f && band.start < visibleHeight -> Unit
         band.endInclusive > visibleHeight && band.start - visibleHeight <= bandHeight ->
-            scrollBy(band.endInclusive - visibleHeight)
-        band.start < 0f && -band.endInclusive <= bandHeight -> scrollBy(band.start)
-        else -> centreOnCaretLine(line, caretBand)
+            if (!isAbandoned()) scrollBy(band.endInclusive - visibleHeight)
+        band.start < 0f && -band.endInclusive <= bandHeight -> if (!isAbandoned()) scrollBy(band.start)
+        else -> centreOnCaretLine(line, caretBand, isAbandoned)
     }
 }
 
