@@ -271,32 +271,30 @@ fun LazyTextEditor(
 
         val targetLine = cursorPosition.line.coerceIn(0, totalLines - 1)
 
-        // VERTICAL: Check if cursor line is outside visible viewport
-        val firstVisibleLine = contentListState.firstVisibleItemIndex
-        val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size
-        val lastVisibleLine = firstVisibleLine + visibleCount - 1
-
-        val needsVerticalScroll = targetLine < firstVisibleLine || targetLine > lastVisibleLine
-
-        if (needsVerticalScroll || forceScroll) {
-            try {
-                contentListState.centreOnCaretLine(targetLine) { item ->
-                    val caretLine = caretGeometry(
-                        layout = textLayouts[targetLine],
-                        rawLine = visibleLineContent[targetLine] ?: "",
-                        localColumn = cursorPosition.column - (startColumns[targetLine] ?: 0L).toInt(),
-                        tabSize = tabSize,
-                    ).measuredLine
-                    if (caretLine != null) {
-                        val textTop = item.offset + with(density) { 2.dp.toPx() }
-                        (textTop + caretLine.top)..(textTop + caretLine.bottom)
-                    } else {
-                        item.offset.toFloat()..(item.offset + item.size).toFloat()
-                    }
-                }
-            } catch (_: Exception) {
-                // Ignore scroll errors - layout might not be ready yet
+        val caretBand: (LazyListItemInfo) -> ClosedFloatingPointRange<Float> = { item ->
+            val caretLine = caretGeometry(
+                layout = textLayouts[targetLine],
+                rawLine = visibleLineContent[targetLine] ?: "",
+                localColumn = cursorPosition.column - (startColumns[targetLine] ?: 0L).toInt(),
+                tabSize = tabSize,
+            ).measuredLine
+            if (caretLine != null) {
+                val textTop = item.offset + with(density) { 2.dp.toPx() }
+                (textTop + caretLine.top)..(textTop + caretLine.bottom)
+            } else {
+                item.offset.toFloat()..(item.offset + item.size).toFloat()
             }
+        }
+
+        // VERTICAL: rows under the content paddings are composed but hidden by the floating bars
+        try {
+            if (forceScroll) {
+                contentListState.centreOnCaretLine(targetLine, caretBand)
+            } else {
+                contentListState.revealCaretLine(targetLine, caretBand)
+            }
+        } catch (_: Exception) {
+            // Ignore scroll errors - layout might not be ready yet
         }
 
         // HORIZONTAL: Only when word wrap is disabled
@@ -1190,6 +1188,33 @@ private suspend fun LazyListState.centreOnCaretLine(
         (band.start + band.endInclusive) / 2f - visibleHeight / 2f
     }
     scrollBy(delta)
+}
+
+/**
+ * Keeps the [caretBand] of [line] inside the region between the content paddings without moving the
+ * view needlessly: a band already inside stays put, one sticking out of an edge (or lying within one
+ * band height past it) is nudged just inside, and one deeper in a padding or not laid out is centred.
+ * A band taller than the region that overlaps it is left alone.
+ */
+private suspend fun LazyListState.revealCaretLine(
+    line: Long,
+    caretBand: (LazyListItemInfo) -> ClosedFloatingPointRange<Float>,
+) {
+    val visibleHeight = layoutInfo.visibleContentEnd.toFloat()
+    if (visibleHeight <= 0f) return
+    val index = line.toIntSaturated()
+    val item = layoutInfo.visibleItemsInfo.find { it.index == index }
+        ?: return centreOnCaretLine(line, caretBand)
+    val band = caretBand(item)
+    val bandHeight = band.endInclusive - band.start
+    when {
+        band.start >= 0f && band.endInclusive <= visibleHeight -> Unit
+        bandHeight > visibleHeight && band.endInclusive > 0f && band.start < visibleHeight -> Unit
+        band.endInclusive > visibleHeight && band.start - visibleHeight <= bandHeight ->
+            scrollBy(band.endInclusive - visibleHeight)
+        band.start < 0f && -band.endInclusive <= bandHeight -> scrollBy(band.start)
+        else -> centreOnCaretLine(line, caretBand)
+    }
 }
 
 /**
