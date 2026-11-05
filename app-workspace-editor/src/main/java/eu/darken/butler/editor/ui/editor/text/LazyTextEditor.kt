@@ -319,12 +319,11 @@ fun LazyTextEditor(
                 }
             }
 
-            // Set while the paddings filled the viewport at the last positioning attempt
-            var deferred = false
+            // Outcome of the last positioning attempt
+            var result = CaretPositioning.Unchanged
 
             // VERTICAL: rows under the content paddings are composed but hidden by the floating bars.
-            // False when the paddings filled the viewport and nothing could be positioned.
-            suspend fun position(mode: CaretScrollMode = request.mode): Boolean = try {
+            suspend fun position(mode: CaretScrollMode = request.mode): CaretPositioning = try {
                 when (mode) {
                     CaretScrollMode.Centre ->
                         contentListState.centreOnCaretLine(request.line, { caretBand(it).first }, isAbandoned)
@@ -335,7 +334,7 @@ fun LazyTextEditor(
                 throw e
             } catch (_: Exception) {
                 // Ignore scroll errors - layout might not be ready yet
-                true
+                CaretPositioning.Unchanged
             }
 
             fun isCaretFullyVisible(): Boolean {
@@ -348,7 +347,7 @@ fun LazyTextEditor(
             fun isSettled(): Boolean {
                 val info = contentListState.layoutInfo
                 val visibleHeight = info.visibleContentEnd
-                if (visibleHeight <= 0) return !deferred
+                if (visibleHeight <= 0) return result != CaretPositioning.Deferred
                 val item = info.visibleItemsInfo.find { it.index == index } ?: return false
                 val (band, measured) = caretBand(item)
                 if (!measured) return false
@@ -371,10 +370,21 @@ fun LazyTextEditor(
 
             try {
                 if (isAbandoned()) return@collectLatest
-                deferred = !position()
+                result = position()
             } finally {
                 request.positioned.complete(Unit)
             }
+
+            // A positioning the paddings deferred runs once there is room, however late
+            while (result == CaretPositioning.Deferred) {
+                snapshotFlow {
+                    contentListState.layoutInfo.visibleContentEnd > 0 ||
+                        userGestureGeneration != request.gestureGeneration
+                }.first { it }
+                if (isAbandoned()) return@collectLatest
+                result = position()
+            }
+            val centred = result == CaretPositioning.Centred
 
             coroutineScope {
                 var paddingWindowOpen by mutableStateOf(true)
@@ -385,32 +395,38 @@ fun LazyTextEditor(
 
                 // Lines that arrive after a jump with wrap on are taller than the placeholders it was
                 // centred against, and the list keeps its anchor while they grow: follow the reflow.
-                if (request.mode == CaretScrollMode.Centre && latestWordWrap) {
+                if (centred && latestWordWrap) {
                     withTimeoutOrNull(WRAP_SETTLE_TIMEOUT_MS) {
                         while (!isAbandoned() && !isSettled()) {
                             val seen = geometry()
                             snapshotFlow { geometry() to userGestureGeneration }
                                 .first { (now, generation) -> now != seen || generation != request.gestureGeneration }
                             if (isAbandoned()) break
-                            deferred = !position()
+                            result = position(CaretScrollMode.Centre)
                         }
                     }
                 }
 
-                // The keyboard or a bar can grow the bottom padding over the caret shortly after it was
-                // positioned; a positioning the paddings deferred runs once there is room.
+                // The keyboard or a bar can change the bottom padding shortly after the caret was
+                // positioned. A centred line follows the region's centre (Go to line from a dialog whose
+                // keyboard then closes), once there is room; otherwise only a caret the padding grew
+                // over is revealed.
+                var centredFor = contentListState.layoutInfo.visibleContentEnd
                 var wasFullyVisible = false
                 snapshotFlow {
                     Triple(paddingWindowOpen, contentListState.layoutInfo.visibleContentEnd, userGestureGeneration)
                 }
                     .takeWhile { (open, _, generation) -> open && generation == request.gestureGeneration }
                     .collect { (_, visibleContentEnd, _) ->
-                        if (deferred) {
-                            if (visibleContentEnd > 0) deferred = !position()
-                        } else if (wasFullyVisible && !isCaretFullyVisible()) {
-                            position(CaretScrollMode.Reveal)
+                        if (centred) {
+                            if (visibleContentEnd > 0 && visibleContentEnd != centredFor) {
+                                position(CaretScrollMode.Centre)
+                                centredFor = visibleContentEnd
+                            }
+                        } else {
+                            if (wasFullyVisible && !isCaretFullyVisible()) position(CaretScrollMode.Reveal)
+                            wasFullyVisible = isCaretFullyVisible()
                         }
-                        wasFullyVisible = !deferred && isCaretFullyVisible()
                     }
                 coroutineContext.cancelChildren()
             }
@@ -1320,6 +1336,9 @@ private fun DualColumnEditorContent(
 
 private enum class CaretScrollMode { Centre, Reveal }
 
+/** What a caret positioning did; [Deferred] when the paddings filled the viewport. */
+private enum class CaretPositioning { Deferred, Centred, Nudged, Unchanged }
+
 private class CaretScrollRequest(
     val id: Int,
     val mode: CaretScrollMode,
@@ -1339,30 +1358,30 @@ private const val PADDING_REVEAL_WINDOW_MS = 1_500L
  * Scrolls so the [caretBand] of [line] (item-space span, given the line's laid-out item) is centred
  * between the content paddings, or its top lands at the region's top when the band is taller than
  * the region. When the paddings fill the viewport, only brings [line] into the layout and returns
- * false. Scrolls nothing once [isAbandoned] holds.
+ * [CaretPositioning.Deferred]. Scrolls nothing once [isAbandoned] holds.
  */
 private suspend fun LazyListState.centreOnCaretLine(
     line: Long,
     caretBand: (LazyListItemInfo) -> ClosedFloatingPointRange<Float>,
     isAbandoned: () -> Boolean,
-): Boolean {
+): CaretPositioning {
     val index = line.toIntSaturated()
     if (layoutInfo.visibleItemsInfo.none { it.index == index }) {
-        if (isAbandoned()) return true
+        if (isAbandoned()) return CaretPositioning.Unchanged
         scrollToItem(index)
     }
     val visibleHeight = layoutInfo.visibleContentEnd
-    if (visibleHeight <= 0) return false
-    val item = layoutInfo.visibleItemsInfo.find { it.index == index } ?: return true
+    if (visibleHeight <= 0) return CaretPositioning.Deferred
+    val item = layoutInfo.visibleItemsInfo.find { it.index == index } ?: return CaretPositioning.Centred
     val band = caretBand(item)
     val delta = if (band.endInclusive - band.start > visibleHeight) {
         band.start
     } else {
         (band.start + band.endInclusive) / 2f - visibleHeight / 2f
     }
-    if (isAbandoned()) return true
+    if (isAbandoned()) return CaretPositioning.Unchanged
     scrollBy(delta)
-    return true
+    return CaretPositioning.Centred
 }
 
 /**
@@ -1370,29 +1389,32 @@ private suspend fun LazyListState.centreOnCaretLine(
  * view needlessly: a band already inside stays put, one sticking out of an edge (or lying within one
  * band height past it) is nudged just inside, and one deeper in a padding or not laid out is centred.
  * A band taller than the region that overlaps it is left alone. Scrolls nothing once [isAbandoned]
- * holds. Returns false, without scrolling, when the paddings fill the viewport.
+ * holds. Returns [CaretPositioning.Deferred], without scrolling, when the paddings fill the viewport.
  */
 private suspend fun LazyListState.revealCaretLine(
     line: Long,
     caretBand: (LazyListItemInfo) -> ClosedFloatingPointRange<Float>,
     isAbandoned: () -> Boolean,
-): Boolean {
+): CaretPositioning {
     val visibleHeight = layoutInfo.visibleContentEnd.toFloat()
-    if (visibleHeight <= 0f) return false
+    if (visibleHeight <= 0f) return CaretPositioning.Deferred
     val index = line.toIntSaturated()
     val item = layoutInfo.visibleItemsInfo.find { it.index == index }
         ?: return centreOnCaretLine(line, caretBand, isAbandoned)
     val band = caretBand(item)
     val bandHeight = band.endInclusive - band.start
-    when {
-        band.start >= 0f && band.endInclusive <= visibleHeight -> Unit
-        bandHeight > visibleHeight && band.endInclusive > 0f && band.start < visibleHeight -> Unit
+    val nudge = when {
+        band.start >= 0f && band.endInclusive <= visibleHeight -> return CaretPositioning.Unchanged
+        bandHeight > visibleHeight && band.endInclusive > 0f && band.start < visibleHeight ->
+            return CaretPositioning.Unchanged
         band.endInclusive > visibleHeight && band.start - visibleHeight <= bandHeight ->
-            if (!isAbandoned()) scrollBy(band.endInclusive - visibleHeight)
-        band.start < 0f && -band.endInclusive <= bandHeight -> if (!isAbandoned()) scrollBy(band.start)
+            band.endInclusive - visibleHeight
+        band.start < 0f && -band.endInclusive <= bandHeight -> band.start
         else -> return centreOnCaretLine(line, caretBand, isAbandoned)
     }
-    return true
+    if (isAbandoned()) return CaretPositioning.Unchanged
+    scrollBy(nudge)
+    return CaretPositioning.Nudged
 }
 
 /**
