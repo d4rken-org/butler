@@ -4,6 +4,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -278,10 +280,20 @@ fun LazyTextEditor(
 
         if (needsVerticalScroll || forceScroll) {
             try {
-                // Center the target line in viewport (not at top edge)
-                val centerOffset = (visibleCount / 2).coerceAtLeast(0)
-                val scrollTarget = (targetLine - centerOffset).coerceAtLeast(0).toIntSaturated()
-                contentListState.scrollToItem(scrollTarget)
+                contentListState.centreOnCaretLine(targetLine) { item ->
+                    val caretLine = caretGeometry(
+                        layout = textLayouts[targetLine],
+                        rawLine = visibleLineContent[targetLine] ?: "",
+                        localColumn = cursorPosition.column - (startColumns[targetLine] ?: 0L).toInt(),
+                        tabSize = tabSize,
+                    ).measuredLine
+                    if (caretLine != null) {
+                        val textTop = item.offset + with(density) { 2.dp.toPx() }
+                        (textTop + caretLine.top)..(textTop + caretLine.bottom)
+                    } else {
+                        item.offset.toFloat()..(item.offset + item.size).toFloat()
+                    }
+                }
             } catch (_: Exception) {
                 // Ignore scroll errors - layout might not be ready yet
             }
@@ -1158,6 +1170,29 @@ private fun DualColumnEditorContent(
 }
 
 /**
+ * Scrolls so the [caretBand] of [line] (item-space span, given the line's laid-out item) is centred
+ * between the content paddings, or its top lands at the region's top when the band is taller than
+ * the region. When the paddings fill the viewport, only brings [line] into the layout.
+ */
+private suspend fun LazyListState.centreOnCaretLine(
+    line: Long,
+    caretBand: (LazyListItemInfo) -> ClosedFloatingPointRange<Float>,
+) {
+    val index = line.toIntSaturated()
+    if (layoutInfo.visibleItemsInfo.none { it.index == index }) scrollToItem(index)
+    val visibleHeight = layoutInfo.visibleContentEnd
+    if (visibleHeight <= 0) return
+    val item = layoutInfo.visibleItemsInfo.find { it.index == index } ?: return
+    val band = caretBand(item)
+    val delta = if (band.endInclusive - band.start > visibleHeight) {
+        band.start
+    } else {
+        (band.start + band.endInclusive) / 2f - visibleHeight / 2f
+    }
+    scrollBy(delta)
+}
+
+/**
  * Container-space point to magnify for the handle drag at [moving], or [Offset.Unspecified] when
  * that point is not on screen.
  */
@@ -1192,7 +1227,7 @@ private fun Density.selectionMagnifierSource(
     // A partially visible item can still put the caret's line under the content padding, which
     // callers may cover, or scrolled behind the gutter.
     val contentY = layoutInfo.containerToItemY(source.y)
-    val contentBottom = (layoutInfo.viewportEndOffset - layoutInfo.afterContentPadding).toFloat()
+    val contentBottom = layoutInfo.visibleContentEnd.toFloat()
     val onScreen = source.x in gutterWidthPx..containerWidthPx && contentY in 0f..contentBottom
     return if (onScreen) source else Offset.Unspecified
 }

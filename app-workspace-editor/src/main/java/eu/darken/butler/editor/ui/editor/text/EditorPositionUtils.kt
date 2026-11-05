@@ -269,6 +269,12 @@ internal fun LazyListLayoutInfo.containerToItemY(containerY: Float): Float = con
 internal fun LazyListLayoutInfo.itemToContainerY(itemY: Float): Float = itemY - viewportStartOffset
 
 /**
+ * End of the region between the content paddings, in item space: rows the user can see span
+ * `[0, visibleContentEnd)`. Zero or less when the paddings fill the viewport.
+ */
+internal val LazyListLayoutInfo.visibleContentEnd: Int get() = viewportEndOffset - afterContentPadding
+
+/**
  * Where a caret sits within its line's layout, relative to the line's text origin.
  *
  * @property x the caret's x, or null when there is no usable layout and callers fall back to
