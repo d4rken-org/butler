@@ -17,6 +17,7 @@ import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
+import eu.darken.butler.explorer.core.hidden.HiddenMembership
 import eu.darken.butler.explorer.core.sorting.rules.ExplorerTabSortStore
 import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
 import eu.darken.butler.explorer.core.sorting.rules.SortRuleLayer
@@ -196,6 +197,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             filterState = FilterState(),
             useRegexPatterns = false,
             showHidden = false,
+            membership = HiddenMembership.NONE,
         )
 
         names(result) shouldContainExactly listOf("notes.txt", "docs")
@@ -211,6 +213,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             filterState = FilterState(),
             useRegexPatterns = false,
             showHidden = true,
+            membership = HiddenMembership.NONE,
         )
 
         names(result) shouldContainExactly listOf(".env", "notes.txt", ".git", "docs")
@@ -227,6 +230,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             filterState = FilterState(),
             useRegexPatterns = false,
             showHidden = false,
+            membership = HiddenMembership.NONE,
         )
 
         names(result) shouldContainExactly listOf(".env", ".git", "notes.txt")
@@ -242,6 +246,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             filterState = FilterState(excludePattern = "secret"),
             useRegexPatterns = false,
             showHidden = false,
+            membership = HiddenMembership.NONE,
         )
 
         names(result) shouldContainExactly listOf("notes.txt")
@@ -252,9 +257,11 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
         val controller = controller()
         val items = listOf(fileItem(".env"), fileItem("notes.txt"))
 
-        controller.showsAnythingWhen(items, FilterState(), false, showHidden = false) shouldBe true
-        controller.showsAnythingWhen(items, FilterState(excludePattern = "notes"), false, showHidden = false) shouldBe false
-        controller.showsAnythingWhen(items, FilterState(excludePattern = "notes"), false, showHidden = true) shouldBe true
+        val none = HiddenMembership.NONE
+
+        controller.showsAnythingWhen(items, FilterState(), false, showHidden = false, none) shouldBe true
+        controller.showsAnythingWhen(items, FilterState(excludePattern = "notes"), false, showHidden = false, none) shouldBe false
+        controller.showsAnythingWhen(items, FilterState(excludePattern = "notes"), false, showHidden = true, none) shouldBe true
     }
 
     /** The chip counts what the folder holds, not what revealing would add on top of the filters. */
@@ -263,14 +270,81 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
         val controller = controller()
         val items = listOf(fileItem(".env"), directoryItem(".git"), fileItem("notes.txt"))
 
-        controller.countHiddenEntries(items) shouldBe 2
+        controller.countHiddenEntries(items, HiddenMembership.NONE) shouldBe 2
     }
 
     @Test
     fun `the hidden count ignores trashed entries`() = runTest {
         val controller = controller()
 
-        controller.countHiddenEntries(listOf(trashRootItem(".env"), trashNestedItem(".git"))) shouldBe 0
+        controller.countHiddenEntries(listOf(trashRootItem(".env"), trashNestedItem(".git")), HiddenMembership.NONE) shouldBe 0
+    }
+
+    private fun hiding(vararg names: String, includeAncestors: Boolean = false) = HiddenMembership(
+        keys = names.mapTo(mutableSetOf()) { LocalPath.build(File("/tmp/filter-test", it)).sortPathKey() },
+        includeAncestors = includeAncestors,
+    )
+
+    @Test
+    fun `hiding drops user-hidden entries alongside dot-prefixed ones`() = runTest {
+        val controller = controller()
+        val items = listOf(directoryItem("Private"), fileItem(".env"), fileItem("notes.txt"))
+
+        val result = controller.applyFilters(
+            items = items,
+            filterState = FilterState(),
+            useRegexPatterns = false,
+            showHidden = false,
+            membership = hiding("Private"),
+        )
+
+        names(result) shouldContainExactly listOf("notes.txt")
+    }
+
+    @Test
+    fun `showing hidden entries keeps user-hidden ones`() = runTest {
+        val controller = controller()
+        val items = listOf(directoryItem("Private"), fileItem("notes.txt"))
+
+        val result = controller.applyFilters(
+            items = items,
+            filterState = FilterState(),
+            useRegexPatterns = false,
+            showHidden = true,
+            membership = hiding("Private"),
+        )
+
+        names(result) shouldContainExactly listOf("Private", "notes.txt")
+    }
+
+    @Test
+    fun `the hidden count includes user-hidden entries once`() = runTest {
+        val controller = controller()
+        // ".git" is both dot-prefixed and on the list
+        val items = listOf(directoryItem("Private"), directoryItem(".git"), fileItem("notes.txt"))
+
+        controller.countHiddenEntries(items, hiding("Private", ".git")) shouldBe 2
+    }
+
+    @Test
+    fun `user-hidden membership never covers trashed entries`() = runTest {
+        val controller = controller()
+        val membership = hiding("secret.txt", "nested.txt")
+        val items = listOf(trashRootItem("secret.txt"), trashNestedItem("nested.txt"))
+
+        membership.isUserHidden(items[0]) shouldBe false
+        membership.isUserHidden(items[1]) shouldBe false
+        controller.countHiddenEntries(items, membership) shouldBe 0
+        controller.applyFilters(items, FilterState(), false, showHidden = false, membership) shouldContainExactly items
+    }
+
+    @Test
+    fun `showsAnythingWhen honors the hide list`() = runTest {
+        val controller = controller()
+        val items = listOf(directoryItem("Private"))
+
+        controller.showsAnythingWhen(items, FilterState(), false, showHidden = false, hiding("Private")) shouldBe false
+        controller.showsAnythingWhen(items, FilterState(), false, showHidden = true, hiding("Private")) shouldBe true
     }
 
     @Test
@@ -284,6 +358,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             filterState = FilterState(includePattern = ".TXT"),
             useRegexPatterns = false,
             showHidden = true,
+            membership = HiddenMembership.NONE,
         )
 
         names(result) shouldContainExactly listOf("notes.txt", "todo.txt")
@@ -299,6 +374,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             filterState = FilterState(includePattern = ".txt", excludePattern = "secret"),
             useRegexPatterns = false,
             showHidden = true,
+            membership = HiddenMembership.NONE,
         )
 
         names(result) shouldContainExactly listOf("notes.txt")
@@ -314,6 +390,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             filterState = FilterState(fileTypeFilter = FileTypeFilter.FILES_ONLY),
             useRegexPatterns = false,
             showHidden = true,
+            membership = HiddenMembership.NONE,
         )
 
         names(result) shouldContainExactly listOf("a.txt")
@@ -329,6 +406,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             filterState = FilterState(fileTypeFilter = FileTypeFilter.FOLDERS_ONLY),
             useRegexPatterns = false,
             showHidden = true,
+            membership = HiddenMembership.NONE,
         )
 
         names(result) shouldContainExactly listOf("folder")
@@ -344,6 +422,7 @@ class ExplorerViewSettingsControllerTest : BaseTest() {
             filterState = FilterState(includePattern = "img_\\d+\\.png"),
             useRegexPatterns = true,
             showHidden = true,
+            membership = HiddenMembership.NONE,
         )
 
         names(result) shouldContainExactly listOf("img_001.png")

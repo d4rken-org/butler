@@ -15,6 +15,7 @@ import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.PatternMatcher
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.hidden.HiddenMembership
 import eu.darken.butler.explorer.core.sorting.rules.EffectiveSortResolution
 import eu.darken.butler.explorer.core.sorting.rules.EffectiveSortResolver
 import eu.darken.butler.explorer.core.sorting.rules.ExplorerTabSortStore
@@ -191,7 +192,8 @@ class ExplorerViewSettingsController(
         filterState: FilterState,
         useRegexPatterns: Boolean,
         showHidden: Boolean,
-    ): List<ExplorerItem> = items.filter(itemFilter(filterState, useRegexPatterns, showHidden))
+        membership: HiddenMembership,
+    ): List<ExplorerItem> = items.filter(itemFilter(filterState, useRegexPatterns, showHidden, membership))
 
     /** Whether a combination of filters and [showHidden] would leave anything on screen. */
     fun showsAnythingWhen(
@@ -199,20 +201,24 @@ class ExplorerViewSettingsController(
         filterState: FilterState,
         useRegexPatterns: Boolean,
         showHidden: Boolean,
-    ): Boolean = items.any(itemFilter(filterState, useRegexPatterns, showHidden))
+        membership: HiddenMembership,
+    ): Boolean = items.any(itemFilter(filterState, useRegexPatterns, showHidden, membership))
 
     /**
-     * Dot-prefixed entries in the unfiltered listing, directories included.
+     * Hidden entries in the unfiltered listing, directories included: dot-named ones and those on
+     * the hide list.
      *
      * An inventory fact about the folder, not a promise that revealing them adds exactly this many
      * rows: the name and type filters still apply to whatever is revealed.
      */
-    fun countHiddenEntries(items: List<ExplorerItem>): Int = items.count { it.isHiddenEntry }
+    fun countHiddenEntries(items: List<ExplorerItem>, membership: HiddenMembership): Int =
+        items.count { it.isHiddenEntry(membership) }
 
     private fun itemFilter(
         filterState: FilterState,
         useRegexPatterns: Boolean,
         showHidden: Boolean,
+        membership: HiddenMembership,
     ): (ExplorerItem) -> Boolean {
         // Compiled once per pass rather than per item; a pattern that does not compile matches nothing
         val hasExclude = filterState.excludePattern.isNotBlank()
@@ -222,7 +228,7 @@ class ExplorerViewSettingsController(
 
         return filter@{ item ->
             // Before the pattern and type checks, so an entry both of them would drop is dropped once.
-            if (!showHidden && item.isHiddenEntry) return@filter false
+            if (!showHidden && item.isHiddenEntry(membership)) return@filter false
 
             val itemName = when (item) {
                 is ExplorerItem.Path -> item.path.name
@@ -261,11 +267,12 @@ class ExplorerViewSettingsController(
     }
 
     /**
-     * A dot-prefixed name on a path entry. Trashed entries are deliberately not covered: restoring
-     * acts on what the listing offers, so an entry the dot rule removes could not be restored.
+     * A path entry with a dot-prefixed name or on the hide list. Trashed entries are deliberately not
+     * covered: restoring acts on what the listing offers, so an entry hiding removes could not be
+     * restored.
      */
-    private val ExplorerItem.isHiddenEntry: Boolean
-        get() = this is ExplorerItem.Path && path.name.startsWith(".")
+    private fun ExplorerItem.isHiddenEntry(membership: HiddenMembership): Boolean =
+        this is ExplorerItem.Path && (path.name.startsWith(".") || membership.isUserHidden(this))
 
     companion object {
         private val TAG = logTag("Explorer", "ViewSettings")
