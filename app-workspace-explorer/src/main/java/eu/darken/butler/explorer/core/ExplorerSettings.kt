@@ -15,6 +15,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.serialization.createAPathListValue
 import eu.darken.butler.explorer.core.favorites.FavoriteEntry
+import eu.darken.butler.explorer.core.hidden.HiddenEntry
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
@@ -81,6 +82,27 @@ class ExplorerSettings @Inject constructor(
         },
     )
 
+    private val hiddenEntriesSerializer = ListSerializer(HiddenEntry.serializer())
+
+    /** A payload that does not decode reads as an empty list, like [favoriteEntries]. */
+    val hiddenEntries: DataStoreValue<List<HiddenEntry>> = dataStore.createValue(
+        key = stringPreferencesKey("explorer.hidden.entries"),
+        reader = { rawValue: Any? ->
+            (rawValue as? String)?.let { encoded ->
+                try {
+                    json.decodeFromString(hiddenEntriesSerializer, encoded)
+                } catch (e: SerializationException) {
+                    log(TAG, WARN) { "Failed to decode hidden entries, starting empty: ${e.message}" }
+                    emptyList()
+                } catch (e: IllegalArgumentException) {
+                    log(TAG, WARN) { "Invalid hidden entry payload, starting empty: ${e.message}" }
+                    emptyList()
+                }
+            } ?: emptyList()
+        },
+        writer = { value: List<HiddenEntry> -> json.encodeToString(hiddenEntriesSerializer, value) },
+    )
+
     // Nonessential preference: a corrupt/unknown persisted value must never block archive creation.
     val compressDefaults = dataStore.createValue(
         "explorer.compress.defaults",
@@ -99,6 +121,7 @@ class ExplorerSettings @Inject constructor(
         defaultStartLocation,
         favoritePaths,
         favoriteEntries,
+        hiddenEntries,
         compressDefaults,
     )
 
