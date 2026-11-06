@@ -496,7 +496,7 @@
     <string name="explorer_empty_filtered_title">Ei vastaavia kohteita</string>
     <string name="explorer_empty_filtered_caption">Kokeile muuttaa suodattimia</string>
     <string name="explorer_empty_hidden_title">Täällä on vain piilotettuja kohteita</string>
-    <string name="explorer_empty_hidden_caption">Tämä välilehti piilottaa kohteet, joiden nimi alkaa pisteellä</string>
+    <string name="explorer_empty_hidden_caption">Tämä välilehti piilottaa kohteet, joiden nimi alkaa pisteellä, sekä itse piilottamasi kohteet</string>
     <string name="explorer_empty_show_hidden_action">Näytä piilotetut kohteet</string>
     <string name="explorer_empty_hidden_or_filtered_title">Ei enää näytettävää</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Sekä piilotetut kohteet että suodattimesi sulkevat pois osan tästä kansiosta</string>
@@ -563,7 +563,7 @@
     <string name="explorer_view_density_compact_label">Tiivis</string>
     <string name="explorer_view_density_comfortable_label">Väljä</string>
     <string name="explorer_view_density_detailed_label">Yksityiskohtainen</string>
-    <string name="explorer_view_show_hidden_label">Näytä piilotetut tiedostot</string>
+    <string name="explorer_view_show_hidden_label">Näytä piilotetut kohteet</string>
     <string name="explorer_view_set_default_action">Aseta oletukseksi</string>
     <string name="explorer_view_detail_created_label">Luotu</string>
     <string name="explorer_view_detail_modified_label">Muokattu</string>
@@ -826,6 +826,31 @@
     <string name="explorer_favorites_rename_title">Nimeä suosikki uudelleen</string>
     <string name="explorer_favorites_rename_hint">Suosikin nimi</string>
     <string name="explorer_favorites_rename_description">Vain suosikkimerkinnän nimi muuttuu, itse kansio säilyttää nimensä.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Piilota</string>
+    <string name="explorer_unhide_action">Poista piilotus</string>
+    <string name="explorer_hide_file_subtitle">Jätä pois luetteloista, tiedosto pysyy paikallaan</string>
+    <string name="explorer_unhide_file_subtitle">Näytä taas luetteloissa</string>
+    <string name="explorer_hidden_feedback_message">%1$s piilotettu</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d kohde piilotettu</item>
+        <item quantity="other">%1$d kohdetta piilotettu</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Se näkyy himmennettynä, kun tämä välilehti näyttää piilotetut kohteet</item>
+        <item quantity="other">Ne näkyvät himmennettyinä, kun tämä välilehti näyttää piilotetut kohteet</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Älä näytä</string>
+    <string name="explorer_settings_hidden_paths_title">Piilotetut kohteet</string>
+    <string name="explorer_settings_hidden_paths_desc">Tiedostot ja kansiot, jotka olet piilottanut luetteloista</string>
+    <string name="explorer_settings_hidden_paths_value_none">Ei yhtään</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d kohde</item>
+        <item quantity="other">%1$d kohdetta</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Et ole piilottanut mitään. Piilotetut tiedostot ja kansiot näkyvät täällä.</string>
+    <string name="explorer_hidden_paths_remove_action">Poista kohteen %1$s piilotus</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Tämä välilehti ohittaa lajittelujärjestyksen %1$d kansiossa</item>
         <item quantity="other">Tämä välilehti ohittaa lajittelujärjestyksen %1$d kansiossa</item>

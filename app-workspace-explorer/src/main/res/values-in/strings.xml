@@ -478,7 +478,7 @@
     <string name="explorer_empty_filtered_title">Tidak ada item yang cocok</string>
     <string name="explorer_empty_filtered_caption">Coba sesuaikan filter Anda</string>
     <string name="explorer_empty_hidden_title">Hanya ada item tersembunyi di sini</string>
-    <string name="explorer_empty_hidden_caption">Tab ini menyembunyikan item yang namanya diawali titik</string>
+    <string name="explorer_empty_hidden_caption">Tab ini menyembunyikan item yang namanya diawali titik dan item yang Anda sembunyikan</string>
     <string name="explorer_empty_show_hidden_action">Tampilkan item tersembunyi</string>
     <string name="explorer_empty_hidden_or_filtered_title">Tidak ada lagi yang bisa ditampilkan</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Item tersembunyi dan filter Anda masing-masing menyembunyikan sebagian folder ini</string>
@@ -545,7 +545,7 @@
     <string name="explorer_view_density_compact_label">Ringkas</string>
     <string name="explorer_view_density_comfortable_label">Nyaman</string>
     <string name="explorer_view_density_detailed_label">Detail</string>
-    <string name="explorer_view_show_hidden_label">Tampilkan berkas tersembunyi</string>
+    <string name="explorer_view_show_hidden_label">Tampilkan item tersembunyi</string>
     <string name="explorer_view_set_default_action">Jadikan default</string>
     <string name="explorer_view_detail_created_label">Dibuat</string>
     <string name="explorer_view_detail_modified_label">Diubah</string>
@@ -782,6 +782,28 @@
     <string name="explorer_favorites_rename_title">Ganti nama favorit</string>
     <string name="explorer_favorites_rename_hint">Nama favorit</string>
     <string name="explorer_favorites_rename_description">Hanya entri di favorit Anda yang diganti namanya, folder itu sendiri tetap menggunakan namanya.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Sembunyikan</string>
+    <string name="explorer_unhide_action">Tampilkan kembali</string>
+    <string name="explorer_hide_file_subtitle">Keluarkan dari daftar, berkas tetap di tempatnya</string>
+    <string name="explorer_unhide_file_subtitle">Tampilkan lagi di daftar</string>
+    <string name="explorer_hidden_feedback_message">%1$s disembunyikan</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="other">%1$d item disembunyikan</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="other">Item tetap terlihat redup selama tab ini menampilkan item tersembunyi</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Jangan tampilkan</string>
+    <string name="explorer_settings_hidden_paths_title">Item tersembunyi</string>
+    <string name="explorer_settings_hidden_paths_desc">Berkas dan folder yang Anda sembunyikan dari daftar</string>
+    <string name="explorer_settings_hidden_paths_value_none">Tidak ada</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="other">%1$d item</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Anda belum menyembunyikan apa pun. Berkas dan folder tersembunyi muncul di sini.</string>
+    <string name="explorer_hidden_paths_remove_action">Tampilkan kembali %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">Tab ini menggantikan urutan di %1$d folder</item>
     </plurals>

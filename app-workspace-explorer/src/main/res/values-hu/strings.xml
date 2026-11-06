@@ -449,7 +449,7 @@
     <string name="explorer_empty_filtered_title">Nincs megfelelő elem</string>
     <string name="explorer_empty_filtered_caption">Próbáld módosítani a szűrőket</string>
     <string name="explorer_empty_hidden_title">Itt csak rejtett elemek vannak</string>
-    <string name="explorer_empty_hidden_caption">Ez a lap elrejti a ponttal kezdődő nevű elemeket</string>
+    <string name="explorer_empty_hidden_caption">Ez a lap elrejti a ponttal kezdődő nevű elemeket és az általad elrejtett elemeket</string>
     <string name="explorer_empty_show_hidden_action">Rejtett elemek megjelenítése</string>
     <string name="explorer_empty_hidden_or_filtered_title">Nincs több megjeleníthető elem</string>
     <string name="explorer_empty_hidden_or_filtered_caption">A rejtett elemek és a szűrőid a mappa különböző részeit zárják ki</string>
@@ -506,7 +506,7 @@
     <string name="explorer_view_density_compact_label">Tömör</string>
     <string name="explorer_view_density_comfortable_label">Kényelmes</string>
     <string name="explorer_view_density_detailed_label">Részletes</string>
-    <string name="explorer_view_show_hidden_label">Rejtett fájlok megjelenítése</string>
+    <string name="explorer_view_show_hidden_label">Rejtett elemek megjelenítése</string>
     <string name="explorer_view_set_default_action">Beállítás alapértelmezettként</string>
     <string name="explorer_view_detail_created_label">Létrehozva</string>
     <string name="explorer_view_detail_modified_label">Módosítva</string>
@@ -734,6 +734,29 @@
     <string name="explorer_favorites_rename_title">Kedvenc átnevezése</string>
     <string name="explorer_favorites_rename_hint">Kedvenc neve</string>
     <string name="explorer_favorites_rename_description">Csak a kedvencek között szereplő bejegyzés lesz átnevezve, a mappa maga megtartja a nevét.</string>
+    <string name="explorer_hide_action">Elrejtés</string>
+    <string name="explorer_unhide_action">Elrejtés visszavonása</string>
+    <string name="explorer_hide_file_subtitle">Kimarad a listákból, a fájl a helyén marad</string>
+    <string name="explorer_unhide_file_subtitle">Újra megjelenik a listákban</string>
+    <string name="explorer_hidden_feedback_message">%1$s elrejtve</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d elem elrejtve</item>
+        <item quantity="other">%1$d elem elrejtve</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Halványítva látható marad, amíg ez a lap megjeleníti a rejtett elemeket</item>
+        <item quantity="other">Halványítva láthatók maradnak, amíg ez a lap megjeleníti a rejtett elemeket</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Ne jelenjen meg</string>
+    <string name="explorer_settings_hidden_paths_title">Rejtett elemek</string>
+    <string name="explorer_settings_hidden_paths_desc">A listákból általad elrejtett fájlok és mappák</string>
+    <string name="explorer_settings_hidden_paths_value_none">Nincs</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d elem</item>
+        <item quantity="other">%1$d elem</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Még semmit nem rejtettél el. Az elrejtett fájlok és mappák itt jelennek meg.</string>
+    <string name="explorer_hidden_paths_remove_action">Elrejtés visszavonása: %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Ez a lap felülírja a rendezést %1$d mappában</item>
         <item quantity="other">Ez a lap felülírja a rendezést %1$d mappában</item>

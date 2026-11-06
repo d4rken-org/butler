@@ -517,7 +517,7 @@
     <string name="explorer_empty_filtered_title">Brak pasujących elementów</string>
     <string name="explorer_empty_filtered_caption">Spróbuj dostosować filtry</string>
     <string name="explorer_empty_hidden_title">Tu są tylko ukryte elementy</string>
-    <string name="explorer_empty_hidden_caption">Ta karta ukrywa elementy, których nazwa zaczyna się od kropki</string>
+    <string name="explorer_empty_hidden_caption">Ta karta ukrywa elementy, których nazwa zaczyna się od kropki, oraz elementy ukryte przez Ciebie</string>
     <string name="explorer_empty_show_hidden_action">Pokaż ukryte elementy</string>
     <string name="explorer_empty_hidden_or_filtered_title">Nic więcej do pokazania</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Ukryte elementy i Twoje filtry wykluczają część tego folderu</string>
@@ -584,7 +584,7 @@
     <string name="explorer_view_density_compact_label">Kompaktowy</string>
     <string name="explorer_view_density_comfortable_label">Komfortowy</string>
     <string name="explorer_view_density_detailed_label">Szczegółowy</string>
-    <string name="explorer_view_show_hidden_label">Pokaż ukryte pliki</string>
+    <string name="explorer_view_show_hidden_label">Pokaż ukryte elementy</string>
     <string name="explorer_view_set_default_action">Ustaw jako domyślne</string>
     <string name="explorer_view_detail_created_label">Utworzono</string>
     <string name="explorer_view_detail_modified_label">Zmodyfikowano</string>
@@ -887,6 +887,37 @@
     <string name="explorer_favorites_rename_title">Zmień nazwę ulubionego</string>
     <string name="explorer_favorites_rename_hint">Nazwa ulubionego</string>
     <string name="explorer_favorites_rename_description">Zmieniana jest tylko nazwa wpisu w ulubionych, sam folder zachowuje swoją nazwę.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Ukryj</string>
+    <string name="explorer_unhide_action">Odkryj</string>
+    <string name="explorer_hide_file_subtitle">Pomiń na listach, plik pozostanie na swoim miejscu</string>
+    <string name="explorer_unhide_file_subtitle">Ponownie pokazuj na listach</string>
+    <string name="explorer_hidden_feedback_message">Ukryto %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">Ukryto %1$d element</item>
+        <item quantity="few">Ukryto %1$d elementy</item>
+        <item quantity="many">Ukryto %1$d elementów</item>
+        <item quantity="other">Ukryto %1$d elementu</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Pozostaje widoczny, przyciemniony, gdy ta karta pokazuje ukryte elementy</item>
+        <item quantity="few">Pozostają widoczne, przyciemnione, gdy ta karta pokazuje ukryte elementy</item>
+        <item quantity="many">Pozostają widoczne, przyciemnione, gdy ta karta pokazuje ukryte elementy</item>
+        <item quantity="other">Pozostają widoczne, przyciemnione, gdy ta karta pokazuje ukryte elementy</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Nie pokazuj</string>
+    <string name="explorer_settings_hidden_paths_title">Ukryte elementy</string>
+    <string name="explorer_settings_hidden_paths_desc">Pliki i foldery ukryte przez Ciebie na listach</string>
+    <string name="explorer_settings_hidden_paths_value_none">Brak</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d element</item>
+        <item quantity="few">%1$d elementy</item>
+        <item quantity="many">%1$d elementów</item>
+        <item quantity="other">%1$d elementu</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Nic nie zostało ukryte. Ukryte pliki i foldery pojawią się tutaj.</string>
+    <string name="explorer_hidden_paths_remove_action">Odkryj %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Ta karta zastępuje kolejność sortowania w %1$d folderze</item>
         <item quantity="few">Ta karta zastępuje kolejność sortowania w %1$d folderach</item>

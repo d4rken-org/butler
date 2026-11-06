@@ -519,7 +519,7 @@
     <string name="explorer_empty_filtered_title">Žiadne zodpovedajúce položky</string>
     <string name="explorer_empty_filtered_caption">Skús upraviť filtre</string>
     <string name="explorer_empty_hidden_title">Sú tu len skryté položky</string>
-    <string name="explorer_empty_hidden_caption">Táto karta skrýva položky, ktorých názov začína bodkou</string>
+    <string name="explorer_empty_hidden_caption">Táto karta skrýva položky, ktorých názov začína bodkou, a ručne skryté položky</string>
     <string name="explorer_empty_show_hidden_action">Zobraziť skryté položky</string>
     <string name="explorer_empty_hidden_or_filtered_title">Nezostalo nič na zobrazenie</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Skryté položky aj tvoje filtre vylučujú časť obsahu tohto priečinka</string>
@@ -586,7 +586,7 @@
     <string name="explorer_view_density_compact_label">Kompaktné</string>
     <string name="explorer_view_density_comfortable_label">Pohodlné</string>
     <string name="explorer_view_density_detailed_label">Podrobné</string>
-    <string name="explorer_view_show_hidden_label">Zobraziť skryté súbory</string>
+    <string name="explorer_view_show_hidden_label">Zobraziť skryté položky</string>
     <string name="explorer_view_set_default_action">Nastaviť ako predvolené</string>
     <string name="explorer_view_detail_created_label">Vytvorenie</string>
     <string name="explorer_view_detail_modified_label">Úprava</string>
@@ -886,6 +886,37 @@
     <string name="explorer_favorites_rename_title">Premenovať obľúbenú položku</string>
     <string name="explorer_favorites_rename_hint">Názov obľúbenej položky</string>
     <string name="explorer_favorites_rename_description">Premenuje sa len záznam v tvojich obľúbených, samotný priečinok si ponechá svoj názov.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Skryť</string>
+    <string name="explorer_unhide_action">Zrušiť skrytie</string>
+    <string name="explorer_hide_file_subtitle">Vynechať zo zoznamov, súbor zostane na svojom mieste</string>
+    <string name="explorer_unhide_file_subtitle">Znova zobrazovať v zoznamoch</string>
+    <string name="explorer_hidden_feedback_message">Skryté: %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">Skrytá %1$d položka</item>
+        <item quantity="few">Skryté %1$d položky</item>
+        <item quantity="many">Skryté položky (počet: %1$d)</item>
+        <item quantity="other">Skrytých %1$d položiek</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Zostane viditeľná, stlmená, kým táto karta zobrazuje skryté položky</item>
+        <item quantity="few">Zostanú viditeľné, stlmené, kým táto karta zobrazuje skryté položky</item>
+        <item quantity="many">Zostanú viditeľné, stlmené, kým táto karta zobrazuje skryté položky</item>
+        <item quantity="other">Zostanú viditeľné, stlmené, kým táto karta zobrazuje skryté položky</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Nezobrazovať</string>
+    <string name="explorer_settings_hidden_paths_title">Skryté položky</string>
+    <string name="explorer_settings_hidden_paths_desc">Súbory a priečinky skryté zo zoznamov</string>
+    <string name="explorer_settings_hidden_paths_value_none">Žiadne</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d položka</item>
+        <item quantity="few">%1$d položky</item>
+        <item quantity="many">%1$d položky</item>
+        <item quantity="other">%1$d položiek</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Nič nie je skryté. Skryté súbory a priečinky sa zobrazia tu.</string>
+    <string name="explorer_hidden_paths_remove_action">Zrušiť skrytie %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Táto karta má vlastné poradie zoradenia v %1$d priečinku</item>
         <item quantity="few">Táto karta má vlastné poradie zoradenia v %1$d priečinkoch</item>

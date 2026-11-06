@@ -496,7 +496,7 @@
     <string name="explorer_empty_filtered_title">Няма съответстващи елементи</string>
     <string name="explorer_empty_filtered_caption">Опитай да промениш филтрите си</string>
     <string name="explorer_empty_hidden_title">Тук има само скрити елементи</string>
-    <string name="explorer_empty_hidden_caption">Този раздел скрива елементи, чието име започва с точка</string>
+    <string name="explorer_empty_hidden_caption">Този раздел скрива елементи, чието име започва с точка, и елементите, скрити от теб</string>
     <string name="explorer_empty_show_hidden_action">Покажи скритите елементи</string>
     <string name="explorer_empty_hidden_or_filtered_title">Няма повече елементи за показване</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Скритите елементи и филтрите ти изключват различни части от съдържанието на тази папка</string>
@@ -563,7 +563,7 @@
     <string name="explorer_view_density_compact_label">Компактно</string>
     <string name="explorer_view_density_comfortable_label">Удобно</string>
     <string name="explorer_view_density_detailed_label">Подробно</string>
-    <string name="explorer_view_show_hidden_label">Покажи скритите файлове</string>
+    <string name="explorer_view_show_hidden_label">Покажи скритите елементи</string>
     <string name="explorer_view_set_default_action">Задай по подразбиране</string>
     <string name="explorer_view_detail_created_label">Създаване</string>
     <string name="explorer_view_detail_modified_label">Промяна</string>
@@ -826,6 +826,31 @@
     <string name="explorer_favorites_rename_title">Преименувай любимия елемент</string>
     <string name="explorer_favorites_rename_hint">Име на любимия елемент</string>
     <string name="explorer_favorites_rename_description">Преименува се само записът в любими, а самата папка запазва името си.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Скрий</string>
+    <string name="explorer_unhide_action">Покажи отново</string>
+    <string name="explorer_hide_file_subtitle">Изключва го от списъците, файлът остава на мястото си</string>
+    <string name="explorer_unhide_file_subtitle">Показва го отново в списъците</string>
+    <string name="explorer_hidden_feedback_message">Скрито: %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d елемент е скрит</item>
+        <item quantity="other">%1$d елемента са скрити</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Остава видим, но затъмнен, докато този раздел показва скритите елементи</item>
+        <item quantity="other">Остават видими, но затъмнени, докато този раздел показва скритите елементи</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Не показвай</string>
+    <string name="explorer_settings_hidden_paths_title">Скрити елементи</string>
+    <string name="explorer_settings_hidden_paths_desc">Файлове и папки, които скри от списъците</string>
+    <string name="explorer_settings_hidden_paths_value_none">Няма</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d елемент</item>
+        <item quantity="other">%1$d елемента</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Нищо не е скрито. Скритите файлове и папки се показват тук.</string>
+    <string name="explorer_hidden_paths_remove_action">Покажи отново %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Този раздел замества реда на сортиране в %1$d папка</item>
         <item quantity="other">Този раздел замества реда на сортиране в %1$d папки</item>

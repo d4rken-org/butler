@@ -519,7 +519,7 @@
     <string name="explorer_empty_filtered_title">Нет подходящих объектов</string>
     <string name="explorer_empty_filtered_caption">Попробуйте изменить фильтры</string>
     <string name="explorer_empty_hidden_title">Здесь только скрытые объекты</string>
-    <string name="explorer_empty_hidden_caption">На этой вкладке скрыты объекты, имя которых начинается с точки</string>
+    <string name="explorer_empty_hidden_caption">На этой вкладке скрыты объекты, имя которых начинается с точки, и объекты, скрытые вручную</string>
     <string name="explorer_empty_show_hidden_action">Показать скрытые объекты</string>
     <string name="explorer_empty_hidden_or_filtered_title">Больше нечего показывать</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Скрытые объекты и ваши фильтры исключают часть этой папки</string>
@@ -586,7 +586,7 @@
     <string name="explorer_view_density_compact_label">Компактно</string>
     <string name="explorer_view_density_comfortable_label">Комфортно</string>
     <string name="explorer_view_density_detailed_label">Подробно</string>
-    <string name="explorer_view_show_hidden_label">Показывать скрытые файлы</string>
+    <string name="explorer_view_show_hidden_label">Показывать скрытые объекты</string>
     <string name="explorer_view_set_default_action">Сделать по умолчанию</string>
     <string name="explorer_view_detail_created_label">Создан</string>
     <string name="explorer_view_detail_modified_label">Изменено</string>
@@ -889,6 +889,37 @@
     <string name="explorer_favorites_rename_title">Переименовать избранное</string>
     <string name="explorer_favorites_rename_hint">Название избранного</string>
     <string name="explorer_favorites_rename_description">Переименовывается только запись в избранном, сама папка сохраняет своё имя.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Скрыть</string>
+    <string name="explorer_unhide_action">Отменить скрытие</string>
+    <string name="explorer_hide_file_subtitle">Не показывать в списках, файл останется на месте</string>
+    <string name="explorer_unhide_file_subtitle">Снова показывать в списках</string>
+    <string name="explorer_hidden_feedback_message">Скрыто: %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d объект скрыт</item>
+        <item quantity="few">%1$d объекта скрыто</item>
+        <item quantity="many">%1$d объектов скрыто</item>
+        <item quantity="other">%1$d объекта скрыто</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Он остаётся видимым, но затемнённым, пока на этой вкладке показываются скрытые объекты</item>
+        <item quantity="few">Они остаются видимыми, но затемнёнными, пока на этой вкладке показываются скрытые объекты</item>
+        <item quantity="many">Они остаются видимыми, но затемнёнными, пока на этой вкладке показываются скрытые объекты</item>
+        <item quantity="other">Они остаются видимыми, но затемнёнными, пока на этой вкладке показываются скрытые объекты</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Не показывать</string>
+    <string name="explorer_settings_hidden_paths_title">Скрытые объекты</string>
+    <string name="explorer_settings_hidden_paths_desc">Файлы и папки, скрытые из списков</string>
+    <string name="explorer_settings_hidden_paths_value_none">Нет</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d объект</item>
+        <item quantity="few">%1$d объекта</item>
+        <item quantity="many">%1$d объектов</item>
+        <item quantity="other">%1$d объекта</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Ничего не скрыто. Скрытые файлы и папки появятся здесь.</string>
+    <string name="explorer_hidden_paths_remove_action">Отменить скрытие: %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Эта вкладка переопределяет порядок сортировки в %1$d папке</item>
         <item quantity="few">Эта вкладка переопределяет порядок сортировки в %1$d папках</item>

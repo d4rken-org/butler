@@ -509,7 +509,7 @@
     <string name="explorer_empty_filtered_title">Nema podudarnih stavki</string>
     <string name="explorer_empty_filtered_caption">Pokušaj prilagoditi filtre</string>
     <string name="explorer_empty_hidden_title">Ovdje su samo skrivene stavke</string>
-    <string name="explorer_empty_hidden_caption">Ova kartica skriva stavke čiji naziv počinje točkom</string>
+    <string name="explorer_empty_hidden_caption">Ova kartica skriva stavke čiji naziv počinje točkom i ručno skrivene stavke</string>
     <string name="explorer_empty_show_hidden_action">Prikaži skrivene stavke</string>
     <string name="explorer_empty_hidden_or_filtered_title">Nema više ničeg za prikaz</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Skrivene stavke i tvoji filtri isključuju svaki svoj dio ove mape</string>
@@ -576,7 +576,7 @@
     <string name="explorer_view_density_compact_label">Zbijeno</string>
     <string name="explorer_view_density_comfortable_label">Prostrano</string>
     <string name="explorer_view_density_detailed_label">Detaljno</string>
-    <string name="explorer_view_show_hidden_label">Prikaži skrivene datoteke</string>
+    <string name="explorer_view_show_hidden_label">Prikaži skrivene stavke</string>
     <string name="explorer_view_set_default_action">Postavi kao zadano</string>
     <string name="explorer_view_detail_created_label">Stvoreno</string>
     <string name="explorer_view_detail_modified_label">Izmijenjeno</string>
@@ -861,6 +861,34 @@
     <string name="explorer_favorites_rename_title">Preimenuj favorit</string>
     <string name="explorer_favorites_rename_hint">Naziv favorita</string>
     <string name="explorer_favorites_rename_description">Preimenuje se samo unos u tvojim favoritima, a sama mapa zadržava svoj naziv.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Sakrij</string>
+    <string name="explorer_unhide_action">Poništi skrivanje</string>
+    <string name="explorer_hide_file_subtitle">Izostavi iz popisa, datoteka ostaje gdje jest</string>
+    <string name="explorer_unhide_file_subtitle">Ponovno prikaži u popisima</string>
+    <string name="explorer_hidden_feedback_message">Skriveno: %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d stavka skrivena</item>
+        <item quantity="few">%1$d stavke skrivene</item>
+        <item quantity="other">%1$d stavki skriveno</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Ostaje vidljiva, zatamnjena, dok ova kartica prikazuje skrivene stavke</item>
+        <item quantity="few">Ostaju vidljive, zatamnjene, dok ova kartica prikazuje skrivene stavke</item>
+        <item quantity="other">Ostaju vidljive, zatamnjene, dok ova kartica prikazuje skrivene stavke</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Ne prikazuj</string>
+    <string name="explorer_settings_hidden_paths_title">Skrivene stavke</string>
+    <string name="explorer_settings_hidden_paths_desc">Datoteke i mape skrivene iz popisa</string>
+    <string name="explorer_settings_hidden_paths_value_none">Nijedna</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d stavka</item>
+        <item quantity="few">%1$d stavke</item>
+        <item quantity="other">%1$d stavki</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Ništa nije skriveno. Ovdje se prikazuju skrivene datoteke i mape.</string>
+    <string name="explorer_hidden_paths_remove_action">Poništi skrivanje: %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Ova kartica nadjačava redoslijed razvrstavanja za %1$d mapu</item>
         <item quantity="few">Ova kartica nadjačava redoslijed razvrstavanja za %1$d mape</item>

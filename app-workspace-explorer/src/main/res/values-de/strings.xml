@@ -494,7 +494,7 @@
     <string name="explorer_empty_filtered_title">Keine passenden Elemente</string>
     <string name="explorer_empty_filtered_caption">Passe Deine Filter an</string>
     <string name="explorer_empty_hidden_title">Hier gibt es nur versteckte Elemente</string>
-    <string name="explorer_empty_hidden_caption">Dieser Tab blendet Elemente aus, deren Name mit einem Punkt beginnt</string>
+    <string name="explorer_empty_hidden_caption">Dieser Tab blendet Elemente aus, deren Name mit einem Punkt beginnt, und Elemente, die Du ausgeblendet hast</string>
     <string name="explorer_empty_show_hidden_action">Versteckte Elemente anzeigen</string>
     <string name="explorer_empty_hidden_or_filtered_title">Nichts mehr anzuzeigen</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Versteckte Elemente und Deine Filter blenden jeweils einen Teil dieses Ordners aus</string>
@@ -561,7 +561,7 @@
     <string name="explorer_view_density_compact_label">Kompakt</string>
     <string name="explorer_view_density_comfortable_label">Komfortabel</string>
     <string name="explorer_view_density_detailed_label">Detailliert</string>
-    <string name="explorer_view_show_hidden_label">Versteckte Dateien anzeigen</string>
+    <string name="explorer_view_show_hidden_label">Versteckte Elemente anzeigen</string>
     <string name="explorer_view_set_default_action">Als Standard festlegen</string>
     <string name="explorer_view_detail_created_label">Erstellt</string>
     <string name="explorer_view_detail_modified_label">Geändert</string>
@@ -821,6 +821,31 @@
     <string name="explorer_favorites_rename_title">Favorit umbenennen</string>
     <string name="explorer_favorites_rename_hint">Name des Favoriten</string>
     <string name="explorer_favorites_rename_description">Nur der Eintrag in Deinen Favoriten wird umbenannt, der Ordner selbst behält seinen Namen.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Ausblenden</string>
+    <string name="explorer_unhide_action">Einblenden</string>
+    <string name="explorer_hide_file_subtitle">Aus Auflistungen ausblenden, die Datei bleibt, wo sie ist</string>
+    <string name="explorer_unhide_file_subtitle">Wieder in Auflistungen anzeigen</string>
+    <string name="explorer_hidden_feedback_message">%1$s ausgeblendet</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d Element ausgeblendet</item>
+        <item quantity="other">%1$d Elemente ausgeblendet</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Es bleibt abgedunkelt sichtbar, solange dieser Tab versteckte Elemente anzeigt</item>
+        <item quantity="other">Sie bleiben abgedunkelt sichtbar, solange dieser Tab versteckte Elemente anzeigt</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Nicht anzeigen</string>
+    <string name="explorer_settings_hidden_paths_title">Versteckte Elemente</string>
+    <string name="explorer_settings_hidden_paths_desc">Dateien und Ordner, die Du aus Auflistungen ausgeblendet hast</string>
+    <string name="explorer_settings_hidden_paths_value_none">Keine</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d Element</item>
+        <item quantity="other">%1$d Elemente</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Du hast nichts ausgeblendet. Ausgeblendete Dateien und Ordner erscheinen hier.</string>
+    <string name="explorer_hidden_paths_remove_action">%1$s einblenden</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Dieser Tab überschreibt die Sortierung in %1$d Ordner</item>
         <item quantity="other">Dieser Tab überschreibt die Sortierung in %1$d Ordnern</item>

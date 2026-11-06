@@ -475,7 +475,7 @@
     <string name="explorer_empty_filtered_title">אין פריטים תואמים</string>
     <string name="explorer_empty_filtered_caption">כדאי לנסות לשנות את המסננים</string>
     <string name="explorer_empty_hidden_title">יש כאן רק פריטים מוסתרים</string>
-    <string name="explorer_empty_hidden_caption">הלשונית הזו מסתירה פריטים ששמם מתחיל בנקודה</string>
+    <string name="explorer_empty_hidden_caption">הלשונית הזו מסתירה פריטים ששמם מתחיל בנקודה ופריטים שהסתרת</string>
     <string name="explorer_empty_show_hidden_action">הצגת פריטים מוסתרים</string>
     <string name="explorer_empty_hidden_or_filtered_title">לא נשאר מה להציג</string>
     <string name="explorer_empty_hidden_or_filtered_caption">הפריטים המוסתרים והמסננים שלך מחריגים כל אחד חלק מהתיקייה הזו</string>
@@ -532,7 +532,7 @@
     <string name="explorer_view_density_compact_label">צפוף</string>
     <string name="explorer_view_density_comfortable_label">מרווח</string>
     <string name="explorer_view_density_detailed_label">מפורט</string>
-    <string name="explorer_view_show_hidden_label">הצגת קבצים מוסתרים</string>
+    <string name="explorer_view_show_hidden_label">הצגת פריטים מוסתרים</string>
     <string name="explorer_view_set_default_action">הגדרה כברירת מחדל</string>
     <string name="explorer_view_detail_created_label">יצירה</string>
     <string name="explorer_view_detail_modified_label">שינוי</string>
@@ -804,6 +804,35 @@
     <string name="explorer_favorites_rename_title">שינוי שם המועדף</string>
     <string name="explorer_favorites_rename_hint">שם המועדף</string>
     <string name="explorer_favorites_rename_description">רק שם הרשומה במועדפים משתנה, התיקייה עצמה שומרת על שמה.</string>
+    <string name="explorer_hide_action">הסתרה</string>
+    <string name="explorer_unhide_action">ביטול הסתרה</string>
+    <string name="explorer_hide_file_subtitle">השמטה מהרשימות, הקובץ נשאר במקומו</string>
+    <string name="explorer_unhide_file_subtitle">הצגה מחדש ברשימות</string>
+    <string name="explorer_hidden_feedback_message">%1$s הוסתר</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d פריט הוסתר</item>
+        <item quantity="two">%1$d פריטים הוסתרו</item>
+        <item quantity="many">%1$d פריטים הוסתרו</item>
+        <item quantity="other">%1$d פריטים הוסתרו</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">הפריט נשאר גלוי ומעומעם כל עוד הלשונית הזו מציגה פריטים מוסתרים</item>
+        <item quantity="two">הפריטים נשארים גלויים ומעומעמים כל עוד הלשונית הזו מציגה פריטים מוסתרים</item>
+        <item quantity="many">הפריטים נשארים גלויים ומעומעמים כל עוד הלשונית הזו מציגה פריטים מוסתרים</item>
+        <item quantity="other">הפריטים נשארים גלויים ומעומעמים כל עוד הלשונית הזו מציגה פריטים מוסתרים</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">לא להציג</string>
+    <string name="explorer_settings_hidden_paths_title">פריטים מוסתרים</string>
+    <string name="explorer_settings_hidden_paths_desc">קבצים ותיקיות שהסתרת מהרשימות</string>
+    <string name="explorer_settings_hidden_paths_value_none">אין</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d פריט</item>
+        <item quantity="two">%1$d פריטים</item>
+        <item quantity="many">%1$d פריטים</item>
+        <item quantity="other">%1$d פריטים</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">עדיין לא הסתרת שום דבר. קבצים ותיקיות מוסתרים יופיעו כאן.</string>
+    <string name="explorer_hidden_paths_remove_action">ביטול הסתרה של %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">הלשונית הזו עוקפת את סדר המיון ב־%1$d תיקייה</item>
         <item quantity="two">הלשונית הזו עוקפת את סדר המיון ב־%1$d תיקיות</item>

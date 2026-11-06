@@ -481,7 +481,7 @@
     <string name="explorer_empty_filtered_title">ไม่มีรายการที่ตรงกัน</string>
     <string name="explorer_empty_filtered_caption">ลองปรับตัวกรองดู</string>
     <string name="explorer_empty_hidden_title">มีเฉพาะรายการที่ซ่อนอยู่ที่นี่</string>
-    <string name="explorer_empty_hidden_caption">แท็บนี้ซ่อนรายการที่ชื่อขึ้นต้นด้วยจุด</string>
+    <string name="explorer_empty_hidden_caption">แท็บนี้ซ่อนรายการที่ชื่อขึ้นต้นด้วยจุดและรายการที่คุณซ่อนไว้</string>
     <string name="explorer_empty_show_hidden_action">แสดงรายการที่ซ่อนอยู่</string>
     <string name="explorer_empty_hidden_or_filtered_title">ไม่มีอะไรให้แสดงแล้ว</string>
     <string name="explorer_empty_hidden_or_filtered_caption">รายการที่ซ่อนอยู่และตัวกรองต่างก็ซ่อนบางส่วนของโฟลเดอร์นี้</string>
@@ -548,7 +548,7 @@
     <string name="explorer_view_density_compact_label">กระชับ</string>
     <string name="explorer_view_density_comfortable_label">สบายตา</string>
     <string name="explorer_view_density_detailed_label">ละเอียด</string>
-    <string name="explorer_view_show_hidden_label">แสดงไฟล์ที่ซ่อนอยู่</string>
+    <string name="explorer_view_show_hidden_label">แสดงรายการที่ซ่อนอยู่</string>
     <string name="explorer_view_set_default_action">ตั้งเป็นค่าเริ่มต้น</string>
     <string name="explorer_view_detail_created_label">สร้างเมื่อ</string>
     <string name="explorer_view_detail_modified_label">แก้ไขเมื่อ</string>
@@ -785,6 +785,28 @@
     <string name="explorer_favorites_rename_title">เปลี่ยนชื่อรายการโปรด</string>
     <string name="explorer_favorites_rename_hint">ชื่อรายการโปรด</string>
     <string name="explorer_favorites_rename_description">เปลี่ยนชื่อเฉพาะรายการในรายการโปรดเท่านั้น ส่วนโฟลเดอร์จริงยังคงใช้ชื่อเดิม</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">ซ่อน</string>
+    <string name="explorer_unhide_action">เลิกซ่อน</string>
+    <string name="explorer_hide_file_subtitle">ไม่แสดงในรายการ ไฟล์ยังคงอยู่ที่เดิม</string>
+    <string name="explorer_unhide_file_subtitle">แสดงในรายการอีกครั้ง</string>
+    <string name="explorer_hidden_feedback_message">ซ่อน %1$s แล้ว</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="other">ซ่อน %1$d รายการแล้ว</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="other">รายการจะยังมองเห็นได้แบบจางลงขณะที่แท็บนี้แสดงรายการที่ซ่อนอยู่</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">ไม่ต้องแสดง</string>
+    <string name="explorer_settings_hidden_paths_title">รายการที่ซ่อนอยู่</string>
+    <string name="explorer_settings_hidden_paths_desc">ไฟล์และโฟลเดอร์ที่คุณซ่อนจากรายการ</string>
+    <string name="explorer_settings_hidden_paths_value_none">ไม่มี</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="other">%1$d รายการ</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">คุณยังไม่ได้ซ่อนอะไรเลย ไฟล์และโฟลเดอร์ที่ซ่อนไว้จะแสดงที่นี่</string>
+    <string name="explorer_hidden_paths_remove_action">เลิกซ่อน %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">แท็บนี้แทนที่ลำดับการเรียงใน %1$d โฟลเดอร์</item>
     </plurals>

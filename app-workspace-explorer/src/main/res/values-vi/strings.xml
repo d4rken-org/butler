@@ -481,7 +481,7 @@
     <string name="explorer_empty_filtered_title">Không có mục nào khớp</string>
     <string name="explorer_empty_filtered_caption">Hãy thử điều chỉnh bộ lọc của bạn</string>
     <string name="explorer_empty_hidden_title">Chỉ có mục ẩn ở đây</string>
-    <string name="explorer_empty_hidden_caption">Thẻ này ẩn các mục có tên bắt đầu bằng dấu chấm</string>
+    <string name="explorer_empty_hidden_caption">Thẻ này ẩn các mục có tên bắt đầu bằng dấu chấm và các mục bạn đã ẩn</string>
     <string name="explorer_empty_show_hidden_action">Hiện mục ẩn</string>
     <string name="explorer_empty_hidden_or_filtered_title">Không còn gì để hiển thị</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Mục ẩn và các bộ lọc của bạn đều loại trừ một phần của thư mục này</string>
@@ -548,7 +548,7 @@
     <string name="explorer_view_density_compact_label">Gọn</string>
     <string name="explorer_view_density_comfortable_label">Vừa phải</string>
     <string name="explorer_view_density_detailed_label">Chi tiết</string>
-    <string name="explorer_view_show_hidden_label">Hiện tệp ẩn</string>
+    <string name="explorer_view_show_hidden_label">Hiện mục ẩn</string>
     <string name="explorer_view_set_default_action">Đặt làm mặc định</string>
     <string name="explorer_view_detail_created_label">Đã tạo</string>
     <string name="explorer_view_detail_modified_label">Đã sửa đổi</string>
@@ -785,6 +785,26 @@
     <string name="explorer_favorites_rename_title">Đổi tên mục yêu thích</string>
     <string name="explorer_favorites_rename_hint">Tên mục yêu thích</string>
     <string name="explorer_favorites_rename_description">Chỉ mục trong danh sách yêu thích được đổi tên, bản thân thư mục vẫn giữ nguyên tên.</string>
+    <string name="explorer_hide_action">Ẩn</string>
+    <string name="explorer_unhide_action">Bỏ ẩn</string>
+    <string name="explorer_hide_file_subtitle">Không hiện trong danh sách, tệp vẫn ở nguyên chỗ cũ</string>
+    <string name="explorer_unhide_file_subtitle">Hiện lại trong danh sách</string>
+    <string name="explorer_hidden_feedback_message">Đã ẩn %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="other">Đã ẩn %1$d mục</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="other">Mục vẫn hiển thị nhưng được làm mờ khi thẻ này hiện mục ẩn</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Không hiện</string>
+    <string name="explorer_settings_hidden_paths_title">Mục ẩn</string>
+    <string name="explorer_settings_hidden_paths_desc">Tệp và thư mục bạn đã ẩn khỏi danh sách</string>
+    <string name="explorer_settings_hidden_paths_value_none">Không có</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="other">%1$d mục</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Bạn chưa ẩn mục nào. Tệp và thư mục đã ẩn sẽ hiển thị ở đây.</string>
+    <string name="explorer_hidden_paths_remove_action">Bỏ ẩn %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">Thẻ này ghi đè thứ tự sắp xếp trong %1$d thư mục</item>
     </plurals>

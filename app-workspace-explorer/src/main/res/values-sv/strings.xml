@@ -496,7 +496,7 @@
     <string name="explorer_empty_filtered_title">Inga matchande objekt</string>
     <string name="explorer_empty_filtered_caption">Prova att justera dina filter</string>
     <string name="explorer_empty_hidden_title">Här finns bara dolda objekt</string>
-    <string name="explorer_empty_hidden_caption">Den här fliken döljer objekt vars namn börjar med en punkt</string>
+    <string name="explorer_empty_hidden_caption">Den här fliken döljer objekt vars namn börjar med en punkt och objekt som du har dolt</string>
     <string name="explorer_empty_show_hidden_action">Visa dolda objekt</string>
     <string name="explorer_empty_hidden_or_filtered_title">Inget kvar att visa</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Dolda objekt och dina filter utesluter var sin del av den här mappen</string>
@@ -563,7 +563,7 @@
     <string name="explorer_view_density_compact_label">Kompakt</string>
     <string name="explorer_view_density_comfortable_label">Rymlig</string>
     <string name="explorer_view_density_detailed_label">Detaljerad</string>
-    <string name="explorer_view_show_hidden_label">Visa dolda filer</string>
+    <string name="explorer_view_show_hidden_label">Visa dolda objekt</string>
     <string name="explorer_view_set_default_action">Ange som standard</string>
     <string name="explorer_view_detail_created_label">Skapad</string>
     <string name="explorer_view_detail_modified_label">Ändrad</string>
@@ -826,6 +826,31 @@
     <string name="explorer_favorites_rename_title">Byt namn på favorit</string>
     <string name="explorer_favorites_rename_hint">Favoritnamn</string>
     <string name="explorer_favorites_rename_description">Bara posten i dina favoriter byter namn, själva mappen behåller sitt namn.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Dölj</string>
+    <string name="explorer_unhide_action">Visa igen</string>
+    <string name="explorer_hide_file_subtitle">Utelämna det från listor, filen ligger kvar där den är</string>
+    <string name="explorer_unhide_file_subtitle">Visa det i listor igen</string>
+    <string name="explorer_hidden_feedback_message">%1$s har dolts</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d objekt har dolts</item>
+        <item quantity="other">%1$d objekt har dolts</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Det syns fortfarande, nedtonat, medan den här fliken visar dolda objekt</item>
+        <item quantity="other">De syns fortfarande, nedtonade, medan den här fliken visar dolda objekt</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Visa inte</string>
+    <string name="explorer_settings_hidden_paths_title">Dolda objekt</string>
+    <string name="explorer_settings_hidden_paths_desc">Filer och mappar som du har dolt från listor</string>
+    <string name="explorer_settings_hidden_paths_value_none">Inga</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d objekt</item>
+        <item quantity="other">%1$d objekt</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Du har inte dolt något. Dolda filer och mappar visas här.</string>
+    <string name="explorer_hidden_paths_remove_action">Visa %1$s igen</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Den här fliken åsidosätter sorteringen i %1$d mapp</item>
         <item quantity="other">Den här fliken åsidosätter sorteringen i %1$d mappar</item>
