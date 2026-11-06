@@ -8,12 +8,14 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
+import eu.darken.butler.explorer.core.hidden.ExplorerHiddenPathsRepo
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import javax.inject.Inject
 
 class DirectoryActionProvider @Inject constructor(
     private val favoritesRepo: ExplorerFavoritesRepo,
+    private val hiddenPathsRepo: ExplorerHiddenPathsRepo,
 ) : ExplorerActionProvider {
 
     override fun getActions(
@@ -102,6 +104,10 @@ class DirectoryActionProvider @Inject constructor(
             actions.add(ExplorerActionBarItem.Common.Info())
 
             addFavoritesSelectionAction(actions, selectionState)
+
+            if (!isReadOnlySource) {
+                actions.addAll(hideSelectionActions(selectionState.selectedItems, hiddenPathsRepo::isHidden))
+            }
         } else {
             actions.add(
                 ExplorerActionBarItem.Directory.Create(

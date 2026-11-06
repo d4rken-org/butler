@@ -32,7 +32,7 @@ class ExplorerHiddenPathsRepo @Inject constructor(
         .map { HiddenPaths(it) }
         .stateIn(appScope, SharingStarted.Eagerly, null)
 
-    fun isHidden(path: APath<*>): Boolean = state.value?.keys?.contains(path.sortPathKey()) == true
+    fun isHidden(path: APath<*>): Boolean = state.value?.isHidden(path) == true
 
     /** @return the paths that were actually added; paths already hidden are skipped. */
     suspend fun hideAll(paths: List<APath<*>>): List<APath<*>> {

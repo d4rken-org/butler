@@ -1,8 +1,10 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.core.ExplorerViewStyle
@@ -21,6 +23,8 @@ fun ExplorerDialogHost(
     viewStyle: ExplorerViewStyle,
     trashEnabled: Boolean,
     fileOpenActionsEnabled: Boolean = true,
+    /** False inside a picker, which offers neither Hide nor Unhide. */
+    hideActionsEnabled: Boolean = true,
     vm: ExplorerWorkspaceViewModel?,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
@@ -233,11 +237,16 @@ fun ExplorerDialogHost(
         }
 
         is ExplorerDialogState.FileOptions -> {
+            val hiddenPaths = vm?.hiddenPaths?.collectAsState()?.value
+            val path = dialogState.item.path
             FileOptionsBottomSheet(
                 item = dialogState.item,
                 trashEnabled = trashEnabled,
                 openActionsEnabled = fileOpenActionsEnabled,
                 showInFolder = dialogState.showInFolder,
+                isHidden = hiddenPaths
+                    ?.takeIf { hideActionsEnabled && path !is ArchivePath }
+                    ?.isHidden(path),
                 onDismiss = { vm?.dismissDialog() },
                 onAction = { action -> vm?.executeAction(action) },
                 topInset = topInset,

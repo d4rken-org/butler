@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
@@ -13,9 +14,12 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
+import eu.darken.butler.explorer.core.hidden.ExplorerHiddenPathsRepo
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
@@ -28,7 +32,13 @@ class DirectoryActionProviderTest : BaseTest() {
         every { isFavorite(any()) } returns false
     }
 
-    private fun provider() = DirectoryActionProvider(favoritesRepo)
+    private val hiddenPaths = mutableSetOf<String>()
+
+    private val hiddenPathsRepo = mockk<ExplorerHiddenPathsRepo>().apply {
+        every { isHidden(any()) } answers { firstArg<APath<*>>().path in hiddenPaths }
+    }
+
+    private fun provider() = DirectoryActionProvider(favoritesRepo, hiddenPathsRepo)
 
     private fun directory(items: List<ExplorerItem.Path>?) = ExplorerLocation.Directory(
         items = items,
@@ -212,6 +222,74 @@ class DirectoryActionProviderTest : BaseTest() {
         val actions = selectionActions(directory(null), setOf(MockDataProvider.createMockRegularFile("real.zip")))
 
         actions.any { it is ExplorerActionBarItem.Directory.Extract } shouldBe true
+    }
+
+    private val visibleFile = MockDataProvider.createMockRegularFile("visible.txt")
+    private val hiddenFile = MockDataProvider.createMockRegularFile("hidden.txt")
+
+    private fun hideActionsFor(selected: Set<ExplorerItem>, location: ExplorerLocation = directory(null)) =
+        selectionActions(location, selected).filter {
+            it is ExplorerActionBarItem.Common.HidePaths || it is ExplorerActionBarItem.Common.UnhidePaths
+        }
+
+    @Test
+    fun `a selection that is not on the hide list offers Hide only`() {
+        val actions = hideActionsFor(setOf(visibleFile))
+
+        actions.single().shouldBeInstanceOf<ExplorerActionBarItem.Common.HidePaths>()
+            .items shouldBe listOf(visibleFile.path)
+    }
+
+    @Test
+    fun `a selection on the hide list offers Unhide only`() {
+        hiddenPaths.add(hiddenFile.path.path)
+
+        val actions = hideActionsFor(setOf(hiddenFile))
+
+        actions.single().shouldBeInstanceOf<ExplorerActionBarItem.Common.UnhidePaths>()
+            .items shouldBe listOf(hiddenFile.path)
+    }
+
+    @Test
+    fun `a mixed selection offers both, each acting on its own part`() {
+        hiddenPaths.add(hiddenFile.path.path)
+
+        val actions = hideActionsFor(setOf(visibleFile, hiddenFile))
+
+        actions.filterIsInstance<ExplorerActionBarItem.Common.HidePaths>().single()
+            .items shouldBe listOf(visibleFile.path)
+        actions.filterIsInstance<ExplorerActionBarItem.Common.UnhidePaths>().single()
+            .items shouldBe listOf(hiddenFile.path)
+    }
+
+    @Test
+    fun `archive entries are offered neither Hide nor Unhide`() {
+        val archiveLocation = ExplorerLocation.Directory(
+            items = null,
+            info = ExplorerLocation.Directory.Info(isWritable = true),
+            path = ArchivePath(container, listOf("sub")),
+        )
+
+        hideActionsFor(setOf(archiveEntry("sub", "file.txt")), archiveLocation).shouldBeEmpty()
+        // A stale archive entry carried into a real directory does not get them either.
+        hideActionsFor(setOf(visibleFile, archiveEntry("sub", "file.txt"))).shouldBeEmpty()
+    }
+
+    @Test
+    fun `Hide is a Pro feature and Unhide is not`() {
+        hiddenPaths.add(hiddenFile.path.path)
+
+        val actions = hideActionsFor(setOf(visibleFile, hiddenFile))
+
+        actions.single { it is ExplorerActionBarItem.Common.HidePaths }.isProFeature shouldBe true
+        actions.single { it is ExplorerActionBarItem.Common.UnhidePaths }.isProFeature shouldBe false
+    }
+
+    @Test
+    fun `browsing without a selection offers neither Hide nor Unhide`() {
+        actionsFor(listOf(visibleFile)).none {
+            it is ExplorerActionBarItem.Common.HidePaths || it is ExplorerActionBarItem.Common.UnhidePaths
+        } shouldBe true
     }
 
     companion object {

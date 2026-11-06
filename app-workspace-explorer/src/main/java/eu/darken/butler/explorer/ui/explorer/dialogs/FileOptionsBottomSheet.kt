@@ -25,6 +25,8 @@ import androidx.compose.material.icons.twotone.InstallMobile
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Unarchive
+import androidx.compose.material.icons.twotone.Visibility
+import androidx.compose.material.icons.twotone.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -51,6 +53,7 @@ import coil3.request.ImageRequest
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.rememberIsPro
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -59,6 +62,7 @@ import eu.darken.butler.common.files.toCaString
 import eu.darken.butler.common.DateTimeStyle
 import eu.darken.butler.common.formatDateTime
 import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.common.settings.UpgradeBadge
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
@@ -78,6 +82,9 @@ fun FileOptionsBottomSheet(
     openActionsEnabled: Boolean = true,
     /** Only a listing that is not the file's own folder, i.e. Recent, has somewhere to send the user. */
     showInFolder: Boolean = false,
+    /** Whether the file is on the hide list, picking Hide or Unhide; null offers neither. */
+    isHidden: Boolean? = null,
+    isPro: Boolean = rememberIsPro(),
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
@@ -93,6 +100,8 @@ fun FileOptionsBottomSheet(
             trashEnabled = trashEnabled,
             openActionsEnabled = openActionsEnabled,
             showInFolder = showInFolder,
+            isHidden = isHidden,
+            isPro = isPro,
             onAction = onAction,
         )
     }
@@ -104,6 +113,8 @@ private fun FileOptionsContent(
     trashEnabled: Boolean,
     openActionsEnabled: Boolean,
     showInFolder: Boolean,
+    isHidden: Boolean?,
+    isPro: Boolean,
     onAction: (ExplorerActionBarItem) -> Unit,
 ) {
     val context = LocalContext.current
@@ -330,6 +341,23 @@ private fun FileOptionsContent(
             )
         }
 
+        when (isHidden) {
+            false -> FileActionRow(
+                icon = Icons.TwoTone.VisibilityOff,
+                title = stringResource(R.string.explorer_hide_action),
+                subtitle = stringResource(R.string.explorer_hide_file_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.Common.HidePaths(listOf(item.path))) },
+                showUpgradeBadge = !isPro,
+            )
+            true -> FileActionRow(
+                icon = Icons.TwoTone.Visibility,
+                title = stringResource(R.string.explorer_unhide_action),
+                subtitle = stringResource(R.string.explorer_unhide_file_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.Common.UnhidePaths(listOf(item.path))) },
+            )
+            null -> Unit
+        }
+
         HorizontalDivider()
 
         if (isWritable) {
@@ -397,6 +425,7 @@ private fun FileActionRow(
     onClick: () -> Unit,
     isDestructive: Boolean = false,
     modifier: Modifier = Modifier,
+    showUpgradeBadge: Boolean = false,
 ) {
     Row(
         modifier = modifier
@@ -426,6 +455,11 @@ private fun FileActionRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
+        if (showUpgradeBadge) {
+            Spacer(modifier = Modifier.width(8.dp))
+            UpgradeBadge()
+        }
     }
 }
 
@@ -448,6 +482,7 @@ private fun FileOptionsBottomSheetPreview() {
         trashEnabled = true,
         onDismiss = {},
         onAction = {},
+        isHidden = false,
     )
 }
 
@@ -461,6 +496,7 @@ private fun FileOptionsBottomSheetFromRecentPreview() {
         onDismiss = {},
         onAction = {},
         showInFolder = true,
+        isHidden = false,
     )
 }
 
@@ -474,5 +510,32 @@ private fun FileOptionsBottomSheetInPickerPreview() {
         onDismiss = {},
         onAction = {},
         openActionsEnabled = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FileOptionsBottomSheetHideUpgradePreview() {
+    FileOptionsBottomSheet(
+        item = previewItem(),
+        trashEnabled = true,
+        onDismiss = {},
+        onAction = {},
+        isHidden = false,
+        isPro = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FileOptionsBottomSheetUnhidePreview() {
+    FileOptionsBottomSheet(
+        item = previewItem(),
+        trashEnabled = true,
+        onDismiss = {},
+        onAction = {},
+        isHidden = true,
     )
 }
