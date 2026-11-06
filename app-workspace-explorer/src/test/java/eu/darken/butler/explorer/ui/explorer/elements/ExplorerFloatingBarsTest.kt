@@ -11,8 +11,14 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.explorer.core.hidden.HideFeedback
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.ui.explorer.ExplorerBarKeys
+import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
@@ -51,6 +57,7 @@ class ExplorerFloatingBarsTest : ComposeTest() {
     )
 
     private fun setBars(
+        barsState: ExplorerWorkspaceViewModel.State = state,
         initialOperationsExpanded: Boolean = false,
         initialClipboardExpanded: Boolean = false,
         clipboardState: () -> ClipboardDisplayState = { ClipboardDisplayState(entries = listOf(clip(LATEST_CLIP))) },
@@ -64,7 +71,7 @@ class ExplorerFloatingBarsTest : ComposeTest() {
                     state = stackState,
                 ) {
                     ExplorerBottomBars(
-                        state = state,
+                        state = barsState,
                         vm = null,
                         operationsState = operationsState(),
                         clipboardState = clipboardState(),
@@ -183,6 +190,50 @@ class ExplorerFloatingBarsTest : ComposeTest() {
         }
     }
 
+    private fun hideFeedback(showHiddenOn: Boolean) = HideFeedback(
+        id = 1L,
+        displayName = HIDDEN_NAME.toCaString(),
+        count = 1,
+        showHiddenOn = showHiddenOn,
+    )
+
+    private val dontShowLabel: String
+        get() = context.getString(R.string.explorer_hidden_feedback_dont_show_action)
+
+    @Test
+    fun `the hide feedback confirms without a button while hidden items are not shown`() {
+        setBars(barsState = state.copy(hideFeedback = hideFeedback(showHiddenOn = false))) { OperationsDisplayState() }
+
+        composeTestRule.onNodeWithText(context.getString(R.string.explorer_hidden_feedback_message, HIDDEN_NAME))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(dontShowLabel).assertDoesNotExist()
+    }
+
+    @Test
+    fun `the hide feedback explains the dimming and offers to stop showing hidden items`() {
+        setBars(barsState = state.copy(hideFeedback = hideFeedback(showHiddenOn = true))) { OperationsDisplayState() }
+
+        composeTestRule.onNodeWithText(context.getString(R.string.explorer_hidden_feedback_message, HIDDEN_NAME))
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(
+            context.resources.getQuantityString(R.plurals.explorer_hidden_feedback_dimmed_hint, 1),
+        ).assertIsDisplayed()
+        composeTestRule.onNodeWithText(dontShowLabel).assertIsDisplayed()
+    }
+
+    @Test
+    fun `the hide feedback is suppressed in a picker`() {
+        setBars(
+            barsState = state.copy(
+                hideFeedback = hideFeedback(showHiddenOn = true),
+                pickerConfig = PickerConfig(callerWorkspaceId = Workspace.Id(), selection = PickerConfig.Selection.FileSingle),
+            ),
+        ) { OperationsDisplayState() }
+
+        composeTestRule.onNodeWithText(context.getString(R.string.explorer_hidden_feedback_message, HIDDEN_NAME))
+            .assertDoesNotExist()
+    }
+
     private fun twoCompletedOperations() = OperationsDisplayState(
         operations = listOf(
             MockDataProvider.createMockCompletedOperation(title = COMPLETED_TITLE, minutesAgo = 9),
@@ -197,5 +248,6 @@ class ExplorerFloatingBarsTest : ComposeTest() {
         private const val CLIP_DIR = "/storage/emulated/0/Clips"
         private const val LATEST_CLIP = "latest.txt"
         private const val OLDER_CLIP = "older.txt"
+        private const val HIDDEN_NAME = "notes.txt"
     }
 }

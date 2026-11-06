@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -7,14 +8,24 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.hidden.ExplorerHiddenPathsRepo
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 
 class RecentActionProviderTest : BaseTest() {
 
-    private fun provider() = RecentActionProvider()
+    private val hiddenPaths = mutableSetOf<String>()
+
+    private val hiddenPathsRepo = mockk<ExplorerHiddenPathsRepo>().apply {
+        every { isHidden(any()) } answers { firstArg<APath<*>>().path in hiddenPaths }
+    }
+
+    private fun provider() = RecentActionProvider(hiddenPathsRepo)
 
     private fun file(name: String, canWrite: Boolean? = null) = ExplorerItem.RegularFile(
         lookup = LocalPathLookup(
@@ -128,5 +139,38 @@ class RecentActionProviderTest : BaseTest() {
         val allowed = actionsFor(items = listOf(unknown), selected = setOf(unknown))
         allowed.single { it is ExplorerActionBarItem.Directory.Cut }.isEnabled shouldBe true
         allowed.single { it is ExplorerActionBarItem.Directory.Delete }.isEnabled shouldBe true
+    }
+
+    @Test
+    fun `a selection offers Hide for its visible files and Unhide for its hidden ones`() {
+        val visible = file("visible.pdf")
+        val hidden = file("hidden.pdf")
+        hiddenPaths.add(hidden.path.path)
+
+        val actions = actionsFor(items = listOf(visible, hidden), selected = setOf(visible, hidden))
+
+        val hide = actions.filterIsInstance<ExplorerActionBarItem.Common.HidePaths>().single()
+        hide.items shouldBe listOf(visible.path)
+        hide.isProFeature shouldBe true
+        actions.filterIsInstance<ExplorerActionBarItem.Common.UnhidePaths>().single()
+            .items shouldBe listOf(hidden.path)
+    }
+
+    @Test
+    fun `a selection of only visible files offers Hide only`() {
+        val visible = file("visible.pdf")
+
+        val actions = actionsFor(items = listOf(visible), selected = setOf(visible))
+
+        actions.single { it is ExplorerActionBarItem.Common.HidePaths }
+            .shouldBeInstanceOf<ExplorerActionBarItem.Common.HidePaths>()
+        actions.any { it is ExplorerActionBarItem.Common.UnhidePaths } shouldBe false
+    }
+
+    @Test
+    fun `browsing offers neither Hide nor Unhide`() {
+        actionsFor().none {
+            it is ExplorerActionBarItem.Common.HidePaths || it is ExplorerActionBarItem.Common.UnhidePaths
+        } shouldBe true
     }
 }

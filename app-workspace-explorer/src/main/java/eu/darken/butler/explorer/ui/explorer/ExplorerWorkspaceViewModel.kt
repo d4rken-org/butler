@@ -92,6 +92,7 @@ import eu.darken.butler.explorer.core.favorites.applyFavoritePriority
 import eu.darken.butler.explorer.core.hidden.ExplorerHiddenPathsRepo
 import eu.darken.butler.explorer.core.hidden.HiddenMembership
 import eu.darken.butler.explorer.core.hidden.HiddenPaths
+import eu.darken.butler.explorer.core.hidden.HideFeedback
 import eu.darken.butler.explorer.core.ArchiveCompressionDefaults
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.sizes.DirectorySizeStore
@@ -262,6 +263,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         isPickerActive = { cachedPickerConfig != null },
         revealFavorite = { path -> navigation.revealFavorite(path) },
         showRenameDialog = { path -> showFavoriteRenameDialog(path) },
+        tag = tag,
+    )
+    private val hiddenController = ExplorerHiddenPathsController(
+        hiddenPathsRepo = hiddenPathsRepo,
+        upgradeRepo = upgradeRepo,
+        scope = vmScope,
+        doLaunch = doLaunch,
+        isPickerActive = { cachedPickerConfig != null },
+        isShowingHidden = { viewSettings.viewStyle.value.showHidden },
+        stopShowingHidden = { viewSettings.applyToTab(viewSettings.viewStyle.value.copy(showHidden = false)) },
+        navToUpgrade = ::navToUpgrade,
         tag = tag,
     )
     private val favoritesSelection = ExplorerFavoritesSelectionController(
@@ -507,6 +519,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 // non-picker mode within the 5s window would resurface a stale bar.
                 if (config != null) {
                     favoritesController.clearFeedback()
+                    hiddenController.clearFeedback()
                     favoritesSelection.clear()
                 }
             }
@@ -760,6 +773,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val favoriteSelection: Set<APath<*>> = emptySet(),
         val showHomeFavoritesSection: Boolean = false,
         val favoriteFeedback: FavoriteFeedback? = null,
+        val hideFeedback: HideFeedback? = null,
         /**
          * A reload of the location that is already on screen - pull-to-refresh, the action bar's
          * refresh, a SAF re-grant, a trash operation. Loads for a new target are covered by the
@@ -934,7 +948,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     directorySizes,
                     favoritesSelection.selection,
                     appAttributions,
-                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, openFilesOnTap, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection, appAttributions ->
+                    hiddenController.feedback,
+                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, openFilesOnTap, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection, appAttributions, hideFeedback ->
                     val items = listing?.items
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
@@ -1036,6 +1051,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             && wsStateInner.currentLocation is ExplorerLocation.Home
                             && favorites.isNotEmpty(),
                         favoriteFeedback = favoriteFeedback,
+                        hideFeedback = hideFeedback,
                         appAttributions = appAttributions,
                         directorySizesScannedAt = sizesScannedAt,
                         isCalculatingSizes = isCalculatingSizes,
@@ -1136,6 +1152,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun onSmbUpgradeHintAction() = smbLocations.onUpgradeHintAction()
 
     fun onFavoriteFeedbackRename() = favoritesController.onFeedbackRename()
+
+    fun onHideFeedbackAction() = hiddenController.onFeedbackAction()
+
+    /** For the file options sheet, which offers Hide or Unhide by whether the file is on the list. */
+    val hiddenPaths: StateFlow<HiddenPaths?> get() = hiddenPathsRepo.state
 
     /** Open the rename dialog pre-filled with the favorite's current label. */
     private fun showFavoriteRenameDialog(path: APath<*>) {
@@ -1471,6 +1492,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent -> {
                 favoritesController.toggleCurrent(action.path)
+            }
+            is ExplorerActionBarItem.Common.HidePaths -> {
+                // The sheet closes right away; the selection only once the paths are stored, so a
+                // free user coming back from the upgrade screen still has it.
+                if (dialogs.current() is FileOptions) dismissDialog()
+                hiddenController.hide(action.items, onHidden = ::clearSelection)
+            }
+            is ExplorerActionBarItem.Common.UnhidePaths -> {
+                if (dialogs.current() is FileOptions) dismissDialog()
+                hiddenController.unhide(action.items)
+                clearSelection()
             }
             is ExplorerActionBarItem.Common.Info -> {
                 log(tag) { "showInfo(): ${selection.selectedItems.value.size} items selected" }

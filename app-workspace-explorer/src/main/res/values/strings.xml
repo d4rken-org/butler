@@ -848,6 +848,22 @@
     <string name="explorer_favorites_rename_title">Rename favorite</string>
     <string name="explorer_favorites_rename_hint">Favorite name</string>
     <string name="explorer_favorites_rename_description">Only the entry in your favorites is renamed, the folder itself keeps its name.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Hide</string>
+    <string name="explorer_unhide_action">Unhide</string>
+    <string name="explorer_hide_file_subtitle">Leave it out of listings, the file stays where it is</string>
+    <string name="explorer_unhide_file_subtitle">Show it in listings again</string>
+    <string name="explorer_hidden_feedback_message">%1$s hidden</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d item hidden</item>
+        <item quantity="other">%1$d items hidden</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">It stays visible, dimmed, while this tab shows hidden items</item>
+        <item quantity="other">They stay visible, dimmed, while this tab shows hidden items</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Don\'t show</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">This tab overrides the sort order in %1$d folder</item>
         <item quantity="other">This tab overrides the sort order in %1$d folders</item>
