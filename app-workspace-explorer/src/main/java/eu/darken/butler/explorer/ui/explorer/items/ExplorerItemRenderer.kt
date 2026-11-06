@@ -1,13 +1,20 @@
 package eu.darken.butler.explorer.ui.explorer.items
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.extensions.matches
@@ -29,6 +36,7 @@ import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.ui.dnd.dropZone
 import eu.darken.butler.workspace.ui.dnd.rememberWorkspaceDragSource
@@ -105,6 +113,33 @@ fun ExplorerItemRenderer(
     }
 }
 
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerItemRendererUserHiddenPreview() {
+    val hidden = MockDataProvider.createMockDirectory(name = "Hidden folder")
+    val normal = MockDataProvider.createMockDirectory(name = "Visible folder")
+    val state = MockDataProvider.createReadyState().copy(userHiddenIds = setOf(hidden.id))
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        listOf(normal, hidden).forEach { item ->
+            ExplorerItemRenderer(
+                item = item,
+                viewStyle = ExplorerViewStyle(),
+                state = state,
+                isFocused = false,
+                onItemClick = {},
+                onItemLongClick = {},
+                onItemMoreClick = {},
+                onNavigate = {},
+                onToggleSelection = {},
+            )
+        }
+    }
+}
+
 /** How large this folder is next to the largest one on screen, or null while nothing is scaled. */
 private fun ExplorerItem.Lookup.sizeFractionOf(largest: Long?): Float? {
     if (largest == null || this !is ExplorerItem.RegularDirectory) return null
@@ -145,10 +180,12 @@ private fun ItemContent(
             val onMoreClick = (item as? ExplorerItem.RegularFile)
                 ?.takeIf { state.directOpenEnabled && !showSelection }
                 ?.let { file -> { onItemMoreClick(file) } }
+            val hiddenModifier = if (item.id in state.userHiddenIds) Modifier.alpha(0.5f) else Modifier
             when (viewStyle.mode) {
                 ExplorerViewStyle.Mode.LIST -> {
                     if (recent != null && item is ExplorerItem.File) {
                         RecentItemRow(
+                            modifier = hiddenModifier,
                             item = item,
                             indexedAt = recent.indexedAt[item.id],
                             density = viewStyle.density,
@@ -164,6 +201,7 @@ private fun ItemContent(
                         )
                     } else {
                         LookupItemRow(
+                            modifier = hiddenModifier,
                             item = item,
                             density = viewStyle.density,
                             isSelected = isSelected,
@@ -180,6 +218,7 @@ private fun ItemContent(
                     }
                 }
                 ExplorerViewStyle.Mode.GRID -> LookupItemGrid(
+                    modifier = hiddenModifier,
                     item = item,
                     density = viewStyle.density,
                     isSelected = isSelected,
