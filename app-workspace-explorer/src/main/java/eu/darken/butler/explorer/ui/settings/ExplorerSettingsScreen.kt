@@ -16,6 +16,7 @@ import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.QuestionMark
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.TouchApp
+import androidx.compose.material.icons.twotone.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +68,7 @@ fun ExplorerSettingsScreen(
     onAutoDeleteDaysChanged: (Int) -> Unit,
     onMaxSizeChanged: (Long) -> Unit,
     onClearFolderSortRules: () -> Unit,
+    onOpenHiddenPaths: () -> Unit,
     onOpenStartLocation: () -> Unit,
     onSelectStartLocation: (DefaultStartLocation) -> Unit,
     onChooseStartFolder: () -> Unit,
@@ -164,6 +166,24 @@ fun ExplorerSettingsScreen(
                     subtitle = stringResource(R.string.explorer_settings_filter_regex_desc),
                     checked = state.useRegexPatterns,
                     onCheckedChange = onToggleRegexPatterns,
+                )
+            }
+
+            item {
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.VisibilityOff,
+                    title = stringResource(R.string.explorer_settings_hidden_paths_title),
+                    subtitle = stringResource(R.string.explorer_settings_hidden_paths_desc),
+                    value = if (state.hiddenPathCount > 0) {
+                        pluralStringResource(
+                            R.plurals.explorer_settings_hidden_paths_value,
+                            state.hiddenPathCount,
+                            state.hiddenPathCount,
+                        )
+                    } else {
+                        stringResource(R.string.explorer_settings_hidden_paths_value_none)
+                    },
+                    onClick = onOpenHiddenPaths,
                 )
             }
 
@@ -352,6 +372,7 @@ private fun ExplorerSettingsScreenPreview() {
             useRegexPatterns = false,
             useBackButtonForNavigation = true,
             startLocation = DefaultStartLocation.Directory(LocalPath.build("/storage/emulated/0/Download")),
+            hiddenPathCount = 3,
         ),
         onNavigateUp = {},
         onToggleRegexPatterns = {},
@@ -363,6 +384,7 @@ private fun ExplorerSettingsScreenPreview() {
         onAutoDeleteDaysChanged = {},
         onMaxSizeChanged = {},
         onClearFolderSortRules = {},
+        onOpenHiddenPaths = {},
         onOpenStartLocation = {},
         onSelectStartLocation = {},
         onChooseStartFolder = {},
@@ -391,6 +413,7 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
             onAutoDeleteDaysChanged = { vm.setTrashAutoDeleteDays(it) },
             onMaxSizeChanged = { vm.setTrashMaxSizeMB(it) },
             onClearFolderSortRules = { vm.clearFolderSortRules() },
+            onOpenHiddenPaths = { vm.openHiddenPaths() },
             onOpenStartLocation = { vm.openStartLocationDialog() },
             onSelectStartLocation = { vm.selectStartLocation(it) },
             onChooseStartFolder = { vm.chooseStartFolder() },

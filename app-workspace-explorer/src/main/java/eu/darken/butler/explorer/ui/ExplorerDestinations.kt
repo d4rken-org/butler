@@ -20,3 +20,8 @@ data object DestinationExplorerSettings : NavigationDestination {
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Settings.explorer(): NavigationDestination = DestinationExplorerSettings
+
+@Serializable
+data object DestinationExplorerHiddenPaths : NavigationDestination {
+    private fun readResolve(): Any = DestinationExplorerHiddenPaths
+}
