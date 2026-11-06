@@ -543,7 +543,7 @@
     <string name="explorer_empty_filtered_title">لا عناصر مطابقة</string>
     <string name="explorer_empty_filtered_caption">جرّب تعديل المرشحات</string>
     <string name="explorer_empty_hidden_title">توجد عناصر مخفية فقط هنا</string>
-    <string name="explorer_empty_hidden_caption">يخفي هذا التبويب العناصر التي يبدأ اسمها بنقطة</string>
+    <string name="explorer_empty_hidden_caption">يخفي هذا التبويب العناصر التي يبدأ اسمها بنقطة والعناصر التي أخفيتها</string>
     <string name="explorer_empty_show_hidden_action">إظهار العناصر المخفية</string>
     <string name="explorer_empty_hidden_or_filtered_title">لا شيء لعرضه</string>
     <string name="explorer_empty_hidden_or_filtered_caption">تستبعد العناصر المخفية والمرشحات كل جزء من هذا المجلد</string>
@@ -610,7 +610,7 @@
     <string name="explorer_view_density_compact_label">مضغوط</string>
     <string name="explorer_view_density_comfortable_label">مريح</string>
     <string name="explorer_view_density_detailed_label">مفصّل</string>
-    <string name="explorer_view_show_hidden_label">إظهار الملفات المخفية</string>
+    <string name="explorer_view_show_hidden_label">إظهار العناصر المخفية</string>
     <string name="explorer_view_set_default_action">تعيين كافتراضي</string>
     <string name="explorer_view_detail_created_label">تاريخ الإنشاء</string>
     <string name="explorer_view_detail_modified_label">تاريخ التعديل</string>
@@ -957,6 +957,43 @@
     <string name="explorer_favorites_rename_title">إعادة تسمية المفضلة</string>
     <string name="explorer_favorites_rename_hint">اسم المفضلة</string>
     <string name="explorer_favorites_rename_description">يُعاد تسمية الإدخال في مفضلتك فقط، ويحتفظ المجلد نفسه باسمه.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">إخفاء</string>
+    <string name="explorer_unhide_action">إلغاء الإخفاء</string>
+    <string name="explorer_hide_file_subtitle">استبعاده من القوائم، ويبقى الملف في مكانه</string>
+    <string name="explorer_unhide_file_subtitle">إظهاره في القوائم مجددًا</string>
+    <string name="explorer_hidden_feedback_message">تم إخفاء %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="zero">لم يتم إخفاء أي عنصر</item>
+        <item quantity="one">تم إخفاء عنصر واحد</item>
+        <item quantity="two">تم إخفاء عنصرين</item>
+        <item quantity="few">تم إخفاء %1$d عناصر</item>
+        <item quantity="many">تم إخفاء %1$d عنصرًا</item>
+        <item quantity="other">تم إخفاء %1$d عنصر</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="zero">تبقى ظاهرة بشكل باهت ما دام هذا التبويب يعرض العناصر المخفية</item>
+        <item quantity="one">يبقى ظاهرًا بشكل باهت ما دام هذا التبويب يعرض العناصر المخفية</item>
+        <item quantity="two">يبقيان ظاهرين بشكل باهت ما دام هذا التبويب يعرض العناصر المخفية</item>
+        <item quantity="few">تبقى ظاهرة بشكل باهت ما دام هذا التبويب يعرض العناصر المخفية</item>
+        <item quantity="many">تبقى ظاهرة بشكل باهت ما دام هذا التبويب يعرض العناصر المخفية</item>
+        <item quantity="other">تبقى ظاهرة بشكل باهت ما دام هذا التبويب يعرض العناصر المخفية</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">عدم الإظهار</string>
+    <string name="explorer_settings_hidden_paths_title">العناصر المخفية</string>
+    <string name="explorer_settings_hidden_paths_desc">الملفات والمجلدات التي أخفيتها من القوائم</string>
+    <string name="explorer_settings_hidden_paths_value_none">لا شيء</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="zero">لا عناصر</item>
+        <item quantity="one">عنصر واحد</item>
+        <item quantity="two">عنصران</item>
+        <item quantity="few">%1$d عناصر</item>
+        <item quantity="many">%1$d عنصرًا</item>
+        <item quantity="other">%1$d عنصر</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">لم تُخفِ أي شيء بعد. تظهر هنا الملفات والمجلدات المخفية.</string>
+    <string name="explorer_hidden_paths_remove_action">إلغاء إخفاء %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="zero">لا يتجاوز هذا التبويب ترتيب الفرز في أي مجلد</item>
         <item quantity="one">يتجاوز هذا التبويب ترتيب الفرز في مجلد واحد</item>

@@ -449,7 +449,7 @@
     <string name="explorer_empty_filtered_title">कोई मेल खाता आइटम नहीं</string>
     <string name="explorer_empty_filtered_caption">अपने फ़िल्टर बदलकर देखें</string>
     <string name="explorer_empty_hidden_title">यहाँ केवल छिपे हुए आइटम हैं</string>
-    <string name="explorer_empty_hidden_caption">यह टैब उन आइटम को छिपाता है जिनका नाम बिंदु से शुरू होता है</string>
+    <string name="explorer_empty_hidden_caption">यह टैब उन आइटम को छिपाता है जिनका नाम बिंदु से शुरू होता है और जिन्हें आपने छिपाया है</string>
     <string name="explorer_empty_show_hidden_action">छिपे हुए आइटम दिखाएँ</string>
     <string name="explorer_empty_hidden_or_filtered_title">दिखाने के लिए कुछ नहीं बचा</string>
     <string name="explorer_empty_hidden_or_filtered_caption">छिपे हुए आइटम और आपके फ़िल्टर इस फ़ोल्डर के अलग-अलग हिस्से बाहर रखते हैं</string>
@@ -506,7 +506,7 @@
     <string name="explorer_view_density_compact_label">सघन</string>
     <string name="explorer_view_density_comfortable_label">आरामदायक</string>
     <string name="explorer_view_density_detailed_label">विस्तृत</string>
-    <string name="explorer_view_show_hidden_label">छिपी फ़ाइलें दिखाएँ</string>
+    <string name="explorer_view_show_hidden_label">छिपे हुए आइटम दिखाएँ</string>
     <string name="explorer_view_set_default_action">डिफ़ॉल्ट बनाएँ</string>
     <string name="explorer_view_detail_created_label">बनाई गई</string>
     <string name="explorer_view_detail_modified_label">संशोधित</string>
@@ -734,6 +734,29 @@
     <string name="explorer_favorites_rename_title">पसंदीदा का नाम बदलें</string>
     <string name="explorer_favorites_rename_hint">पसंदीदा का नाम</string>
     <string name="explorer_favorites_rename_description">केवल आपकी पसंदीदा सूची की प्रविष्टि का नाम बदलता है, फ़ोल्डर का नाम वही रहता है।</string>
+    <string name="explorer_hide_action">छिपाएँ</string>
+    <string name="explorer_unhide_action">फिर से दिखाएँ</string>
+    <string name="explorer_hide_file_subtitle">सूचियों से बाहर रखें, फ़ाइल अपनी जगह पर रहती है</string>
+    <string name="explorer_unhide_file_subtitle">सूचियों में फिर से दिखाएँ</string>
+    <string name="explorer_hidden_feedback_message">%1$s छिपाया गया</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d आइटम छिपाया गया</item>
+        <item quantity="other">%1$d आइटम छिपाए गए</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">जब तक यह टैब छिपे हुए आइटम दिखाता है, यह धुंधला होकर दिखता रहता है</item>
+        <item quantity="other">जब तक यह टैब छिपे हुए आइटम दिखाता है, ये धुंधले होकर दिखते रहते हैं</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">न दिखाएँ</string>
+    <string name="explorer_settings_hidden_paths_title">छिपे हुए आइटम</string>
+    <string name="explorer_settings_hidden_paths_desc">वे फ़ाइलें और फ़ोल्डर जिन्हें आपने सूचियों से छिपाया है</string>
+    <string name="explorer_settings_hidden_paths_value_none">कोई नहीं</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d आइटम</item>
+        <item quantity="other">%1$d आइटम</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">आपने अभी तक कुछ नहीं छिपाया है। छिपाई गई फ़ाइलें और फ़ोल्डर यहाँ दिखते हैं।</string>
+    <string name="explorer_hidden_paths_remove_action">%1$s फिर से दिखाएँ</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">यह टैब %1$d फ़ोल्डर का क्रम बदलता है</item>
         <item quantity="other">यह टैब %1$d फ़ोल्डर का क्रम बदलता है</item>

@@ -496,7 +496,7 @@
     <string name="explorer_empty_filtered_title">Walang tumutugmang item</string>
     <string name="explorer_empty_filtered_caption">Subukang baguhin ang mga filter</string>
     <string name="explorer_empty_hidden_title">Mga nakatagong item lang ang narito</string>
-    <string name="explorer_empty_hidden_caption">Itinatago ng tab na ito ang mga item na nagsisimula sa tuldok ang pangalan</string>
+    <string name="explorer_empty_hidden_caption">Itinatago ng tab na ito ang mga item na nagsisimula sa tuldok ang pangalan at ang mga item na itinago mo</string>
     <string name="explorer_empty_show_hidden_action">Ipakita ang mga nakatagong item</string>
     <string name="explorer_empty_hidden_or_filtered_title">Wala nang maipapakita</string>
     <string name="explorer_empty_hidden_or_filtered_caption">May bahagi ng folder na ito na hindi ipinapakita dahil sa mga nakatagong item, at may bahagi ring ibinubukod ng mga filter</string>
@@ -563,7 +563,7 @@
     <string name="explorer_view_density_compact_label">Siksik</string>
     <string name="explorer_view_density_comfortable_label">Maluwag</string>
     <string name="explorer_view_density_detailed_label">Detalyado</string>
-    <string name="explorer_view_show_hidden_label">Ipakita ang mga nakatagong file</string>
+    <string name="explorer_view_show_hidden_label">Ipakita ang mga nakatagong item</string>
     <string name="explorer_view_set_default_action">Itakda bilang default</string>
     <string name="explorer_view_detail_created_label">Ginawa</string>
     <string name="explorer_view_detail_modified_label">Binago</string>
@@ -826,6 +826,31 @@
     <string name="explorer_favorites_rename_title">Palitan ang pangalan ng paborito</string>
     <string name="explorer_favorites_rename_hint">Pangalan ng paborito</string>
     <string name="explorer_favorites_rename_description">Ang entry lang sa mga paborito ang papalitan ng pangalan, mananatili ang pangalan ng mismong folder.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Itago</string>
+    <string name="explorer_unhide_action">Ipakita ulit</string>
+    <string name="explorer_hide_file_subtitle">Huwag isama sa mga listahan, mananatili ang file kung nasaan ito</string>
+    <string name="explorer_unhide_file_subtitle">Ipakita ulit sa mga listahan</string>
+    <string name="explorer_hidden_feedback_message">Itinago ang %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">Itinago ang %1$d item</item>
+        <item quantity="other">Itinago ang %1$d item</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Mananatili itong nakikita pero malabo habang ipinapakita ng tab na ito ang mga nakatagong item</item>
+        <item quantity="other">Mananatili silang nakikita pero malabo habang ipinapakita ng tab na ito ang mga nakatagong item</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Huwag ipakita</string>
+    <string name="explorer_settings_hidden_paths_title">Mga nakatagong item</string>
+    <string name="explorer_settings_hidden_paths_desc">Mga file at folder na itinago mo sa mga listahan</string>
+    <string name="explorer_settings_hidden_paths_value_none">Wala</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d item</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Wala ka pang itinatago. Dito lalabas ang mga nakatagong file at folder.</string>
+    <string name="explorer_hidden_paths_remove_action">Ipakita ulit ang %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Pinapalitan ng tab na ito ang pagkakasunod-sunod sa %1$d folder</item>
         <item quantity="other">Pinapalitan ng tab na ito ang pagkakasunod-sunod sa %1$d na folder</item>

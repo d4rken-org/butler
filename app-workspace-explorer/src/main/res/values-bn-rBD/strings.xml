@@ -499,7 +499,7 @@
     <string name="explorer_empty_filtered_title">কোনো মেলা আইটেম নেই</string>
     <string name="explorer_empty_filtered_caption">ফিল্টার পরিবর্তন করে দেখুন</string>
     <string name="explorer_empty_hidden_title">এখানে শুধু লুকানো আইটেম</string>
-    <string name="explorer_empty_hidden_caption">এই ট্যাব ডট দিয়ে শুরু হওয়া নামের আইটেম লুকায়</string>
+    <string name="explorer_empty_hidden_caption">এই ট্যাব ডট দিয়ে শুরু হওয়া নামের আইটেম এবং আপনার লুকানো আইটেম লুকায়</string>
     <string name="explorer_empty_show_hidden_action">লুকানো আইটেম দেখান</string>
     <string name="explorer_empty_hidden_or_filtered_title">দেখানোর আর কিছু নেই</string>
     <string name="explorer_empty_hidden_or_filtered_caption">লুকানো আইটেম ও আপনার ফিল্টার এই ফোল্ডারের কিছু অংশ বাদ দেয়</string>
@@ -566,7 +566,7 @@
     <string name="explorer_view_density_compact_label">সংক্ষিপ্ত</string>
     <string name="explorer_view_density_comfortable_label">স্বচ্ছন্দ</string>
     <string name="explorer_view_density_detailed_label">বিস্তারিত</string>
-    <string name="explorer_view_show_hidden_label">লুকানো ফাইল দেখান</string>
+    <string name="explorer_view_show_hidden_label">লুকানো আইটেম দেখান</string>
     <string name="explorer_view_set_default_action">ডিফল্ট করুন</string>
     <string name="explorer_view_detail_created_label">তৈরি</string>
     <string name="explorer_view_detail_modified_label">পরিবর্তিত</string>
@@ -829,6 +829,31 @@
     <string name="explorer_favorites_rename_title">পছন্দের নাম বদলান</string>
     <string name="explorer_favorites_rename_hint">পছন্দের নাম</string>
     <string name="explorer_favorites_rename_description">শুধু পছন্দের এন্ট্রির নাম বদলায়, ফোল্ডারের নিজের নাম একই থাকে।</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">লুকান</string>
+    <string name="explorer_unhide_action">আবার দেখান</string>
+    <string name="explorer_hide_file_subtitle">তালিকা থেকে বাদ দিন, ফাইল যেখানে আছে সেখানেই থাকবে</string>
+    <string name="explorer_unhide_file_subtitle">তালিকায় আবার দেখান</string>
+    <string name="explorer_hidden_feedback_message">%1$s লুকানো হয়েছে</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$dটি আইটেম লুকানো হয়েছে</item>
+        <item quantity="other">%1$dটি আইটেম লুকানো হয়েছে</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">এই ট্যাব লুকানো আইটেম দেখানোর সময় এটি ঝাপসা হয়ে দেখা যাবে</item>
+        <item quantity="other">এই ট্যাব লুকানো আইটেম দেখানোর সময় এগুলো ঝাপসা হয়ে দেখা যাবে</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">দেখাবেন না</string>
+    <string name="explorer_settings_hidden_paths_title">লুকানো আইটেম</string>
+    <string name="explorer_settings_hidden_paths_desc">যেসব ফাইল ও ফোল্ডার আপনি তালিকা থেকে লুকিয়েছেন</string>
+    <string name="explorer_settings_hidden_paths_value_none">কিছুই না</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$dটি আইটেম</item>
+        <item quantity="other">%1$dটি আইটেম</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">আপনি এখনও কিছু লুকাননি। লুকানো ফাইল ও ফোল্ডার এখানে দেখা যাবে।</string>
+    <string name="explorer_hidden_paths_remove_action">%1$s আবার দেখান</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">এই ট্যাব %1$dটি ফোল্ডারের সাজানোর ক্রমের বদলে নিজস্ব ক্রম ব্যবহার করে</item>
         <item quantity="other">এই ট্যাব %1$dটি ফোল্ডারের সাজানোর ক্রমের বদলে নিজস্ব ক্রম ব্যবহার করে</item>

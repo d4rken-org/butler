@@ -520,7 +520,7 @@
     <string name="explorer_empty_filtered_title">Žádné odpovídající položky</string>
     <string name="explorer_empty_filtered_caption">Zkuste upravit filtry</string>
     <string name="explorer_empty_hidden_title">Jsou zde pouze skryté položky</string>
-    <string name="explorer_empty_hidden_caption">Tato karta skrývá položky, jejichž název začíná tečkou</string>
+    <string name="explorer_empty_hidden_caption">Tato karta skrývá položky, jejichž název začíná tečkou, a ručně skryté položky</string>
     <string name="explorer_empty_show_hidden_action">Zobrazit skryté položky</string>
     <string name="explorer_empty_hidden_or_filtered_title">Není co zobrazit</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Skryté položky i filtry vylučují část této složky</string>
@@ -587,7 +587,7 @@
     <string name="explorer_view_density_compact_label">Kompaktní</string>
     <string name="explorer_view_density_comfortable_label">Pohodlné</string>
     <string name="explorer_view_density_detailed_label">Podrobné</string>
-    <string name="explorer_view_show_hidden_label">Zobrazit skryté soubory</string>
+    <string name="explorer_view_show_hidden_label">Zobrazit skryté položky</string>
     <string name="explorer_view_set_default_action">Nastavit jako výchozí</string>
     <string name="explorer_view_detail_created_label">Vytvořeno</string>
     <string name="explorer_view_detail_modified_label">Změněno</string>
@@ -890,6 +890,37 @@
     <string name="explorer_favorites_rename_title">Přejmenovat oblíbenou položku</string>
     <string name="explorer_favorites_rename_hint">Název oblíbené položky</string>
     <string name="explorer_favorites_rename_description">Přejmenuje se pouze záznam v oblíbených, složka samotná si ponechá svůj název.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Skrýt</string>
+    <string name="explorer_unhide_action">Zrušit skrytí</string>
+    <string name="explorer_hide_file_subtitle">Vynechat ze seznamů, soubor zůstane na svém místě</string>
+    <string name="explorer_unhide_file_subtitle">Znovu zobrazovat v seznamech</string>
+    <string name="explorer_hidden_feedback_message">Skryto: %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">Skryta %1$d položka</item>
+        <item quantity="few">Skryty %1$d položky</item>
+        <item quantity="many">Skryto %1$d položky</item>
+        <item quantity="other">Skryto %1$d položek</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Zůstane viditelná, ztlumená, dokud tato karta zobrazuje skryté položky</item>
+        <item quantity="few">Zůstanou viditelné, ztlumené, dokud tato karta zobrazuje skryté položky</item>
+        <item quantity="many">Zůstanou viditelné, ztlumené, dokud tato karta zobrazuje skryté položky</item>
+        <item quantity="other">Zůstanou viditelné, ztlumené, dokud tato karta zobrazuje skryté položky</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Nezobrazovat</string>
+    <string name="explorer_settings_hidden_paths_title">Skryté položky</string>
+    <string name="explorer_settings_hidden_paths_desc">Soubory a složky skryté ze seznamů</string>
+    <string name="explorer_settings_hidden_paths_value_none">Žádné</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d položka</item>
+        <item quantity="few">%1$d položky</item>
+        <item quantity="many">%1$d položky</item>
+        <item quantity="other">%1$d položek</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Nic není skryto. Skryté soubory a složky se zobrazí zde.</string>
+    <string name="explorer_hidden_paths_remove_action">Zrušit skrytí %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Tato karta přepisuje pořadí řazení v %1$d složce</item>
         <item quantity="few">Tato karta přepisuje pořadí řazení v %1$d složkách</item>

@@ -481,7 +481,7 @@
     <string name="explorer_empty_filtered_title">沒有符合的項目</string>
     <string name="explorer_empty_filtered_caption">請嘗試調整篩選條件</string>
     <string name="explorer_empty_hidden_title">這裡只有隱藏項目</string>
-    <string name="explorer_empty_hidden_caption">此分頁會隱藏名稱以點開頭的項目</string>
+    <string name="explorer_empty_hidden_caption">此分頁會隱藏名稱以點開頭的項目，以及你隱藏的項目</string>
     <string name="explorer_empty_show_hidden_action">顯示隱藏項目</string>
     <string name="explorer_empty_hidden_or_filtered_title">沒有可顯示的項目</string>
     <string name="explorer_empty_hidden_or_filtered_caption">隱藏項目和篩選條件各自排除了此資料夾的部分內容</string>
@@ -548,7 +548,7 @@
     <string name="explorer_view_density_compact_label">精簡</string>
     <string name="explorer_view_density_comfortable_label">適中</string>
     <string name="explorer_view_density_detailed_label">詳細</string>
-    <string name="explorer_view_show_hidden_label">顯示隱藏檔案</string>
+    <string name="explorer_view_show_hidden_label">顯示隱藏項目</string>
     <string name="explorer_view_set_default_action">設為預設</string>
     <string name="explorer_view_detail_created_label">建立時間</string>
     <string name="explorer_view_detail_modified_label">修改時間</string>
@@ -785,6 +785,26 @@
     <string name="explorer_favorites_rename_title">重新命名我的最愛項目</string>
     <string name="explorer_favorites_rename_hint">我的最愛名稱</string>
     <string name="explorer_favorites_rename_description">僅重新命名我的最愛中的項目，資料夾本身的名稱不會變更。</string>
+    <string name="explorer_hide_action">隱藏</string>
+    <string name="explorer_unhide_action">取消隱藏</string>
+    <string name="explorer_hide_file_subtitle">不在清單中顯示，檔案仍在原處</string>
+    <string name="explorer_unhide_file_subtitle">重新在清單中顯示</string>
+    <string name="explorer_hidden_feedback_message">已隱藏 %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="other">已隱藏 %1$d 個項目</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="other">此分頁顯示隱藏項目時，仍會以淡化樣式顯示</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">不顯示</string>
+    <string name="explorer_settings_hidden_paths_title">隱藏項目</string>
+    <string name="explorer_settings_hidden_paths_desc">你在清單中隱藏的檔案和資料夾</string>
+    <string name="explorer_settings_hidden_paths_value_none">無</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="other">%1$d 個項目</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">你尚未隱藏任何項目。隱藏的檔案和資料夾會顯示在這裡。</string>
+    <string name="explorer_hidden_paths_remove_action">取消隱藏 %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">此分頁在 %1$d 個資料夾中覆寫了排序方式</item>
     </plurals>

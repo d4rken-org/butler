@@ -496,7 +496,7 @@
     <string name="explorer_empty_filtered_title">Ingen matchende elementer</string>
     <string name="explorer_empty_filtered_caption">Prøv at justere dine filtre</string>
     <string name="explorer_empty_hidden_title">Kun skjulte elementer her</string>
-    <string name="explorer_empty_hidden_caption">Denne fane skjuler elementer, hvis navn starter med et punktum</string>
+    <string name="explorer_empty_hidden_caption">Denne fane skjuler elementer, hvis navn starter med et punktum, og elementer, du har skjult</string>
     <string name="explorer_empty_show_hidden_action">Vis skjulte elementer</string>
     <string name="explorer_empty_hidden_or_filtered_title">Intet tilbage at vise</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Skjulte elementer og dine filtre udelukker hver sin del af denne mappe</string>
@@ -563,7 +563,7 @@
     <string name="explorer_view_density_compact_label">Kompakt</string>
     <string name="explorer_view_density_comfortable_label">Luftig</string>
     <string name="explorer_view_density_detailed_label">Detaljeret</string>
-    <string name="explorer_view_show_hidden_label">Vis skjulte filer</string>
+    <string name="explorer_view_show_hidden_label">Vis skjulte elementer</string>
     <string name="explorer_view_set_default_action">Indstil som standard</string>
     <string name="explorer_view_detail_created_label">Oprettet</string>
     <string name="explorer_view_detail_modified_label">Ændret</string>
@@ -826,6 +826,31 @@
     <string name="explorer_favorites_rename_title">Omdøb favorit</string>
     <string name="explorer_favorites_rename_hint">Favoritnavn</string>
     <string name="explorer_favorites_rename_description">Kun posten i dine favoritter bliver omdøbt, selve mappen beholder sit navn.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Skjul</string>
+    <string name="explorer_unhide_action">Vis igen</string>
+    <string name="explorer_hide_file_subtitle">Udelad det fra oversigter, filen bliver, hvor den er</string>
+    <string name="explorer_unhide_file_subtitle">Vis det i oversigter igen</string>
+    <string name="explorer_hidden_feedback_message">%1$s skjult</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d element skjult</item>
+        <item quantity="other">%1$d elementer skjult</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Det forbliver synligt, nedtonet, mens denne fane viser skjulte elementer</item>
+        <item quantity="other">De forbliver synlige, nedtonede, mens denne fane viser skjulte elementer</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Vis ikke</string>
+    <string name="explorer_settings_hidden_paths_title">Skjulte elementer</string>
+    <string name="explorer_settings_hidden_paths_desc">Filer og mapper, du har skjult fra oversigter</string>
+    <string name="explorer_settings_hidden_paths_value_none">Ingen</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d element</item>
+        <item quantity="other">%1$d elementer</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Du har ikke skjult noget. Skjulte filer og mapper vises her.</string>
+    <string name="explorer_hidden_paths_remove_action">Vis %1$s igen</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Denne fane tilsidesætter sorteringen i %1$d mappe</item>
         <item quantity="other">Denne fane tilsidesætter sorteringen i %1$d mapper</item>

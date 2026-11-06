@@ -491,7 +491,7 @@
     <string name="explorer_empty_filtered_title">Nenhum item correspondente</string>
     <string name="explorer_empty_filtered_caption">Tente ajustar seus filtros</string>
     <string name="explorer_empty_hidden_title">Apenas itens ocultos aqui</string>
-    <string name="explorer_empty_hidden_caption">Esta aba oculta itens cujo nome começa com ponto</string>
+    <string name="explorer_empty_hidden_caption">Esta aba oculta itens cujo nome começa com ponto e itens que você ocultou</string>
     <string name="explorer_empty_show_hidden_action">Mostrar itens ocultos</string>
     <string name="explorer_empty_hidden_or_filtered_title">Nada mais para mostrar</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Itens ocultos e seus filtros excluem partes desta pasta</string>
@@ -558,7 +558,7 @@
     <string name="explorer_view_density_compact_label">Compacto</string>
     <string name="explorer_view_density_comfortable_label">Confortável</string>
     <string name="explorer_view_density_detailed_label">Detalhado</string>
-    <string name="explorer_view_show_hidden_label">Mostrar arquivos ocultos</string>
+    <string name="explorer_view_show_hidden_label">Mostrar itens ocultos</string>
     <string name="explorer_view_set_default_action">Definir como padrão</string>
     <string name="explorer_view_detail_created_label">Criado</string>
     <string name="explorer_view_detail_modified_label">Modificado</string>
@@ -817,6 +817,31 @@
     <string name="explorer_favorites_rename_title">Renomear favorito</string>
     <string name="explorer_favorites_rename_hint">Nome do favorito</string>
     <string name="explorer_favorites_rename_description">Apenas a entrada nos seus favoritos é renomeada, a pasta em si mantém seu nome.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Ocultar</string>
+    <string name="explorer_unhide_action">Deixar de ocultar</string>
+    <string name="explorer_hide_file_subtitle">Remove das listagens, o arquivo continua onde está</string>
+    <string name="explorer_unhide_file_subtitle">Mostra nas listagens novamente</string>
+    <string name="explorer_hidden_feedback_message">%1$s ocultado</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d item ocultado</item>
+        <item quantity="other">%1$d itens ocultados</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Ele continua visível, esmaecido, enquanto esta aba mostrar itens ocultos</item>
+        <item quantity="other">Eles continuam visíveis, esmaecidos, enquanto esta aba mostrar itens ocultos</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Não mostrar</string>
+    <string name="explorer_settings_hidden_paths_title">Itens ocultos</string>
+    <string name="explorer_settings_hidden_paths_desc">Arquivos e pastas que você ocultou das listagens</string>
+    <string name="explorer_settings_hidden_paths_value_none">Nenhum</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d itens</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Você não ocultou nada. Arquivos e pastas ocultos aparecem aqui.</string>
+    <string name="explorer_hidden_paths_remove_action">Deixar de ocultar %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Esta aba substitui a ordem de classificação em %1$d pasta</item>
         <item quantity="other">Esta aba substitui a ordem de classificação em %1$d pastas</item>

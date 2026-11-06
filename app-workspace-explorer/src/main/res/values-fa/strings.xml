@@ -494,7 +494,7 @@
     <string name="explorer_empty_filtered_title">موردی مطابقت ندارد</string>
     <string name="explorer_empty_filtered_caption">فیلترهای خود را تنظیم کنید</string>
     <string name="explorer_empty_hidden_title">فقط موارد مخفی اینجا هستند</string>
-    <string name="explorer_empty_hidden_caption">این زبانه مواردی را که نامشان با نقطه شروع می‌شود پنهان می‌کند</string>
+    <string name="explorer_empty_hidden_caption">این زبانه مواردی را که نامشان با نقطه شروع می‌شود و مواردی را که پنهان کرده‌اید پنهان می‌کند</string>
     <string name="explorer_empty_show_hidden_action">نمایش موارد مخفی</string>
     <string name="explorer_empty_hidden_or_filtered_title">چیزی برای نمایش باقی نمانده است</string>
     <string name="explorer_empty_hidden_or_filtered_caption">موارد مخفی و فیلترهای شما هرکدام بخشی از این پوشه را مستثنی می‌کنند</string>
@@ -561,7 +561,7 @@
     <string name="explorer_view_density_compact_label">فشرده</string>
     <string name="explorer_view_density_comfortable_label">راحت</string>
     <string name="explorer_view_density_detailed_label">جزئی</string>
-    <string name="explorer_view_show_hidden_label">نمایش فایل‌های مخفی</string>
+    <string name="explorer_view_show_hidden_label">نمایش موارد مخفی</string>
     <string name="explorer_view_set_default_action">تنظیم به‌عنوان پیش‌فرض</string>
     <string name="explorer_view_detail_created_label">ایجاد شده</string>
     <string name="explorer_view_detail_modified_label">تغییر یافته</string>
@@ -820,6 +820,31 @@
     <string name="explorer_favorites_rename_title">تغییر نام علاقه‌مندی</string>
     <string name="explorer_favorites_rename_hint">نام علاقه‌مندی</string>
     <string name="explorer_favorites_rename_description">فقط ورودی داخل علاقه‌مندی‌های شما تغییر نام می‌دهد، خود پوشه نام خود را حفظ می‌کند.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">پنهان کردن</string>
+    <string name="explorer_unhide_action">لغو پنهان‌سازی</string>
+    <string name="explorer_hide_file_subtitle">از فهرست‌ها کنار گذاشته می‌شود، فایل سر جایش می‌ماند</string>
+    <string name="explorer_unhide_file_subtitle">دوباره در فهرست‌ها نمایش داده می‌شود</string>
+    <string name="explorer_hidden_feedback_message">%1$s پنهان شد</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d مورد پنهان شد</item>
+        <item quantity="other">%1$d مورد پنهان شد</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">تا وقتی این زبانه موارد مخفی را نشان می‌دهد، کم‌رنگ دیده می‌شود</item>
+        <item quantity="other">تا وقتی این زبانه موارد مخفی را نشان می‌دهد، کم‌رنگ دیده می‌شوند</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">نمایش نده</string>
+    <string name="explorer_settings_hidden_paths_title">موارد مخفی</string>
+    <string name="explorer_settings_hidden_paths_desc">فایل‌ها و پوشه‌هایی که از فهرست‌ها پنهان کرده‌اید</string>
+    <string name="explorer_settings_hidden_paths_value_none">هیچ‌کدام</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d مورد</item>
+        <item quantity="other">%1$d مورد</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">هنوز چیزی را پنهان نکرده‌اید. فایل‌ها و پوشه‌های پنهان‌شده اینجا نشان داده می‌شوند.</string>
+    <string name="explorer_hidden_paths_remove_action">لغو پنهان‌سازی %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">این زبانه ترتیب مرتب‌سازی را در %1$d پوشه نادیده می‌گیرد</item>
         <item quantity="other">این زبانه ترتیب مرتب‌سازی را در %1$d پوشه نادیده می‌گیرد</item>
