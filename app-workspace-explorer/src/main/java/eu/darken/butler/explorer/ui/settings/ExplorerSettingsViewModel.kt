@@ -13,11 +13,15 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.DefaultStartLocation
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.SortSettings
+import eu.darken.butler.explorer.core.hidden.ExplorerHiddenPathsRepo
 import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
+import eu.darken.butler.explorer.ui.DestinationExplorerHiddenPaths
 import eu.darken.butler.workspace.contracts.picker.HostedPickerRequests
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,6 +34,7 @@ class ExplorerSettingsViewModel @Inject constructor(
     private val explorerSettings: ExplorerSettings,
     private val trashSettings: TrashSettings,
     private val folderSortRules: FolderSortRulesRepo,
+    hiddenPaths: ExplorerHiddenPathsRepo,
     private val hostedPickers: HostedPickerRequests,
 ) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings", "Screen", "VM")) {
 
@@ -47,13 +52,15 @@ class ExplorerSettingsViewModel @Inject constructor(
         trashSettings.expiresAfter.flow,
         trashSettings.maxTrashSize.flow,
         folderSortRules.count,
+        hiddenPaths.state.filterNotNull().map { it.entries.size },
         trashSettings.confirmTrashMove.flow,
         explorerSettings.defaultStartLocation.flow,
         startLocationDialog,
-    ) { sortSettings, useRegexPatterns, useBackButtonForNavigation, openFilesOnTap, showSystemLocations, recycleBinEnabled, expiresAfter, maxSize, folderSortRuleCount, confirmTrashMove, startLocation, dialog ->
+    ) { sortSettings, useRegexPatterns, useBackButtonForNavigation, openFilesOnTap, showSystemLocations, recycleBinEnabled, expiresAfter, maxSize, folderSortRuleCount, hiddenPathCount, confirmTrashMove, startLocation, dialog ->
         State(
             sortSettings = sortSettings,
             folderSortRuleCount = folderSortRuleCount,
+            hiddenPathCount = hiddenPathCount,
             useRegexPatterns = useRegexPatterns,
             useBackButtonForNavigation = useBackButtonForNavigation,
             openFilesOnTap = openFilesOnTap,
@@ -167,6 +174,11 @@ class ExplorerSettingsViewModel @Inject constructor(
         trashSettings.maxTrashSize.value(sizeMB * 1048576L)
     }
 
+    fun openHiddenPaths() {
+        log(tag) { "openHiddenPaths()" }
+        navTo(DestinationExplorerHiddenPaths)
+    }
+
     fun clearFolderSortRules() = launch {
         log(tag) { "clearFolderSortRules()" }
         folderSortRules.clearAll()
@@ -183,6 +195,7 @@ class ExplorerSettingsViewModel @Inject constructor(
         val trashAutoDeleteDays: Int = 30,
         val trashMaxSizeMB: Long = 500L,
         val folderSortRuleCount: Int = 0,
+        val hiddenPathCount: Int = 0,
         val startLocation: DefaultStartLocation = DefaultStartLocation.Home,
         val startLocationDialog: StartLocationDialog? = null,
     )

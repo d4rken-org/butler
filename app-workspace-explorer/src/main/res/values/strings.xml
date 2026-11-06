@@ -864,6 +864,15 @@
         <item quantity="other">They stay visible, dimmed, while this tab shows hidden items</item>
     </plurals>
     <string name="explorer_hidden_feedback_dont_show_action">Don\'t show</string>
+    <string name="explorer_settings_hidden_paths_title">Hidden items</string>
+    <string name="explorer_settings_hidden_paths_desc">Files and folders you hid from listings</string>
+    <string name="explorer_settings_hidden_paths_value_none">None</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">You haven\'t hidden anything. Hidden files and folders show up here.</string>
+    <string name="explorer_hidden_paths_remove_action">Unhide %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">This tab overrides the sort order in %1$d folder</item>
         <item quantity="other">This tab overrides the sort order in %1$d folders</item>

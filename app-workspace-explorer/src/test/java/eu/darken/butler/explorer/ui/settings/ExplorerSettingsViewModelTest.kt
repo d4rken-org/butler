@@ -8,7 +8,12 @@ import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.explorer.core.DefaultStartLocation
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.SortSettings
+import eu.darken.butler.explorer.core.hidden.ExplorerHiddenPathsRepo
+import eu.darken.butler.explorer.core.hidden.HiddenEntry
+import eu.darken.butler.explorer.core.hidden.HiddenPaths
 import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
+import eu.darken.butler.explorer.core.sorting.rules.sortPathKey
+import eu.darken.butler.explorer.ui.DestinationExplorerHiddenPaths
 import eu.darken.butler.workspace.contracts.picker.HostedPickerRequests
 import eu.darken.butler.workspace.contracts.picker.HostedPickerRequests.Outcome
 import io.kotest.matchers.shouldBe
@@ -19,7 +24,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -58,6 +65,9 @@ class ExplorerSettingsViewModelTest : BaseTest() {
 
     private val folderSortRules: FolderSortRulesRepo = mockk { every { count } returns MutableStateFlow(0) }
 
+    private val hiddenState = MutableStateFlow<HiddenPaths?>(HiddenPaths.EMPTY)
+    private val hiddenPaths: ExplorerHiddenPathsRepo = mockk { every { state } returns hiddenState }
+
     /** Hands out one ticket per request; each outcome resolves when the test says so. */
     private class FakeHostedPickers : HostedPickerRequests {
         val requests = mutableListOf<HostedPickerRequests.Request>()
@@ -92,6 +102,7 @@ class ExplorerSettingsViewModelTest : BaseTest() {
         explorerSettings = explorerSettings,
         trashSettings = trashSettings,
         folderSortRules = folderSortRules,
+        hiddenPaths = hiddenPaths,
         hostedPickers = hostedPickers,
     )
 
@@ -103,6 +114,34 @@ class ExplorerSettingsViewModelTest : BaseTest() {
     @Test
     fun `an unset start location shows as Home`() = runTest {
         createViewModel().current().startLocation shouldBe DefaultStartLocation.Home
+    }
+
+    @Test
+    fun `the hidden item count follows the hide list and waits for its first read`() = runTest {
+        hiddenState.value = null
+        val vm = createViewModel(TestDispatcherProvider(UnconfinedTestDispatcher(testScheduler)))
+        val seen = mutableListOf<Int>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            vm.state.filterNotNull().collect { seen += it.hiddenPathCount }
+        }
+        advanceUntilIdle()
+        seen shouldBe emptyList()
+
+        hiddenState.value = HiddenPaths(listOf(HiddenEntry(downloads.sortPathKey(), downloads)))
+        advanceUntilIdle()
+        hiddenState.value = HiddenPaths.EMPTY
+        advanceUntilIdle()
+
+        seen shouldBe listOf(1, 0)
+    }
+
+    @Test
+    fun `opening hidden items navigates to its screen`() = runTest {
+        val vm = createViewModel()
+
+        vm.openHiddenPaths()
+
+        vm.navEvents.first() shouldBe NavEvent.GoTo(DestinationExplorerHiddenPaths)
     }
 
     @Test

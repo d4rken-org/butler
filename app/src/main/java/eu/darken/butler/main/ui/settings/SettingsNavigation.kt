@@ -11,8 +11,10 @@ import eu.darken.butler.common.navigation.DestinationSettingsIndex
 import eu.darken.butler.common.navigation.NavigationEntry
 import eu.darken.butler.editor.ui.DestinationEditorSettings
 import eu.darken.butler.editor.ui.settings.EditorSettingsScreenHost
+import eu.darken.butler.explorer.ui.DestinationExplorerHiddenPaths
 import eu.darken.butler.explorer.ui.DestinationExplorerSettings
 import eu.darken.butler.explorer.ui.settings.ExplorerSettingsScreenHost
+import eu.darken.butler.explorer.ui.settings.hidden.ExplorerHiddenPathsScreenHost
 import eu.darken.butler.main.ui.settings.acknowledgements.AcknowledgementsScreenHost
 import eu.darken.butler.main.ui.settings.general.GeneralSettingsScreenHost
 import eu.darken.butler.main.ui.settings.previews.PreviewsSettingsScreenHost
@@ -45,6 +47,9 @@ class SettingsNavigation @Inject constructor() : NavigationEntry {
         }
         entry<DestinationExplorerSettings> {
             ExplorerSettingsScreenHost()
+        }
+        entry<DestinationExplorerHiddenPaths> {
+            ExplorerHiddenPathsScreenHost()
         }
         entry<DestinationSearcherSettings> {
             SearcherSettingsScreenHost()
