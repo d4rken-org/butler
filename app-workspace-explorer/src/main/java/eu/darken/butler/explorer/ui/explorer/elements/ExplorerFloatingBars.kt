@@ -150,7 +150,7 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     val showFavoritesFeedbackBar = state.favoriteFeedback != null && state.pickerConfig == null
 
     var lastHideFeedback by remember { mutableStateOf<HideFeedback?>(null) }
-    state.hideFeedback?.let { lastHideFeedback = it }
+    if (state.pickerConfig == null) state.hideFeedback?.let { lastHideFeedback = it }
     val showHideFeedbackBar = state.hideFeedback != null && state.pickerConfig == null
 
     // Same caching as the favorites feedback: the bar needs content while it slides out.
