@@ -84,8 +84,12 @@ fun ExplorerItemRenderer(
         ) { factory(item) }
     }
 
+    val isUserHidden = item is ExplorerItem.Lookup && item.id in state.userHiddenIds
+
     Box(
         modifier = focusModifier
+            // Outside dragSource.modifier: the drag source replays a recorded layer (WorkspaceDragAndDrop).
+            .then(if (isUserHidden) Modifier.alpha(0.5f) else Modifier)
             .dropZone(key = item.id, destination = item.dropDestination())
             .then(dragSource?.modifier ?: Modifier),
     ) {
@@ -180,12 +184,10 @@ private fun ItemContent(
             val onMoreClick = (item as? ExplorerItem.RegularFile)
                 ?.takeIf { state.directOpenEnabled && !showSelection }
                 ?.let { file -> { onItemMoreClick(file) } }
-            val hiddenModifier = if (item.id in state.userHiddenIds) Modifier.alpha(0.5f) else Modifier
             when (viewStyle.mode) {
                 ExplorerViewStyle.Mode.LIST -> {
                     if (recent != null && item is ExplorerItem.File) {
                         RecentItemRow(
-                            modifier = hiddenModifier,
                             item = item,
                             indexedAt = recent.indexedAt[item.id],
                             density = viewStyle.density,
@@ -201,7 +203,6 @@ private fun ItemContent(
                         )
                     } else {
                         LookupItemRow(
-                            modifier = hiddenModifier,
                             item = item,
                             density = viewStyle.density,
                             isSelected = isSelected,
@@ -218,7 +219,6 @@ private fun ItemContent(
                     }
                 }
                 ExplorerViewStyle.Mode.GRID -> LookupItemGrid(
-                    modifier = hiddenModifier,
                     item = item,
                     density = viewStyle.density,
                     isSelected = isSelected,
