@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
+import eu.darken.butler.explorer.core.hidden.HideFeedback
 import eu.darken.butler.explorer.ui.explorer.ExplorerBarKeys
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.explorer.ui.explorer.SmbUpgradeHint
@@ -127,7 +128,7 @@ internal fun FloatingBarScope.ExplorerTopBars(
 }
 
 /**
- * The Explorer's bottom floating bars: operations, clipboard, favorites-feedback and actions.
+ * The Explorer's bottom floating bars: operations, clipboard, favorites and hide feedback, and actions.
  */
 @Composable
 internal fun FloatingBarScope.ExplorerBottomBars(
@@ -147,6 +148,10 @@ internal fun FloatingBarScope.ExplorerBottomBars(
     var lastFavoriteFeedback by remember { mutableStateOf<FavoriteFeedback?>(null) }
     state.favoriteFeedback?.let { lastFavoriteFeedback = it }
     val showFavoritesFeedbackBar = state.favoriteFeedback != null && state.pickerConfig == null
+
+    var lastHideFeedback by remember { mutableStateOf<HideFeedback?>(null) }
+    if (state.pickerConfig == null) state.hideFeedback?.let { lastHideFeedback = it }
+    val showHideFeedbackBar = state.hideFeedback != null && state.pickerConfig == null
 
     // Same caching as the favorites feedback: the bar needs content while it slides out.
     val smbUpgradeHint = vm?.smbUpgradeHint?.collectAsState()?.value
@@ -196,6 +201,20 @@ internal fun FloatingBarScope.ExplorerBottomBars(
                 feedback = feedback,
                 onAction = { vm?.onFavoriteFeedbackAction() },
                 onRename = { vm?.onFavoriteFeedbackRename() },
+            )
+        }
+    }
+
+    FloatingBar(
+        key = ExplorerBarKeys.HIDDEN_FEEDBACK,
+        visible = showHideFeedbackBar,
+        scrollBehavior = BarScrollBehavior.Static,
+        animation = BarAnimation.Slide(),
+    ) {
+        lastHideFeedback?.let { feedback ->
+            HiddenFeedbackBar(
+                feedback = feedback,
+                onStopShowingHidden = { vm?.onHideFeedbackAction() },
             )
         }
     }

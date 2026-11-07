@@ -28,6 +28,7 @@ import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Unarchive
 import androidx.compose.material.icons.twotone.Visibility
+import androidx.compose.material.icons.twotone.VisibilityOff
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
@@ -132,6 +133,27 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
         ) : Common {
             override val icon = Icons.TwoTone.DriveFileRenameOutline
             override val label = eu.darken.butler.common.R.string.general_rename_action.toCaString()
+        }
+
+        /** Puts [items] on the hide list; only paths not on it yet are carried. */
+        data class HidePaths(
+            val items: List<APath<*>>,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
+        ) : Common {
+            override val icon = Icons.TwoTone.VisibilityOff
+            override val label = R.string.explorer_hide_action.toCaString()
+            override val isProFeature = true
+        }
+
+        /** Takes [items] off the hide list; free, so nothing hidden during a trial stays stuck. */
+        data class UnhidePaths(
+            val items: List<APath<*>>,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
+        ) : Common {
+            override val icon = Icons.TwoTone.Visibility
+            override val label = R.string.explorer_unhide_action.toCaString()
         }
     }
 

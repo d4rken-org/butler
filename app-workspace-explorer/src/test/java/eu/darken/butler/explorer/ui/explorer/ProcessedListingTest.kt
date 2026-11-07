@@ -1,8 +1,10 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import android.content.Context
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.serialization.SerializationIOModule
@@ -13,9 +15,13 @@ import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.hidden.HiddenEntry
+import eu.darken.butler.explorer.core.hidden.HiddenMembership
+import eu.darken.butler.explorer.core.hidden.HiddenPaths
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.core.sorting.rules.ExplorerTabSortStore
 import eu.darken.butler.explorer.core.sorting.rules.FolderSortRulesRepo
+import eu.darken.butler.explorer.core.sorting.rules.sortPathKey
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.restore.WorkspaceViewPrefs
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -79,13 +85,15 @@ class ProcessedListingTest : BaseTest() {
         rawItems: List<ExplorerItem>,
         filterState: FilterState = FilterState(),
         showHidden: Boolean = true,
+        membership: HiddenMembership = HiddenMembership.NONE,
     ) = processListing(
         locationId = locationId,
         rawItems = rawItems,
-        items = applyFilters(rawItems, filterState, useRegexPatterns = false, showHidden = showHidden),
+        items = applyFilters(rawItems, filterState, useRegexPatterns = false, showHidden = showHidden, membership),
         filterState = filterState,
         useRegexPatterns = false,
         showHidden = showHidden,
+        membership = membership,
     )
 
     @Test
@@ -273,5 +281,112 @@ class ProcessedListingTest : BaseTest() {
         showing.visibleTotalSize shouldBe 30L
         showing.hiddenCount shouldBe 0
         showing.emptyRecovery shouldBe null
+    }
+
+    private fun pathOf(name: String) = LocalPath.build(File("/tmp/listing-test", name))
+
+    private fun hidden(vararg paths: APath<*>) = HiddenPaths(
+        paths.map { HiddenEntry(key = it.sortPathKey(), path = it) },
+    )
+
+    private val folder = ExplorerLocation.Directory(path = LocalPath.build("/tmp/listing-test"))
+
+    @Test
+    fun `a user-hidden folder is filtered, counted and recoverable while hiding`() = runTest {
+        val controller = controller()
+        val membership = hiddenMembershipFor(hidden(pathOf("Private")), folder)!!
+
+        val listing = controller.listingOf(
+            locationId = "location://directory/tmp",
+            rawItems = listOf(directory("Private")),
+            showHidden = false,
+            membership = membership,
+        )
+
+        listing.items.shouldBeEmpty()
+        listing.hiddenCount shouldBe 1
+        listing.emptyRecovery shouldBe EmptyRecovery.SHOW_HIDDEN
+        listing.userHiddenIds.shouldBeEmpty()
+    }
+
+    @Test
+    fun `revealed user-hidden entries are flagged, dot-named ones are not`() = runTest {
+        val controller = controller()
+        val membership = hiddenMembershipFor(hidden(pathOf("Private")), folder)!!
+        val rawItems = listOf(directory("Private"), file(".env"), file("notes.txt"))
+
+        val listing = controller.listingOf(
+            locationId = "location://directory/tmp",
+            rawItems = rawItems,
+            showHidden = true,
+            membership = membership,
+        )
+
+        listing.items shouldContainExactly rawItems
+        listing.hiddenCount shouldBe 0
+        listing.userHiddenIds shouldBe setOf(directory("Private").id)
+    }
+
+    /** Flagging is about list membership, the dot rule hides it either way. */
+    @Test
+    fun `a dot-named entry on the hide list is hidden once and flagged when revealed`() = runTest {
+        val controller = controller()
+        val membership = hiddenMembershipFor(hidden(pathOf(".env")), folder)!!
+        val rawItems = listOf(file(".env"), file("notes.txt"))
+
+        val hiding = controller.listingOf("location://directory/tmp", rawItems, showHidden = false, membership = membership)
+        val showing = controller.listingOf("location://directory/tmp", rawItems, showHidden = true, membership = membership)
+
+        hiding.hiddenCount shouldBe 1
+        hiding.items shouldContainExactly listOf(file("notes.txt"))
+        showing.userHiddenIds shouldBe setOf(file(".env").id)
+    }
+
+    @Test
+    fun `Recent hides files inside a hidden folder, a folder listing matches exactly`() = runTest {
+        val controller = controller()
+        val hiddenPaths = hidden(pathOf("Private"))
+        val rawItems = listOf(file("Private/photo.jpg"), file("notes.txt"))
+
+        val recent = hiddenMembershipFor(hiddenPaths, ExplorerLocation.Recent())!!
+        val recentHiding = controller.listingOf("location://recent", rawItems, showHidden = false, membership = recent)
+        val recentShowing = controller.listingOf("location://recent", rawItems, showHidden = true, membership = recent)
+
+        recentHiding.items shouldContainExactly listOf(file("notes.txt"))
+        recentHiding.hiddenCount shouldBe 1
+        recentShowing.userHiddenIds shouldBe setOf(file("Private/photo.jpg").id)
+
+        val exact = hiddenMembershipFor(hiddenPaths, folder)!!
+        val folderHiding = controller.listingOf("location://directory/tmp", rawItems, showHidden = false, membership = exact)
+
+        folderHiding.items shouldContainExactly rawItems
+        folderHiding.hiddenCount shouldBe 0
+    }
+
+    @Test
+    fun `local and SAF entries of the same folder do not match each other`() {
+        val local = LocalPath.build("/storage/emulated/0/Documents")
+        val saf = SAFPath(
+            treeRoot = "content://com.android.externalstorage.documents/tree/primary%3ADocuments",
+            segments = emptyList(),
+        )
+
+        val hidingLocal = hiddenMembershipFor(hidden(local), folder)!!
+        val hidingSaf = hiddenMembershipFor(hidden(saf), folder)!!
+
+        hidingLocal.isUserHidden(ExplorerItem.Peek(local)) shouldBe true
+        hidingLocal.isUserHidden(ExplorerItem.Peek(saf)) shouldBe false
+        hidingSaf.isUserHidden(ExplorerItem.Peek(saf)) shouldBe true
+        hidingSaf.isUserHidden(ExplorerItem.Peek(local)) shouldBe false
+    }
+
+    @Test
+    fun `no listing is built before the hide list has been read`() {
+        hiddenMembershipFor(null, folder) shouldBe null
+        hiddenMembershipFor(null, ExplorerLocation.Recent()) shouldBe null
+
+        hiddenMembershipFor(HiddenPaths.EMPTY, folder) shouldBe HiddenMembership(emptySet(), includeAncestors = false)
+        hiddenMembershipFor(HiddenPaths.EMPTY, ExplorerLocation.Recent()) shouldBe
+            HiddenMembership(emptySet(), includeAncestors = true)
     }
 }

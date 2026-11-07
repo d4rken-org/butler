@@ -742,5 +742,28 @@ class ExplorerPickerHelperTest : BaseTest() {
             }
             helper.filterActionsForPicker(actions, config = null) shouldBe actions
         }
+
+        @Test
+        fun `hide and unhide are offered outside a picker only`() {
+            val paths = listOf(LocalPath.build("/sdcard/test.txt"))
+            val actions = listOf(
+                ExplorerActionBarItem.Common.HidePaths(paths),
+                ExplorerActionBarItem.Common.UnhidePaths(paths),
+            )
+            val selections = listOf(
+                PickerConfig.Selection.DirectorySingle,
+                PickerConfig.Selection.DirectoryMulti,
+                PickerConfig.Selection.FileSingle,
+                PickerConfig.Selection.FileMulti,
+                PickerConfig.Selection.MixedMulti,
+                PickerConfig.Selection.SaveAs(suggestedFilename = "test.txt"),
+            )
+
+            selections.forEach { selection ->
+                val config = PickerConfig(callerWorkspaceId = mockk(), selection = selection)
+                helper.filterActionsForPicker(actions, config).shouldBeEmpty()
+            }
+            helper.filterActionsForPicker(actions, config = null) shouldBe actions
+        }
     }
 }

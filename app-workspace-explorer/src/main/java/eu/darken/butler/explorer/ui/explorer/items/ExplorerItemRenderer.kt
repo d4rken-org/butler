@@ -1,13 +1,20 @@
 package eu.darken.butler.explorer.ui.explorer.items
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.extensions.matches
@@ -29,6 +36,7 @@ import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
 import eu.darken.butler.workspace.ui.dnd.dropZone
 import eu.darken.butler.workspace.ui.dnd.rememberWorkspaceDragSource
@@ -76,8 +84,12 @@ fun ExplorerItemRenderer(
         ) { factory(item) }
     }
 
+    val isUserHidden = item is ExplorerItem.Lookup && item.id in state.userHiddenIds
+
     Box(
         modifier = focusModifier
+            // Outside dragSource.modifier: the drag source replays a recorded layer (WorkspaceDragAndDrop).
+            .then(if (isUserHidden) Modifier.alpha(0.5f) else Modifier)
             .dropZone(key = item.id, destination = item.dropDestination())
             .then(dragSource?.modifier ?: Modifier),
     ) {
@@ -102,6 +114,33 @@ fun ExplorerItemRenderer(
             onToggleSelection = onToggleSelection,
             previewsSettled = previewsSettled,
         )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerItemRendererUserHiddenPreview() {
+    val hidden = MockDataProvider.createMockDirectory(name = "Hidden folder")
+    val normal = MockDataProvider.createMockDirectory(name = "Visible folder")
+    val state = MockDataProvider.createReadyState().copy(userHiddenIds = setOf(hidden.id))
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        listOf(normal, hidden).forEach { item ->
+            ExplorerItemRenderer(
+                item = item,
+                viewStyle = ExplorerViewStyle(),
+                state = state,
+                isFocused = false,
+                onItemClick = {},
+                onItemLongClick = {},
+                onItemMoreClick = {},
+                onNavigate = {},
+                onToggleSelection = {},
+            )
+        }
     }
 }
 

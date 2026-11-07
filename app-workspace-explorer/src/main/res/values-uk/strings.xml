@@ -520,7 +520,7 @@
     <string name="explorer_empty_filtered_title">Немає відповідних елементів</string>
     <string name="explorer_empty_filtered_caption">Спробуйте змінити фільтри</string>
     <string name="explorer_empty_hidden_title">Тут лише приховані елементи</string>
-    <string name="explorer_empty_hidden_caption">Ця вкладка приховує елементи, назва яких починається з крапки</string>
+    <string name="explorer_empty_hidden_caption">Ця вкладка приховує елементи, назва яких починається з крапки, та елементи, приховані вручну</string>
     <string name="explorer_empty_show_hidden_action">Показати приховані елементи</string>
     <string name="explorer_empty_hidden_or_filtered_title">Більше нічого показувати</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Приховані елементи та фільтри окремо виключають частину цієї теки</string>
@@ -587,7 +587,7 @@
     <string name="explorer_view_density_compact_label">Компактний</string>
     <string name="explorer_view_density_comfortable_label">Зручний</string>
     <string name="explorer_view_density_detailed_label">Детальний</string>
-    <string name="explorer_view_show_hidden_label">Показувати приховані файли</string>
+    <string name="explorer_view_show_hidden_label">Показувати приховані елементи</string>
     <string name="explorer_view_set_default_action">Зробити типовим</string>
     <string name="explorer_view_detail_created_label">Створено</string>
     <string name="explorer_view_detail_modified_label">Змінено</string>
@@ -890,6 +890,37 @@
     <string name="explorer_favorites_rename_title">Перейменувати обране</string>
     <string name="explorer_favorites_rename_hint">Назва обраного</string>
     <string name="explorer_favorites_rename_description">Перейменовується лише запис в обраному, сама тека зберігає свою назву.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Приховати</string>
+    <string name="explorer_unhide_action">Скасувати приховування</string>
+    <string name="explorer_hide_file_subtitle">Не показувати у списках, файл залишиться на місці</string>
+    <string name="explorer_unhide_file_subtitle">Знову показувати у списках</string>
+    <string name="explorer_hidden_feedback_message">Приховано: %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d елемент приховано</item>
+        <item quantity="few">%1$d елементи приховано</item>
+        <item quantity="many">%1$d елементів приховано</item>
+        <item quantity="other">%1$d елемента приховано</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Він лишається видимим, але затемненим, поки ця вкладка показує приховані елементи</item>
+        <item quantity="few">Вони лишаються видимими, але затемненими, поки ця вкладка показує приховані елементи</item>
+        <item quantity="many">Вони лишаються видимими, але затемненими, поки ця вкладка показує приховані елементи</item>
+        <item quantity="other">Вони лишаються видимими, але затемненими, поки ця вкладка показує приховані елементи</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Не показувати</string>
+    <string name="explorer_settings_hidden_paths_title">Приховані елементи</string>
+    <string name="explorer_settings_hidden_paths_desc">Файли й теки, приховані зі списків</string>
+    <string name="explorer_settings_hidden_paths_value_none">Немає</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d елемент</item>
+        <item quantity="few">%1$d елементи</item>
+        <item quantity="many">%1$d елементів</item>
+        <item quantity="other">%1$d елемента</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Нічого не приховано. Приховані файли й теки з’являться тут.</string>
+    <string name="explorer_hidden_paths_remove_action">Скасувати приховування: %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Ця вкладка перевизначає порядок сортування в %1$d теці</item>
         <item quantity="few">Ця вкладка перевизначає порядок сортування в %1$d теках</item>

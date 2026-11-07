@@ -257,7 +257,10 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Common.AddToFavorites,
             is ExplorerActionBarItem.Common.RemoveFromFavorites,
             is ExplorerActionBarItem.Common.RenameFavorite,
-            is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent -> false
+            is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent,
+            // Curating listings is not part of choosing a path.
+            is ExplorerActionBarItem.Common.HidePaths,
+            is ExplorerActionBarItem.Common.UnhidePaths -> false
         }
     }
 }

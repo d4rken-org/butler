@@ -496,7 +496,7 @@
     <string name="explorer_empty_filtered_title">Nessun elemento corrispondente</string>
     <string name="explorer_empty_filtered_caption">Prova a modificare i filtri</string>
     <string name="explorer_empty_hidden_title">Qui ci sono solo elementi nascosti</string>
-    <string name="explorer_empty_hidden_caption">Questa scheda nasconde gli elementi il cui nome inizia con un punto</string>
+    <string name="explorer_empty_hidden_caption">Questa scheda nasconde gli elementi il cui nome inizia con un punto e quelli che hai nascosto</string>
     <string name="explorer_empty_show_hidden_action">Mostra elementi nascosti</string>
     <string name="explorer_empty_hidden_or_filtered_title">Niente altro da mostrare</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Gli elementi nascosti e i tuoi filtri escludono ciascuno una parte di questa cartella</string>
@@ -563,7 +563,7 @@
     <string name="explorer_view_density_compact_label">Compatta</string>
     <string name="explorer_view_density_comfortable_label">Comoda</string>
     <string name="explorer_view_density_detailed_label">Dettagliata</string>
-    <string name="explorer_view_show_hidden_label">Mostra file nascosti</string>
+    <string name="explorer_view_show_hidden_label">Mostra elementi nascosti</string>
     <string name="explorer_view_set_default_action">Imposta come predefinito</string>
     <string name="explorer_view_detail_created_label">Creato</string>
     <string name="explorer_view_detail_modified_label">Modificato</string>
@@ -826,6 +826,31 @@
     <string name="explorer_favorites_rename_title">Rinomina preferito</string>
     <string name="explorer_favorites_rename_hint">Nome preferito</string>
     <string name="explorer_favorites_rename_description">Viene rinominata solo la voce nei preferiti, la cartella stessa mantiene il proprio nome.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Nascondi</string>
+    <string name="explorer_unhide_action">Mostra di nuovo</string>
+    <string name="explorer_hide_file_subtitle">Escludilo dagli elenchi, il file resta dov’è</string>
+    <string name="explorer_unhide_file_subtitle">Mostralo di nuovo negli elenchi</string>
+    <string name="explorer_hidden_feedback_message">%1$s nascosto</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d elemento nascosto</item>
+        <item quantity="other">%1$d elementi nascosti</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Resta visibile, attenuato, finché questa scheda mostra gli elementi nascosti</item>
+        <item quantity="other">Restano visibili, attenuati, finché questa scheda mostra gli elementi nascosti</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Non mostrare</string>
+    <string name="explorer_settings_hidden_paths_title">Elementi nascosti</string>
+    <string name="explorer_settings_hidden_paths_desc">File e cartelle che hai nascosto dagli elenchi</string>
+    <string name="explorer_settings_hidden_paths_value_none">Nessuno</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d elemento</item>
+        <item quantity="other">%1$d elementi</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Non hai nascosto nulla. I file e le cartelle nascosti compaiono qui.</string>
+    <string name="explorer_hidden_paths_remove_action">Mostra di nuovo %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Questa scheda sostituisce l’ordinamento in %1$d cartella</item>
         <item quantity="other">Questa scheda sostituisce l’ordinamento in %1$d cartelle</item>

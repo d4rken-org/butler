@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.hidden.ExplorerHiddenPathsRepo
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import javax.inject.Inject
@@ -15,7 +16,9 @@ import javax.inject.Inject
  * create in, paste into, compress to or extract into, and its order is the loader's rather than the
  * sorter's, so none of those actions are offered. What acts on the selected paths themselves is.
  */
-class RecentActionProvider @Inject constructor() : ExplorerActionProvider {
+class RecentActionProvider @Inject constructor(
+    private val hiddenPathsRepo: ExplorerHiddenPathsRepo,
+) : ExplorerActionProvider {
 
     override fun getActions(
         location: ExplorerLocation,
@@ -64,6 +67,8 @@ class RecentActionProvider @Inject constructor() : ExplorerActionProvider {
             }
 
             actions.add(ExplorerActionBarItem.Common.Info())
+
+            actions.addAll(hideSelectionActions(selectionState.selectedItems, hiddenPathsRepo::isHidden))
         } else {
             actions.add(ExplorerActionBarItem.Common.Refresh())
 

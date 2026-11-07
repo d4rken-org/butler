@@ -89,6 +89,10 @@ import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import eu.darken.butler.explorer.core.favorites.FavoriteFeedback
 import eu.darken.butler.explorer.core.favorites.applyFavoritePriority
+import eu.darken.butler.explorer.core.hidden.ExplorerHiddenPathsRepo
+import eu.darken.butler.explorer.core.hidden.HiddenMembership
+import eu.darken.butler.explorer.core.hidden.HiddenPaths
+import eu.darken.butler.explorer.core.hidden.HideFeedback
 import eu.darken.butler.explorer.core.ArchiveCompressionDefaults
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.sizes.DirectorySizeStore
@@ -224,6 +228,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val itemInfoCalculator: ItemInfoCalculator,
     private val pickerHelper: ExplorerPickerHelper,
     private val favoritesRepo: ExplorerFavoritesRepo,
+    private val hiddenPathsRepo: ExplorerHiddenPathsRepo,
     private val operationFocusRequest: OperationFocusRequest,
     private val folderPreviewResolver: FolderPreviewResolver,
     private val storageEnvironment: StorageEnvironment,
@@ -258,6 +263,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         isPickerActive = { cachedPickerConfig != null },
         revealFavorite = { path -> navigation.revealFavorite(path) },
         showRenameDialog = { path -> showFavoriteRenameDialog(path) },
+        tag = tag,
+    )
+    private val hiddenController = ExplorerHiddenPathsController(
+        hiddenPathsRepo = hiddenPathsRepo,
+        upgradeRepo = upgradeRepo,
+        scope = vmScope,
+        doLaunch = doLaunch,
+        isPickerActive = { cachedPickerConfig != null },
+        isShowingHidden = { viewSettings.viewStyle.value.showHidden },
+        stopShowingHidden = { viewSettings.applyToTab(viewSettings.viewStyle.value.copy(showHidden = false)) },
+        navToUpgrade = ::navToUpgrade,
         tag = tag,
     )
     private val favoritesSelection = ExplorerFavoritesSelectionController(
@@ -503,6 +519,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 // non-picker mode within the 5s window would resurface a stale bar.
                 if (config != null) {
                     favoritesController.clearFeedback()
+                    hiddenController.clearFeedback()
                     favoritesSelection.clear()
                 }
             }
@@ -633,6 +650,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .onEach { focus.clear() }
             .launchInViewModel()
 
+        // Hiding or unhiding adds or removes rows, so a kept index would land on another item.
+        // The first loaded list is not a change.
+        hiddenPathsRepo.state
+            .filterNotNull()
+            .map { it.keys }
+            .distinctUntilChanged()
+            .drop(1)
+            .onEach { focus.clear() }
+            .launchInViewModel()
+
         // A calculation is only worth anything once the listing ranks by it, so a finished scan
         // flips the tab to size sort - once per root, because the user is free to sort differently
         // afterwards. What the folder sorted by before is kept with the scan and put back when the
@@ -730,8 +757,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val visibleFileCount: Int = 0,
         val visibleDirectoryCount: Int = 0,
         val visibleTotalSize: Long? = null,
-        /** Dot-prefixed entries this tab is hiding here, zero while it shows them. */
+        /** Dot-named and user-hidden entries this tab is hiding here, zero while it shows them. */
         val hiddenCount: Int = 0,
+        /** Ids of the user-hidden entries in [items]; empty unless the tab shows hidden entries. */
+        val userHiddenIds: Set<String> = emptySet(),
         /** The folder itself has nothing in it, as opposed to nothing surviving the filtering. */
         val locationIsEmpty: Boolean = false,
         /** What recovers a listing filtering emptied; null while nothing does or it is not settled. */
@@ -744,6 +773,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val favoriteSelection: Set<APath<*>> = emptySet(),
         val showHomeFavoritesSection: Boolean = false,
         val favoriteFeedback: FavoriteFeedback? = null,
+        val hideFeedback: HideFeedback? = null,
         /**
          * A reload of the location that is already on screen - pull-to-refresh, the action bar's
          * refresh, a SAF re-grant, a trash operation. Loads for a new target are covered by the
@@ -800,6 +830,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val visibleDirectoryCount: Int,
         val visibleTotalSize: Long?,
         val hiddenCount: Int,
+        val userHiddenIds: Set<String>,
         val locationIsEmpty: Boolean,
         val emptyRecovery: EmptyRecovery?,
     )
@@ -819,15 +850,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // and re-running filtering, sorting and favorite ordering for them would be wasted work on a
         // folder with thousands of entries.
         viewSettings.viewStyle.map { it.showHidden }.distinctUntilChanged(),
-    ) { items, resolvedSort, filterState, useRegexPatterns, favoritePaths, location, pickerConfig, showHidden ->
+        hiddenPathsRepo.state,
+    ) { items, resolvedSort, filterState, useRegexPatterns, favoritePaths, location, pickerConfig, showHidden, hiddenPaths ->
         // flatMapLatest does not clear this combine's last sort value, so items are only paired with
         // a resolution that was computed for the location they came from - otherwise the next
         // folder's listing would briefly render under the previous folder's sort.
         if (resolvedSort == null || location == null || resolvedSort.locationKey != location.locationId) {
             return@combineMany null
         }
+        val membership = hiddenMembershipFor(hiddenPaths, location) ?: return@combineMany null
         items?.let { rawItems ->
-            val processed = viewSettings.applyFilters(rawItems, filterState, useRegexPatterns, showHidden)
+            val processed = viewSettings.applyFilters(rawItems, filterState, useRegexPatterns, showHidden, membership)
                 .let { itemSorter.sortItemsFor(location, it, resolvedSort.resolution.settings) }
                 .let { applyFavoritePriority(it, location, pickerConfig, favoritePaths) }
             viewSettings.processListing(
@@ -837,6 +870,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 filterState = filterState,
                 useRegexPatterns = useRegexPatterns,
                 showHidden = showHidden,
+                membership = membership,
             )
         }
     }.shareIn(vmScope, SharingStarted.Lazily, replay = 1)
@@ -914,7 +948,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     directorySizes,
                     favoritesSelection.selection,
                     appAttributions,
-                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, openFilesOnTap, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection, appAttributions ->
+                    hiddenController.feedback,
+                ) { wsStateInner, listing, selectionState, viewStyle, dialogState, resolvedSort, filterState, useRegexPatterns, useBackButtonForNavigation, openFilesOnTap, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, favoriteFeedback, sizes, favoriteSelection, appAttributions, hideFeedback ->
                     val items = listing?.items
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
@@ -979,6 +1014,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         visibleDirectoryCount = listing?.visibleDirectoryCount ?: 0,
                         visibleTotalSize = listing?.visibleTotalSize,
                         hiddenCount = listing?.hiddenCount ?: 0,
+                        userHiddenIds = listing?.userHiddenIds ?: emptySet(),
                         locationIsEmpty = listing?.locationIsEmpty == true,
                         emptyRecovery = listing?.emptyRecovery,
                         error = wsStateInner.error,
@@ -1015,6 +1051,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             && wsStateInner.currentLocation is ExplorerLocation.Home
                             && favorites.isNotEmpty(),
                         favoriteFeedback = favoriteFeedback,
+                        hideFeedback = hideFeedback,
                         appAttributions = appAttributions,
                         directorySizesScannedAt = sizesScannedAt,
                         isCalculatingSizes = isCalculatingSizes,
@@ -1115,6 +1152,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun onSmbUpgradeHintAction() = smbLocations.onUpgradeHintAction()
 
     fun onFavoriteFeedbackRename() = favoritesController.onFeedbackRename()
+
+    fun onHideFeedbackAction() = hiddenController.onFeedbackAction()
+
+    /** For the file options sheet, which offers Hide or Unhide by whether the file is on the list. */
+    val hiddenPaths: StateFlow<HiddenPaths?> get() = hiddenPathsRepo.state
 
     /** Open the rename dialog pre-filled with the favorite's current label. */
     private fun showFavoriteRenameDialog(path: APath<*>) {
@@ -1450,6 +1492,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent -> {
                 favoritesController.toggleCurrent(action.path)
+            }
+            is ExplorerActionBarItem.Common.HidePaths -> {
+                // The sheet closes right away; the selection only once the paths are stored, so a
+                // free user coming back from the upgrade screen still has it.
+                if (dialogs.current() is FileOptions) dismissDialog()
+                hiddenController.hide(action.items, onHidden = ::clearSelection)
+            }
+            is ExplorerActionBarItem.Common.UnhidePaths -> {
+                if (dialogs.current() is FileOptions) dismissDialog()
+                hiddenController.unhide(action.items)
+                clearSelection()
             }
             is ExplorerActionBarItem.Common.Info -> {
                 log(tag) { "showInfo(): ${selection.selectedItems.value.size} items selected" }
@@ -2798,6 +2851,7 @@ internal fun ExplorerViewSettingsController.processListing(
     filterState: FilterState,
     useRegexPatterns: Boolean,
     showHidden: Boolean,
+    membership: HiddenMembership,
 ): ExplorerWorkspaceViewModel.ProcessedListing {
     val visibleSize: Long = items.sumOf { item ->
         when {
@@ -2817,11 +2871,26 @@ internal fun ExplorerViewSettingsController.processListing(
         visibleTotalSize = visibleSize.takeIf { it > 0 },
         // Zero while the tab shows hidden entries, or the chip would offer a sheet whose switch is
         // already on.
-        hiddenCount = if (showHidden) 0 else countHiddenEntries(rawItems),
+        hiddenCount = if (showHidden) 0 else countHiddenEntries(rawItems, membership),
+        userHiddenIds = if (membership.keys.isEmpty()) {
+            emptySet()
+        } else {
+            items.filter { membership.isUserHidden(it) }.mapTo(mutableSetOf()) { it.id }
+        },
         locationIsEmpty = rawItems.isEmpty(),
-        emptyRecovery = emptyRecoveryFor(rawItems, items, filterState, useRegexPatterns, showHidden),
+        emptyRecovery = emptyRecoveryFor(rawItems, items, filterState, useRegexPatterns, showHidden, membership),
     )
 }
+
+/**
+ * Null while the hide list has not been read yet, which holds the listing back: publishing without
+ * it would flash entries the user hid. Only Recent hides what lies inside a hidden folder, since a
+ * folder listing shows a single level.
+ *
+ * Top-level for the same reason as [hasSameItemsAs]: unit-testable without VM scaffolding.
+ */
+internal fun hiddenMembershipFor(hiddenPaths: HiddenPaths?, location: ExplorerLocation): HiddenMembership? =
+    hiddenPaths?.let { HiddenMembership(keys = it.keys, includeAncestors = location is ExplorerLocation.Recent) }
 
 /**
  * Classified by what each combination actually yields, so the empty state never offers a control
@@ -2838,12 +2907,14 @@ private fun ExplorerViewSettingsController.emptyRecoveryFor(
     filterState: FilterState,
     useRegexPatterns: Boolean,
     showHidden: Boolean,
+    membership: HiddenMembership,
 ): EmptyRecovery? {
     if (items.isNotEmpty() || rawItems.isEmpty()) return null
     if (rawItems.any { it is ExplorerItem.Peek }) return null
 
-    val revealing = !showHidden && showsAnythingWhen(rawItems, filterState, useRegexPatterns, showHidden = true)
-    val clearing = showsAnythingWhen(rawItems, FilterState(), useRegexPatterns, showHidden)
+    val revealing = !showHidden &&
+        showsAnythingWhen(rawItems, filterState, useRegexPatterns, showHidden = true, membership = membership)
+    val clearing = showsAnythingWhen(rawItems, FilterState(), useRegexPatterns, showHidden, membership)
     return when {
         revealing && clearing -> EmptyRecovery.EITHER
         revealing -> EmptyRecovery.SHOW_HIDDEN

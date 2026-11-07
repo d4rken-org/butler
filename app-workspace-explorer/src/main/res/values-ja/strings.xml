@@ -481,7 +481,7 @@
     <string name="explorer_empty_filtered_title">一致する項目がありません</string>
     <string name="explorer_empty_filtered_caption">フィルターを調整してみてください</string>
     <string name="explorer_empty_hidden_title">非表示の項目のみです</string>
-    <string name="explorer_empty_hidden_caption">このタブでは、名前がドットで始まる項目を非表示にしています</string>
+    <string name="explorer_empty_hidden_caption">このタブでは、名前がドットで始まる項目と、非表示にした項目を非表示にしています</string>
     <string name="explorer_empty_show_hidden_action">非表示の項目を表示</string>
     <string name="explorer_empty_hidden_or_filtered_title">表示できる項目がありません</string>
     <string name="explorer_empty_hidden_or_filtered_caption">非表示設定とフィルターにより、このフォルダの一部が除外されています</string>
@@ -548,7 +548,7 @@
     <string name="explorer_view_density_compact_label">コンパクト</string>
     <string name="explorer_view_density_comfortable_label">ゆったり</string>
     <string name="explorer_view_density_detailed_label">詳細</string>
-    <string name="explorer_view_show_hidden_label">非表示ファイルを表示</string>
+    <string name="explorer_view_show_hidden_label">非表示の項目を表示</string>
     <string name="explorer_view_set_default_action">デフォルトに設定</string>
     <string name="explorer_view_detail_created_label">作成日時</string>
     <string name="explorer_view_detail_modified_label">更新日時</string>
@@ -785,6 +785,28 @@
     <string name="explorer_favorites_rename_title">お気に入りの名前を変更</string>
     <string name="explorer_favorites_rename_hint">お気に入りの名前</string>
     <string name="explorer_favorites_rename_description">お気に入り内の項目のみが名前変更され、フォルダ自体の名前は変わりません。</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">非表示にする</string>
+    <string name="explorer_unhide_action">非表示を解除</string>
+    <string name="explorer_hide_file_subtitle">一覧に表示しません。ファイルの場所は変わりません</string>
+    <string name="explorer_unhide_file_subtitle">一覧に再び表示します</string>
+    <string name="explorer_hidden_feedback_message">%1$s を非表示にしました</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="other">%1$d 個の項目を非表示にしました</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="other">このタブで非表示の項目を表示している間は、薄く表示されます</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">表示しない</string>
+    <string name="explorer_settings_hidden_paths_title">非表示の項目</string>
+    <string name="explorer_settings_hidden_paths_desc">一覧から非表示にしたファイルとフォルダ</string>
+    <string name="explorer_settings_hidden_paths_value_none">なし</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="other">%1$d 個の項目</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">非表示にした項目はありません。非表示にしたファイルとフォルダはここに表示されます。</string>
+    <string name="explorer_hidden_paths_remove_action">%1$s の非表示を解除</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">このタブは %1$d 個のフォルダで並べ替え順を上書きしています</item>
     </plurals>

@@ -496,7 +496,7 @@
     <string name="explorer_empty_filtered_title">பொருந்தும் உருப்படிகள் இல்லை</string>
     <string name="explorer_empty_filtered_caption">வடிகட்டிகளை மாற்றிப் பாருங்கள்</string>
     <string name="explorer_empty_hidden_title">இங்கே மறைக்கப்பட்ட உருப்படிகள் மட்டுமே உள்ளன</string>
-    <string name="explorer_empty_hidden_caption">புள்ளியுடன் தொடங்கும் பெயர்களைக் கொண்ட உருப்படிகளை இந்தத் தாவல் மறைக்கிறது</string>
+    <string name="explorer_empty_hidden_caption">புள்ளியுடன் தொடங்கும் பெயர்களைக் கொண்ட உருப்படிகளையும் நீங்கள் மறைத்த உருப்படிகளையும் இந்தத் தாவல் மறைக்கிறது</string>
     <string name="explorer_empty_show_hidden_action">மறைக்கப்பட்ட உருப்படிகளைக் காட்டு</string>
     <string name="explorer_empty_hidden_or_filtered_title">காட்டுவதற்கு எதுவும் மீதமில்லை</string>
     <string name="explorer_empty_hidden_or_filtered_caption">மறைக்கப்பட்ட உருப்படிகளும் உங்கள் வடிகட்டிகளும் இந்தக் கோப்புறையின் தலா ஒரு பகுதியை விலக்குகின்றன</string>
@@ -563,7 +563,7 @@
     <string name="explorer_view_density_compact_label">நெருக்கமானது</string>
     <string name="explorer_view_density_comfortable_label">வசதியானது</string>
     <string name="explorer_view_density_detailed_label">விரிவானது</string>
-    <string name="explorer_view_show_hidden_label">மறைக்கப்பட்ட கோப்புகளைக் காட்டு</string>
+    <string name="explorer_view_show_hidden_label">மறைக்கப்பட்ட உருப்படிகளைக் காட்டு</string>
     <string name="explorer_view_set_default_action">இயல்புநிலையாக அமை</string>
     <string name="explorer_view_detail_created_label">உருவாக்கப்பட்டது</string>
     <string name="explorer_view_detail_modified_label">மாற்றப்பட்டது</string>
@@ -826,6 +826,31 @@
     <string name="explorer_favorites_rename_title">பிடித்த உருப்படிக்கு மறுபெயரிடு</string>
     <string name="explorer_favorites_rename_hint">பிடித்த உருப்படியின் பெயர்</string>
     <string name="explorer_favorites_rename_description">பிடித்தவற்றில் உள்ள பதிவு மட்டுமே மறுபெயரிடப்படும்; கோப்புறை தனது பெயரை வைத்திருக்கும்.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">மறை</string>
+    <string name="explorer_unhide_action">மறைப்பை நீக்கு</string>
+    <string name="explorer_hide_file_subtitle">பட்டியல்களில் இருந்து விலக்கு, கோப்பு இருக்கும் இடத்திலேயே இருக்கும்</string>
+    <string name="explorer_unhide_file_subtitle">பட்டியல்களில் மீண்டும் காட்டு</string>
+    <string name="explorer_hidden_feedback_message">%1$s மறைக்கப்பட்டது</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d உருப்படி மறைக்கப்பட்டது</item>
+        <item quantity="other">%1$d உருப்படிகள் மறைக்கப்பட்டன</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">இந்தத் தாவல் மறைக்கப்பட்ட உருப்படிகளைக் காட்டும் வரை இது மங்கலாகத் தெரியும்</item>
+        <item quantity="other">இந்தத் தாவல் மறைக்கப்பட்ட உருப்படிகளைக் காட்டும் வரை இவை மங்கலாகத் தெரியும்</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">காட்டாதே</string>
+    <string name="explorer_settings_hidden_paths_title">மறைக்கப்பட்ட உருப்படிகள்</string>
+    <string name="explorer_settings_hidden_paths_desc">பட்டியல்களில் இருந்து நீங்கள் மறைத்த கோப்புகளும் கோப்புறைகளும்</string>
+    <string name="explorer_settings_hidden_paths_value_none">எதுவுமில்லை</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d உருப்படி</item>
+        <item quantity="other">%1$d உருப்படிகள்</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">நீங்கள் எதையும் மறைக்கவில்லை. மறைக்கப்பட்ட கோப்புகளும் கோப்புறைகளும் இங்கே தோன்றும்.</string>
+    <string name="explorer_hidden_paths_remove_action">%1$s மறைப்பை நீக்கு</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">இந்தத் தாவல் %1$d கோப்புறையின் வரிசைக்குப் பதிலாகத் தனது வரிசையைப் பயன்படுத்துகிறது</item>
         <item quantity="other">இந்தத் தாவல் %1$d கோப்புறைகளின் வரிசைக்குப் பதிலாகத் தனது வரிசையைப் பயன்படுத்துகிறது</item>

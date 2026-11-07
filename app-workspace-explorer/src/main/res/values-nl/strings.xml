@@ -494,7 +494,7 @@
     <string name="explorer_empty_filtered_title">Geen overeenkomende items</string>
     <string name="explorer_empty_filtered_caption">Probeer je filters aan te passen</string>
     <string name="explorer_empty_hidden_title">Alleen verborgen items hier</string>
-    <string name="explorer_empty_hidden_caption">Dit tabblad verbergt items waarvan de naam met een punt begint</string>
+    <string name="explorer_empty_hidden_caption">Dit tabblad verbergt items waarvan de naam met een punt begint en items die je hebt verborgen</string>
     <string name="explorer_empty_show_hidden_action">Verborgen items tonen</string>
     <string name="explorer_empty_hidden_or_filtered_title">Niets meer om te tonen</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Verborgen items en je filters sluiten elk een deel van deze map uit</string>
@@ -561,7 +561,7 @@
     <string name="explorer_view_density_compact_label">Compact</string>
     <string name="explorer_view_density_comfortable_label">Comfortabel</string>
     <string name="explorer_view_density_detailed_label">Gedetailleerd</string>
-    <string name="explorer_view_show_hidden_label">Verborgen bestanden tonen</string>
+    <string name="explorer_view_show_hidden_label">Verborgen items tonen</string>
     <string name="explorer_view_set_default_action">Als standaard instellen</string>
     <string name="explorer_view_detail_created_label">Gemaakt</string>
     <string name="explorer_view_detail_modified_label">Gewijzigd</string>
@@ -820,6 +820,31 @@
     <string name="explorer_favorites_rename_title">Favoriet hernoemen</string>
     <string name="explorer_favorites_rename_hint">Naam van favoriet</string>
     <string name="explorer_favorites_rename_description">Alleen de vermelding in je favorieten wordt hernoemd, de map zelf behoudt zijn naam.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Verbergen</string>
+    <string name="explorer_unhide_action">Niet meer verbergen</string>
+    <string name="explorer_hide_file_subtitle">Weglaten uit overzichten, het bestand blijft waar het is</string>
+    <string name="explorer_unhide_file_subtitle">Weer tonen in overzichten</string>
+    <string name="explorer_hidden_feedback_message">%1$s verborgen</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d item verborgen</item>
+        <item quantity="other">%1$d items verborgen</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Het blijft gedimd zichtbaar zolang dit tabblad verborgen items toont</item>
+        <item quantity="other">Ze blijven gedimd zichtbaar zolang dit tabblad verborgen items toont</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Niet tonen</string>
+    <string name="explorer_settings_hidden_paths_title">Verborgen items</string>
+    <string name="explorer_settings_hidden_paths_desc">Bestanden en mappen die je uit overzichten hebt verborgen</string>
+    <string name="explorer_settings_hidden_paths_value_none">Geen</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Je hebt niets verborgen. Verborgen bestanden en mappen verschijnen hier.</string>
+    <string name="explorer_hidden_paths_remove_action">%1$s niet meer verbergen</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Dit tabblad overschrijft de sorteervolgorde in %1$d map</item>
         <item quantity="other">Dit tabblad overschrijft de sorteervolgorde in %1$d mappen</item>

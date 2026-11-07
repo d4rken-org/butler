@@ -518,7 +518,7 @@
     <string name="explorer_empty_filtered_title">No matching items</string>
     <string name="explorer_empty_filtered_caption">Try adjusting your filters</string>
     <string name="explorer_empty_hidden_title">Only hidden items here</string>
-    <string name="explorer_empty_hidden_caption">This tab hides items whose name starts with a dot</string>
+    <string name="explorer_empty_hidden_caption">This tab hides items whose name starts with a dot and items you hid</string>
     <string name="explorer_empty_show_hidden_action">Show hidden items</string>
     <string name="explorer_empty_hidden_or_filtered_title">Nothing left to show</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Hidden items and your filters each exclude part of this folder</string>
@@ -585,7 +585,7 @@
     <string name="explorer_view_density_compact_label">Compact</string>
     <string name="explorer_view_density_comfortable_label">Comfortable</string>
     <string name="explorer_view_density_detailed_label">Detailed</string>
-    <string name="explorer_view_show_hidden_label">Show hidden files</string>
+    <string name="explorer_view_show_hidden_label">Show hidden items</string>
     <string name="explorer_view_set_default_action">Set as default</string>
     <string name="explorer_view_detail_created_label">Created</string>
     <string name="explorer_view_detail_modified_label">Modified</string>
@@ -848,6 +848,31 @@
     <string name="explorer_favorites_rename_title">Rename favorite</string>
     <string name="explorer_favorites_rename_hint">Favorite name</string>
     <string name="explorer_favorites_rename_description">Only the entry in your favorites is renamed, the folder itself keeps its name.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Hide</string>
+    <string name="explorer_unhide_action">Unhide</string>
+    <string name="explorer_hide_file_subtitle">Leave it out of listings, the file stays where it is</string>
+    <string name="explorer_unhide_file_subtitle">Show it in listings again</string>
+    <string name="explorer_hidden_feedback_message">%1$s hidden</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d item hidden</item>
+        <item quantity="other">%1$d items hidden</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">It stays visible, dimmed, while this tab shows hidden items</item>
+        <item quantity="other">They stay visible, dimmed, while this tab shows hidden items</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Don\'t show</string>
+    <string name="explorer_settings_hidden_paths_title">Hidden items</string>
+    <string name="explorer_settings_hidden_paths_desc">Files and folders you hid from listings</string>
+    <string name="explorer_settings_hidden_paths_value_none">None</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">You haven\'t hidden anything. Hidden files and folders show up here.</string>
+    <string name="explorer_hidden_paths_remove_action">Unhide %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">This tab overrides the sort order in %1$d folder</item>
         <item quantity="other">This tab overrides the sort order in %1$d folders</item>

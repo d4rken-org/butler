@@ -494,7 +494,7 @@
     <string name="explorer_empty_filtered_title">No hay elementos coincidentes</string>
     <string name="explorer_empty_filtered_caption">Prueba a ajustar tus filtros</string>
     <string name="explorer_empty_hidden_title">Aquí solo hay elementos ocultos</string>
-    <string name="explorer_empty_hidden_caption">Esta pestaña oculta los elementos cuyo nombre empieza con un punto</string>
+    <string name="explorer_empty_hidden_caption">Esta pestaña oculta los elementos cuyo nombre empieza con un punto y los que ocultaste</string>
     <string name="explorer_empty_show_hidden_action">Mostrar elementos ocultos</string>
     <string name="explorer_empty_hidden_or_filtered_title">No queda nada por mostrar</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Los elementos ocultos y tus filtros excluyen partes de esta carpeta</string>
@@ -561,7 +561,7 @@
     <string name="explorer_view_density_compact_label">Compacto</string>
     <string name="explorer_view_density_comfortable_label">Cómodo</string>
     <string name="explorer_view_density_detailed_label">Detallado</string>
-    <string name="explorer_view_show_hidden_label">Mostrar archivos ocultos</string>
+    <string name="explorer_view_show_hidden_label">Mostrar elementos ocultos</string>
     <string name="explorer_view_set_default_action">Establecer como predeterminado</string>
     <string name="explorer_view_detail_created_label">Creado</string>
     <string name="explorer_view_detail_modified_label">Modificado</string>
@@ -820,6 +820,31 @@
     <string name="explorer_favorites_rename_title">Cambiar nombre del favorito</string>
     <string name="explorer_favorites_rename_hint">Nombre del favorito</string>
     <string name="explorer_favorites_rename_description">Solo se cambia el nombre de la entrada en tus favoritos, la carpeta conserva su nombre.</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">Ocultar</string>
+    <string name="explorer_unhide_action">Dejar de ocultar</string>
+    <string name="explorer_hide_file_subtitle">Quitarlo de los listados, el archivo se queda donde está</string>
+    <string name="explorer_unhide_file_subtitle">Volver a mostrarlo en los listados</string>
+    <string name="explorer_hidden_feedback_message">Se ocultó %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">Se ocultó %1$d elemento</item>
+        <item quantity="other">Se ocultaron %1$d elementos</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Sigue visible, atenuado, mientras esta pestaña muestre los elementos ocultos</item>
+        <item quantity="other">Siguen visibles, atenuados, mientras esta pestaña muestre los elementos ocultos</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">No mostrar</string>
+    <string name="explorer_settings_hidden_paths_title">Elementos ocultos</string>
+    <string name="explorer_settings_hidden_paths_desc">Archivos y carpetas que ocultaste de los listados</string>
+    <string name="explorer_settings_hidden_paths_value_none">Ninguno</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d elemento</item>
+        <item quantity="other">%1$d elementos</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">No has ocultado nada. Los archivos y carpetas ocultos aparecen aquí.</string>
+    <string name="explorer_hidden_paths_remove_action">Dejar de ocultar %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Esta pestaña anula el orden en %1$d carpeta</item>
         <item quantity="other">Esta pestaña anula el orden en %1$d carpetas</item>

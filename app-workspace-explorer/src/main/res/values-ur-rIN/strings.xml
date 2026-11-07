@@ -497,7 +497,7 @@
     <string name="explorer_empty_filtered_title">کوئی مماثل شے نہیں</string>
     <string name="explorer_empty_filtered_caption">اپنے فلٹرز بدل کر دیکھیں</string>
     <string name="explorer_empty_hidden_title">یہاں صرف چھپی ہوئی اشیا ہیں</string>
-    <string name="explorer_empty_hidden_caption">یہ ٹیب ان اشیا کو چھپاتا ہے جن کا نام نقطے سے شروع ہوتا ہے</string>
+    <string name="explorer_empty_hidden_caption">یہ ٹیب ان اشیا کو چھپاتا ہے جن کا نام نقطے سے شروع ہوتا ہے اور ان اشیا کو بھی جنہیں آپ نے چھپایا ہے</string>
     <string name="explorer_empty_show_hidden_action">چھپی ہوئی اشیا دکھائیں</string>
     <string name="explorer_empty_hidden_or_filtered_title">دکھانے کے لیے کچھ نہیں بچا</string>
     <string name="explorer_empty_hidden_or_filtered_caption">چھپی ہوئی اشیا اور آپ کے فلٹرز، دونوں اس فولڈر کے کچھ حصے کو خارج کرتے ہیں</string>
@@ -564,7 +564,7 @@
     <string name="explorer_view_density_compact_label">سمٹا ہوا</string>
     <string name="explorer_view_density_comfortable_label">کشادہ</string>
     <string name="explorer_view_density_detailed_label">تفصیلی</string>
-    <string name="explorer_view_show_hidden_label">چھپی ہوئی فائلیں دکھائیں</string>
+    <string name="explorer_view_show_hidden_label">چھپی ہوئی اشیا دکھائیں</string>
     <string name="explorer_view_set_default_action">طے شدہ بنائیں</string>
     <string name="explorer_view_detail_created_label">بنائی گئی</string>
     <string name="explorer_view_detail_modified_label">ترمیم کی گئی</string>
@@ -827,6 +827,31 @@
     <string name="explorer_favorites_rename_title">پسندیدہ کا نام بدلیں</string>
     <string name="explorer_favorites_rename_hint">پسندیدہ کا نام</string>
     <string name="explorer_favorites_rename_description">صرف آپ کی پسندیدہ فہرست کے اندراج کا نام بدلے گا، خود فولڈر کا نام برقرار رہے گا۔</string>
+
+    <!-- Hide list -->
+    <string name="explorer_hide_action">چھپائیں</string>
+    <string name="explorer_unhide_action">دوبارہ دکھائیں</string>
+    <string name="explorer_hide_file_subtitle">فہرستوں سے باہر رکھیں، فائل اپنی جگہ پر رہتی ہے</string>
+    <string name="explorer_unhide_file_subtitle">فہرستوں میں دوبارہ دکھائیں</string>
+    <string name="explorer_hidden_feedback_message">%1$s چھپا دیا گیا</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d شے چھپا دی گئی</item>
+        <item quantity="other">%1$d اشیا چھپا دی گئیں</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">جب تک یہ ٹیب چھپی ہوئی اشیا دکھاتا ہے، یہ مدھم ہو کر نظر آتی رہے گی</item>
+        <item quantity="other">جب تک یہ ٹیب چھپی ہوئی اشیا دکھاتا ہے، یہ مدھم ہو کر نظر آتی رہیں گی</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">نہ دکھائیں</string>
+    <string name="explorer_settings_hidden_paths_title">چھپی ہوئی اشیا</string>
+    <string name="explorer_settings_hidden_paths_desc">وہ فائلیں اور فولڈرز جنہیں آپ نے فہرستوں سے چھپایا ہے</string>
+    <string name="explorer_settings_hidden_paths_value_none">کوئی نہیں</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d شے</item>
+        <item quantity="other">%1$d اشیا</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">آپ نے ابھی تک کچھ نہیں چھپایا۔ چھپائی گئی فائلیں اور فولڈرز یہاں نظر آتے ہیں۔</string>
+    <string name="explorer_hidden_paths_remove_action">%1$s دوبارہ دکھائیں</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">یہ ٹیب %1$d فولڈر میں ترتیب کی جگہ اپنی ترتیب لاگو کرتا ہے</item>
         <item quantity="other">یہ ٹیب %1$d فولڈرز میں ترتیب کی جگہ اپنی ترتیب لاگو کرتا ہے</item>

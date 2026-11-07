@@ -462,7 +462,7 @@
     <string name="explorer_empty_filtered_title">Niciun element potrivit</string>
     <string name="explorer_empty_filtered_caption">Încearcă să ajustezi filtrele</string>
     <string name="explorer_empty_hidden_title">Aici sunt doar elemente ascunse</string>
-    <string name="explorer_empty_hidden_caption">Această filă ascunde elementele al căror nume începe cu un punct</string>
+    <string name="explorer_empty_hidden_caption">Această filă ascunde elementele al căror nume începe cu un punct și elementele pe care le-ai ascuns</string>
     <string name="explorer_empty_show_hidden_action">Arată elementele ascunse</string>
     <string name="explorer_empty_hidden_or_filtered_title">Nu a rămas nimic de afișat</string>
     <string name="explorer_empty_hidden_or_filtered_caption">Elementele ascunse și filtrele tale exclud fiecare o parte din acest dosar</string>
@@ -519,7 +519,7 @@
     <string name="explorer_view_density_compact_label">Compact</string>
     <string name="explorer_view_density_comfortable_label">Aerisit</string>
     <string name="explorer_view_density_detailed_label">Detaliat</string>
-    <string name="explorer_view_show_hidden_label">Arată fișierele ascunse</string>
+    <string name="explorer_view_show_hidden_label">Arată elementele ascunse</string>
     <string name="explorer_view_set_default_action">Setează ca implicit</string>
     <string name="explorer_view_detail_created_label">Creat</string>
     <string name="explorer_view_detail_modified_label">Modificat</string>
@@ -769,6 +769,32 @@
     <string name="explorer_favorites_rename_title">Redenumește elementul favorit</string>
     <string name="explorer_favorites_rename_hint">Numele elementului favorit</string>
     <string name="explorer_favorites_rename_description">Se redenumește doar înregistrarea din favorite; dosarul în sine își păstrează numele.</string>
+    <string name="explorer_hide_action">Ascunde</string>
+    <string name="explorer_unhide_action">Nu mai ascunde</string>
+    <string name="explorer_hide_file_subtitle">Exclude-l din liste, fișierul rămâne unde este</string>
+    <string name="explorer_unhide_file_subtitle">Afișează-l din nou în liste</string>
+    <string name="explorer_hidden_feedback_message">Ascuns: %1$s</string>
+    <plurals name="explorer_hidden_feedback_multiple_message">
+        <item quantity="one">%1$d element ascuns</item>
+        <item quantity="few">%1$d elemente ascunse</item>
+        <item quantity="other">%1$d de elemente ascunse</item>
+    </plurals>
+    <plurals name="explorer_hidden_feedback_dimmed_hint">
+        <item quantity="one">Rămâne vizibil, estompat, cât timp această filă afișează elementele ascunse</item>
+        <item quantity="few">Rămân vizibile, estompate, cât timp această filă afișează elementele ascunse</item>
+        <item quantity="other">Rămân vizibile, estompate, cât timp această filă afișează elementele ascunse</item>
+    </plurals>
+    <string name="explorer_hidden_feedback_dont_show_action">Nu afișa</string>
+    <string name="explorer_settings_hidden_paths_title">Elemente ascunse</string>
+    <string name="explorer_settings_hidden_paths_desc">Fișiere și dosare pe care le-ai ascuns din liste</string>
+    <string name="explorer_settings_hidden_paths_value_none">Niciunul</string>
+    <plurals name="explorer_settings_hidden_paths_value">
+        <item quantity="one">%1$d element</item>
+        <item quantity="few">%1$d elemente</item>
+        <item quantity="other">%1$d de elemente</item>
+    </plurals>
+    <string name="explorer_hidden_paths_empty">Nu ai ascuns nimic. Fișierele și dosarele ascunse apar aici.</string>
+    <string name="explorer_hidden_paths_remove_action">Nu mai ascunde %1$s</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Această filă înlocuiește ordinea de sortare în %1$d dosar</item>
         <item quantity="few">Această filă înlocuiește ordinea de sortare în %1$d dosare</item>

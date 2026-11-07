@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
+import android.content.Context
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +12,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
@@ -31,6 +33,7 @@ import testhelpers.ComposeTest
 import testhelpers.TestApplication
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
+import eu.darken.butler.common.R as CommonR
 
 /**
  * The sheet anchors to the bottom of its pane, so the root has to be tall enough to hold every row -
@@ -73,6 +76,8 @@ class FileOptionsBottomSheetTest : ComposeTest() {
         mimeType = MimeInfo("text/plain"),
     )
 
+    private val context: Context = ApplicationProvider.getApplicationContext()
+
     private var lastAction: ExplorerActionBarItem? = null
 
     /** Swapping this restages the sheet without a second `setContent` call. */
@@ -92,6 +97,8 @@ class FileOptionsBottomSheetTest : ComposeTest() {
         item: ExplorerItem.File,
         trashEnabled: Boolean = false,
         openActionsEnabled: Boolean = true,
+        isHidden: Boolean? = null,
+        isPro: Boolean = true,
     ) {
         currentItem = item
         lastAction = null
@@ -104,6 +111,8 @@ class FileOptionsBottomSheetTest : ComposeTest() {
                         onDismiss = {},
                         onAction = { lastAction = it },
                         openActionsEnabled = openActionsEnabled,
+                        isHidden = isHidden,
+                        isPro = isPro,
                     )
                 }
             }
@@ -232,5 +241,60 @@ class FileOptionsBottomSheetTest : ComposeTest() {
         setSheetContent(fileNamed("blob.bin"))
 
         countOf("Open in editor") shouldBe 0
+    }
+
+    @Test
+    fun `a file not on the hide list offers Hide`() {
+        setSheetContent(localFile, isHidden = false)
+
+        countOf("Unhide") shouldBe 0
+        composeTestRule.onNodeWithText("Hide").performScrollTo().performClick()
+
+        lastAction.shouldBeInstanceOf<ExplorerActionBarItem.Common.HidePaths>()
+            .items shouldBe listOf(localFile.path)
+    }
+
+    @Test
+    fun `a file on the hide list offers Unhide`() {
+        setSheetContent(localFile, isHidden = true)
+
+        countOf("Hide") shouldBe 0
+        composeTestRule.onNodeWithText("Unhide").performScrollTo().performClick()
+
+        lastAction.shouldBeInstanceOf<ExplorerActionBarItem.Common.UnhidePaths>()
+            .items shouldBe listOf(localFile.path)
+    }
+
+    @Test
+    fun `neither Hide nor Unhide is offered when the host does not offer them`() {
+        setSheetContent(localFile, isHidden = null)
+
+        countOf("Hide") shouldBe 0
+        countOf("Unhide") shouldBe 0
+    }
+
+    /** The Pro chip's label is the flavor-specific upgrade postfix; its presence is what matters. */
+    @Test
+    fun `Hide carries the upgrade marker for a free user only`() {
+        val marker = context.getString(CommonR.string.app_name_upgrade_postfix)
+
+        setSheetContent(localFile, isHidden = false, isPro = false)
+        countOf(marker) shouldBe 1
+    }
+
+    @Test
+    fun `Hide carries no upgrade marker for a Pro user`() {
+        val marker = context.getString(CommonR.string.app_name_upgrade_postfix)
+
+        setSheetContent(localFile, isHidden = false, isPro = true)
+        countOf(marker) shouldBe 0
+    }
+
+    @Test
+    fun `Unhide carries no upgrade marker for a free user`() {
+        val marker = context.getString(CommonR.string.app_name_upgrade_postfix)
+
+        setSheetContent(localFile, isHidden = true, isPro = false)
+        countOf(marker) shouldBe 0
     }
 }

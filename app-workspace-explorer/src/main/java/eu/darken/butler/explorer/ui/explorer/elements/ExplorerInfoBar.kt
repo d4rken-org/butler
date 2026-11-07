@@ -51,7 +51,7 @@ fun ExplorerInfoBar(
     visibleFileCount: Int = 0,
     visibleDirectoryCount: Int = 0,
     visibleTotalSize: Long? = null,
-    /** Dot-prefixed entries being hidden here, zero while they are shown. */
+    /** Dot-named and user-hidden entries being hidden here, zero while they are shown. */
     hiddenCount: Int = 0,
     /** The folder itself has nothing in it, as opposed to nothing surviving the filtering. */
     locationIsEmpty: Boolean = false,
