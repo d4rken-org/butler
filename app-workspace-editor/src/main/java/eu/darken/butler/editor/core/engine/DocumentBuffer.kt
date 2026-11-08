@@ -14,6 +14,7 @@ import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException
 import eu.darken.butler.common.files.saf.MissingUriPermissionException
+import eu.darken.butler.common.files.text.TextCharsets
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.files.write.FileCommitContext
 import eu.darken.butler.editor.R
@@ -1336,6 +1337,7 @@ class DocumentBuffer @AssistedInject constructor(
             Charsets.UTF_8 -> byteArrayOf(0xEF.toByte(), 0xBF.toByte(), 0xBD.toByte())
             Charsets.UTF_16LE -> byteArrayOf(0xFD.toByte(), 0xFF.toByte())
             Charsets.UTF_16BE -> byteArrayOf(0xFF.toByte(), 0xFD.toByte())
+            TextCharsets.GB18030 -> byteArrayOf(0x84.toByte(), 0x31, 0xA4.toByte(), 0x37)
             else -> null
         }?.let { encoder.replaceWith(it) }
         val encoded = encoder.encode(CharBuffer.wrap(text))

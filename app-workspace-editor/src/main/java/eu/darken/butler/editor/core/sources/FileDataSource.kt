@@ -76,8 +76,8 @@ class FileDataSource @AssistedInject constructor(
     }
 
     /**
-     * Detects charset from file content via [CharsetDetector]:
-     * BOM first, UTF-8 validation second, defaulting to UTF-8.
+     * Detects charset from file content via [CharsetDetector]: BOM, UTF-8 validation, then
+     * GB18030, defaulting to UTF-8. A sample that filled the buffer may end inside a character.
      *
      * @return Triple of (Charset, hasBOM, bomBytes)
      */
@@ -87,14 +87,10 @@ class FileDataSource @AssistedInject constructor(
             return Triple(Charsets.UTF_8, false, null)
         }
 
-        CharsetDetector.detectBom(sampleBytes)?.let { detection ->
-            log(tag, INFO) { "Detected ${detection.charset} via BOM" }
-            return Triple(detection.charset, true, detection.bomBytes)
-        }
-
-        if (CharsetDetector.isValidUtf8(sampleBytes)) {
-            log(tag, INFO) { "Detected UTF-8 via validation (no BOM)" }
-            return Triple(Charsets.UTF_8, false, null)
+        val truncated = sampleBytes.size == DETECTION_SAMPLE_SIZE
+        CharsetDetector.detectEncoding(sampleBytes, truncated)?.let { detection ->
+            log(tag, INFO) { "Detected ${detection.charset} (bom=${detection.hasBom}, truncated=$truncated)" }
+            return Triple(detection.charset, detection.hasBom, detection.bomBytes)
         }
 
         // Legacy encodings (ISO-8859-1, Windows-1252, Shift-JIS) will display as mojibake

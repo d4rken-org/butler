@@ -1,12 +1,11 @@
 package eu.darken.butler.editor.core.engine.text
 
+import eu.darken.butler.common.files.text.Gb18030
+import eu.darken.butler.common.files.text.TextCharsets
 import eu.darken.butler.editor.core.engine.LineEnding
 import kotlinx.coroutines.ensureActive
 import okio.BufferedSource
-import java.nio.ByteBuffer
-import java.nio.CharBuffer
 import java.nio.charset.Charset
-import java.nio.charset.CodingErrorAction
 import java.security.MessageDigest
 import kotlin.coroutines.coroutineContext
 
@@ -15,13 +14,14 @@ import kotlin.coroutines.coroutineContext
  * line-ending detection. Cancellable per block via `ensureActive()`.
  *
  * Block edges are snapped to code-point boundaries by explicit byte inspection (UTF-8
- * lead/continuation scan-back, UTF-16 evenness plus a trailing-high-surrogate carry), and each
- * snapped range is decoded IN ISOLATION with a fresh decoder - the exact decode the block cache
- * performs later. This must not rely on decoder underflow leaving partial sequences unconsumed:
- * Android's ICU-backed decoders consume partial sequences into internal state at buffer ends,
- * which silently skews byte attribution (caught by the cache loader's count validation on
- * device). `endOfInput=true` per range is safe because non-EOF ranges contain only complete
- * sequences for valid input, and malformed bytes decode identically in both passes.
+ * lead/continuation scan-back, UTF-16 evenness plus a trailing-high-surrogate carry, GB18030
+ * sequence walk), and each snapped range is decoded IN ISOLATION by [BlockDecoder] - the exact
+ * decode the block cache performs later. This must not rely on decoder underflow leaving
+ * partial sequences unconsumed: Android's ICU-backed decoders consume partial sequences into
+ * internal state at buffer ends, which silently skews byte attribution (caught by the cache
+ * loader's count validation on device). `endOfInput=true` per range is safe because non-EOF
+ * ranges contain only complete sequences for valid input, and malformed bytes decode
+ * identically in both passes.
  */
 class BlockIndexBuilder(
     private val blockSize: Int = DEFAULT_BLOCK_SIZE,
@@ -39,6 +39,7 @@ class BlockIndexBuilder(
     ): BlockIndex {
         val isUtf16 = charset == Charsets.UTF_16 || charset == Charsets.UTF_16LE || charset == Charsets.UTF_16BE
         val isUtf8 = charset == Charsets.UTF_8
+        val isGb18030 = charset == TextCharsets.GB18030
 
         val blocks = mutableListOf<BlockIndex.Block>()
         val digests = mutableListOf<Long>()
@@ -68,11 +69,14 @@ class BlockIndexBuilder(
                 take -= when {
                     isUtf16 -> trailingPartialUtf16(input, take, charset)
                     isUtf8 -> trailingPartialUtf8(input, take)
+                    // The range starts on a sequence boundary: every earlier range ended on one
+                    isGb18030 -> Gb18030.incompleteTailLength(input, 0, take)
                     else -> 0
                 }
             }
 
-            val text = decodeRange(input, take, charset)
+            val decoded = BlockDecoder.decode(input, charset, take)
+            val text = decoded.text
             carry = if (take < filled) input.copyOfRange(take, filled) else ByteArray(0)
 
             if (text.isEmpty()) {
@@ -90,6 +94,7 @@ class BlockIndexBuilder(
                 startsWithLf = TextMetrics.startsWithLf(text),
                 endsWithCr = TextMetrics.endsWithCr(text),
                 endsWithBreak = TextMetrics.endsWithBreak(text),
+                hasUndecodable = decoded.hadUndecodable,
             )
             sha256.update(input, 0, take)
             digests += truncateDigest(sha256.digest())
@@ -167,17 +172,6 @@ class BlockIndexBuilder(
         }
     }
 
-    private fun decodeRange(bytes: ByteArray, length: Int, charset: Charset): String {
-        val decoder = charset.newDecoder()
-            .onMalformedInput(CodingErrorAction.REPLACE)
-            .onUnmappableCharacter(CodingErrorAction.REPLACE)
-        val charBuffer = CharBuffer.allocate(length + 2)
-        decoder.decode(ByteBuffer.wrap(bytes, 0, length), charBuffer, true)
-        decoder.flush(charBuffer)
-        charBuffer.flip()
-        return charBuffer.toString()
-    }
-
     /**
      * Byte count to carry so a UTF-16 range doesn't end mid-code-point: an odd trailing byte
      * plus a trailing high-surrogate unit (its pair completes in the next block).
@@ -206,7 +200,7 @@ class BlockIndexBuilder(
                     byte and 0xE0 == 0xC0 -> 2
                     byte and 0xF0 == 0xE0 -> 3
                     byte and 0xF8 == 0xF0 -> 4
-                    // Invalid lead byte: malformed input, decode as-is (REPLACE handles it)
+                    // Invalid lead byte: malformed input, decode as-is (it becomes U+FFFD)
                     else -> return 0
                 }
                 return if (index + sequenceLength > length) length - index else 0

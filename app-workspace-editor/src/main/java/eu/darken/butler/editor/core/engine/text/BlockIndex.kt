@@ -13,6 +13,9 @@ import eu.darken.butler.editor.core.engine.LineEnding
  *
  * [maxLineLength] is the longest line's content length in UTF-16 chars (breaks excluded),
  * captured for free during the scan; synthetic test indexes may omit it (0).
+ *
+ * [Block.hasUndecodable] marks a block whose bytes contain a run the charset cannot decode, which
+ * the block's text shows as U+FFFD.
  */
 class BlockIndex(
     val blocks: List<Block>,
@@ -36,11 +39,13 @@ class BlockIndex(
         val startsWithLf: Boolean,
         val endsWithCr: Boolean,
         val endsWithBreak: Boolean,
+        val hasUndecodable: Boolean = false,
     )
 
     val byteLength: Long = blocks.lastOrNull()?.let { it.byteStart + it.byteLen } ?: 0L
     val charLength: Long = blocks.lastOrNull()?.let { it.charStart + it.charCount } ?: 0L
     val endsWithBreak: Boolean = blocks.lastOrNull()?.endsWithBreak ?: false
+    val hasUndecodable: Boolean = blocks.any { it.hasUndecodable }
 
     // A CRLF straddling a block edge is attributed to the block holding its '\r'
     private val breaksBefore = LongArray(blocks.size + 1).also { arr ->

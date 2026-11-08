@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.core.engine.text
 
+import eu.darken.butler.common.files.text.TextCharsets
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -118,6 +119,27 @@ class TextMetricsCharToByteTest : BaseTest() {
     fun `unvetted charsets are rejected loudly`() {
         shouldThrow<IllegalStateException> {
             TextMetrics.charToByteInBlock("abc".toByteArray(), Charset.forName("Shift_JIS"), 1)
+        }
+    }
+
+    @Test
+    fun `GB18030 maps every code point boundary to its encoded prefix length`() {
+        val content = "a你ʘ😀\nb好😀ʘ中\r\n€"
+        val bytes = content.toByteArray(TextCharsets.GB18030)
+        for (c in 0..content.length) {
+            // Mid-surrogate-pair offsets are not code-point boundaries
+            if (c in 1 until content.length && content[c - 1].isHighSurrogate() && content[c].isLowSurrogate()) continue
+            TextMetrics.charToByteInBlock(bytes, TextCharsets.GB18030, c) shouldBe
+                content.substring(0, c).toByteArray(TextCharsets.GB18030).size
+        }
+        assertWalkBoundaries(bytes, TextCharsets.GB18030)
+    }
+
+    @Test
+    fun `GB18030 mapping refuses malformed input`() {
+        val bytes = byteArrayOf(0x41, 0x81.toByte(), 0x20, 0x42)
+        shouldThrow<IllegalStateException> {
+            TextMetrics.charToByteInBlock(bytes, TextCharsets.GB18030, 3)
         }
     }
 }
