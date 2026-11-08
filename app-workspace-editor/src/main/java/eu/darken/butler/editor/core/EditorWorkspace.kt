@@ -725,6 +725,9 @@ class EditorWorkspace @AssistedInject constructor(
         return@withLock try {
             log(tag) { "Saving as: ${newFilePath.name}" }
 
+            // Reopen in the charset the content was read as; short content would re-detect as UTF-8
+            val outputCharset = fileSource?.detectedCharset ?: charsetOverride
+
             // Atomic write: a crash mid-stream must not leave a truncated target or destroy a
             // pre-existing file at the destination. The writer never reads the target's old
             // content - everything comes from the current engine.
@@ -736,7 +739,7 @@ class EditorWorkspace @AssistedInject constructor(
 
             // The unsaved changes now live in the new file; releasing the old engine must NOT
             // flush them into the ORIGINAL file
-            switchEngine(newFilePath, charsetOverride, discardOld = true)
+            switchEngine(newFilePath, outputCharset, discardOld = true)
 
             Result.success(Unit)
         } catch (e: CancellationException) {
