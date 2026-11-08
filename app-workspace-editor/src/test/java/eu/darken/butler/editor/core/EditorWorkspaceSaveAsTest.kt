@@ -26,7 +26,9 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
@@ -154,6 +156,15 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
             pasteFileReader = PasteFileReader(gateway),
         )
     }
+
+    private suspend fun EditorWorkspace.awaitEditor(
+        predicate: (EditorWorkspace.EditorState) -> Boolean,
+    ): EditorWorkspace.EditorState = withTimeout(10_000) {
+        state.first { (it as? EditorWorkspace.State.Ready)?.editor?.let(predicate) == true }
+    }.let { (it as EditorWorkspace.State.Ready).editor }
+
+    private val EditorWorkspace.EditorState.fileSource: ContentSource.File?
+        get() = contentSource as? ContentSource.File
 
     @Test
     fun `save-as to the current path uses the atomic save and keeps content intact`(@TempDir tempDir: File) = runTest {
@@ -316,6 +327,32 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
             workspace.saveFileAs(LocalPath.build(target)).isSuccess shouldBe true
             target.readBytes() shouldBe bytes
             file.readBytes() shouldBe bytes
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `save as keeps an auto-detected GB18030 charset`(@TempDir tempDir: File): Unit = runBlocking {
+        val gb18030 = TextCharsets.GB18030
+        val content = (1..20).joinToString("") { "第${it}行中文编码检测测试数据\n" }
+        val file = File(tempDir, "doc.txt").apply { writeBytes(content.toByteArray(gb18030)) }
+        val target = File(tempDir, "copy.txt")
+        val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
+        try {
+            // Detected, not overridden
+            workspace.awaitEditor { it.fileSource?.detectedCharset == gb18030 }
+            workspace.selectAll().getOrThrow()
+            workspace.performInsert("你好").shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>()
+            workspace.awaitEditor { it.isModified }
+
+            workspace.saveFileAs(LocalPath.build(target)).isSuccess shouldBe true
+
+            // Too short to detect as GB18030 on its own
+            target.readBytes() shouldBe "你好".toByteArray(gb18030)
+            val reopened = workspace.awaitEditor { it.fileSource?.path?.name == "copy.txt" }
+            reopened.fileSource!!.detectedCharset shouldBe gb18030
+            workspace.awaitEditor { it.currentContent == "你好" }
         } finally {
             workspace.release()
         }
