@@ -1235,18 +1235,22 @@ class DocumentBuffer @AssistedInject constructor(
                 readOriginal = { offset -> dataSource.openByteSource(offset) },
                 encoder = StrictStreamEncoder(target, CONVERT_CHUNK_BYTES) {},
             )
-            dataSource.commit { context ->
-                when (target) {
-                    Charsets.UTF_16LE -> context.sink.write(byteArrayOf(0xFF.toByte(), 0xFE.toByte()))
-                    Charsets.UTF_16BE -> context.sink.write(byteArrayOf(0xFE.toByte(), 0xFF.toByte()))
+            coroutineContext.ensureActive()
+            // Once the replacement lands, the buffer must retire even if cancellation arrives with it.
+            withContext(NonCancellable) {
+                dataSource.commit { context ->
+                    when (target) {
+                        Charsets.UTF_16LE -> context.sink.write(byteArrayOf(0xFF.toByte(), 0xFE.toByte()))
+                        Charsets.UTF_16BE -> context.sink.write(byteArrayOf(0xFE.toByte(), 0xFF.toByte()))
+                    }
+                    streamDocumentChars(
+                        table = table,
+                        readOriginal = context::openOriginalSource,
+                        encoder = StrictStreamEncoder(target, CONVERT_CHUNK_BYTES) { context.sink.write(it) },
+                    )
                 }
-                streamDocumentChars(
-                    table = table,
-                    readOriginal = context::openOriginalSource,
-                    encoder = StrictStreamEncoder(target, CONVERT_CHUNK_BYTES) { context.sink.write(it) },
-                )
+                retire(IllegalStateException("File was re-encoded as $target, buffer requires reopen"))
             }
-            retire(IllegalStateException("File was re-encoded as $target, buffer requires reopen"))
             log(tag, INFO) { "Converted encoding from $detectedCharset to $target" }
             Result.success(Unit)
         } catch (e: CancellationException) {
