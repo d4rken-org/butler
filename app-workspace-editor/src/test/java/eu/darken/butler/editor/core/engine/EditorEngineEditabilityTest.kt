@@ -8,11 +8,13 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
+import eu.darken.butler.common.files.text.TextCharsets
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.workspace.core.Workspace
+import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -72,12 +74,17 @@ class EditorEngineEditabilityTest : BaseTest() {
         coEvery { delete(any<APath<*>>()) } coAnswers { (firstArg<APath<*>>() as LocalPath).file.delete() }
     }
 
-    private suspend fun createEngine(filePath: APath<*>, canWrite: Boolean): EditorEngine {
+    private suspend fun createEngine(
+        filePath: APath<*>,
+        canWrite: Boolean,
+        charsetOverride: Charset? = null,
+    ): EditorEngine {
         val gateway = createMockGateway(canWrite)
         val engine = EditorEngine(
             workspaceId = workspaceId,
             filePath = filePath,
             initialContent = null,
+            charsetOverride = charsetOverride,
             gatewaySwitch = gateway,
             editorSettings = createMockSettings(),
             dispatcherProvider = TestDispatcherProvider(),
@@ -153,5 +160,58 @@ class EditorEngineEditabilityTest : BaseTest() {
         buffer.insertText(TextPosition(0, 0, 0), "X").getOrThrow()
         buffer.saveFile().exceptionOrNull().shouldBeInstanceOf<ReadOnlyFileException>()
         file.readBytes() shouldBe byteArrayOf(0x50, 0x4B, 0x00, 0x01, 0x00, 0x42)
+    }
+
+    @Test
+    fun `GB18030 files with invalid bytes open read-only and reject mutations and saves`(@TempDir tempDir: File) =
+        runTest {
+            val bytes = "你好".toByteArray(TextCharsets.GB18030) + byteArrayOf(0x81.toByte(), 0x30, 0x20) +
+                "世界".toByteArray(TextCharsets.GB18030)
+            val file = File(tempDir, "broken.txt").apply { writeBytes(bytes) }
+            val engine = createEngine(LocalPath.build(file), canWrite = true, charsetOverride = TextCharsets.GB18030)
+
+            val source = engine.contentSource.first() as ContentSource.File
+            source.isUndecodableReadOnly.shouldBeTrue()
+
+            engine.performInsert("X").shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+                .error.shouldBeInstanceOf<ReadOnlyFileException>()
+            engine.performDeleteForward().shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+                .error.shouldBeInstanceOf<ReadOnlyFileException>()
+            engine.isModified.first() shouldBe false
+
+            val buffer = engine.textBuffer!!
+            buffer.insertText(TextPosition(0, 0, 0), "X").getOrThrow()
+            buffer.saveFile().exceptionOrNull().shouldBeInstanceOf<ReadOnlyFileException>()
+            file.readBytes() shouldBe bytes
+        }
+
+    @Test
+    fun `GB18030 detected from a clean head is read-only when invalid bytes follow`(@TempDir tempDir: File) =
+        runTest {
+            // The detection sample only covers the first 8 KB; the invalid byte sits after it
+            val head = "中文测试数据编码检测\n".repeat(500).toByteArray(TextCharsets.GB18030)
+            (head.size > FileDataSource.DETECTION_SAMPLE_SIZE).shouldBeTrue()
+            val file = File(tempDir, "gbk.txt").apply { writeBytes(head + byteArrayOf(0x80.toByte(), 0x0A)) }
+            val engine = createEngine(LocalPath.build(file), canWrite = true)
+
+            val source = engine.contentSource.first() as ContentSource.File
+            source.detectedCharset shouldBe TextCharsets.GB18030
+            source.isUndecodableReadOnly.shouldBeTrue()
+            engine.performInsert("X").shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+        }
+
+    @Test
+    fun `UTF-8 files with invalid bytes stay editable`(@TempDir tempDir: File) = runTest {
+        val bytes = "head ".toByteArray() + byteArrayOf(0xC3.toByte(), 0x28) + " tail".toByteArray()
+        val file = File(tempDir, "broken-utf8.txt").apply { writeBytes(bytes) }
+        val engine = createEngine(LocalPath.build(file), canWrite = true)
+
+        val source = engine.contentSource.first() as ContentSource.File
+        source.hasUndecodableBytes.shouldBeTrue()
+        source.isUndecodableReadOnly.shouldBeFalse()
+
+        engine.performInsert("X").shouldBeInstanceOf<EditorEngine.EditOutcome.Applied>()
+        engine.saveFile().getOrThrow()
+        file.readBytes() shouldBe "X".toByteArray() + bytes
     }
 }

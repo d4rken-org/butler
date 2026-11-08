@@ -7,11 +7,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.editor.R
 
 /**
  * Hosts the editor's notice banners as a single floating bar. One stable bar (instead of one per
@@ -27,6 +29,7 @@ fun EditorBannerGroup(
     backupNames: List<String> = emptyList(),
     showBackupNotice: Boolean = false,
     isBinary: Boolean = false,
+    isUndecodable: Boolean = false,
     showLongLinesNotice: Boolean = false,
     onDismissError: () -> Unit = {},
     onCloseBackingLost: () -> Unit = {},
@@ -71,7 +74,11 @@ fun EditorBannerGroup(
         }
 
         if (isBinary) {
-            EditorBinaryBanner()
+            EditorReadOnlyBanner(message = stringResource(R.string.editor_binary_banner_message))
+        }
+
+        if (isUndecodable) {
+            EditorReadOnlyBanner(message = stringResource(R.string.editor_undecodable_banner_message))
         }
 
         if (showLongLinesNotice) {
@@ -93,6 +100,7 @@ private fun EditorBannerGroupPreview() {
         backupNames = listOf("notes.txt.butler-save-bak-1a2b3c4d"),
         showBackupNotice = true,
         isBinary = true,
+        isUndecodable = true,
         showLongLinesNotice = true,
     )
 }

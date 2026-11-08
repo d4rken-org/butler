@@ -368,8 +368,8 @@ class EditorWorkspace @AssistedInject constructor(
             }
         }
 
-        // Auto-save logic: debounce after changes; read-only and binary files are skipped so
-        // an edited unsaveable document doesn't produce a failing save on every interval.
+        // Auto-save logic: debounce after changes; read-only, binary and undecodable files are
+        // skipped so an edited unsaveable document doesn't produce a failing save on every interval.
         // Scratch buffers are skipped too: "saving" to the in-memory source persists nothing
         // but clears the modified flag, disabling the Save/Save-As actions. Files flagged as
         // externally changed pause too: every save would be refused by the staleness guard.
@@ -389,7 +389,8 @@ class EditorWorkspace @AssistedInject constructor(
                 ) { contentSource, isModified, externalChange, nonUndoableEditPending ->
                     val file = contentSource as? ContentSource.File
                     isModified && file != null && file.canWrite && !file.isLikelyBinary &&
-                        !file.isBackingLost && externalChange == null && !nonUndoableEditPending
+                        !file.isUndecodableReadOnly && !file.isBackingLost && externalChange == null &&
+                        !nonUndoableEditPending
                 }
             }.distinctUntilChanged(),
             editorSettings.autoSaveEnabled.flow,
@@ -636,6 +637,9 @@ class EditorWorkspace @AssistedInject constructor(
             return@withLock Result.failure(
                 ReadOnlyFileException("Binary file, saving modifications is disabled: ${fileSource.path}"),
             )
+        }
+        if (fileSource?.isUndecodableReadOnly == true && editor.isModified) {
+            return@withLock Result.failure(ReadOnlyFileException.undecodable("saving modifications", fileSource))
         }
 
         val currentPath = fileSource?.path

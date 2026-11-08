@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.text.TextCharsets
 import java.nio.charset.Charset
 import kotlin.time.Instant
 
@@ -56,8 +57,17 @@ sealed class ContentSource {
          * read-only and edits/saves are refused. Cleared only by a successful reopen/reload.
          */
         val isBackingLost: Boolean = false,
+        /** Some block (as of open/rebase) holds bytes [detectedCharset] cannot decode, shown as U+FFFD. */
+        val hasUndecodableBytes: Boolean = false,
     ) : ContentSource() {
         override val name: String get() = path.name
+
+        /**
+         * Read-only because editing needs a byte mapping that only valid input has. Only GB18030
+         * needs one; other charsets edit around their U+FFFD.
+         */
+        val isUndecodableReadOnly: Boolean
+            get() = hasUndecodableBytes && detectedCharset == TextCharsets.GB18030
 
         // Manual equals/hashCode for the ByteArray field. Every property MUST be included -
         // a missed field makes StateFlow/Compose dedup its updates invisibly.
@@ -82,6 +92,7 @@ sealed class ContentSource {
             if (isLikelyBinary != other.isLikelyBinary) return false
             if (hasLongLines != other.hasLongLines) return false
             if (isBackingLost != other.isBackingLost) return false
+            if (hasUndecodableBytes != other.hasUndecodableBytes) return false
 
             return true
         }
@@ -99,6 +110,7 @@ sealed class ContentSource {
             result = 31 * result + isLikelyBinary.hashCode()
             result = 31 * result + hasLongLines.hashCode()
             result = 31 * result + isBackingLost.hashCode()
+            result = 31 * result + hasUndecodableBytes.hashCode()
             return result
         }
     }

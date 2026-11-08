@@ -217,7 +217,8 @@ fun EditorWorkspacePage(
                 FloatingBar(
                     key = EditorBarKeys.BANNERS,
                     visible = state.isBackingLost || state.error != null || state.showExternalChangeBanner ||
-                        state.showBackupNotice || state.isBinary || state.showLongLinesNotice,
+                        state.showBackupNotice || state.isBinary || state.isUndecodable ||
+                        state.showLongLinesNotice,
                     scrollBehavior = BarScrollBehavior.Static,
                     estimatedHeight = 56.dp,
                     animation = BarAnimation.Slide(),
@@ -232,6 +233,7 @@ fun EditorWorkspacePage(
                         backupNames = state.staleBackups.map { it.name },
                         showBackupNotice = state.showBackupNotice,
                         isBinary = state.isBinary,
+                        isUndecodable = state.isUndecodable,
                         showLongLinesNotice = state.showLongLinesNotice,
                         onDismissError = { onPageAction(EditorPageAction.Error.Clear) },
                         onCloseBackingLost = { onPageAction(EditorPageAction.Workspace.Close) },

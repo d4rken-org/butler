@@ -231,6 +231,7 @@ class DocumentBuffer @AssistedInject constructor(
                 _contentSource.value = it.copy(
                     lineEnding = index.lineEnding,
                     hasLongLines = index.maxLineLength > maxDisplayLineChars,
+                    hasUndecodableBytes = index.hasUndecodable,
                 )
             }
             saveError = null
@@ -1051,6 +1052,9 @@ class DocumentBuffer @AssistedInject constructor(
                     // Editing a binary file through the text pipeline would corrupt it
                     return Result.failure(ReadOnlyFileException("Binary file, saving is disabled: ${source.path}"))
                 }
+                if (source.isUndecodableReadOnly) {
+                    return Result.failure(ReadOnlyFileException.undecodable("saving", source))
+                }
                 if (!source.canWrite) {
                     return Result.failure(ReadOnlyFileException("File is read-only: ${source.path}"))
                 }
@@ -1133,6 +1137,9 @@ class DocumentBuffer @AssistedInject constructor(
             (_contentSource.value as? ContentSource.File)?.let { source ->
                 if (source.isLikelyBinary) {
                     return Result.failure(ReadOnlyFileException("Binary file, saving is disabled: ${source.path}"))
+                }
+                if (source.isUndecodableReadOnly) {
+                    return Result.failure(ReadOnlyFileException.undecodable("saving", source))
                 }
                 if (!source.canWrite) {
                     return Result.failure(ReadOnlyFileException("File is read-only: ${source.path}"))
@@ -1371,6 +1378,7 @@ class DocumentBuffer @AssistedInject constructor(
                 size = lastKnownMeta?.size ?: freshSource.size,
                 lastModified = lastKnownMeta?.modifiedAt ?: freshSource.lastModified,
                 hasLongLines = index.maxLineLength > maxDisplayLineChars,
+                hasUndecodableBytes = index.hasUndecodable,
             )
         } else {
             freshSource

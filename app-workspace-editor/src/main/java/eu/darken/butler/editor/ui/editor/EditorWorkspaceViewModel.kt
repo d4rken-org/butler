@@ -1026,8 +1026,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
         /** The backing file vanished/lost read access mid-session: read-only, save disabled. */
         val isBackingLost: Boolean get() = (contentSource as? ContentSource.File)?.isBackingLost == true
+        val isUndecodable: Boolean get() = (contentSource as? ContentSource.File)?.isUndecodableReadOnly == true
         val isReadOnly: Boolean
-            get() = (contentSource as? ContentSource.File)?.canWrite == false || isBinary || isBackingLost
+            get() = (contentSource as? ContentSource.File)?.canWrite == false || isBinary || isUndecodable ||
+                isBackingLost
         val hasContent: Boolean get() = contentSource.hasContent
         val isFileReady: Boolean get() = contentSource is ContentSource.File && progress == null
         val hasSelection: Boolean get() = selectionRange != null

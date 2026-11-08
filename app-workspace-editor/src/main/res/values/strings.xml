@@ -46,6 +46,9 @@
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Editing as text isn\'t supported</string>
 
+    <!-- Undecodable GB18030 notice -->
+    <string name="editor_undecodable_banner_message">This file contains bytes that aren\'t valid GB18030. Pick another encoding to edit it.</string>
+
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Very long lines</string>
     <string name="editor_long_lines_banner_message">Very long lines are shortened for display; the full content is preserved and saved.</string>

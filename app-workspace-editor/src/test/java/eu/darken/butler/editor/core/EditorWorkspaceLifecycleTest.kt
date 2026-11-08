@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.errors.PathNotFoundException
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
+import eu.darken.butler.common.files.text.TextCharsets
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.DocumentBuffer
 import eu.darken.butler.editor.core.engine.EditorEngine
@@ -516,4 +517,30 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
         }
     }
 
+    @Test
+    fun `auto-save leaves a GB18030 file with invalid bytes untouched`(@TempDir tempDir: File): Unit = runBlocking {
+        val bytes = "你好".toByteArray(TextCharsets.GB18030) + byteArrayOf(0x80.toByte()) +
+            "世界".toByteArray(TextCharsets.GB18030)
+        val file = File(tempDir, "doc.txt").apply { writeBytes(bytes) }
+        val workspace = createWorkspace(
+            EditorArguments.Default(filePath = LocalPath.build(file), charsetOverride = "GB18030"),
+            createMockGateway(),
+            createMockSettings(autoSaveEnabled = true, autoSaveInterval = 100.milliseconds),
+        )
+        try {
+            workspace.awaitFile("doc.txt")
+            val source = (workspace.state.value as EditorWorkspace.State.Ready).editor.contentSource
+            (source as ContentSource.File).isUndecodableReadOnly.shouldBeTrue()
+
+            workspace.performInsert("X").shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+
+            delay(500)
+            val editor = (workspace.state.value as EditorWorkspace.State.Ready).editor
+            editor.isModified shouldBe false
+            editor.error shouldBe null
+            file.readBytes() shouldBe bytes
+        } finally {
+            workspace.release()
+        }
+    }
 }

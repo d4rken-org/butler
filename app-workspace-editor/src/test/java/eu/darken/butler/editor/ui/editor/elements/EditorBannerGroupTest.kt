@@ -18,6 +18,7 @@ class EditorBannerGroupTest : ComposeTest() {
         backupNames: List<String> = emptyList(),
         showBackupNotice: Boolean = false,
         isBinary: Boolean = false,
+        isUndecodable: Boolean = false,
         onDismissError: () -> Unit = {},
         onReloadFromDisk: () -> Unit = {},
         onDismissExternalChange: () -> Unit = {},
@@ -31,6 +32,7 @@ class EditorBannerGroupTest : ComposeTest() {
                     backupNames = backupNames,
                     showBackupNotice = showBackupNotice,
                     isBinary = isBinary,
+                    isUndecodable = isUndecodable,
                     onDismissError = onDismissError,
                     onReloadFromDisk = onReloadFromDisk,
                     onDismissExternalChange = onDismissExternalChange,
@@ -107,6 +109,17 @@ class EditorBannerGroupTest : ComposeTest() {
         composeTestRule.onNodeWithText("notes.txt.butler-save-bak-1a2b3c4d", substring = true).assertExists()
         composeTestRule.onNodeWithText("Editing as text isn't supported").assertExists()
         composeTestRule.onAllNodesWithContentDescription("Dismiss").assertCountEquals(2)
+    }
+
+    @Test
+    fun `undecodable banner asks for another encoding`() {
+        setGroup(isUndecodable = true)
+
+        composeTestRule
+            .onNodeWithText("This file contains bytes that aren't valid GB18030. Pick another encoding to edit it.")
+            .assertExists()
+        composeTestRule.onNodeWithText("Editing as text isn't supported").assertDoesNotExist()
+        composeTestRule.onAllNodesWithContentDescription("Dismiss").assertCountEquals(0)
     }
 
     @Test
