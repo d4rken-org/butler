@@ -23,6 +23,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.preview.PreviewBudget
+import eu.darken.butler.common.files.text.TextDecoder
 import eu.darken.butler.common.theming.ThemeColorProvider
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeState
@@ -120,29 +121,30 @@ class TextPreviewGenerator @Inject constructor(
         return PreviewBudget.resolveEdge(width, default = 512) to PreviewBudget.resolveEdge(height, default = 512)
     }
 
-    private suspend fun readTextContent(lookup: APathLookup<*>, maxBytes: Long = 4096L): String? = try {
+    internal suspend fun readTextContent(lookup: APathLookup<*>, maxBytes: Int = 4096): String? = try {
         gatewaySwitch.file(lookup.lookedUp, readWrite = false).use { handle ->
             handle.source().buffer().use { source ->
-                val bytes = if (lookup.size != null && lookup.size!! < maxBytes) {
-                    // Read entire file if smaller than maxBytes
-                    source.readByteArray()
-                } else {
-                    // Read only first maxBytes
-                    val buffer = ByteArray(maxBytes.toInt())
-                    val bytesRead = source.read(buffer)
-                    if (bytesRead > 0) buffer.copyOf(bytesRead) else byteArrayOf()
+                val buffer = ByteArray(maxBytes)
+                var filled = 0
+                while (filled < maxBytes) {
+                    val read = source.read(buffer, filled, maxBytes - filled)
+                    if (read == -1) break
+                    filled += read
                 }
+                val truncated = filled == maxBytes && !source.exhausted()
 
-                // Convert to string using UTF-8
-                val text = String(bytes, Charsets.UTF_8)
+                when (val result = TextDecoder.decode(buffer.copyOf(filled), truncated)) {
+                    is TextDecoder.Result.Decoded -> {
+                        val lines = result.text.lines()
+                        val maxLines = 50
+                        if (lines.size > maxLines) {
+                            lines.take(maxLines).joinToString("\n") + "\n..."
+                        } else {
+                            result.text
+                        }
+                    }
 
-                // Limit to maximum number of lines
-                val lines = text.lines()
-                val maxLines = 50
-                if (lines.size > maxLines) {
-                    lines.take(maxLines).joinToString("\n") + "\n..."
-                } else {
-                    text
+                    TextDecoder.Result.Binary -> null
                 }
             }
         }
