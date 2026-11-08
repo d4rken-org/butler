@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.text.CharsetDetector
+import eu.darken.butler.common.files.text.TextBoundary
 import eu.darken.butler.common.files.text.TextDecoder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
@@ -99,67 +100,10 @@ class TextPreviewLoader @Inject constructor(
         )
     }
 
-    /**
-     * Cuts a truncated buffer back to a character boundary, BEFORE it is decoded.
-     *
-     * The cap lands on an arbitrary byte, and a UTF-8 sequence split across it does not merely lose
-     * one character: the strict decode fails, the whole buffer falls back to ISO-8859-1, and the
-     * mojibake that produces trips the binary guard - so a perfectly good file would have no preview
-     * at all. Cutting at a line break also spares the reader half a line of data that is not there.
-     */
+    /** Trims as the BOM's charset, else as UTF-8 - which leaves a single-byte cut alone (see TextBoundaryTest). */
     private fun trimToBoundary(bytes: ByteArray): ByteArray {
-        val bom = CharsetDetector.detectBom(bytes)
-        if (bom?.charset == Charsets.UTF_16LE || bom?.charset == Charsets.UTF_16BE) {
-            return trimUtf16(bytes, bom.charset)
-        }
-
-        val lastBreak = bytes.lastIndexOf(NEWLINE)
-        if (lastBreak >= 0) return bytes.copyOf(lastBreak)
-
-        return trimPartialUtf8(bytes)
-    }
-
-    /**
-     * A single line longer than the whole cap. Drops a trailing incomplete UTF-8 sequence, and only
-     * that: the scan is bounded by the longest sequence there is and requires a real lead byte at
-     * the end of it, so a single-byte encoding - where every high byte looks like a continuation -
-     * is left alone. Without that bound, a Latin-1 line of `£` (0xA3) would trim away to nothing.
-     */
-    private fun trimPartialUtf8(bytes: ByteArray): ByteArray {
-        var continuations = 0
-        while (continuations < MAX_UTF8_SEQUENCE - 1) {
-            val index = bytes.size - 1 - continuations
-            if (index < 0 || (bytes[index].toInt() and 0xC0) != 0x80) break
-            continuations++
-        }
-        val leadIndex = bytes.size - 1 - continuations
-        if (leadIndex < 0) return bytes
-
-        val lead = bytes[leadIndex].toInt() and 0xFF
-        val expected = when {
-            lead and 0x80 == 0x00 -> 1
-            lead and 0xE0 == 0xC0 -> 2
-            lead and 0xF0 == 0xE0 -> 3
-            lead and 0xF8 == 0xF0 -> 4
-            // Not a lead byte at all, so this is not UTF-8 and any cut in it is already safe.
-            else -> return bytes
-        }
-        return if (continuations + 1 < expected) bytes.copyOf(leadIndex) else bytes
-    }
-
-    /**
-     * UTF-16 carries 0x0A inside a code unit, so the newline scan would cut mid-character here. Its
-     * units are fixed width instead, which makes an even length enough - except for a cut between
-     * the halves of a surrogate pair, which would decode to a replacement character.
-     */
-    private fun trimUtf16(bytes: ByteArray, charset: Charset): ByteArray {
-        val even = if (bytes.size % 2 == 0) bytes else bytes.copyOf(bytes.size - 1)
-        if (even.size < 2) return even
-
-        val first = even[even.size - 2].toInt() and 0xFF
-        val second = even[even.size - 1].toInt() and 0xFF
-        val unit = if (charset == Charsets.UTF_16LE) (second shl 8) or first else (first shl 8) or second
-        return if (unit in 0xD800..0xDBFF) even.copyOf(even.size - 2) else even
+        val charset = CharsetDetector.detectBom(bytes)?.charset ?: Charsets.UTF_8
+        return TextBoundary.trimToLine(bytes, charset, truncated = true)
     }
 
     /** Reads one byte past [cap], so the caller can tell "exactly full" from "there is more". */
@@ -192,9 +136,6 @@ class TextPreviewLoader @Inject constructor(
          * of classifying a multi-hundred-MB file.
          */
         private const val PROBE_BYTES = 64 * 1024
-
-        private const val NEWLINE = '\n'.code.toByte()
-        private const val MAX_UTF8_SEQUENCE = 4
     }
 }
 

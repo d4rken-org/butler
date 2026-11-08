@@ -46,6 +46,12 @@ class PasteFileReaderTest : BaseTest() {
     }
 
     @Test
+    fun `GBK content decodes as chinese`() {
+        val text = "你好世界，这是一个中文文本文件。"
+        decoder.decodeBytes(text.toByteArray(charset("GB18030"))) shouldBe text
+    }
+
+    @Test
     fun `UTF-8 BOM is stripped`() {
         val bytes = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "Hello".toByteArray()
         decoder.decodeBytes(bytes) shouldBe "Hello"

@@ -1,16 +1,13 @@
 package eu.darken.butler.common.files.text
 
-import java.nio.ByteBuffer
-import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
-import java.nio.charset.CodingErrorAction
 
 /**
  * Turns a byte range into text, or says it is not text at all.
  *
  * Owns the decision every caller that shows file content has to make the same way: honour a BOM,
- * decode strictly as UTF-8, fall back to ISO-8859-1 for legacy encodings, and refuse content that
- * only decoded because Latin-1 maps every byte.
+ * decode strictly as UTF-8, then GB18030 when the bytes read as Chinese, fall back to ISO-8859-1 for
+ * other legacy encodings, and refuse content that only decoded because Latin-1 maps every byte.
  */
 object TextDecoder {
 
@@ -21,11 +18,18 @@ object TextDecoder {
         data object Binary : Result
     }
 
-    fun decode(bytes: ByteArray): Result {
+    /**
+     * [truncated] says [bytes] is a head cut off by a read cap, so an incomplete sequence at its end
+     * is dropped instead of decoded. With an explicit [charset] the bytes are decoded as that,
+     * malformed input becomes U+FFFD, and the result is never [Result.Binary].
+     */
+    fun decode(bytes: ByteArray, truncated: Boolean = false, charset: Charset? = null): Result {
+        if (charset != null) return decodeAs(bytes, truncated, charset)
+
         val bom = CharsetDetector.detectBom(bytes)
-        if (bom != null && (bom.charset == Charsets.UTF_16LE || bom.charset == Charsets.UTF_16BE)) {
-            val text = String(bytes, bom.bomSize, bytes.size - bom.bomSize, bom.charset)
-            return Result.Decoded(text, bom.charset)
+        if (bom != null && bom.charset.isUtf16()) {
+            val body = TextBoundary.trim(bytes.copyOfRange(bom.bomSize, bytes.size), bom.charset, truncated)
+            return Result.Decoded(String(body, bom.charset), bom.charset)
         }
 
         val body = if (bom != null) bytes.copyOfRange(bom.bomSize, bytes.size) else bytes
@@ -34,27 +38,27 @@ object TextDecoder {
         // legitimately contains 0x00, everything else that does is binary.
         if (body.any { it == 0.toByte() }) return Result.Binary
 
-        // Strict UTF-8 first so multibyte sequences aren't mistaken for raw C1 control bytes; only
-        // genuinely non-UTF-8 content falls back.
-        val strict = try {
-            Charsets.UTF_8.newDecoder()
-                .onMalformedInput(CodingErrorAction.REPORT)
-                .onUnmappableCharacter(CodingErrorAction.REPORT)
-                .decode(ByteBuffer.wrap(body))
-                .toString()
-        } catch (e: CharacterCodingException) {
-            null
-        }
-
-        val charset = if (strict != null) Charsets.UTF_8 else Charsets.ISO_8859_1
-        val text = strict ?: String(body, Charsets.ISO_8859_1)
+        // Strict UTF-8, then GB18030, so multibyte sequences aren't mistaken for raw C1 control bytes;
+        // only content that is neither falls back.
+        val detected = CharsetDetector.detectWithoutBom(body, truncated) ?: Charsets.ISO_8859_1
+        val text = String(TextBoundary.trim(body, detected, truncated), detected)
 
         // Backstop against the ISO-8859-1 fallback (and null-free binaries) decoding to control-char
         // garbage. Run on the decoded text so C1 controls (0x80..0x9F) are counted too.
         if (looksBinary(text)) return Result.Binary
 
-        return Result.Decoded(text, charset)
+        return Result.Decoded(text, detected)
     }
+
+    private fun decodeAs(bytes: ByteArray, truncated: Boolean, charset: Charset): Result {
+        val bom = CharsetDetector.detectBom(bytes)?.takeIf {
+            it.charset == charset || (it.charset.isUtf16() && charset.isUtf16())
+        }
+        val body = if (bom != null) bytes.copyOfRange(bom.bomSize, bytes.size) else bytes
+        return Result.Decoded(String(TextBoundary.trim(body, charset, truncated), charset), charset)
+    }
+
+    private fun Charset.isUtf16() = this == Charsets.UTF_16LE || this == Charsets.UTF_16BE
 
     /**
      * Counts Unicode control characters (C0, DEL and C1 0x80..0x9F) that are not legitimate text

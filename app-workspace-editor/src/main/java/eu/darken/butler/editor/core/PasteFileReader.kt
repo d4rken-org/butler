@@ -18,9 +18,10 @@ import javax.inject.Inject
  *
  * Streams with a hard byte cap (reported sizes are not trusted - a provider returning null or a
  * lying size must not bypass the limit), rejects binary content via null bytes AFTER honoring a
- * UTF-16 BOM (UTF-16 text legitimately contains 0x00), and decodes strictly as UTF-8 with a real
- * ISO-8859-1 fallback for legacy-encoded content. A control-character heuristic on the decoded
- * text then rejects null-free binaries the Latin-1 fallback would otherwise pass through.
+ * UTF-16 BOM (UTF-16 text legitimately contains 0x00), and decodes strictly as UTF-8, then GB18030
+ * for Chinese text, with a real ISO-8859-1 fallback for other legacy-encoded content. A
+ * control-character heuristic on the decoded text then rejects null-free binaries the Latin-1
+ * fallback would otherwise pass through.
  */
 class PasteFileReader @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
