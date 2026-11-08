@@ -1121,8 +1121,9 @@ class DocumentBuffer @AssistedInject constructor(
      * the usual rebase. Char content intentionally changes across this rebase, so undo/redo
      * history is CLEARED (the rebase survive-invariant doesn't hold). Unsaved edits are saved as
      * part of the conversion. Original pieces are decoded from the commit context (never the
-     * live data source - in-place commits read from the backup) and re-encoded; malformed byte
-     * sequences become U+FFFD, same as editing those regions.
+     * live data source - in-place commits read from the backup) and re-encoded. A document that
+     * still references undecodable bytes is refused with [UndecodableBytesException]: re-encoding
+     * would write them back as U+FFFD.
      */
     suspend fun convertLineEndings(target: LineEnding): Result<Unit> = bufferMutex.withLock {
         try {
@@ -1144,6 +1145,10 @@ class DocumentBuffer @AssistedInject constructor(
                 if (!source.canWrite) {
                     return Result.failure(ReadOnlyFileException("File is read-only: ${source.path}"))
                 }
+            }
+            if (referencesUndecodableBytes(table)) {
+                log(tag, WARN) { "Refusing line-ending conversion over undecodable $detectedCharset bytes" }
+                return Result.failure(UndecodableBytesException(detectedCharset))
             }
 
             // Before the no-op path too: "nothing to convert" must not report success (and let
@@ -1178,6 +1183,33 @@ class DocumentBuffer @AssistedInject constructor(
             log(tag, ERROR) { "Failed to convert line endings - ${e.asLog()}" }
             Result.failure(e)
         }
+    }
+
+    /**
+     * True while an [Piece.Original] still overlaps a block flagged [BlockIndex.Block.hasUndecodable].
+     * Added text came from the user and is always decodable. Block granularity: deleting the bad
+     * bytes clears the flag only once no remaining original range touches their block.
+     */
+    private fun referencesUndecodableBytes(table: PieceTable): Boolean {
+        val index = blockIndex ?: return false
+        if (!index.hasUndecodable) return false
+        val flagged = index.blocks.filter { it.hasUndecodable }
+        return table.pieceSnapshot().any { piece ->
+            piece is Piece.Original && piece.byteLen > 0 &&
+                flagged.overlaps(piece.byteStart, piece.byteStart + piece.byteLen)
+        }
+    }
+
+    /** [this] is sorted by byte offset and non-overlapping, as the index builds it. */
+    private fun List<BlockIndex.Block>.overlaps(byteStart: Long, byteEnd: Long): Boolean {
+        // First block ending after byteStart
+        var lo = 0
+        var hi = size
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            if (this[mid].byteStart + this[mid].byteLen <= byteStart) lo = mid + 1 else hi = mid
+        }
+        return lo < size && this[lo].byteStart < byteEnd
     }
 
     /** Like [streamPieces], but every break is rewritten to [targetBreak] via [LineBreakTransformer]. */
