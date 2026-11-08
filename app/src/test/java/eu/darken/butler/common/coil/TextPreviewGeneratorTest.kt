@@ -219,6 +219,45 @@ class TextPreviewGeneratorTest : BaseTest() {
         bitmap.height shouldBe 512
     }
 
+    /** "中文" is three bytes per character, so byte 4096 falls inside one. */
+    @Test
+    fun `utf-8 cut inside a character at the head limit still reads as text`() = runTest {
+        val bytes = "中文".repeat(1000).toByteArray(Charsets.UTF_8)
+        val lookup = createMockLookup(path = "/test/chinese.txt", size = bytes.size.toLong())
+        mockFileRead(lookup, bytes)
+
+        val text = textPreviewGenerator.readTextContent(lookup)!!
+
+        text shouldBe "中文".repeat(1000).take(4095 / 3)
+        text.contains('�') shouldBe false
+    }
+
+    @Test
+    fun `utf-16 with a BOM reads as text`() = runTest {
+        val bytes = byteArrayOf(0xFF.toByte(), 0xFE.toByte()) + "Hello 世界\nline two".toByteArray(Charsets.UTF_16LE)
+        val lookup = createMockLookup(path = "/test/utf16.txt", size = bytes.size.toLong())
+        mockFileRead(lookup, bytes)
+
+        textPreviewGenerator.readTextContent(lookup) shouldBe "Hello 世界\nline two"
+    }
+
+    @Test
+    fun `GBK chinese reads as text`() = runTest {
+        val text = "你好世界，这是一个中文文本文件。\n第二行"
+        val lookup = createMockLookup(path = "/test/gbk.txt", size = 64L)
+        mockFileRead(lookup, text.toByteArray(charset("GB18030")))
+
+        textPreviewGenerator.readTextContent(lookup) shouldBe text
+    }
+
+    @Test
+    fun `binary content has no text`() = runTest {
+        val lookup = createMockLookup(path = "/test/binary.txt", size = 3L)
+        mockFileRead(lookup, byteArrayOf(0x48, 0x00, 0x49))
+
+        textPreviewGenerator.readTextContent(lookup) shouldBe null
+    }
+
     @Test
     fun `generate preview handles file read error gracefully`() = runTest {
         // Arrange
@@ -342,10 +381,13 @@ class TextPreviewGeneratorTest : BaseTest() {
         }
     }
 
-    private fun mockFileRead(lookup: APathLookup<*>, content: String) {
+    private fun mockFileRead(lookup: APathLookup<*>, content: String) =
+        mockFileRead(lookup, content.toByteArray(Charsets.UTF_8))
+
+    private fun mockFileRead(lookup: APathLookup<*>, content: ByteArray) {
         // Create a real Buffer with the content
         val buffer = Buffer().apply {
-            write(content.toByteArray(Charsets.UTF_8))
+            write(content)
         }
 
         // Use the Buffer's source which can be buffered
