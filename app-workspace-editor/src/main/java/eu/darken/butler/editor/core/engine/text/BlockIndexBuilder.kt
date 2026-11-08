@@ -15,8 +15,8 @@ import kotlin.coroutines.coroutineContext
  *
  * Block edges are snapped to code-point boundaries by explicit byte inspection (UTF-8
  * lead/continuation scan-back, UTF-16 evenness plus a trailing-high-surrogate carry, GB18030
- * sequence walk), and each snapped range is decoded IN ISOLATION by [BlockDecoder] - the exact
- * decode the block cache performs later. This must not rely on decoder underflow leaving
+ * sequence walk), and each snapped range is decoded IN ISOLATION with a REPLACE decoder by
+ * [BlockDecoder] - the exact decode the block cache performs later. This must not rely on decoder underflow leaving
  * partial sequences unconsumed: Android's ICU-backed decoders consume partial sequences into
  * internal state at buffer ends, which silently skews byte attribution (caught by the cache
  * loader's count validation on device). `endOfInput=true` per range is safe because non-EOF
@@ -200,7 +200,7 @@ class BlockIndexBuilder(
                     byte and 0xE0 == 0xC0 -> 2
                     byte and 0xF0 == 0xE0 -> 3
                     byte and 0xF8 == 0xF0 -> 4
-                    // Invalid lead byte: malformed input, decode as-is (it becomes U+FFFD)
+                    // Invalid lead byte: malformed input, decode as-is (REPLACE handles it)
                     else -> return 0
                 }
                 return if (index + sequenceLength > length) length - index else 0
