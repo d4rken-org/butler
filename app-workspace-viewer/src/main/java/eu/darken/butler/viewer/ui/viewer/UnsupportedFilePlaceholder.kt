@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.LockOpen
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.SaveAlt
+import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,7 +38,8 @@ import eu.darken.butler.workspace.R as WorkspaceR
  * content another app streamed to us it is a button that does nothing at all. That content has to
  * be written somewhere first, which is what "Save a copy" does.
  *
- * [onUnlock] is set for an archive entry read with a password that may be wrong.
+ * [onUnlock] is set for an archive entry read with a password that may be wrong, [onChooseEncoding]
+ * for a text file whose bytes detection rejected.
  */
 @Composable
 fun UnsupportedFilePlaceholder(
@@ -47,6 +49,7 @@ fun UnsupportedFilePlaceholder(
     onOpenWith: () -> Unit = {},
     onSaveCopy: () -> Unit = {},
     onUnlock: (() -> Unit)? = null,
+    onChooseEncoding: (() -> Unit)? = null,
     onToggleChrome: (() -> Unit)? = null,
 ) {
     Box(
@@ -95,6 +98,19 @@ fun UnsupportedFilePlaceholder(
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }
+            if (onChooseEncoding != null) {
+                OutlinedButton(onClick = onChooseEncoding) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Translate,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.viewer_unsupported_choose_encoding_action),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+            }
             if (onUnlock != null) {
                 OutlinedButton(onClick = onUnlock) {
                     Icon(
@@ -140,6 +156,18 @@ private fun UnsupportedFilePlaceholderRelockablePreview() {
         mimeType = "text/plain",
         onOpenWith = {},
         onUnlock = {},
+    )
+}
+
+/** A text file detection rejected, which a picked encoding can still read. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun UnsupportedFilePlaceholderTextPreview() {
+    UnsupportedFilePlaceholder(
+        mimeType = "text/plain",
+        onOpenWith = {},
+        onChooseEncoding = {},
     )
 }
 

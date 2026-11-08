@@ -45,6 +45,35 @@ class UnsupportedFilePlaceholderTest : ComposeTest() {
         opened shouldBe true
     }
 
+    @Test
+    fun `rejected text offers the encoding choice`() {
+        var chosen = false
+        composeTestRule.setContent {
+            PreviewWrapper {
+                UnsupportedFilePlaceholder(mimeType = "text/plain", onChooseEncoding = { chosen = true })
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_unsupported_choose_encoding_action))
+            .performClick()
+
+        chosen shouldBe true
+    }
+
+    @Test
+    fun `other types are not offered an encoding`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                UnsupportedFilePlaceholder(mimeType = "application/pdf")
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_unsupported_choose_encoding_action))
+            .assertDoesNotExist()
+    }
+
     /**
      * "Open with" needs a FileProvider URI, which streamed content has none of - the button was
      * there and did nothing at all.

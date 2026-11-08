@@ -257,6 +257,56 @@ class ViewerWorkspacePageTest : ComposeTest() {
         actionBar().assertIsDisplayed()
     }
 
+    private fun rejectedTextState(isGone: Boolean): ViewerWorkspaceViewModel.State.Ready {
+        val source = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Documents/notes.txt"))
+        val content = ViewerContent.Unsupported(MimeInfo("text/plain"))
+        return ViewerWorkspaceViewModel.State.Ready(
+            content = content,
+            fileInfo = ViewerFileInfo(size = 1024L),
+            source = source,
+            imageSource = null,
+            actions = viewerActions(source, trashEnabled = false, content = content, isGone = isGone),
+        )
+    }
+
+    @Test
+    fun `rejected text offers the encoding choice in its placeholder`() {
+        var chosen = false
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = rejectedTextState(isGone = false),
+                    onChooseEncoding = { chosen = true },
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_unsupported_choose_encoding_action))
+            .performClick()
+
+        chosen shouldBe true
+    }
+
+    @Test
+    fun `rejected text that is gone has no encoding to choose`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = rejectedTextState(isGone = true),
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_unsupported_choose_encoding_action))
+            .assertDoesNotExist()
+    }
+
     @Test
     fun `a pdf whose page has not rendered keeps the chrome reachable`() {
         // Only a spinner is on screen in this state, so there is nothing to tap - a chrome hidden

@@ -41,8 +41,10 @@ fun ViewerWorkspaceOverlaysHost(
     val trashEnabled by vm.trashEnabled.collectAsState()
     val issue by vm.issueState.collectAsState()
     val pendingErrorShare by vm.pendingErrorShare.collectAsState()
+    val encodingDialog by vm.encodingDialog.collectAsState()
 
-    val apkContent = (state as? ViewerWorkspaceViewModel.State.Ready)?.content as? ViewerContent.Apk
+    val ready = state as? ViewerWorkspaceViewModel.State.Ready
+    val apkContent = ready?.content as? ViewerContent.Apk
 
     // The preview holds a full-size bitmap, and this ViewModel outlives its composables - without
     // this the bitmap would stay resident after the tab is switched away or closed.
@@ -64,6 +66,15 @@ fun ViewerWorkspaceOverlaysHost(
             fileName = pending.target.name,
             onConfirm = { vm.confirmIconOverwrite() },
             onDismiss = { vm.dismissIconOverwrite() },
+        )
+    }
+
+    if (encodingDialog) {
+        TextEncodingDialog(
+            selected = (ready?.content as? ViewerContent.Text)?.charset,
+            autoCharset = ready?.textPreview?.autoCharset,
+            onSelect = { vm.selectEncoding(it) },
+            onDismiss = { vm.dismissEncodingDialog() },
         )
     }
 

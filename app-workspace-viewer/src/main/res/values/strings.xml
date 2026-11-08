@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">Preview limited to the first %1$s lines of this file.</string>
     <string name="viewer_text_truncated_width">Long lines are shortened in this preview.</string>
     <string name="viewer_text_unreadable_label">This file couldn\'t be read</string>
+    <string name="viewer_text_encoding_action">Encoding</string>
+    <string name="viewer_text_encoding_title">Encoding</string>
+    <string name="viewer_text_encoding_automatic">Automatic</string>
+    <string name="viewer_text_encoding_automatic_detected">Automatic (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Choose encoding</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">Viewer</string>
