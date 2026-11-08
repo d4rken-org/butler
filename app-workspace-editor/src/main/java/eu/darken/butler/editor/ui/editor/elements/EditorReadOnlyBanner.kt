@@ -24,10 +24,11 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
 
-/** Persistent notice for binary files: viewing is byte-safe, editing/saving is disabled. */
+/** Persistent notice for a document that opens read-only for what it contains, e.g. a binary file. */
 @Composable
-fun EditorBinaryBanner(
+fun EditorReadOnlyBanner(
     modifier: Modifier = Modifier,
+    message: String,
 ) {
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
@@ -50,7 +51,7 @@ fun EditorBinaryBanner(
             Spacer(Modifier.width(16.dp))
 
             Text(
-                text = stringResource(R.string.editor_binary_banner_message),
+                text = message,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -61,6 +62,13 @@ fun EditorBinaryBanner(
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun EditorBinaryBannerPreview() {
-    EditorBinaryBanner()
+private fun EditorReadOnlyBannerPreview() {
+    EditorReadOnlyBanner(message = stringResource(R.string.editor_binary_banner_message))
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EditorReadOnlyBannerUndecodablePreview() {
+    EditorReadOnlyBanner(message = stringResource(R.string.editor_undecodable_banner_message))
 }

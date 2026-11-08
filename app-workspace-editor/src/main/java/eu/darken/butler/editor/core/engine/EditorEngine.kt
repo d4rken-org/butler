@@ -250,6 +250,7 @@ class EditorEngine @AssistedInject constructor(
         val source = contentSource as? ContentSource.File ?: return null
         return when {
             source.isLikelyBinary -> ReadOnlyFileException("Binary file, editing is disabled: ${source.path}")
+            source.isUndecodableReadOnly -> ReadOnlyFileException.undecodable("editing", source)
             !source.canWrite -> ReadOnlyFileException("File is read-only: ${source.path}")
             else -> null
         }

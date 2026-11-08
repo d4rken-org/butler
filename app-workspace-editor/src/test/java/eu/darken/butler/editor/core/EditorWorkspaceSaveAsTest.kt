@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
+import eu.darken.butler.common.files.text.TextCharsets
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.DocumentBuffer
 import eu.darken.butler.editor.core.engine.EditorEngine
@@ -19,6 +20,7 @@ import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -290,6 +292,30 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
                 EditorWorkspace.SaveAsTarget.EXISTS_FILE
             workspace.inspectSaveAsTarget(LocalPath.build(existingDir)) shouldBe
                 EditorWorkspace.SaveAsTarget.EXISTS_DIRECTORY
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `save-as copies a GB18030 file with invalid bytes verbatim`(@TempDir tempDir: File) = runTest {
+        // Detected from a clean head; the invalid byte lies beyond the detection sample
+        val bytes = "中文测试数据编码检测\n".repeat(500).toByteArray(TextCharsets.GB18030) +
+            byteArrayOf(0x80.toByte(), 0x0A)
+        val file = File(tempDir, "doc.txt").apply { writeBytes(bytes) }
+        val target = File(tempDir, "copy.txt")
+        val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
+        try {
+            val ready = workspace.state.first {
+                (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File
+            } as EditorWorkspace.State.Ready
+            (ready.editor.contentSource as ContentSource.File).isUndecodableReadOnly shouldBe true
+
+            // Edits are refused, so the document stays unmodified and Save-As is a plain copy
+            workspace.performInsert("X").shouldBeInstanceOf<EditorEngine.EditOutcome.Failed>()
+            workspace.saveFileAs(LocalPath.build(target)).isSuccess shouldBe true
+            target.readBytes() shouldBe bytes
+            file.readBytes() shouldBe bytes
         } finally {
             workspace.release()
         }
