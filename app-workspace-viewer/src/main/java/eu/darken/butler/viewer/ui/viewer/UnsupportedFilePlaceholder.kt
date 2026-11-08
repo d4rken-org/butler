@@ -4,9 +4,12 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.LockOpen
@@ -44,6 +47,7 @@ import eu.darken.butler.workspace.R as WorkspaceR
 @Composable
 fun UnsupportedFilePlaceholder(
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
     mimeType: String,
     isStreamed: Boolean = false,
     onOpenWith: () -> Unit = {},
@@ -55,6 +59,7 @@ fun UnsupportedFilePlaceholder(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .padding(contentPadding)
             .let { base ->
                 if (onToggleChrome == null) base
                 else base.pointerInput(onToggleChrome) { detectTapGestures { onToggleChrome() } }
@@ -62,7 +67,9 @@ fun UnsupportedFilePlaceholder(
         contentAlignment = Alignment.Center,
     ) {
         Column(
-            modifier = Modifier.padding(32.dp),
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {

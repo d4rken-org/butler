@@ -9,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -21,7 +20,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
@@ -285,11 +284,10 @@ class ViewerWorkspacePageTest : ComposeTest() {
             }
         }
 
-        // The button is the placeholder's last row. Robolectric's 470dp window and 36dp text lines
-        // put it under the bottom bar stack, where a touch hits the bars instead of the button.
         composeTestRule
             .onNodeWithText(context.getString(R.string.viewer_unsupported_choose_encoding_action))
-            .performSemanticsAction(SemanticsActions.OnClick)
+            .performScrollTo()
+            .performClick()
 
         composeTestRule.runOnIdle { chosen shouldBe true }
     }
