@@ -131,6 +131,7 @@ fun ViewerWorkspacePageHost(
                     ViewerActionBarItem.BrowseArchive -> vm.browseArchive()
                     ViewerActionBarItem.OpenInEditor -> vm.openInEditor()
                     ViewerActionBarItem.Install -> vm.install()
+                    ViewerActionBarItem.Encoding -> vm.showEncodingDialog()
                 }
             },
             onOpenWith = { vm.openWith() },
@@ -139,6 +140,7 @@ fun ViewerWorkspacePageHost(
             onUnlock = { vm.requestUnlock() },
             onRelock = { vm.requestRelock() },
             onOpenInEditor = { vm.openInEditor() },
+            onChooseEncoding = { vm.showEncodingDialog() },
             onRetry = { vm.retry() },
             onShareError = { error -> vm.shareError(error) },
             onShowIcon = { vm.showIconPreview() },
@@ -178,6 +180,7 @@ fun ViewerWorkspacePage(
     onUnlock: () -> Unit = {},
     onRelock: () -> Unit = {},
     onOpenInEditor: () -> Unit = {},
+    onChooseEncoding: () -> Unit = {},
     onRetry: () -> Unit = {},
     onShareError: (Throwable) -> Unit = {},
     onShowIcon: () -> Unit = {},
@@ -345,6 +348,7 @@ fun ViewerWorkspacePage(
                     onUnlock = onUnlock,
                     onRelock = onRelock,
                     onOpenInEditor = onOpenInEditor,
+                    onChooseEncoding = onChooseEncoding,
                     onRetry = onRetry,
                     onShareError = onShareError,
                     onShowIcon = onShowIcon,
@@ -529,6 +533,7 @@ private fun ViewerContentArea(
     onUnlock: () -> Unit = {},
     onRelock: () -> Unit = {},
     onOpenInEditor: () -> Unit = {},
+    onChooseEncoding: () -> Unit = {},
     onRetry: () -> Unit,
     onShareError: (Throwable) -> Unit,
     onShowIcon: () -> Unit = {},
@@ -625,6 +630,10 @@ private fun ViewerContentArea(
                     onOpenWith = onOpenWith,
                     onSaveCopy = onSaveCopy,
                     onUnlock = onRelock.takeIf { state.relockableArchive != null },
+                    // Same gate as the action bar's entry, which knows when the file is gone.
+                    onChooseEncoding = onChooseEncoding.takeIf {
+                        state.actions.contains(ViewerActionBarItem.Encoding)
+                    },
                     onToggleChrome = onToggleChrome,
                 )
 

@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
 import eu.darken.butler.common.pkgs.installer.AppInstallFormat
+import java.nio.charset.Charset
 
 /**
  * What the viewer resolved the target file to. [Loading] is the seed state, everything else is
@@ -19,8 +20,10 @@ sealed interface ViewerContent {
      * A file the text preview can render. The text itself is not part of the state, only the fact
      * that there is some - the same split [PdfPreview] makes, and for the same reason: a paused tab
      * must not keep the payload alive.
+     *
+     * [charset] is the encoding the user picked, null while it is detected.
      */
-    data class Text(val mime: MimeInfo) : ViewerContent
+    data class Text(val mime: MimeInfo, val charset: Charset? = null) : ViewerContent
 
     data class Apk(
         val mime: MimeInfo,

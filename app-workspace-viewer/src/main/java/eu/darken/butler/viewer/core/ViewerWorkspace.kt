@@ -63,6 +63,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
+import java.nio.charset.Charset
 
 /**
  * Single-file workspace that renders one image full screen. The workspace owns the classification
@@ -141,6 +142,17 @@ class ViewerWorkspace @AssistedInject constructor(
 
     private var loadJob: Job? = null
 
+    private var textClassifyJob: Job? = null
+
+    private val textCharsetFlow = MutableStateFlow<Charset?>(null)
+
+    /**
+     * The encoding the user picked for this file's text, null to detect it. Deliberately not in the
+     * arguments: it belongs to this file, and a step to another one is a new workspace that starts
+     * without one.
+     */
+    val textCharset: StateFlow<Charset?> = textCharsetFlow
+
     /** One probe at a time, so two poll ticks cannot interleave their verdicts. */
     private val externalChangeMutex = Mutex()
 
@@ -191,6 +203,7 @@ class ViewerWorkspace @AssistedInject constructor(
 
     fun reload() {
         log(tag) { "reload()" }
+        textClassifyJob?.cancel()
         loadJob?.cancel()
         loadJob = scope.launch { load() }
     }
@@ -274,6 +287,41 @@ class ViewerWorkspace @AssistedInject constructor(
                     log(tag, INFO) { "External change for ${baseline.lookedUp}: $verdict" }
                     current.copy(externalChange = verdict)
                 }
+            }
+        }
+    }
+
+    /**
+     * Sets or, with null, clears the encoding the text is read with, and re-classifies only what
+     * depends on it. A load still under way is restarted instead, since it may have probed already.
+     */
+    fun setTextCharset(charset: Charset?) {
+        if (textCharsetFlow.value == charset) return
+        log(tag, INFO) { "setTextCharset($charset)" }
+        textCharsetFlow.value = charset
+        val shown = stateFlow.value.content
+        val mime = when (shown) {
+            is ViewerContent.Text -> shown.mime
+            is ViewerContent.Unsupported -> shown.mime.takeIf { it.isText }
+            ViewerContent.Loading -> {
+                reload()
+                return
+            }
+
+            else -> null
+        } ?: return
+        textClassifyJob?.cancel()
+        textClassifyJob = scope.launch {
+            val reclassified = try {
+                classifyText(mime, charset)
+            } catch (e: ArchivePasswordRequiredException) {
+                log(tag, WARN) { "Re-classifying needs the archive password again, reloading: $e" }
+                reload()
+                return@launch
+            }
+            // A load that started meanwhile owns the state now.
+            stateFlow.update { current ->
+                if (current.content === shown) current.copy(content = reclassified) else current
             }
         }
     }
@@ -508,23 +556,9 @@ class ViewerWorkspace @AssistedInject constructor(
             return
         }
 
-        // The probe doubles as the decode check, the way the image branch below uses ImageProbe: a
-        // name claiming text over bytes that are not would render mojibake instead of saying the
-        // type is unsupported.
         if (mime.isText) {
-            if (!textPreviewLoader.probe(source)) {
-                log(tag, INFO) { "$source is named as text but does not read as text" }
-                stateFlow.value = State(
-                    content = ViewerContent.Unsupported(mime),
-                    fileInfo = fileInfo,
-                    lookup = lookup,
-                    contentLookup = contentLookup,
-                )
-                return
-            }
-            log(tag, INFO) { "$source is text ($mime)" }
             stateFlow.value = State(
-                content = ViewerContent.Text(mime),
+                content = classifyText(mime, textCharsetFlow.value),
                 fileInfo = fileInfo,
                 lookup = lookup,
                 contentLookup = contentLookup,
@@ -589,6 +623,28 @@ class ViewerWorkspace @AssistedInject constructor(
             lookup = lookup,
             contentLookup = contentLookup,
         )
+    }
+
+    /**
+     * The probe doubles as the decode check, the way the image branch uses ImageProbe: a name
+     * claiming text over bytes that are not would render mojibake instead of saying the type is
+     * unsupported. A [charset] the user picked skips it, because that decodes any bytes at all.
+     */
+    private suspend fun classifyText(mime: MimeInfo, charset: Charset?): ViewerContent = when {
+        charset != null -> {
+            log(tag, INFO) { "$source is text ($mime), read as $charset" }
+            ViewerContent.Text(mime, charset)
+        }
+
+        textPreviewLoader.probe(source) -> {
+            log(tag, INFO) { "$source is text ($mime)" }
+            ViewerContent.Text(mime)
+        }
+
+        else -> {
+            log(tag, INFO) { "$source is named as text but does not read as text" }
+            ViewerContent.Unsupported(mime)
+        }
     }
 
     private suspend fun loadApk(

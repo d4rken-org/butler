@@ -22,6 +22,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.text.TextCharsets
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine as combineMany
@@ -97,6 +98,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import me.saket.telephoto.zoomable.ZoomableImageSource
+import java.nio.charset.Charset
 import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.R as WorkspaceR
 
@@ -230,6 +232,15 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         }
 
     /**
+     * What the last automatic read of a file detected, kept while the user tries other encodings so
+     * the dialog can still name it. Keyed by source: this ViewModel outlives each file it shows.
+     */
+    private val autoCharsetFlow = MutableStateFlow<SourcedCharset?>(null)
+
+    private fun autoCharsetFor(source: ViewerSource): Charset? =
+        autoCharsetFlow.value?.takeIf { it.source == source }?.charset
+
+    /**
      * The text is read here, not in the workspace: the preview is capped but still up to a megabyte,
      * and a paused tab must not keep holding it. Emits an empty result first so the page shows its
      * spinner while the read runs.
@@ -250,13 +261,23 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
                         flowOf<TextPreviewResult?>(null)
                     } else {
                         flow {
-                            emit(TextPreviewResult(source = workspace.source, preview = null))
-                            val preview = textPreviewLoader.preview(workspace.source)
+                            emit(
+                                TextPreviewResult(
+                                    source = workspace.source,
+                                    preview = null,
+                                    autoCharset = autoCharsetFor(workspace.source),
+                                ),
+                            )
+                            val preview = textPreviewLoader.preview(workspace.source, text.charset)
+                            if (text.charset == null && preview != null) {
+                                autoCharsetFlow.value = SourcedCharset(workspace.source, preview.charset)
+                            }
                             emit(
                                 TextPreviewResult(
                                     source = workspace.source,
                                     preview = preview,
                                     failed = preview == null,
+                                    autoCharset = autoCharsetFor(workspace.source),
                                 ),
                             )
                         }
@@ -877,13 +898,49 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
      * target, and this viewer stays where it is so back still returns to whatever opened it.
      */
     fun openInEditor() = launch {
-        val path = workspaceSource.first().storedPath ?: return@launch
-        log(tag, INFO) { "openInEditor($path)" }
+        val workspace = workspaceSource.first()
+        val path = workspace.storedPath ?: return@launch
+        val charsetOverride = editorCharsetOverride(workspace)
+        log(tag, INFO) { "openInEditor($path, charsetOverride=$charsetOverride)" }
         workspaceRemote.createAndFocus(
             type = Workspace.Type.EDITOR,
-            arguments = EditorArguments.Default(filePath = path),
+            arguments = EditorArguments.Default(filePath = path, charsetOverride = charsetOverride),
             sourceWorkspaceId = id,
         )
+    }
+
+    /**
+     * The encoding the user picked always travels. Of the automatic results only GB18030 does; for
+     * everything else the Editor is left to its own detection.
+     */
+    private fun editorCharsetOverride(workspace: ViewerWorkspace): String? {
+        val picked = (workspace.state.value.content as? ViewerContent.Text)?.charset
+        if (picked != null) return picked.name()
+        return autoCharsetFor(workspace.source)?.takeIf { it == TextCharsets.GB18030 }?.name()
+    }
+
+    private val encodingDialogFlow = MutableStateFlow(false)
+
+    /** Whether the encoding choice is open. */
+    val encodingDialog: StateFlow<Boolean> = encodingDialogFlow
+
+    fun showEncodingDialog() {
+        log(tag) { "showEncodingDialog()" }
+        encodingDialogFlow.value = true
+    }
+
+    fun dismissEncodingDialog() {
+        log(tag) { "dismissEncodingDialog()" }
+        encodingDialogFlow.value = false
+    }
+
+    /** Reads the text as [charset] from now on, or detects it again for null. */
+    fun selectEncoding(charset: Charset?) {
+        encodingDialogFlow.value = false
+        launch {
+            log(tag, INFO) { "selectEncoding($charset)" }
+            workspaceSource.first().setTextCharset(charset)
+        }
     }
 
     /** Installs the APK or app bundle this tab is showing. */
@@ -1284,6 +1341,13 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
         val source: ViewerSource,
         val preview: TextPreview?,
         val failed: Boolean = false,
+        /** What automatic detection read this file as, also while a picked encoding is on display. */
+        val autoCharset: Charset? = null,
+    )
+
+    private data class SourcedCharset(
+        val source: ViewerSource,
+        val charset: Charset,
     )
 
     /** One rendered PDF page. A null [bitmap] with [failed] false means the render is still running. */
@@ -1329,11 +1393,12 @@ class ViewerWorkspaceViewModel @AssistedInject constructor(
 /**
  * The viewer's action bar, in display order.
  *
- * Streamed content gets exactly one action. Every other entry needs a path Butler owns: handing the
- * file to another app needs a FileProvider URI, and a grant we were given cannot be passed on;
- * copy and cut put paths on the clipboard for a later paste; there is no folder to open; and
- * deleting content another app owns is not ours to do. "Save a copy" is what turns it into a file
- * that has all of them.
+ * Streamed content gets "Save a copy", plus the encoding choice for text, which only changes how
+ * the bytes on display are read. Every other entry needs a path Butler owns: handing the file to
+ * another app needs a FileProvider URI, and a grant we were given cannot be passed on; copy and cut
+ * put paths on the clipboard for a later paste; there is no folder to open; and deleting content
+ * another app owns is not ours to do. "Save a copy" is what turns it into a file that has all of
+ * them.
  *
  * For a stored file the only thing that varies is applicability: there is no parent folder at a
  * storage root, delete only reads as recoverable when this file can really reach the trash, only a
@@ -1361,7 +1426,10 @@ internal fun viewerActions(
     isGone: Boolean = false,
     neighbours: ViewerNeighbours? = null,
 ): List<ViewerActionBarItem> = when (source) {
-    is ViewerSource.Streamed -> listOf(ViewerActionBarItem.SaveCopy)
+    is ViewerSource.Streamed -> buildList {
+        add(ViewerActionBarItem.SaveCopy)
+        if (content.isReadableAsText) add(ViewerActionBarItem.Encoding)
+    }
 
     is ViewerSource.Stored -> buildList {
         if (neighbours != null) {
@@ -1388,6 +1456,9 @@ internal fun viewerActions(
             if (content is ViewerContent.Text) {
                 add(ViewerActionBarItem.OpenInEditor)
             }
+            if (content.isReadableAsText) {
+                add(ViewerActionBarItem.Encoding)
+            }
             // Handing a file to another app needs a URI Butler can pass on, which is what
             // [FileActionCapabilities.canHandOffToOtherApps] answers.
             if (FileActionCapabilities.canHandOffToOtherApps(source.path)) {
@@ -1408,6 +1479,13 @@ internal fun viewerActions(
         }
     }
 }
+
+/**
+ * Text, or a text file whose bytes detection rejected: a picked encoding reads either, and is the
+ * only way into the second.
+ */
+private val ViewerContent.isReadableAsText: Boolean
+    get() = this is ViewerContent.Text || (this is ViewerContent.Unsupported && mime.isText)
 
 /**
  * Where a page step lands, or null when it would not move. [displayedIndex] is clamped first: a

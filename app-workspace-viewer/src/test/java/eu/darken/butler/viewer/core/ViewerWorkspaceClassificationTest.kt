@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.text.TextCharsets
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.apk.ApkArchiveInfo
 import eu.darken.butler.common.pkgs.apk.ApkArchiveParser
@@ -297,6 +298,75 @@ class ViewerWorkspaceClassificationTest : BaseTest() {
         val state = workspace(textPath).state.first()
 
         state.content.shouldBeInstanceOf<ViewerContent.Unsupported>()
+    }
+
+    // ==================== a picked encoding ====================
+
+    /** Detection rejected the bytes, but an encoding the user picks reads anything. */
+    @Test
+    fun `a picked encoding reads a rejected text file as text until it is cleared`() = runTest2 {
+        setupGateway(textPath.path to lookup(textPath))
+        coEvery { textPreviewLoader.probe(any()) } returns false
+        val workspace = workspace(textPath)
+        val mime = workspace.state.first().content.shouldBeInstanceOf<ViewerContent.Unsupported>().mime
+
+        workspace.setTextCharset(TextCharsets.GB18030)
+
+        workspace.textCharset.value shouldBe TextCharsets.GB18030
+        workspace.state.first().content shouldBe ViewerContent.Text(mime, TextCharsets.GB18030)
+
+        workspace.setTextCharset(null)
+
+        workspace.textCharset.value shouldBe null
+        workspace.state.first().content shouldBe ViewerContent.Unsupported(mime)
+        // Only the text question was asked again, not the file looked up anew.
+        coVerify(exactly = 1) { gatewaySwitch.lookup(any(), any()) }
+        coVerify(exactly = 2) { textPreviewLoader.probe(any()) }
+    }
+
+    @Test
+    fun `a picked encoding switches a text file to it and back to detection`() = runTest2 {
+        setupGateway(textPath.path to lookup(textPath))
+        coEvery { textPreviewLoader.probe(any()) } returns true
+        val workspace = workspace(textPath)
+        val mime = workspace.state.first().content.shouldBeInstanceOf<ViewerContent.Text>().mime
+
+        workspace.setTextCharset(Charsets.UTF_16LE)
+        workspace.state.first().content shouldBe ViewerContent.Text(mime, Charsets.UTF_16LE)
+
+        workspace.setTextCharset(null)
+        workspace.state.first().content shouldBe ViewerContent.Text(mime)
+    }
+
+    /**
+     * A step builds a new workspace from [ViewerWorkspace.siblingArguments] (see ViewerFileStepTest),
+     * and the pick is not part of any arguments, so the neighbour starts on detection again.
+     */
+    @Test
+    fun `a picked encoding does not travel to the next file or into the arguments`() = runTest2 {
+        val nextPath = LocalPath.build("/storage/emulated/0/Documents/other.txt")
+        setupGateway(textPath.path to lookup(textPath), nextPath.path to lookup(nextPath))
+        coEvery { textPreviewLoader.probe(any()) } returns true
+        val workspace = workspace(textPath)
+        workspace.state.first()
+
+        workspace.setTextCharset(TextCharsets.GB18030)
+
+        workspace.createArguments() shouldBe ViewerArguments.Default(filePath = textPath)
+        val next = workspace(workspace.siblingArguments(nextPath)!!.filePath!!)
+        next.textCharset.value shouldBe null
+        next.state.first().content.shouldBeInstanceOf<ViewerContent.Text>().charset shouldBe null
+    }
+
+    @Test
+    fun `a picked encoding is ignored by content that is not text`() = runTest2 {
+        setupGateway(imagePath.path to lookup(imagePath))
+        val workspace = workspace(imagePath)
+        val shown = workspace.state.first().content.shouldBeInstanceOf<ViewerContent.Image>()
+
+        workspace.setTextCharset(TextCharsets.GB18030)
+
+        workspace.state.first().content shouldBe shown
     }
 
     @Test

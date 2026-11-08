@@ -113,6 +113,55 @@ class ViewerActionsTest : BaseTest() {
             .contains(ViewerActionBarItem.OpenInEditor) shouldBe false
     }
 
+    /** Detection rejected the bytes; a picked encoding is the way to read them anyway. */
+    private val rejectedText = ViewerContent.Unsupported(MimeInfo("text/plain"))
+
+    @Test
+    fun `text and rejected text offer the encoding choice`() {
+        viewerActions(stored, trashEnabled = false, content = text)
+            .contains(ViewerActionBarItem.Encoding) shouldBe true
+        viewerActions(stored, trashEnabled = false, content = rejectedText)
+            .contains(ViewerActionBarItem.Encoding) shouldBe true
+    }
+
+    @Test
+    fun `the encoding choice follows the editor`() {
+        val actions = viewerActions(stored, trashEnabled = false, content = text)
+
+        actions.indexOf(ViewerActionBarItem.Encoding) shouldBe
+            actions.indexOf(ViewerActionBarItem.OpenInEditor) + 1
+    }
+
+    @Test
+    fun `streamed text keeps the encoding choice`() {
+        viewerActions(streamed, trashEnabled = false, content = text) shouldBe
+            listOf(ViewerActionBarItem.SaveCopy, ViewerActionBarItem.Encoding)
+        viewerActions(streamed, trashEnabled = false, content = rejectedText) shouldBe
+            listOf(ViewerActionBarItem.SaveCopy, ViewerActionBarItem.Encoding)
+    }
+
+    @Test
+    fun `the encoding choice is not offered for anything else`() {
+        listOf(
+            apk,
+            bundle,
+            ViewerContent.Image(MimeInfo("image/jpeg")),
+            ViewerContent.Unsupported(MimeInfo("application/pdf")),
+            ViewerContent.Loading,
+        ).forEach { content ->
+            viewerActions(stored, trashEnabled = false, content = content)
+                .contains(ViewerActionBarItem.Encoding) shouldBe false
+            viewerActions(streamed, trashEnabled = false, content = content)
+                .contains(ViewerActionBarItem.Encoding) shouldBe false
+        }
+    }
+
+    @Test
+    fun `a text file that is gone has no encoding to choose`() {
+        viewerActions(stored, trashEnabled = false, content = text, isGone = true)
+            .contains(ViewerActionBarItem.Encoding) shouldBe false
+    }
+
     @Test
     fun `streamed content keeps its single action`() {
         viewerActions(streamed, trashEnabled = false, content = apk) shouldBe

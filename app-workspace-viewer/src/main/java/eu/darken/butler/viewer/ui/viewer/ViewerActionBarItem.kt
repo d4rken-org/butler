@@ -14,6 +14,7 @@ import androidx.compose.material.icons.twotone.InstallMobile
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Share
+import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
@@ -83,6 +84,13 @@ sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
     data object OpenInEditor : ViewerActionBarItem {
         override val icon = Icons.TwoTone.DriveFileRenameOutline
         override val label = R.string.viewer_open_in_editor_action.toCaString()
+    }
+
+    /** Pick the encoding the text is read with, for a file that detection got wrong or rejected. */
+    data object Encoding : ViewerActionBarItem {
+        override val icon = Icons.TwoTone.Translate
+        override val label = R.string.viewer_text_encoding_action.toCaString()
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
     /**
