@@ -247,6 +247,9 @@ class EditorEngine @AssistedInject constructor(
         if (resources.textBuffer.isBackingLost.value) {
             return BackingUnavailableException("Backing file is no longer available")
         }
+        if (resources.textBuffer.isRetired.value) {
+            return ReadOnlyFileException("File was re-encoded, editing waits for the reopen: $filePath")
+        }
         val source = contentSource as? ContentSource.File ?: return null
         return when {
             source.isLikelyBinary -> ReadOnlyFileException("Binary file, editing is disabled: ${source.path}")
@@ -516,6 +519,39 @@ class EditorEngine @AssistedInject constructor(
                 selectionAnchor = null
                 invalidateSearchResults()
                 refreshVisibleContent()
+            }
+            result
+        } finally {
+            _progress.value = null
+        }
+    }
+
+    /**
+     * Re-encodes the document (unsaved edits included) into [target] and saves it. Success retires
+     * the buffer: this engine refuses every further edit and save, and the caller must replace it
+     * with a fresh engine for the file. A failure wrote nothing and leaves the engine editable.
+     */
+    suspend fun convertEncoding(target: Charset): Result<Unit> = stateMutex.withLock {
+        val currentState = _state.value as? EditorState.Loaded
+            ?: return@withLock Result.failure(IllegalStateException("Cannot convert - no file open"))
+        currentState.editabilityError()?.let { return@withLock Result.failure(it) }
+        try {
+            _progress.value = Progress.Data(
+                primary = R.string.editor_progress_saving.toCaString(),
+                count = Progress.Count.Indeterminate(),
+            )
+            log(tag, INFO) { "Converting encoding to $target" }
+            val result = currentState.resources.textBuffer.convertEncoding(target)
+            if (result.isFailure) {
+                _error.value = result.exceptionOrNull()
+                if (result.exceptionOrNull() is ExternalModificationException) {
+                    flagSaveTimeExternalChange(currentState.resources.textBuffer)
+                }
+            } else if (currentState.resources.textBuffer.isRetired.value) {
+                _state.value = currentState.copy(isModified = false)
+                _externalChange.value = null
+                _selectionRange.value = null
+                selectionAnchor = null
             }
             result
         } finally {

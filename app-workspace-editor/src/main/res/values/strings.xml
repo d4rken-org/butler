@@ -150,6 +150,13 @@
     <string name="editor_line_ending_dialog_message">Convert all line breaks and save the file, including unsaved changes. Undo history is cleared.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Convert…</string>
+    <string name="editor_convert_encoding_dialog_title">Convert encoding</string>
+    <string name="editor_convert_encoding_dialog_message">Re-encodes the whole file and saves it, including unsaved changes. Undo history is cleared.</string>
+    <string name="editor_error_unmappable_characters">Some characters can\'t be written as %1$s.</string>
+    <string name="editor_reopen_banner_title">File not reopened</string>
+    <string name="editor_reopen_banner_message">The file was converted to %1$s. Reopen it to keep editing.</string>
+    <string name="editor_reopen_action">Reopen</string>
     <string name="editor_error_undecodable_bytes">This file contains bytes that can\'t be read as %1$s. Pick the right encoding first.</string>
 
     <!-- Editor File Names -->

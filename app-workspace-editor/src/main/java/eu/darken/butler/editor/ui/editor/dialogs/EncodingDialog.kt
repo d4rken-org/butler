@@ -27,6 +27,8 @@ fun EncodingDialog(
     currentEncoding: String,
     onSelect: (String) -> Unit,
     onDismiss: () -> Unit,
+    /** Null hides the entry: converting writes the file, which read-only documents can't. */
+    onConvert: (() -> Unit)? = null,
 ) {
     PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
@@ -55,6 +57,13 @@ fun EncodingDialog(
             }
         },
         confirmButton = {},
+        neutralButton = onConvert?.let { convert ->
+            {
+                TextButton(onClick = convert) {
+                    Text(stringResource(R.string.editor_convert_encoding_action))
+                }
+            }
+        },
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.editor_dialog_action_cancel))
@@ -71,5 +80,6 @@ private fun EncodingDialogPreview() {
         currentEncoding = "UTF-8",
         onSelect = {},
         onDismiss = {},
+        onConvert = {},
     )
 }

@@ -44,6 +44,7 @@ import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -64,6 +65,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import eu.darken.butler.common.files.write.AtomicFileWriter
@@ -94,7 +96,9 @@ class EditorWorkspace @AssistedInject constructor(
         val ready = (_state.value as? State.Ready)?.editor
         val args = creationArguments as? EditorArguments.Default
         return EditorArguments.Default(
-            filePath = if (engine.state.value is EngineState.Empty) null else engine.filePath,
+            // A converted file whose reopen failed or was cancelled is still this tab's file
+            filePath = _pendingReopen.value?.path
+                ?: if (engine.state.value is EngineState.Empty) null else engine.filePath,
             cursorLine = ready?.cursorPosition?.line ?: args?.cursorLine,
             cursorColumn = ready?.cursorPosition?.column ?: args?.cursorColumn,
             scrollToLine = ready?.visibleRange?.first ?: args?.scrollToLine,
@@ -115,6 +119,7 @@ class EditorWorkspace @AssistedInject constructor(
                 ready?.cursorPosition,
                 ready?.visibleRange,
                 charsetOverride?.name(),
+                _pendingReopen.value,
             )
         }
 
@@ -224,6 +229,12 @@ class EditorWorkspace @AssistedInject constructor(
             }
         }
 
+    /** A file this tab converted to [charset] whose fresh engine failed to open or was cancelled. */
+    data class PendingReopen(val path: APath<*>, val charset: Charset)
+
+    // Set while the converted file waits for a successful reopen; cleared by any successful switch
+    private val _pendingReopen = MutableStateFlow<PendingReopen?>(null)
+
     // Track engine being initialized to allow cancellation
     @Volatile
     private var pendingEngine: EditorEngine? = null
@@ -308,7 +319,7 @@ class EditorWorkspace @AssistedInject constructor(
                 highlightedLines = highlightedLines,
             )
         }
-    }
+    }.combine(_pendingReopen) { editor, pendingReopen -> editor.copy(pendingReopen = pendingReopen) }
 
     init {
         log(tag, INFO) { "Initialized with file: ${filePath?.name ?: "No file"}" }
@@ -474,11 +485,16 @@ class EditorWorkspace @AssistedInject constructor(
      * Swaps in a fresh engine for [newFilePath]. [discardOld] releases the previous engine
      * WITHOUT flushing unsaved changes - required for every flow where the user explicitly
      * discarded (close-with-discard, reopen-with-encoding) or redirected them (Save-As).
+     *
+     * A failed or cancelled switch restores the previous engine. Without [rollbackOnFailure] the
+     * previous engine is released instead and the failed one stays current: used when the previous
+     * engine can no longer serve its file (see [convertEncoding]).
      */
     private suspend fun switchEngine(
         newFilePath: APath<*>?,
         charset: Charset? = null,
         discardOld: Boolean = false,
+        rollbackOnFailure: Boolean = true,
     ) {
         log(tag, INFO) { "Switching engine to: ${newFilePath?.name ?: "scratch buffer"} (charset=$charset, discardOld=$discardOld)" }
 
@@ -515,9 +531,14 @@ class EditorWorkspace @AssistedInject constructor(
             }
 
             charsetOverride = charset
+            _pendingReopen.value = null
             log(tag, DEBUG) { "Engine switched successfully" }
         } catch (e: CancellationException) {
             log(tag, INFO) { "Engine switch cancelled" }
+            if (!rollbackOnFailure) {
+                withContext(NonCancellable) { releaseUnrestorable(oldEngine) }
+                throw e
+            }
             // Restore old engine on cancellation; the fresh engine has nothing worth flushing
             rollbackEngine(newEngine, oldEngine)
             try {
@@ -527,6 +548,10 @@ class EditorWorkspace @AssistedInject constructor(
             }
             throw e
         } catch (e: Exception) {
+            if (!rollbackOnFailure) {
+                releaseUnrestorable(oldEngine)
+                throw e
+            }
             // Restore old engine on failure
             rollbackEngine(newEngine, oldEngine)
             try {
@@ -537,6 +562,15 @@ class EditorWorkspace @AssistedInject constructor(
             throw e
         } finally {
             pendingEngine = null
+        }
+    }
+
+    /** The failed engine stays current; the one it replaced is dropped without flushing. */
+    private suspend fun releaseUnrestorable(oldEngine: EditorEngine?) {
+        try {
+            oldEngine?.release(flush = false)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to release replaced engine: ${e.asLog()}" }
         }
     }
 
@@ -583,9 +617,48 @@ class EditorWorkspace @AssistedInject constructor(
         currentEngine().convertLineEndings(target)
     }
 
+    /**
+     * Re-encodes the open file as [targetName] and saves it, unsaved changes included, then reopens it
+     * with that charset. A refused conversion wrote nothing and leaves the document editable.
+     *
+     * After the commit the old engine can't serve the file any more, so a failed or cancelled reopen
+     * never rolls back to it: the tab stays read-only with [EditorState.pendingReopen] set, and
+     * [reloadFromDisk] is the retry.
+     */
+    suspend fun convertEncoding(targetName: String): Result<Unit> = saveMutex.withLock {
+        val target = EditorCharsets.resolve(targetName)
+            ?: return@withLock Result.failure(IllegalArgumentException("Unknown charset: $targetName"))
+        val engine = currentEngine()
+        val path = engine.filePath
+            ?: return@withLock Result.failure(IllegalStateException("Cannot convert - no file open"))
+        val current = engine.textBuffer?.contentSource?.value as? ContentSource.File
+        if (current?.detectedCharset == target) {
+            log(tag) { "Already $target, nothing to convert" }
+            return@withLock Result.success(Unit)
+        }
+
+        engine.convertEncoding(target).onFailure { return@withLock Result.failure(it) }
+
+        // Before the switch: session restore and the retry must reopen with the new charset
+        charsetOverride = target
+        try {
+            switchEngine(path, target, discardOld = true, rollbackOnFailure = false)
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            log(tag, WARN) { "Reopen after converting to $target was cancelled" }
+            _pendingReopen.value = PendingReopen(path, target)
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Reopen after converting to $target failed: ${e.asLog()}" }
+            _pendingReopen.value = PendingReopen(path, target)
+            Result.failure(e)
+        }
+    }
+
     /** Re-reads the current file from disk, discarding unsaved changes; only reached directly or after confirmation. */
     suspend fun reloadFromDisk() {
         val currentPath = ((_state.value as? State.Ready)?.editor?.contentSource as? ContentSource.File)?.path
+            ?: _pendingReopen.value?.path
             ?: run {
                 log(tag, WARN) { "Cannot reload - no file open" }
                 return
@@ -782,6 +855,8 @@ class EditorWorkspace @AssistedInject constructor(
         val nonUndoableEditPending: Boolean = false,
         /** Absolute line number -> syntax tokens (RAW offsets); empty when highlighting is off/unavailable. */
         val highlightedLines: Map<Long, List<Token>> = emptyMap(),
+        /** Non-null while a converted file waits for a reopen; the document is read-only meanwhile. */
+        val pendingReopen: PendingReopen? = null,
     )
 
     sealed interface State {

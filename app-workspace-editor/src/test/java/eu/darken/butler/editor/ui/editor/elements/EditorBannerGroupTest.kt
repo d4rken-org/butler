@@ -19,6 +19,8 @@ class EditorBannerGroupTest : ComposeTest() {
         showBackupNotice: Boolean = false,
         isBinary: Boolean = false,
         isUndecodable: Boolean = false,
+        reopenEncoding: String? = null,
+        onReopen: () -> Unit = {},
         onDismissError: () -> Unit = {},
         onReloadFromDisk: () -> Unit = {},
         onDismissExternalChange: () -> Unit = {},
@@ -33,6 +35,8 @@ class EditorBannerGroupTest : ComposeTest() {
                     showBackupNotice = showBackupNotice,
                     isBinary = isBinary,
                     isUndecodable = isUndecodable,
+                    reopenEncoding = reopenEncoding,
+                    onReopen = onReopen,
                     onDismissError = onDismissError,
                     onReloadFromDisk = onReloadFromDisk,
                     onDismissExternalChange = onDismissExternalChange,
@@ -120,6 +124,18 @@ class EditorBannerGroupTest : ComposeTest() {
             .assertExists()
         composeTestRule.onNodeWithText("Editing as text isn't supported").assertDoesNotExist()
         composeTestRule.onAllNodesWithContentDescription("Dismiss").assertCountEquals(0)
+    }
+
+    @Test
+    fun `reopen banner names the new encoding and retries`() {
+        var reopened = false
+        setGroup(reopenEncoding = "UTF-8", onReopen = { reopened = true })
+
+        composeTestRule
+            .onNodeWithText("The file was converted to UTF-8. Reopen it to keep editing.")
+            .assertExists()
+        composeTestRule.onNodeWithText("Reopen").performClick()
+        reopened.shouldBeTrue()
     }
 
     @Test

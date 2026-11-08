@@ -54,6 +54,13 @@ class EditorWorkspaceViewModelReadOnlyTest : BaseTest() {
     }
 
     @Test
+    fun `a converted file waiting for its reopen is read-only`() {
+        val state = state(ContentSource.Memory()).copy(pendingReopenEncoding = "UTF-8")
+        state.isReopenPending shouldBe true
+        state.isReadOnly shouldBe true
+    }
+
+    @Test
     fun `the undecodable flag takes part in equality`() {
         file(TextCharsets.GB18030, hasUndecodableBytes = true) shouldNotBe
             file(TextCharsets.GB18030, hasUndecodableBytes = false)

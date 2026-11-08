@@ -130,6 +130,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val editorState = readyState.editor
 
         val displayPath = (editorState.contentSource as? ContentSource.File)?.path
+            ?: editorState.pendingReopen?.path
         val title = displayPath?.userReadableName ?: editorState.contentSource.name.toCaString()
         // Shared with the tab identity, so this toolbar and the tab describe the same location
         val subTitle = editorLocationSubtitle(displayPath) ?: "In-Memory-Buffer".toCaString()
@@ -156,6 +157,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             externalChangeDismissedGeneration = dialogs.externalChangeDismissedGeneration,
             showReloadConfirmDialog = dialogs.showReloadConfirmDialog,
             showLineEndingDialog = dialogs.showLineEndingDialog,
+            showConvertEncodingDialog = dialogs.showConvertEncodingDialog,
+            pendingReopenEncoding = editorState.pendingReopen?.charset?.name(),
             searchQuery = editorState.searchQuery,
             searchResults = editorState.searchResults,
             searchTruncated = editorState.searchTruncated,
@@ -447,6 +450,14 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         // on-disk baseline, so a stale file surfaces instead of silently reporting success
         getWorkspace().convertLineEndings(target).getOrThrow()
         log(tag, INFO) { "Line endings converted to $target" }
+    }
+
+    // ==================== Encoding conversion ====================
+
+    fun convertEncoding(charsetName: String) = launch {
+        dialogsController.dismissConvertEncodingDialog()
+        getWorkspace().convertEncoding(charsetName).getOrThrow()
+        log(tag, INFO) { "Encoding converted to $charsetName" }
     }
 
     // ==================== Editing delegates ====================
@@ -891,6 +902,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.File.DismissExternalChange -> dismissExternalChange()
             is EditorPageAction.File.ShowLineEndingPicker -> dialogsController.showLineEndingDialog()
             is EditorPageAction.File.ConvertLineEndings -> convertLineEndings(action.target)
+            is EditorPageAction.File.ShowConvertEncodingPicker -> dialogsController.showConvertEncodingDialog()
+            is EditorPageAction.File.ConvertEncoding -> convertEncoding(action.charsetName)
 
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
@@ -932,6 +945,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Dialog.ConfirmReload -> confirmReload()
             is EditorPageAction.Dialog.DismissReloadConfirm -> dialogsController.dismissReloadConfirmDialog()
             is EditorPageAction.Dialog.DismissLineEnding -> dialogsController.dismissLineEndingDialog()
+            is EditorPageAction.Dialog.DismissConvertEncoding -> dialogsController.dismissConvertEncodingDialog()
             is EditorPageAction.Dialog.ConfirmLargeDelete -> confirmLargeDelete()
             is EditorPageAction.Dialog.DismissLargeDeleteConfirm -> dismissLargeEditConfirm()
 
@@ -988,6 +1002,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val externalChangeDismissedGeneration: Int? = null,
         val showReloadConfirmDialog: Boolean = false,
         val showLineEndingDialog: Boolean = false,
+        val showConvertEncodingDialog: Boolean = false,
+        /** Charset a converted file waits to be reopened with; non-null keeps the document read-only. */
+        val pendingReopenEncoding: String? = null,
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
         val searchTruncated: Boolean = false,
@@ -1027,9 +1044,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         /** The backing file vanished/lost read access mid-session: read-only, save disabled. */
         val isBackingLost: Boolean get() = (contentSource as? ContentSource.File)?.isBackingLost == true
         val isUndecodable: Boolean get() = (contentSource as? ContentSource.File)?.isUndecodableReadOnly == true
+        val isReopenPending: Boolean get() = pendingReopenEncoding != null
         val isReadOnly: Boolean
             get() = (contentSource as? ContentSource.File)?.canWrite == false || isBinary || isUndecodable ||
-                isBackingLost
+                isBackingLost || isReopenPending
         val hasContent: Boolean get() = contentSource.hasContent
         val isFileReady: Boolean get() = contentSource is ContentSource.File && progress == null
         val hasSelection: Boolean get() = selectionRange != null

@@ -216,7 +216,8 @@ fun EditorWorkspacePage(
                 // Notices persist during scroll (Static) until dismissed; single stable bar, see EditorBannerGroup
                 FloatingBar(
                     key = EditorBarKeys.BANNERS,
-                    visible = state.isBackingLost || state.error != null || state.showExternalChangeBanner ||
+                    visible = state.isBackingLost || state.isReopenPending || state.error != null ||
+                        state.showExternalChangeBanner ||
                         state.showBackupNotice || state.isBinary || state.isUndecodable ||
                         state.showLongLinesNotice,
                     scrollBehavior = BarScrollBehavior.Static,
@@ -229,6 +230,7 @@ fun EditorWorkspacePage(
                         // read error underneath it would just be a cryptic duplicate.
                         error = state.error.takeUnless { state.isBackingLost },
                         showBackingLost = state.isBackingLost,
+                        reopenEncoding = state.pendingReopenEncoding,
                         showExternalChange = state.showExternalChangeBanner,
                         backupNames = state.staleBackups.map { it.name },
                         showBackupNotice = state.showBackupNotice,
@@ -237,6 +239,7 @@ fun EditorWorkspacePage(
                         showLongLinesNotice = state.showLongLinesNotice,
                         onDismissError = { onPageAction(EditorPageAction.Error.Clear) },
                         onCloseBackingLost = { onPageAction(EditorPageAction.Workspace.Close) },
+                        onReopen = { onPageAction(EditorPageAction.File.ReloadFromDisk) },
                         onReloadFromDisk = { onPageAction(EditorPageAction.File.ReloadFromDisk) },
                         onDismissExternalChange = { onPageAction(EditorPageAction.File.DismissExternalChange) },
                         onDismissBackupNotice = { onPageAction(EditorPageAction.File.DismissBackupNotice) },

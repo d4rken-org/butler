@@ -29,6 +29,7 @@ class EditorDialogsController(
     private val _showLineEndingDialog = MutableStateFlow(false)
     private val _longLinesNoticeDismissed = MutableStateFlow(false)
     private val _showLargeDeleteConfirmDialog = MutableStateFlow(false)
+    private val _showConvertEncodingDialog = MutableStateFlow(false)
 
     data class DialogUiState(
         val showGoToLineDialog: Boolean = false,
@@ -42,6 +43,7 @@ class EditorDialogsController(
         val showLineEndingDialog: Boolean = false,
         val longLinesNoticeDismissed: Boolean = false,
         val showLargeDeleteConfirmDialog: Boolean = false,
+        val showConvertEncodingDialog: Boolean = false,
     )
 
     val state: Flow<DialogUiState> = combine(
@@ -56,10 +58,11 @@ class EditorDialogsController(
         _showLineEndingDialog,
         _longLinesNoticeDismissed,
         _showLargeDeleteConfirmDialog,
+        _showConvertEncodingDialog,
     ) { showGoToLineDialog, showCloseConfirmDialog, showEncodingDialog, pendingEncoding,
         pendingSaveAsOverwrite, backupNoticeDismissed, showReloadConfirmDialog,
         externalChangeDismissedGeneration, showLineEndingDialog, longLinesNoticeDismissed,
-        showLargeDeleteConfirmDialog ->
+        showLargeDeleteConfirmDialog, showConvertEncodingDialog ->
         DialogUiState(
             showGoToLineDialog = showGoToLineDialog,
             showCloseConfirmDialog = showCloseConfirmDialog,
@@ -72,6 +75,7 @@ class EditorDialogsController(
             showLineEndingDialog = showLineEndingDialog,
             longLinesNoticeDismissed = longLinesNoticeDismissed,
             showLargeDeleteConfirmDialog = showLargeDeleteConfirmDialog,
+            showConvertEncodingDialog = showConvertEncodingDialog,
         )
     }
 
@@ -125,6 +129,16 @@ class EditorDialogsController(
 
     fun dismissEncodingDiscard() {
         _pendingEncoding.value = null
+    }
+
+    /** Replaces the reopen picker: converting is the alternative to reopening, not a step after it. */
+    fun showConvertEncodingDialog() {
+        _showEncodingDialog.value = false
+        _showConvertEncodingDialog.value = true
+    }
+
+    fun dismissConvertEncodingDialog() {
+        _showConvertEncodingDialog.value = false
     }
 
     /** A new Save-As result supersedes any overwrite decision still pending from an earlier one. */

@@ -84,6 +84,18 @@ class DocumentBufferUndecodableConversionTest : BaseTest() {
     }
 
     @Test
+    fun `encoding conversion refuses over undecodable bytes`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "broken.txt").apply { writeBytes(brokenBytes) }
+        val buffer = openBuffer(file)
+
+        val error = buffer.convertEncoding(Charsets.UTF_16LE).exceptionOrNull()
+
+        error.shouldBeInstanceOf<UndecodableBytesException>().charset shouldBe Charsets.UTF_8
+        file.readBytes() shouldBe brokenBytes
+        buffer.isRetired.value shouldBe false
+    }
+
+    @Test
     fun `line-ending conversion succeeds once the undecodable region is deleted`(@TempDir tempDir: File) =
         runTest {
             val file = File(tempDir, "broken.txt").apply { writeBytes(brokenBytes) }
