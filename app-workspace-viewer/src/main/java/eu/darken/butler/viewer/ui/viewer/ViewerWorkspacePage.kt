@@ -625,6 +625,7 @@ private fun ViewerContentArea(
                 )
 
                 is ViewerContent.Unsupported -> UnsupportedFilePlaceholder(
+                    contentPadding = contentPadding,
                     mimeType = content.mime.rawType,
                     isStreamed = state.source is ViewerSource.Streamed,
                     onOpenWith = onOpenWith,
