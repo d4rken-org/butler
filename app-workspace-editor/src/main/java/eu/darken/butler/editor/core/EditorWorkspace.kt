@@ -641,16 +641,15 @@ class EditorWorkspace @AssistedInject constructor(
 
         // Before the switch: session restore and the retry must reopen with the new charset
         charsetOverride = target
+        _pendingReopen.value = PendingReopen(path, target)
         try {
             switchEngine(path, target, discardOld = true, rollbackOnFailure = false)
             Result.success(Unit)
         } catch (e: CancellationException) {
             log(tag, WARN) { "Reopen after converting to $target was cancelled" }
-            _pendingReopen.value = PendingReopen(path, target)
             throw e
         } catch (e: Exception) {
             log(tag, ERROR) { "Reopen after converting to $target failed: ${e.asLog()}" }
-            _pendingReopen.value = PendingReopen(path, target)
             Result.failure(e)
         }
     }
