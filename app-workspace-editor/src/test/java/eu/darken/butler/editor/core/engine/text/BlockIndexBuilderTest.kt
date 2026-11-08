@@ -1,6 +1,8 @@
 package eu.darken.butler.editor.core.engine.text
 
 import eu.darken.butler.common.files.text.CharsetDetector
+import eu.darken.butler.common.files.text.Gb18030
+import eu.darken.butler.common.files.text.TextCharsets
 import eu.darken.butler.editor.core.engine.LineEnding
 import io.kotest.assertions.withClue
 import io.kotest.matchers.booleans.shouldBeFalse
@@ -414,6 +416,33 @@ class BlockIndexBuilderTest : BaseTest() {
             if (case.seam != null) {
                 withClue("input='${case.label}' never produced ${case.seam} at a block edge") {
                     seamSeen.shouldBeTrue()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `GB18030 block edges never end mid sequence across small block sizes`() = runTest {
+        // 2-byte 你好, 4-byte BMP ʘ (81 30 B2 37) and supplementary 😀 (94 39 FC 36) at every offset
+        val content = "a你ʘ😀\nb好😀ʘ中\r\n文ʘʘ😀😀".repeat(3)
+        val bytes = content.toByteArray(TextCharsets.GB18030)
+        val boundaries = buildSet {
+            var index = 0
+            while (index < bytes.size) {
+                add(index.toLong())
+                index += Gb18030.sequenceLength(bytes, index).also { it shouldBeGreaterThan 0 }
+            }
+            add(bytes.size.toLong())
+        }
+        for (blockSize in 4..17) {
+            withClue("block size $blockSize") {
+                val index = build(bytes, charset = TextCharsets.GB18030, blockSize = blockSize)
+                index.verifyAgainst(bytes, TextCharsets.GB18030) shouldBe content
+                index.blocks.size shouldBeGreaterThan 1
+                for (block in index.blocks) {
+                    (block.byteStart in boundaries).shouldBeTrue()
+                    (block.byteStart + block.byteLen in boundaries).shouldBeTrue()
+                    block.hasUndecodable.shouldBeFalse()
                 }
             }
         }

@@ -1,5 +1,7 @@
 package eu.darken.butler.editor.core.engine.text
 
+import eu.darken.butler.common.files.text.Gb18030
+import eu.darken.butler.common.files.text.TextCharsets
 import eu.darken.butler.editor.core.engine.LineEnding
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
@@ -78,7 +80,8 @@ object TextMetrics {
      * Structural, decoder-free for valid content: UTF-16 is `2 * charOffset` (clamped for a
      * malformed odd tail), single-byte charsets are the identity, and UTF-8 walks lead bytes
      * with full semantic validation (continuation ranges per lead, so overlong forms, encoded
-     * surrogates, and > U+10FFFF never count as valid). Decoders proved unreliable for byte
+     * surrogates, and > U+10FFFF never count as valid). GB18030 walks sequences and requires
+     * valid input, which only an editable document guarantees. Decoders proved unreliable for byte
      * ATTRIBUTION on Android/ICU, so they are only consulted for malformed UTF-8 runs, each
      * decoded in ISOLATION (the exact decode the block cache performs) to learn its
      * replacement-char count.
@@ -95,11 +98,24 @@ object TextMetrics {
             minOf(2L * charOffset, blockBytes.size.toLong()).toInt()
         isSingleByte(charset) -> minOf(charOffset, blockBytes.size)
         charset == Charsets.UTF_8 -> utf8CharToByte(blockBytes, charOffset)
+        charset == TextCharsets.GB18030 -> gb18030CharToByte(blockBytes, charOffset)
         else -> error("Unsupported charset for byte mapping: $charset - vet its block-edge behavior first")
     }
 
     private fun isSingleByte(charset: Charset): Boolean =
         runCatching { charset.newEncoder().maxBytesPerChar() == 1f }.getOrDefault(false)
+
+    private fun gb18030CharToByte(bytes: ByteArray, charOffset: Int): Int {
+        var byte = 0
+        var chars = 0
+        while (chars < charOffset) {
+            val length = Gb18030.sequenceLength(bytes, byte)
+            if (length == 0) error("No complete GB18030 sequence at byte $byte of a ${bytes.size}-byte block")
+            chars += Gb18030.utf16Units(bytes, byte)
+            byte += length
+        }
+        return byte
+    }
 
     private fun utf8CharToByte(bytes: ByteArray, charOffset: Int): Int {
         var byte = 0

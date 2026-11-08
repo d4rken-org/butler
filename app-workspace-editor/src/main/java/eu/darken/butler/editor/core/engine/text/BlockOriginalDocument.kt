@@ -1,9 +1,6 @@
 package eu.darken.butler.editor.core.engine.text
 
-import java.nio.ByteBuffer
-import java.nio.CharBuffer
 import java.nio.charset.Charset
-import java.nio.charset.CodingErrorAction
 
 /**
  * [OriginalDocument] over a [BlockIndex] plus a [DecodeCache] of decoded blocks.
@@ -22,7 +19,7 @@ class BlockOriginalDocument(
         check(bytes.size == block.byteLen) {
             "Block $blockIndex read ${bytes.size} bytes, expected ${block.byteLen}"
         }
-        val text = decodeBlock(bytes)
+        val text = BlockDecoder.decode(bytes, charset).text
         check(text.length == block.charCount) {
             "Block $blockIndex decoded ${text.length} chars, expected ${block.charCount}"
         }
@@ -32,17 +29,6 @@ class BlockOriginalDocument(
     override val charLength: Long = index.charLength
     override val byteLength: Long = index.byteLength
     override val lineBreakCount: Long = index.lineBreakCount
-
-    private fun decodeBlock(bytes: ByteArray): String {
-        val decoder = charset.newDecoder()
-            .onMalformedInput(CodingErrorAction.REPLACE)
-            .onUnmappableCharacter(CodingErrorAction.REPLACE)
-        val charBuffer = CharBuffer.allocate(bytes.size + 2)
-        decoder.decode(ByteBuffer.wrap(bytes), charBuffer, true)
-        decoder.flush(charBuffer)
-        charBuffer.flip()
-        return charBuffer.toString()
-    }
 
     suspend fun clearCache() = cache.clear()
 

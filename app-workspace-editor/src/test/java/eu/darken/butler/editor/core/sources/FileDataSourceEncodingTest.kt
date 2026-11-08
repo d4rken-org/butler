@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
+import eu.darken.butler.common.files.text.TextCharsets
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
@@ -431,5 +432,49 @@ class FileDataSourceEncodingTest : BaseTest() {
 
         // And: Content can be decoded as UTF-16 LE
         String(savedBytes.drop(2).toByteArray(), Charsets.UTF_16LE) shouldBe "Modified"
+    }
+
+    // ==================== Legacy Encoding Detection Tests ====================
+
+    private suspend fun detect(file: File): ContentSource.File {
+        val dataSource = FileDataSource(
+            workspaceId = workspaceId,
+            filePath = LocalPath.build(file),
+            gatewaySwitch = createMockGateway(),
+        )
+        dataSource.open()
+        return dataSource.contentSource.value as ContentSource.File
+    }
+
+    @Test
+    fun `detect GBK text without BOM as GB18030`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "gbk.txt")
+        testFile.writeBytes("这是一个用中文写的文本文件，用于测试编码检测。\n第二行。".toByteArray(TextCharsets.GB18030))
+
+        val contentSource = detect(testFile)
+        contentSource.detectedCharset shouldBe TextCharsets.GB18030
+        contentSource.hasBOM shouldBe false
+        contentSource.bomBytes shouldBe null
+    }
+
+    @Test
+    fun `detect UTF-8 when the sample cuts a character in half`(@TempDir tempDir: File) = runTest {
+        val bytes = ("a" + "中文测试数据".repeat(600)).toByteArray(Charsets.UTF_8)
+        // Byte 8192 lands after the first byte of a three-byte character
+        (bytes.size > FileDataSource.DETECTION_SAMPLE_SIZE) shouldBe true
+        ((FileDataSource.DETECTION_SAMPLE_SIZE - 1) % 3) shouldBe 1
+        val testFile = File(tempDir, "utf8-cut.txt").apply { writeBytes(bytes) }
+
+        detect(testFile).detectedCharset shouldBe Charsets.UTF_8
+    }
+
+    @Test
+    fun `Latin-1 text still opens with the UTF-8 default`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "latin1.txt")
+        testFile.writeBytes("Grüße aus Köln, schöne Straße.".toByteArray(Charsets.ISO_8859_1))
+
+        val contentSource = detect(testFile)
+        contentSource.detectedCharset shouldBe Charsets.UTF_8
+        contentSource.hasBOM shouldBe false
     }
 }
