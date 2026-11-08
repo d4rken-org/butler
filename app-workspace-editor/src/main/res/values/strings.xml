@@ -150,6 +150,7 @@
     <string name="editor_line_ending_dialog_message">Convert all line breaks and save the file, including unsaved changes. Undo history is cleared.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_error_undecodable_bytes">This file contains bytes that can\'t be read as %1$s. Pick the right encoding first.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Untitled</string>
