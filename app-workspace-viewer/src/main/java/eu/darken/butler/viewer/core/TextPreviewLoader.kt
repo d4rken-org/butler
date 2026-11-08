@@ -35,15 +35,17 @@ class TextPreviewLoader @Inject constructor(
     /**
      * Whether [source] really holds text, read from its head only. The counterpart to [ImageProbe]:
      * a name says `.txt` but the bytes decide, and announcing text for a binary would render
-     * mojibake instead of the unsupported placeholder.
+     * mojibake instead of the unsupported placeholder. An explicit [charset] decodes anything.
      */
-    suspend fun probe(source: ViewerSource): Boolean = try {
+    suspend fun probe(source: ViewerSource, charset: Charset? = null): Boolean = try {
         withContext(dispatcherProvider.IO) {
-            val head = contentReader.readInput(source) { it.readCapped(PROBE_BYTES) }
-            // Trimmed exactly like the preview is. Without it the probe's own cut decides the
+            val read = contentReader.readInput(source) { it.readCapped(PROBE_BYTES) }
+            val truncated = read.size > PROBE_BYTES
+            val head = if (truncated) read.copyOf(PROBE_BYTES) else read
+            // Bounded exactly like the preview is. Without it the probe's own cut decides the
             // verdict: a file of four-byte emoji ends the head mid-sequence, the strict decode
             // fails, and the Latin-1 fallback's C1 controls report perfectly good text as binary.
-            TextDecoder.decode(trimToBoundary(head)) is TextDecoder.Result.Decoded
+            decodeBounded(head, truncated, charset) is TextDecoder.Result.Decoded
         }
     } catch (e: CancellationException) {
         throw e
@@ -54,8 +56,9 @@ class TextPreviewLoader @Inject constructor(
         false
     }
 
-    suspend fun preview(source: ViewerSource): TextPreview? = try {
-        withContext(dispatcherProvider.IO) { read(source) }
+    /** [charset] null detects the encoding, anything else decodes as that and never reads as binary. */
+    suspend fun preview(source: ViewerSource, charset: Charset? = null): TextPreview? = try {
+        withContext(dispatcherProvider.IO) { read(source, charset) }
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
@@ -63,14 +66,14 @@ class TextPreviewLoader @Inject constructor(
         null
     }
 
-    private suspend fun read(source: ViewerSource): TextPreview? {
+    private suspend fun read(source: ViewerSource, charset: Charset?): TextPreview? {
         val bytes = contentReader.readInput(source) { it.readCapped(MAX_PREVIEW_BYTES) }
         // readCapped stops one byte past the cap, so a full buffer is the signal that there is more
         // - the reported size is not consulted, a provider is free to lie about it.
         val cutByBytes = bytes.size > MAX_PREVIEW_BYTES
-        val body = if (cutByBytes) trimToBoundary(bytes.copyOf(MAX_PREVIEW_BYTES)) else bytes
+        val body = if (cutByBytes) bytes.copyOf(MAX_PREVIEW_BYTES) else bytes
 
-        val decoded = when (val result = TextDecoder.decode(body)) {
+        val decoded = when (val result = decodeBounded(body, cutByBytes, charset)) {
             is TextDecoder.Result.Decoded -> result
             TextDecoder.Result.Binary -> {
                 log(TAG, INFO) { "$source is named as text but reads as binary" }
@@ -100,10 +103,29 @@ class TextPreviewLoader @Inject constructor(
         )
     }
 
-    /** Trims as the BOM's charset, else as UTF-8 - which leaves a single-byte cut alone (see TextBoundaryTest). */
-    private fun trimToBoundary(bytes: ByteArray): ByteArray {
-        val charset = CharsetDetector.detectBom(bytes)?.charset ?: Charsets.UTF_8
-        return TextBoundary.trimToLine(bytes, charset, truncated = true)
+    /**
+     * Decodes a head that may have been [truncated] by a read cap. Detection cuts at the last line
+     * break before it knows the charset, which is safe for UTF-8, GB18030 and single-byte charsets
+     * alike, and leaves the incomplete tail of a line-less head to the decoder, which drops it for
+     * the charset it detects. UTF-16 carries 0x0A inside a code unit, so a UTF-16 BOM keeps its own
+     * trim. An explicit [charset] trims as itself, whatever BOM the file starts with.
+     */
+    private fun decodeBounded(bytes: ByteArray, truncated: Boolean, charset: Charset?): TextDecoder.Result {
+        if (charset != null) {
+            return TextDecoder.decode(TextBoundary.trimToLine(bytes, charset, truncated), truncated, charset)
+        }
+        val bomCharset = CharsetDetector.detectBom(bytes)?.charset
+        val trimmed = when {
+            !truncated -> bytes
+            bomCharset == Charsets.UTF_16LE || bomCharset == Charsets.UTF_16BE ->
+                TextBoundary.trimToLine(bytes, bomCharset, truncated = true)
+
+            else -> {
+                val lastBreak = bytes.lastIndexOf(NEWLINE)
+                if (lastBreak >= 0) bytes.copyOf(lastBreak) else bytes
+            }
+        }
+        return TextDecoder.decode(trimmed, truncated)
     }
 
     /** Reads one byte past [cap], so the caller can tell "exactly full" from "there is more". */
@@ -136,6 +158,8 @@ class TextPreviewLoader @Inject constructor(
          * of classifying a multi-hundred-MB file.
          */
         private const val PROBE_BYTES = 64 * 1024
+
+        private const val NEWLINE = '\n'.code.toByte()
     }
 }
 

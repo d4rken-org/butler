@@ -2,6 +2,7 @@ package eu.darken.butler.viewer.core
 
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.text.TextCharsets
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -154,6 +155,114 @@ class TextPreviewLoaderTest : BaseTest() {
 
         preview.charset shouldBe Charsets.UTF_16LE
         preview.lines shouldBe listOf("alpha", "bravo")
+    }
+
+    // ==================== GB18030 ====================
+
+    private val gbk = "你好世界，这是一个中文测试文件。\n"
+
+    @Test
+    fun `a gbk file is detected as gb18030 and reads as chinese`() = runTest2 {
+        val content = gbk.repeat(3).toByteArray(TextCharsets.GB18030)
+
+        val preview = loaderFor(content).preview(source)!!
+
+        preview.charset shouldBe TextCharsets.GB18030
+        preview.lines.first() shouldBe gbk.trimEnd('\n')
+    }
+
+    /** The cap lands inside a character of a line with no break to cut back to. */
+    @Test
+    fun `a gbk line longer than the cap keeps whole characters`() = runTest2 {
+        // One ASCII byte up front puts the two-byte characters on odd offsets, so the even cap
+        // always splits one.
+        val content = ("a" + "你好世界".repeat(TextPreviewLoader.MAX_PREVIEW_BYTES / 8 + 100))
+            .toByteArray(TextCharsets.GB18030)
+        (TextPreviewLoader.MAX_PREVIEW_BYTES - 1) % 2 shouldBe 1
+
+        val preview = loaderFor(content).preview(source)!!
+
+        preview.isTruncated shouldBe true
+        preview.charset shouldBe TextCharsets.GB18030
+        preview.lines.single().contains('�') shouldBe false
+        preview.lines.single().drop(1).all { it in "你好世界" } shouldBe true
+    }
+
+    /** Shorter than the probe's head, so nothing was cut and nothing may be trimmed off its end. */
+    @Test
+    fun `the probe accepts a short gbk file`() = runTest2 {
+        // Ends on 好 (BA C3), whose trail byte looks like the lead of a two-byte UTF-8 sequence.
+        val content = (gbk.repeat(2) + "你好").toByteArray(TextCharsets.GB18030)
+
+        loaderFor(content).probe(source) shouldBe true
+        loaderFor(content).preview(source)!!.charset shouldBe TextCharsets.GB18030
+    }
+
+    // ==================== an explicit charset ====================
+
+    @Test
+    fun `gb18030 picked for a latin-1 file reads its bytes as chinese`() = runTest2 {
+        // C4 E3 BA C3: "ÄãºÃ" in Latin-1, 你好 in GB18030.
+        val content = "ÄãºÃ\n".toByteArray(Charsets.ISO_8859_1)
+        loaderFor(content).preview(source)!!.charset shouldBe Charsets.ISO_8859_1
+
+        val preview = loaderFor(content).preview(source, TextCharsets.GB18030)!!
+
+        preview.charset shouldBe TextCharsets.GB18030
+        preview.lines.first() shouldBe "你好"
+    }
+
+    @Test
+    fun `latin-1 picked for a gbk file reads its bytes as latin-1`() = runTest2 {
+        val content = gbk.repeat(3).toByteArray(TextCharsets.GB18030)
+
+        val preview = loaderFor(content).preview(source, Charsets.ISO_8859_1)!!
+
+        preview.charset shouldBe Charsets.ISO_8859_1
+        preview.lines.first() shouldBe String(gbk.trimEnd('\n').toByteArray(TextCharsets.GB18030), Charsets.ISO_8859_1)
+    }
+
+    /** Without a BOM detection calls UTF-16 binary, so picking it is the only way to read it. */
+    @Test
+    fun `utf-16 picked for a bom-less file past the cap keeps whole code units`() = runTest2 {
+        // 44 bytes per line: "x", two-unit 😀 ten times, LF. The cap ends 12 bytes into a line,
+        // between the surrogate halves of its third 😀.
+        val line = "x" + "😀".repeat(10) + "\n"
+        val content = line.repeat(TextPreviewLoader.MAX_PREVIEW_BYTES / 44 + 10).toByteArray(Charsets.UTF_16LE)
+        TextPreviewLoader.MAX_PREVIEW_BYTES % 44 shouldBe 12
+        loaderFor(content).preview(source) shouldBe null
+
+        val preview = loaderFor(content).preview(source, Charsets.UTF_16LE)!!
+
+        preview.isTruncated shouldBe true
+        preview.charset shouldBe Charsets.UTF_16LE
+        preview.lines.none { it.contains('�') } shouldBe true
+        preview.lines.last() shouldBe "x😀😀"
+    }
+
+    @Test
+    fun `a pick that disagrees with the bom keeps the bom as text`() = runTest2 {
+        val content = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "hello".toByteArray()
+
+        val preview = loaderFor(content).preview(source, Charsets.ISO_8859_1)!!
+
+        preview.charset shouldBe Charsets.ISO_8859_1
+        preview.lines.single() shouldBe "ï»¿hello"
+    }
+
+    /** A UTF-16 BOM would keep a UTF-16 trim, which does not look for line breaks. */
+    @Test
+    fun `a pick that disagrees with the bom trims as the pick`() = runTest2 {
+        val bom = byteArrayOf(0xFF.toByte(), 0xFE.toByte())
+        // 2 + 4n bytes, so the cap ends two bytes into a line: "ab" under a UTF-16 trim.
+        val content = bom + "abc\n".repeat(TextPreviewLoader.MAX_PREVIEW_BYTES / 4 + 10).toByteArray()
+        (TextPreviewLoader.MAX_PREVIEW_BYTES - 2) % 4 shouldBe 2
+
+        val preview = loaderFor(content).preview(source, Charsets.ISO_8859_1)!!
+
+        preview.isTruncated shouldBe true
+        preview.lines.first() shouldBe "ÿþabc"
+        preview.lines.last() shouldBe "abc"
     }
 
     // ==================== binary and empty ====================
