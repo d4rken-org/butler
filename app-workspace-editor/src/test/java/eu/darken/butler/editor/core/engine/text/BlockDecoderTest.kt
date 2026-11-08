@@ -19,7 +19,7 @@ class BlockDecoderTest : BaseTest() {
 
     private fun gb(text: String) = text.toByteArray(TextCharsets.GB18030)
 
-    /** The JVM's own REPLACE handling: one U+FFFD per reported run, the same as [BlockDecoder]. */
+    /** A plain REPLACE decode of the whole input. */
     private fun replaceDecode(input: ByteArray, charset: Charset): String = charset.newDecoder()
         .onMalformedInput(CodingErrorAction.REPLACE)
         .onUnmappableCharacter(CodingErrorAction.REPLACE)
@@ -62,17 +62,51 @@ class BlockDecoderTest : BaseTest() {
     }
 
     @Test
-    fun `undecodable bytes are flagged in every charset`() {
+    fun `a literal U+FFFD in valid text is not flagged`() = runTest {
         val cases = listOf(
-            Charsets.UTF_8 to bytes(0x61, 0xC3, 0x28, 0x62),
-            Charsets.UTF_16LE to bytes(0x61, 0x00, 0x62),
-            Charsets.UTF_16BE to bytes(0x00, 0x61, 0xDC, 0x00),
-            Charsets.US_ASCII to bytes(0x61, 0x80, 0x62),
-            TextCharsets.WINDOWS_1252 to bytes(0x61, 0x81, 0x62),
+            Charsets.UTF_8 to "a".toByteArray() + bytes(0xEF, 0xBF, 0xBD) + "b\nc".toByteArray(),
+            TextCharsets.GB18030 to gb("a你") + bytes(0x84, 0x31, 0xA4, 0x37) + gb("好\nb"),
         )
         for ((charset, input) in cases) {
             withClue(charset) {
+                val decoded = BlockDecoder.decode(input, charset)
+                decoded.text.contains('�').shouldBeTrue()
+                decoded.text shouldBe replaceDecode(input, charset)
+                decoded.hadUndecodable.shouldBeFalse()
+
+                for (blockSize in 4..17) {
+                    withClue("block size $blockSize") {
+                        verifyIndexAgainstCache(input, charset, blockSize).hasUndecodable.shouldBeFalse()
+                    }
+                }
+            }
+        }
+    }
+
+    private val undecodableByCharset = listOf(
+        Charsets.UTF_8 to bytes(0x61, 0xC3, 0x28, 0x62),
+        Charsets.UTF_16LE to bytes(0x61, 0x00, 0x62),
+        Charsets.UTF_16BE to bytes(0x00, 0x61, 0xDC, 0x00),
+        Charsets.US_ASCII to bytes(0x61, 0x80, 0x62),
+        TextCharsets.WINDOWS_1252 to bytes(0x61, 0x81, 0x62),
+    )
+
+    @Test
+    fun `undecodable bytes are flagged in every charset`() {
+        for ((charset, input) in undecodableByCharset) {
+            withClue(charset) {
                 BlockDecoder.decode(input, charset).hadUndecodable.shouldBeTrue()
+            }
+        }
+    }
+
+    @Test
+    fun `text equals a plain REPLACE decode for every malformed sample`() {
+        val samples = malformedGb18030.map { (name, input) -> Triple(name, TextCharsets.GB18030, input) } +
+            undecodableByCharset.map { (charset, input) -> Triple(charset.name(), charset, input) }
+        for ((name, charset, input) in samples) {
+            withClue(name) {
+                BlockDecoder.decode(input, charset).text shouldBe replaceDecode(input, charset)
             }
         }
     }
