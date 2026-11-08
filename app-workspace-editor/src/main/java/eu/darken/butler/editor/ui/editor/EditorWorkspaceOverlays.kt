@@ -12,6 +12,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.collectAsStateCurrentOr
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
+import eu.darken.butler.editor.ui.editor.dialogs.ConvertEncodingDialog
 import eu.darken.butler.editor.ui.editor.dialogs.EncodingDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.dialogs.LargeDeleteConfirmDialog
@@ -106,6 +107,19 @@ fun EditorWorkspaceOverlays(
             currentEncoding = state.fileEncoding,
             onSelect = { charsetName -> onPageAction(EditorPageAction.File.ReopenWithEncoding(charsetName)) },
             onDismiss = { onPageAction(EditorPageAction.Dialog.DismissEncoding) },
+            onConvert = if (state.hasFile && !state.isReadOnly) {
+                { onPageAction(EditorPageAction.File.ShowConvertEncodingPicker) }
+            } else {
+                null
+            },
+        )
+    }
+
+    if (state.showConvertEncodingDialog) {
+        ConvertEncodingDialog(
+            currentEncoding = state.fileEncoding,
+            onSelect = { charsetName -> onPageAction(EditorPageAction.File.ConvertEncoding(charsetName)) },
+            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissConvertEncoding) },
         )
     }
 

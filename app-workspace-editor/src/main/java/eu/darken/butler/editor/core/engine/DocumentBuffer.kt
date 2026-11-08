@@ -24,6 +24,7 @@ import eu.darken.butler.editor.core.engine.text.BlockOriginalDocument
 import eu.darken.butler.editor.core.engine.text.LineBreakTransformer
 import eu.darken.butler.editor.core.engine.text.Piece
 import eu.darken.butler.editor.core.engine.text.PieceTable
+import eu.darken.butler.editor.core.engine.text.StrictStreamEncoder
 import eu.darken.butler.editor.core.engine.text.WindowedSearch
 import eu.darken.butler.editor.core.sources.CommitIntegrityException
 import eu.darken.butler.editor.core.sources.EditorDataSource
@@ -126,6 +127,11 @@ class DocumentBuffer @AssistedInject constructor(
     private val _isBackingLost = MutableStateFlow(false)
     val isBackingLost: StateFlow<Boolean> = _isBackingLost.asStateFlow()
     private var backingLostCause: Throwable? = null
+
+    private val _isRetired = MutableStateFlow(false)
+
+    /** Latches once [convertEncoding] rewrote the file: this buffer can no longer serve it. */
+    val isRetired: StateFlow<Boolean> = _isRetired.asStateFlow()
 
     private val bufferMutex = Mutex()
     private var pieceTable: PieceTable? = null
@@ -1186,6 +1192,129 @@ class DocumentBuffer @AssistedInject constructor(
     }
 
     /**
+     * Re-encodes the whole document (unsaved edits included) into [target] and commits it. A
+     * preflight pass over the same char stream runs first and refuses with
+     * [UnmappableCharactersException] before anything is written. UTF-16 targets get a BOM, every
+     * other target none; the source BOM is never copied.
+     *
+     * A successful commit retires the buffer ([isRetired]): its block index, BOM size and charset
+     * describe a byte layout that no longer exists, so it refuses every further read and edit like
+     * a failed save, and the caller has to reopen the file.
+     */
+    suspend fun convertEncoding(target: Charset): Result<Unit> = bufferMutex.withLock {
+        try {
+            saveError?.let {
+                return Result.failure(IllegalStateException("Buffer requires reload after failed save", it))
+            }
+            val table = pieceTable
+                ?: return Result.failure(IllegalStateException("Buffer not initialized"))
+            val source = _contentSource.value as? ContentSource.File
+                ?: return Result.failure(IllegalStateException("Only a file can be converted"))
+            if (source.isLikelyBinary) {
+                return Result.failure(ReadOnlyFileException("Binary file, saving is disabled: ${source.path}"))
+            }
+            if (source.isUndecodableReadOnly) {
+                return Result.failure(ReadOnlyFileException.undecodable("converting", source))
+            }
+            if (!source.canWrite) {
+                return Result.failure(ReadOnlyFileException("File is read-only: ${source.path}"))
+            }
+            if (referencesUndecodableBytes(table)) {
+                log(tag, WARN) { "Refusing encoding conversion over undecodable $detectedCharset bytes" }
+                return Result.failure(UndecodableBytesException(detectedCharset))
+            }
+
+            checkStaleness()
+            if (target == detectedCharset) {
+                log(tag) { "Document is already $target, nothing to convert" }
+                return Result.success(Unit)
+            }
+
+            streamDocumentChars(
+                table = table,
+                readOriginal = { offset -> dataSource.openByteSource(offset) },
+                encoder = StrictStreamEncoder(target, CONVERT_CHUNK_BYTES) {},
+            )
+            dataSource.commit { context ->
+                when (target) {
+                    Charsets.UTF_16LE -> context.sink.write(byteArrayOf(0xFF.toByte(), 0xFE.toByte()))
+                    Charsets.UTF_16BE -> context.sink.write(byteArrayOf(0xFE.toByte(), 0xFF.toByte()))
+                }
+                streamDocumentChars(
+                    table = table,
+                    readOriginal = context::openOriginalSource,
+                    encoder = StrictStreamEncoder(target, CONVERT_CHUNK_BYTES) { context.sink.write(it) },
+                )
+            }
+            retire(IllegalStateException("File was re-encoded as $target, buffer requires reopen"))
+            log(tag, INFO) { "Converted encoding from $detectedCharset to $target" }
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: CommitIntegrityException) {
+            saveError = e
+            log(tag, ERROR) { "Commit left the target inconsistent, buffer requires reload - ${e.asLog()}" }
+            Result.failure(e)
+        } catch (e: UnmappableCharactersException) {
+            log(tag, WARN) { "Refusing encoding conversion: ${e.message}" }
+            Result.failure(e)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to convert encoding - ${e.asLog()}" }
+            Result.failure(e)
+        }
+    }
+
+    /** Latches the buffer after its file was rewritten in another layout; only a reopen recovers. */
+    private fun retire(cause: Throwable) {
+        saveError = cause
+        _isRetired.value = true
+        clearUndoHistoryLocked()
+        _nonUndoableEditPending.value = false
+        _isModified.value = false
+    }
+
+    /**
+     * Feeds the document's chars to [encoder] in bounded slices: Original pieces decoded from
+     * [readOriginal] in [CONVERT_CHUNK_BYTES] chunks, contiguous Added runs read in slices of
+     * [CONVERT_CHUNK_BYTES] chars. No more than one slice is materialized at a time.
+     */
+    private suspend fun streamDocumentChars(
+        table: PieceTable,
+        readOriginal: suspend (physicalOffset: Long) -> Source,
+        encoder: StrictStreamEncoder,
+    ) {
+        val bomOffset = bomSize.toLong()
+        var position = 0L
+        var runStart = -1L
+
+        suspend fun flushAddedRun(end: Long) {
+            if (runStart < 0) return
+            var sliceStart = runStart
+            while (sliceStart < end) {
+                coroutineContext.ensureActive()
+                val sliceEnd = minOf(end, sliceStart + CONVERT_CHUNK_BYTES)
+                encoder.write(table.read(sliceStart, sliceEnd))
+                sliceStart = sliceEnd
+            }
+            runStart = -1L
+        }
+
+        for (piece in table.pieceSnapshot()) {
+            coroutineContext.ensureActive()
+            when (piece) {
+                is Piece.Added -> if (runStart < 0) runStart = position
+                is Piece.Original -> {
+                    flushAddedRun(position)
+                    decodeOriginal(readOriginal, bomOffset + piece.byteStart, piece.byteLen, encoder::write)
+                }
+            }
+            position += piece.charCount
+        }
+        flushAddedRun(position)
+        encoder.finish()
+    }
+
+    /**
      * True while an [Piece.Original] still overlaps a block flagged [BlockIndex.Block.hasUndecodable].
      * Added text came from the user and is always decodable. Block granularity: deleting the bad
      * bytes clears the flag only once no remaining original range touches their block.
@@ -1247,23 +1376,42 @@ class DocumentBuffer @AssistedInject constructor(
         transformer.flushTrailing()?.let { context.sink.write(encodeAdded(it)) }
     }
 
-    /**
-     * Decodes [byteLen] original bytes from the commit context in bounded chunks, rewrites their
-     * breaks, and re-encodes. The decoder carries partial multibyte sequences across chunk reads
-     * and never splits a surrogate pair across output buffers, so chunked re-encoding is exact.
-     */
+    /** Decodes one original range from the commit context, rewrites its breaks, and re-encodes. */
     private suspend fun writeConvertedOriginal(
         context: FileCommitContext,
         physicalOffset: Long,
         byteLen: Long,
         transformer: LineBreakTransformer,
     ) {
+        decodeOriginal(context::openOriginalSource, physicalOffset, byteLen) { chars ->
+            context.sink.write(encodeAdded(transformer.transform(chars.toString())))
+        }
+    }
+
+    /**
+     * Decodes [byteLen] original bytes in bounded chunks and hands each decoded chunk to [onChars],
+     * which must consume it before returning. The decoder carries partial multibyte sequences across
+     * chunk reads and never splits a surrogate pair across chunks.
+     */
+    private suspend fun decodeOriginal(
+        readOriginal: suspend (physicalOffset: Long) -> Source,
+        physicalOffset: Long,
+        byteLen: Long,
+        onChars: (CharSequence) -> Unit,
+    ) {
         val decoder = detectedCharset.newDecoder()
             .onMalformedInput(CodingErrorAction.REPLACE)
             .onUnmappableCharacter(CodingErrorAction.REPLACE)
-        context.openOriginalSource(physicalOffset).buffer().use { source ->
+        readOriginal(physicalOffset).buffer().use { source ->
             val byteBuf = ByteBuffer.allocate(CONVERT_CHUNK_BYTES)
             val charBuf = CharBuffer.allocate(CONVERT_CHUNK_BYTES)
+
+            fun drain() {
+                charBuf.flip()
+                if (charBuf.hasRemaining()) onChars(charBuf)
+                charBuf.clear()
+            }
+
             var remaining = byteLen
             var endOfInput = remaining == 0L
             while (true) {
@@ -1279,7 +1427,7 @@ class DocumentBuffer @AssistedInject constructor(
                 byteBuf.flip()
                 while (true) {
                     val result = decoder.decode(byteBuf, charBuf, endOfInput)
-                    flushDecoded(context.sink, charBuf, transformer)
+                    drain()
                     if (!result.isOverflow) break
                 }
                 byteBuf.compact()
@@ -1287,18 +1435,10 @@ class DocumentBuffer @AssistedInject constructor(
             }
             while (true) {
                 val result = decoder.flush(charBuf)
-                flushDecoded(context.sink, charBuf, transformer)
+                drain()
                 if (!result.isOverflow) break
             }
         }
-    }
-
-    private fun flushDecoded(sink: BufferedSink, charBuf: CharBuffer, transformer: LineBreakTransformer) {
-        charBuf.flip()
-        if (charBuf.hasRemaining()) {
-            sink.write(encodeAdded(transformer.transform(charBuf.toString())))
-        }
-        charBuf.clear()
     }
 
     /**
@@ -1870,8 +2010,8 @@ class DocumentBuffer @AssistedInject constructor(
         /** Threshold ceiling: bounds a recorded delete's materialization at ~100MB, under the Int cap. */
         const val MAX_UNDOABLE_EDIT_CHARS = 50_000_000L
 
-        // Bounded working memory for the streaming line-ending conversion
-        private const val CONVERT_CHUNK_BYTES = 64 * 1024
+        // Bounded working memory for the streaming line-ending and encoding conversions
+        internal const val CONVERT_CHUNK_BYTES = 64 * 1024
         val COALESCE_WINDOW = 800.milliseconds
         const val COALESCE_MAX_CHARS = 256
     }

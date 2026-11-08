@@ -58,6 +58,12 @@ sealed interface EditorPageAction {
 
         /** Convert the document's line endings and save */
         data class ConvertLineEndings(val target: LineEnding) : File
+
+        /** Show the picker for re-encoding the file into another charset */
+        data object ShowConvertEncodingPicker : File
+
+        /** Re-encode the file into the given charset and save it */
+        data class ConvertEncoding(val charsetName: String) : File
     }
 
     /**
@@ -177,6 +183,9 @@ sealed interface EditorPageAction {
 
         /** Dismiss the line-ending picker dialog */
         data object DismissLineEnding : Dialog
+
+        /** Dismiss the encoding-conversion picker dialog */
+        data object DismissConvertEncoding : Dialog
 
         /** Confirm deleting a selection too large to undo */
         data object ConfirmLargeDelete : Dialog

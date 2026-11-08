@@ -156,4 +156,20 @@ class EditorDialogsControllerTest : BaseTest() {
         controller.rearmBackupNotice()
         controller.state.first().backupNoticeDismissed shouldBe false
     }
+
+    @Test
+    fun `opening the conversion picker replaces the encoding dialog`() = runTest {
+        val controller = controller(mockWorkspace())
+        controller.showEncodingDialog()
+
+        controller.showConvertEncodingDialog()
+
+        controller.state.first().apply {
+            showEncodingDialog shouldBe false
+            showConvertEncodingDialog shouldBe true
+        }
+
+        controller.dismissConvertEncodingDialog()
+        controller.state.first().showConvertEncodingDialog shouldBe false
+    }
 }

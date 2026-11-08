@@ -25,6 +25,7 @@ fun EditorBannerGroup(
     modifier: Modifier = Modifier,
     error: Throwable? = null,
     showBackingLost: Boolean = false,
+    reopenEncoding: String? = null,
     showExternalChange: Boolean = false,
     backupNames: List<String> = emptyList(),
     showBackupNotice: Boolean = false,
@@ -33,6 +34,7 @@ fun EditorBannerGroup(
     showLongLinesNotice: Boolean = false,
     onDismissError: () -> Unit = {},
     onCloseBackingLost: () -> Unit = {},
+    onReopen: () -> Unit = {},
     onReloadFromDisk: () -> Unit = {},
     onDismissExternalChange: () -> Unit = {},
     onDismissBackupNotice: () -> Unit = {},
@@ -49,6 +51,13 @@ fun EditorBannerGroup(
         if (showBackingLost) {
             EditorBackingLostBanner(
                 onClose = onCloseBackingLost,
+            )
+        }
+
+        reopenEncoding?.let { encoding ->
+            EditorReopenBanner(
+                encoding = encoding,
+                onReopen = onReopen,
             )
         }
 
@@ -96,6 +105,7 @@ private fun EditorBannerGroupPreview() {
     EditorBannerGroup(
         error = RuntimeException("Failed to save file: Permission denied"),
         showBackingLost = true,
+        reopenEncoding = "UTF-8",
         showExternalChange = true,
         backupNames = listOf("notes.txt.butler-save-bak-1a2b3c4d"),
         showBackupNotice = true,
