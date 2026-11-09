@@ -1,6 +1,5 @@
 package eu.darken.butler.explorer.ui.settings.hidden
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -55,6 +54,7 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.hidden.HiddenEntry
 import eu.darken.butler.explorer.core.sorting.rules.sortPathKey
+import eu.darken.butler.workspace.ui.modal.WorkspaceBackHandler
 
 @Composable
 fun ExplorerHiddenPathsScreenHost(vm: ExplorerHiddenPathsViewModel = hiltViewModel()) {
@@ -91,7 +91,7 @@ fun ExplorerHiddenPathsScreen(
     onConfirmUnhideAll: () -> Unit,
     onDismissUnhideAll: () -> Unit,
 ) {
-    BackHandler(enabled = state.isSearching, onBack = onCloseSearch)
+    WorkspaceBackHandler(enabled = state.isSearching, onBack = onCloseSearch)
 
     Scaffold(
         modifier = modifier,
