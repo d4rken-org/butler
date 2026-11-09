@@ -851,6 +851,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Non hai nascosto nulla. I file e le cartelle nascosti compaiono qui.</string>
     <string name="explorer_hidden_paths_remove_action">Mostra di nuovo %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Cerca negli elementi nascosti</string>
+    <string name="explorer_hidden_paths_search_hint">Cerca per nome o percorso</string>
+    <string name="explorer_hidden_paths_search_close_action">Chiudi ricerca</string>
+    <string name="explorer_hidden_paths_search_no_matches">Nessun elemento nascosto corrisponde a \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Mostra di nuovo tutti</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Mostrare di nuovo %1$d elemento?</item>
+        <item quantity="other">Mostrare di nuovo %1$d elementi?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Questi file e cartelle verranno mostrati di nuovo negli elenchi.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Mostra di nuovo</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Questa scheda sostituisce l’ordinamento in %1$d cartella</item>
         <item quantity="other">Questa scheda sostituisce l’ordinamento in %1$d cartelle</item>

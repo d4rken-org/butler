@@ -842,6 +842,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Henüz hiçbir şey gizlemediniz. Gizlenen dosya ve klasörler burada görünür.</string>
     <string name="explorer_hidden_paths_remove_action">Gizlemeyi kaldır: %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Gizli öğelerde ara</string>
+    <string name="explorer_hidden_paths_search_hint">Ada veya yola göre ara</string>
+    <string name="explorer_hidden_paths_search_close_action">Aramayı kapat</string>
+    <string name="explorer_hidden_paths_search_no_matches">\"%1$s\" ile eşleşen gizli öğe yok</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Tümünde gizlemeyi kaldır</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">%1$d öğede gizleme kaldırılsın mı?</item>
+        <item quantity="other">%1$d öğede gizleme kaldırılsın mı?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Bu dosya ve klasörler listelerde yeniden görünür.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Gizlemeyi kaldır</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Bu sekme, %1$d klasördeki sıralama düzenini geçersiz kılıyor</item>
         <item quantity="other">Bu sekme, %1$d klasördeki sıralama düzenini geçersiz kılıyor</item>

@@ -807,6 +807,16 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">非表示にした項目はありません。非表示にしたファイルとフォルダはここに表示されます。</string>
     <string name="explorer_hidden_paths_remove_action">%1$s の非表示を解除</string>
+    <string name="explorer_hidden_paths_search_action">非表示の項目を検索</string>
+    <string name="explorer_hidden_paths_search_hint">名前またはパスで検索</string>
+    <string name="explorer_hidden_paths_search_close_action">検索を閉じる</string>
+    <string name="explorer_hidden_paths_search_no_matches">\"%1$s\" に一致する非表示の項目はありません</string>
+    <string name="explorer_hidden_paths_unhide_all_action">すべての非表示を解除</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="other">%1$d 個の項目の非表示を解除しますか？</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">これらのファイルとフォルダは一覧に再び表示されます。</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">非表示を解除</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">このタブは %1$d 個のフォルダで並べ替え順を上書きしています</item>
     </plurals>

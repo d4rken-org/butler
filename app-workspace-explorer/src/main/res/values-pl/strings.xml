@@ -918,6 +918,19 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Nic nie zostało ukryte. Ukryte pliki i foldery pojawią się tutaj.</string>
     <string name="explorer_hidden_paths_remove_action">Odkryj %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Szukaj w ukrytych elementach</string>
+    <string name="explorer_hidden_paths_search_hint">Szukaj według nazwy lub ścieżki</string>
+    <string name="explorer_hidden_paths_search_close_action">Zamknij wyszukiwanie</string>
+    <string name="explorer_hidden_paths_search_no_matches">Brak ukrytych elementów pasujących do „%1$s”</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Odkryj wszystkie</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Odkryć %1$d element?</item>
+        <item quantity="few">Odkryć %1$d elementy?</item>
+        <item quantity="many">Odkryć %1$d elementów?</item>
+        <item quantity="other">Odkryć %1$d elementu?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Te pliki i foldery znów będą widoczne na listach.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Odkryj</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Ta karta zastępuje kolejność sortowania w %1$d folderze</item>
         <item quantity="few">Ta karta zastępuje kolejność sortowania w %1$d folderach</item>

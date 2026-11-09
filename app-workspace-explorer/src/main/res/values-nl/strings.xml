@@ -845,6 +845,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Je hebt niets verborgen. Verborgen bestanden en mappen verschijnen hier.</string>
     <string name="explorer_hidden_paths_remove_action">%1$s niet meer verbergen</string>
+    <string name="explorer_hidden_paths_search_action">Verborgen items doorzoeken</string>
+    <string name="explorer_hidden_paths_search_hint">Zoeken op naam of pad</string>
+    <string name="explorer_hidden_paths_search_close_action">Zoeken sluiten</string>
+    <string name="explorer_hidden_paths_search_no_matches">Geen verborgen items komen overeen met \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Niets meer verbergen</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">%1$d item niet meer verbergen?</item>
+        <item quantity="other">%1$d items niet meer verbergen?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Deze bestanden en mappen worden weer getoond in overzichten.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Niet meer verbergen</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Dit tabblad overschrijft de sorteervolgorde in %1$d map</item>
         <item quantity="other">Dit tabblad overschrijft de sorteervolgorde in %1$d mappen</item>

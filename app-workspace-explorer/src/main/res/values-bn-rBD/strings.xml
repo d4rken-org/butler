@@ -854,6 +854,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">আপনি এখনও কিছু লুকাননি। লুকানো ফাইল ও ফোল্ডার এখানে দেখা যাবে।</string>
     <string name="explorer_hidden_paths_remove_action">%1$s আবার দেখান</string>
+    <string name="explorer_hidden_paths_search_action">লুকানো আইটেমে খুঁজুন</string>
+    <string name="explorer_hidden_paths_search_hint">নাম বা পাথ দিয়ে খুঁজুন</string>
+    <string name="explorer_hidden_paths_search_close_action">খোঁজা বন্ধ করুন</string>
+    <string name="explorer_hidden_paths_search_no_matches">\"%1$s\"-এর সাথে মেলে এমন কোনো লুকানো আইটেম নেই</string>
+    <string name="explorer_hidden_paths_unhide_all_action">সব আবার দেখান</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">%1$dটি আইটেম আবার দেখাবেন?</item>
+        <item quantity="other">%1$dটি আইটেম আবার দেখাবেন?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">এই ফাইল ও ফোল্ডারগুলো আবার তালিকায় দেখা যাবে।</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">আবার দেখান</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">এই ট্যাব %1$dটি ফোল্ডারের সাজানোর ক্রমের বদলে নিজস্ব ক্রম ব্যবহার করে</item>
         <item quantity="other">এই ট্যাব %1$dটি ফোল্ডারের সাজানোর ক্রমের বদলে নিজস্ব ক্রম ব্যবহার করে</item>

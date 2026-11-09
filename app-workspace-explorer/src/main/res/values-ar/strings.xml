@@ -994,6 +994,21 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">لم تُخفِ أي شيء بعد. تظهر هنا الملفات والمجلدات المخفية.</string>
     <string name="explorer_hidden_paths_remove_action">إلغاء إخفاء %1$s</string>
+    <string name="explorer_hidden_paths_search_action">البحث في العناصر المخفية</string>
+    <string name="explorer_hidden_paths_search_hint">البحث بالاسم أو المسار</string>
+    <string name="explorer_hidden_paths_search_close_action">إغلاق البحث</string>
+    <string name="explorer_hidden_paths_search_no_matches">لا توجد عناصر مخفية تطابق \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">إلغاء إخفاء الكل</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="zero">إلغاء إخفاء %1$d عنصر؟</item>
+        <item quantity="one">إلغاء إخفاء %1$d عنصر؟</item>
+        <item quantity="two">إلغاء إخفاء %1$d عنصرين؟</item>
+        <item quantity="few">إلغاء إخفاء %1$d عناصر؟</item>
+        <item quantity="many">إلغاء إخفاء %1$d عنصرًا؟</item>
+        <item quantity="other">إلغاء إخفاء %1$d عنصر؟</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">ستظهر هذه الملفات والمجلدات في القوائم مجددًا.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">إلغاء الإخفاء</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="zero">لا يتجاوز هذا التبويب ترتيب الفرز في أي مجلد</item>
         <item quantity="one">يتجاوز هذا التبويب ترتيب الفرز في مجلد واحد</item>

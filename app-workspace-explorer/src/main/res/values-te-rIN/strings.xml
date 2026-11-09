@@ -854,6 +854,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">మీరు ఇంకా ఏదీ దాచలేదు. దాచిన ఫైళ్లు, ఫోల్డర్‌లు ఇక్కడ కనిపిస్తాయి.</string>
     <string name="explorer_hidden_paths_remove_action">%1$s దాచడం తీసివేయండి</string>
+    <string name="explorer_hidden_paths_search_action">దాచిన అంశాలలో వెతకండి</string>
+    <string name="explorer_hidden_paths_search_hint">పేరు లేదా పాత్ ద్వారా వెతకండి</string>
+    <string name="explorer_hidden_paths_search_close_action">వెతకడం మూసివేయండి</string>
+    <string name="explorer_hidden_paths_search_no_matches">\"%1$s\"కి సరిపోలే దాచిన అంశాలు లేవు</string>
+    <string name="explorer_hidden_paths_unhide_all_action">అన్నింటి దాచడం తీసివేయండి</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">%1$d అంశం దాచడం తీసివేయాలా?</item>
+        <item quantity="other">%1$d అంశాల దాచడం తీసివేయాలా?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">ఈ ఫైళ్లు, ఫోల్డర్‌లు జాబితాల్లో మళ్లీ కనిపిస్తాయి.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">దాచడం తీసివేయండి</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">ఈ ట్యాబ్ క్రమం %1$d ఫోల్డర్‌లోని క్రమానికి బదులుగా వర్తిస్తుంది</item>
         <item quantity="other">ఈ ట్యాబ్ క్రమం %1$d ఫోల్డర్‌లలోని క్రమానికి బదులుగా వర్తిస్తుంది</item>

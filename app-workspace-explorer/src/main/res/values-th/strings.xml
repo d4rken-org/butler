@@ -807,6 +807,16 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">คุณยังไม่ได้ซ่อนอะไรเลย ไฟล์และโฟลเดอร์ที่ซ่อนไว้จะแสดงที่นี่</string>
     <string name="explorer_hidden_paths_remove_action">เลิกซ่อน %1$s</string>
+    <string name="explorer_hidden_paths_search_action">ค้นหารายการที่ซ่อนอยู่</string>
+    <string name="explorer_hidden_paths_search_hint">ค้นหาตามชื่อหรือเส้นทาง</string>
+    <string name="explorer_hidden_paths_search_close_action">ปิดการค้นหา</string>
+    <string name="explorer_hidden_paths_search_no_matches">ไม่มีรายการที่ซ่อนอยู่ที่ตรงกับ \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">เลิกซ่อนทั้งหมด</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="other">เลิกซ่อน %1$d รายการ</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">ไฟล์และโฟลเดอร์เหล่านี้จะแสดงในรายการอีกครั้ง</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">เลิกซ่อน</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">แท็บนี้แทนที่ลำดับการเรียงใน %1$d โฟลเดอร์</item>
     </plurals>

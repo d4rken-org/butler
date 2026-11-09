@@ -846,6 +846,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Du hast nichts ausgeblendet. Ausgeblendete Dateien und Ordner erscheinen hier.</string>
     <string name="explorer_hidden_paths_remove_action">%1$s einblenden</string>
+    <string name="explorer_hidden_paths_search_action">Versteckte Elemente durchsuchen</string>
+    <string name="explorer_hidden_paths_search_hint">Nach Name oder Pfad suchen</string>
+    <string name="explorer_hidden_paths_search_close_action">Suche schließen</string>
+    <string name="explorer_hidden_paths_search_no_matches">Keine versteckten Elemente passen zu \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Alle einblenden</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">%1$d Element einblenden?</item>
+        <item quantity="other">%1$d Elemente einblenden?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Diese Dateien und Ordner werden wieder in Auflistungen angezeigt.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Einblenden</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Dieser Tab überschreibt die Sortierung in %1$d Ordner</item>
         <item quantity="other">Dieser Tab überschreibt die Sortierung in %1$d Ordnern</item>

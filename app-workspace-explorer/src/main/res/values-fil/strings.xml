@@ -851,6 +851,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Wala ka pang itinatago. Dito lalabas ang mga nakatagong file at folder.</string>
     <string name="explorer_hidden_paths_remove_action">Ipakita ulit ang %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Hanapin sa mga nakatagong item</string>
+    <string name="explorer_hidden_paths_search_hint">Maghanap ayon sa pangalan o path</string>
+    <string name="explorer_hidden_paths_search_close_action">Isara ang paghahanap</string>
+    <string name="explorer_hidden_paths_search_no_matches">Walang nakatagong item na tumutugma sa \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Ipakita ulit lahat</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Ipakita ulit ang %1$d item?</item>
+        <item quantity="other">Ipakita ulit ang %1$d item?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Lalabas ulit sa mga listahan ang mga file at folder na ito.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Ipakita ulit</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Pinapalitan ng tab na ito ang pagkakasunod-sunod sa %1$d folder</item>
         <item quantity="other">Pinapalitan ng tab na ito ang pagkakasunod-sunod sa %1$d na folder</item>

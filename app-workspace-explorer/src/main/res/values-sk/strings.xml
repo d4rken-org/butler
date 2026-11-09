@@ -917,6 +917,19 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Nič nie je skryté. Skryté súbory a priečinky sa zobrazia tu.</string>
     <string name="explorer_hidden_paths_remove_action">Zrušiť skrytie %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Hľadať v skrytých položkách</string>
+    <string name="explorer_hidden_paths_search_hint">Hľadať podľa názvu alebo cesty</string>
+    <string name="explorer_hidden_paths_search_close_action">Zavrieť vyhľadávanie</string>
+    <string name="explorer_hidden_paths_search_no_matches">Žiadne skryté položky nezodpovedajú \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Zrušiť skrytie všetkých</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Zrušiť skrytie %1$d položky?</item>
+        <item quantity="few">Zrušiť skrytie %1$d položiek?</item>
+        <item quantity="many">Zrušiť skrytie %1$d položky?</item>
+        <item quantity="other">Zrušiť skrytie %1$d položiek?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Tieto súbory a priečinky sa znova zobrazia v zoznamoch.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Zrušiť skrytie</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Táto karta má vlastné poradie zoradenia v %1$d priečinku</item>
         <item quantity="few">Táto karta má vlastné poradie zoradenia v %1$d priečinkoch</item>

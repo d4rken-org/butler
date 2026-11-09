@@ -845,6 +845,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Δεν έχετε αποκρύψει τίποτα. Τα κρυφά αρχεία και οι φάκελοι εμφανίζονται εδώ.</string>
     <string name="explorer_hidden_paths_remove_action">Επανεμφάνιση %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Αναζήτηση στα κρυφά στοιχεία</string>
+    <string name="explorer_hidden_paths_search_hint">Αναζήτηση με όνομα ή διαδρομή</string>
+    <string name="explorer_hidden_paths_search_close_action">Κλείσιμο αναζήτησης</string>
+    <string name="explorer_hidden_paths_search_no_matches">Κανένα κρυφό στοιχείο δεν ταιριάζει με \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Επανεμφάνιση όλων</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Επανεμφάνιση %1$d στοιχείου;</item>
+        <item quantity="other">Επανεμφάνιση %1$d στοιχείων;</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Αυτά τα αρχεία και οι φάκελοι θα εμφανίζονται ξανά στις λίστες.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Επανεμφάνιση</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Αυτή η καρτέλα παρακάμπτει τη σειρά ταξινόμησης σε %1$d φάκελο</item>
         <item quantity="other">Αυτή η καρτέλα παρακάμπτει τη σειρά ταξινόμησης σε %1$d φακέλους</item>

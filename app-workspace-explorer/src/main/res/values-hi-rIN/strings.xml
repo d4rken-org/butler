@@ -757,6 +757,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">आपने अभी तक कुछ नहीं छिपाया है। छिपाई गई फ़ाइलें और फ़ोल्डर यहाँ दिखते हैं।</string>
     <string name="explorer_hidden_paths_remove_action">%1$s फिर से दिखाएँ</string>
+    <string name="explorer_hidden_paths_search_action">छिपे हुए आइटम में खोजें</string>
+    <string name="explorer_hidden_paths_search_hint">नाम या पाथ से खोजें</string>
+    <string name="explorer_hidden_paths_search_close_action">खोज बंद करें</string>
+    <string name="explorer_hidden_paths_search_no_matches">\"%1$s\" से मेल खाता कोई छिपा हुआ आइटम नहीं</string>
+    <string name="explorer_hidden_paths_unhide_all_action">सभी फिर से दिखाएँ</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">%1$d आइटम फिर से दिखाएँ?</item>
+        <item quantity="other">%1$d आइटम फिर से दिखाएँ?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">ये फ़ाइलें और फ़ोल्डर सूचियों में फिर से दिखेंगे।</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">फिर से दिखाएँ</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">यह टैब %1$d फ़ोल्डर का क्रम बदलता है</item>
         <item quantity="other">यह टैब %1$d फ़ोल्डर का क्रम बदलता है</item>

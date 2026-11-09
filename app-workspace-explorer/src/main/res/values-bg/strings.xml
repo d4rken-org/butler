@@ -851,6 +851,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Нищо не е скрито. Скритите файлове и папки се показват тук.</string>
     <string name="explorer_hidden_paths_remove_action">Покажи отново %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Търсене в скритите елементи</string>
+    <string name="explorer_hidden_paths_search_hint">Търсене по име или път</string>
+    <string name="explorer_hidden_paths_search_close_action">Затвори търсенето</string>
+    <string name="explorer_hidden_paths_search_no_matches">Няма скрити елементи, съвпадащи с \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Покажи всички отново</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Да се покаже ли отново %1$d елемент?</item>
+        <item quantity="other">Да се покажат ли отново %1$d елемента?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Тези файлове и папки ще се показват отново в списъците.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Покажи отново</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Този раздел замества реда на сортиране в %1$d папка</item>
         <item quantity="other">Този раздел замества реда на сортиране в %1$d папки</item>

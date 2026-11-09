@@ -719,6 +719,16 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Kamu belum menyembunyikan apa-apa. Fail dan folder tersembunyi dipaparkan di sini.</string>
     <string name="explorer_hidden_paths_remove_action">Tunjukkan semula %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Cari item tersembunyi</string>
+    <string name="explorer_hidden_paths_search_hint">Cari mengikut nama atau laluan</string>
+    <string name="explorer_hidden_paths_search_close_action">Tutup carian</string>
+    <string name="explorer_hidden_paths_search_no_matches">Tiada item tersembunyi yang sepadan dengan \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Tunjukkan semula semua</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="other">Tunjukkan semula %1$d item?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Fail dan folder ini akan dipaparkan semula dalam senarai.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Tunjukkan semula</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">Tab ini mengatasi susunan isih dalam %1$d folder</item>
     </plurals>

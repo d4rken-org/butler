@@ -804,6 +804,16 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Anda belum menyembunyikan apa pun. Berkas dan folder tersembunyi muncul di sini.</string>
     <string name="explorer_hidden_paths_remove_action">Tampilkan kembali %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Cari item tersembunyi</string>
+    <string name="explorer_hidden_paths_search_hint">Cari berdasarkan nama atau jalur</string>
+    <string name="explorer_hidden_paths_search_close_action">Tutup pencarian</string>
+    <string name="explorer_hidden_paths_search_no_matches">Tidak ada item tersembunyi yang cocok dengan \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Tampilkan kembali semua</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="other">Tampilkan kembali %1$d item?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Berkas dan folder ini akan muncul lagi di daftar.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Tampilkan kembali</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">Tab ini menggantikan urutan di %1$d folder</item>
     </plurals>

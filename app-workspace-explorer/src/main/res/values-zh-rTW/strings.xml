@@ -805,6 +805,16 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">你尚未隱藏任何項目。隱藏的檔案和資料夾會顯示在這裡。</string>
     <string name="explorer_hidden_paths_remove_action">取消隱藏 %1$s</string>
+    <string name="explorer_hidden_paths_search_action">搜尋隱藏項目</string>
+    <string name="explorer_hidden_paths_search_hint">依名稱或路徑搜尋</string>
+    <string name="explorer_hidden_paths_search_close_action">關閉搜尋</string>
+    <string name="explorer_hidden_paths_search_no_matches">沒有符合 \"%1$s\" 的隱藏項目</string>
+    <string name="explorer_hidden_paths_unhide_all_action">全部取消隱藏</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="other">要取消隱藏 %1$d 個項目嗎？</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">這些檔案和資料夾將重新在清單中顯示。</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">取消隱藏</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">此分頁在 %1$d 個資料夾中覆寫了排序方式</item>
     </plurals>

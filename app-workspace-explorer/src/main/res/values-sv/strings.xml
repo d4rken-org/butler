@@ -851,6 +851,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Du har inte dolt något. Dolda filer och mappar visas här.</string>
     <string name="explorer_hidden_paths_remove_action">Visa %1$s igen</string>
+    <string name="explorer_hidden_paths_search_action">Sök bland dolda objekt</string>
+    <string name="explorer_hidden_paths_search_hint">Sök efter namn eller sökväg</string>
+    <string name="explorer_hidden_paths_search_close_action">Stäng sökningen</string>
+    <string name="explorer_hidden_paths_search_no_matches">Inga dolda objekt matchar \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Visa alla igen</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Visa %1$d objekt igen?</item>
+        <item quantity="other">Visa %1$d objekt igen?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">De här filerna och mapparna visas i listor igen.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Visa igen</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Den här fliken åsidosätter sorteringen i %1$d mapp</item>
         <item quantity="other">Den här fliken åsidosätter sorteringen i %1$d mappar</item>

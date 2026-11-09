@@ -845,6 +845,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">No has ocultado nada. Los archivos y carpetas ocultos aparecen aquí.</string>
     <string name="explorer_hidden_paths_remove_action">Dejar de ocultar %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Buscar en elementos ocultos</string>
+    <string name="explorer_hidden_paths_search_hint">Buscar por nombre o ruta</string>
+    <string name="explorer_hidden_paths_search_close_action">Cerrar búsqueda</string>
+    <string name="explorer_hidden_paths_search_no_matches">Ningún elemento oculto coincide con \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Dejar de ocultar todo</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">¿Dejar de ocultar %1$d elemento?</item>
+        <item quantity="other">¿Dejar de ocultar %1$d elementos?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Estos archivos y carpetas volverán a mostrarse en los listados.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Dejar de ocultar</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Esta pestaña anula el orden en %1$d carpeta</item>
         <item quantity="other">Esta pestaña anula el orden en %1$d carpetas</item>

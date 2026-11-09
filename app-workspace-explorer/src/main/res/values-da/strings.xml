@@ -851,6 +851,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Du har ikke skjult noget. Skjulte filer og mapper vises her.</string>
     <string name="explorer_hidden_paths_remove_action">Vis %1$s igen</string>
+    <string name="explorer_hidden_paths_search_action">Søg i skjulte elementer</string>
+    <string name="explorer_hidden_paths_search_hint">Søg efter navn eller sti</string>
+    <string name="explorer_hidden_paths_search_close_action">Luk søgning</string>
+    <string name="explorer_hidden_paths_search_no_matches">Ingen skjulte elementer matcher \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Vis alle igen</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Vis %1$d element igen?</item>
+        <item quantity="other">Vis %1$d elementer igen?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Disse filer og mapper vises i oversigter igen.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Vis igen</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Denne fane tilsidesætter sorteringen i %1$d mappe</item>
         <item quantity="other">Denne fane tilsidesætter sorteringen i %1$d mapper</item>
