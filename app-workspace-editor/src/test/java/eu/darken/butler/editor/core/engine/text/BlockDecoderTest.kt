@@ -49,6 +49,18 @@ class BlockDecoderTest : BaseTest() {
     }
 
     @Test
+    fun `GB18030 with a structurally invalid byte is flagged whatever the decoder makes of it`() {
+        val input = gb("你好") + bytes(0x80) + gb("世界")
+        BlockDecoder.decode(input, TextCharsets.GB18030).hadUndecodable.shouldBeTrue()
+    }
+
+    @Test
+    fun `GB18030 structure check`() {
+        BlockDecoder.isStructurallyValidGb18030(gb("你好") + bytes(0x80) + gb("世界")).shouldBeFalse()
+        BlockDecoder.isStructurallyValidGb18030(gb("你好世界")).shouldBeTrue()
+    }
+
+    @Test
     fun `valid text is not flagged in any charset`() {
         val text = "a你ʘ😀\r\nb"
         for (charset in listOf(TextCharsets.GB18030, Charsets.UTF_8, Charsets.UTF_16LE, Charsets.UTF_16BE)) {

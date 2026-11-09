@@ -165,6 +165,14 @@ class DocumentBufferGb18030Test : BaseTest() {
     }
 
     @Test
+    fun `GB18030 file with a stray 0x80 byte is read-only`(@TempDir tempDir: File) = runTest {
+        val bytes = "你好".toByteArray(gb18030) + byteArrayOf(0x80.toByte()) + "世界".toByteArray(gb18030)
+        val file = File(tempDir, "stray80.txt").apply { writeBytes(bytes) }
+
+        openBuffer(file, gb18030, blockSize = 4).fileSource.isUndecodableReadOnly.shouldBeTrue()
+    }
+
+    @Test
     fun `UTF-8 file with invalid bytes is flagged but stays editable`(@TempDir tempDir: File) = runTest {
         val bytes = "head ".toByteArray() + byteArrayOf(0xC3.toByte(), 0x28) + " tail".toByteArray()
         val file = File(tempDir, "broken-utf8.txt").apply { writeBytes(bytes) }
