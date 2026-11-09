@@ -42,6 +42,10 @@ class ExplorerHiddenPathsViewModelTest : BaseTest() {
 
     private suspend fun ExplorerHiddenPathsViewModel.current() = state.filterNotNull().first()
 
+    private suspend fun ExplorerHiddenPathsViewModel.awaitState(
+        predicate: (ExplorerHiddenPathsViewModel.State) -> Boolean,
+    ) = state.filterNotNull().first(predicate)
+
     @Test
     fun `lists every stored entry in stored order`() = runTest {
         createViewModel().current().entries shouldBe listOf(existingEntry, goneEntry)
@@ -63,5 +67,109 @@ class ExplorerHiddenPathsViewModelTest : BaseTest() {
 
         coVerify(exactly = 1) { repo.unhideKeys(setOf(goneEntry.key)) }
         vm.state.filterNotNull().first { it.entries.size == 1 }.entries shouldBe listOf(existingEntry)
+    }
+
+    @Test
+    fun `the query matches file names case-insensitively`() = runTest {
+        val vm = createViewModel()
+        vm.openSearch()
+
+        vm.setQuery("REPORT")
+
+        vm.current().apply {
+            isSearching shouldBe true
+            query shouldBe "REPORT"
+            entries shouldBe listOf(existingEntry, goneEntry)
+            visibleEntries shouldBe listOf(existingEntry)
+        }
+    }
+
+    @Test
+    fun `the query matches the full path case-insensitively`() = runTest {
+        val vm = createViewModel()
+        vm.openSearch()
+
+        vm.setQuery("removed/fol")
+
+        vm.current().visibleEntries shouldBe listOf(goneEntry)
+    }
+
+    @Test
+    fun `closing search clears the query and restores the full list`() = runTest {
+        val vm = createViewModel()
+        vm.openSearch()
+        vm.setQuery("report")
+
+        vm.closeSearch()
+
+        vm.current().apply {
+            isSearching shouldBe false
+            query shouldBe ""
+            visibleEntries shouldBe listOf(existingEntry, goneEntry)
+        }
+    }
+
+    @Test
+    fun `unhide all without a query unhides every entry in one call`() = runTest {
+        val vm = createViewModel()
+
+        vm.requestUnhideAll()
+        vm.current().confirmUnhideCount shouldBe 2
+        vm.confirmUnhideAll()
+
+        coVerify(exactly = 1) { repo.unhideKeys(setOf(existingEntry.key, goneEntry.key)) }
+        coVerify(exactly = 1) { repo.unhideKeys(any()) }
+        vm.awaitState { it.entries.isEmpty() && it.confirmUnhideCount == null }
+    }
+
+    @Test
+    fun `unhide all with a query unhides only the matching entries and keeps the query`() = runTest {
+        val vm = createViewModel()
+        vm.openSearch()
+        vm.setQuery("report")
+
+        vm.requestUnhideAll()
+        vm.current().confirmUnhideCount shouldBe 1
+        vm.confirmUnhideAll()
+
+        coVerify(exactly = 1) { repo.unhideKeys(setOf(existingEntry.key)) }
+        coVerify(exactly = 1) { repo.unhideKeys(any()) }
+        vm.awaitState { it.entries == listOf(goneEntry) && it.confirmUnhideCount == null }.apply {
+            visibleEntries shouldBe emptyList()
+            query shouldBe "report"
+            isSearching shouldBe true
+        }
+    }
+
+    @Test
+    fun `dismissing the unhide all confirmation unhides nothing`() = runTest {
+        val vm = createViewModel()
+
+        vm.requestUnhideAll()
+        vm.dismissUnhideAll()
+        vm.confirmUnhideAll()
+
+        coVerify(exactly = 0) { repo.unhideKeys(any()) }
+        vm.current().apply {
+            confirmUnhideCount shouldBe null
+            entries shouldBe listOf(existingEntry, goneEntry)
+        }
+    }
+
+    @Test
+    fun `the unhide all batch is fixed when the confirmation is requested`() = runTest {
+        val vm = createViewModel()
+        vm.openSearch()
+        vm.setQuery("report")
+        vm.requestUnhideAll()
+
+        val added = LocalPath.build("/storage/emulated/0/Download/report-2.pdf")
+        val addedEntry = HiddenEntry(added.sortPathKey(), added)
+        hiddenState.value = HiddenPaths(listOf(existingEntry, goneEntry, addedEntry))
+        vm.setQuery("")
+        vm.confirmUnhideAll()
+
+        coVerify(exactly = 1) { repo.unhideKeys(setOf(existingEntry.key)) }
+        coVerify(exactly = 1) { repo.unhideKeys(any()) }
     }
 }
