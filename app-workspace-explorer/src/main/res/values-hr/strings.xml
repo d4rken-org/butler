@@ -889,6 +889,18 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Ništa nije skriveno. Ovdje se prikazuju skrivene datoteke i mape.</string>
     <string name="explorer_hidden_paths_remove_action">Poništi skrivanje: %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Pretraži skrivene stavke</string>
+    <string name="explorer_hidden_paths_search_hint">Pretraži po nazivu ili putanji</string>
+    <string name="explorer_hidden_paths_search_close_action">Zatvori pretraživanje</string>
+    <string name="explorer_hidden_paths_search_no_matches">Nijedna skrivena stavka ne odgovara upitu \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Poništi skrivanje svih</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Poništiti skrivanje %1$d stavke?</item>
+        <item quantity="few">Poništiti skrivanje %1$d stavke?</item>
+        <item quantity="other">Poništiti skrivanje %1$d stavki?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Ove datoteke i mape ponovno će se prikazivati u popisima.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Poništi skrivanje</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Ova kartica nadjačava redoslijed razvrstavanja za %1$d mapu</item>
         <item quantity="few">Ova kartica nadjačava redoslijed razvrstavanja za %1$d mape</item>

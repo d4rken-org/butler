@@ -842,6 +842,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Vous n’avez rien masqué. Les fichiers et dossiers masqués apparaissent ici.</string>
     <string name="explorer_hidden_paths_remove_action">Ne plus masquer %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Rechercher dans les éléments cachés</string>
+    <string name="explorer_hidden_paths_search_hint">Rechercher par nom ou chemin</string>
+    <string name="explorer_hidden_paths_search_close_action">Fermer la recherche</string>
+    <string name="explorer_hidden_paths_search_no_matches">Aucun élément caché ne correspond à « %1$s »</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Ne plus rien masquer</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Ne plus masquer %1$d élément ?</item>
+        <item quantity="other">Ne plus masquer %1$d éléments ?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Ces fichiers et dossiers apparaîtront de nouveau dans les listes.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Ne plus masquer</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Cet onglet remplace l’ordre de tri dans %1$d dossier</item>
         <item quantity="other">Cet onglet remplace l’ordre de tri dans %1$d dossiers</item>

@@ -833,6 +833,19 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">עדיין לא הסתרת שום דבר. קבצים ותיקיות מוסתרים יופיעו כאן.</string>
     <string name="explorer_hidden_paths_remove_action">ביטול הסתרה של %1$s</string>
+    <string name="explorer_hidden_paths_search_action">חיפוש בפריטים המוסתרים</string>
+    <string name="explorer_hidden_paths_search_hint">חיפוש לפי שם או נתיב</string>
+    <string name="explorer_hidden_paths_search_close_action">סגירת החיפוש</string>
+    <string name="explorer_hidden_paths_search_no_matches">אין פריטים מוסתרים שתואמים ל-\"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">ביטול הסתרה של הכול</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">לבטל הסתרה של %1$d פריט?</item>
+        <item quantity="two">לבטל הסתרה של %1$d פריטים?</item>
+        <item quantity="many">לבטל הסתרה של %1$d פריטים?</item>
+        <item quantity="other">לבטל הסתרה של %1$d פריטים?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">הקבצים והתיקיות האלה יוצגו שוב ברשימות.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">ביטול הסתרה</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">הלשונית הזו עוקפת את סדר המיון ב־%1$d תיקייה</item>
         <item quantity="two">הלשונית הזו עוקפת את סדר המיון ב־%1$d תיקיות</item>

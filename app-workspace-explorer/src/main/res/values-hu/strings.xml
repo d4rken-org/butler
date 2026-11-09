@@ -757,6 +757,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Még semmit nem rejtettél el. Az elrejtett fájlok és mappák itt jelennek meg.</string>
     <string name="explorer_hidden_paths_remove_action">Elrejtés visszavonása: %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Keresés a rejtett elemek között</string>
+    <string name="explorer_hidden_paths_search_hint">Keresés név vagy útvonal alapján</string>
+    <string name="explorer_hidden_paths_search_close_action">Keresés bezárása</string>
+    <string name="explorer_hidden_paths_search_no_matches">Egy rejtett elem sem egyezik ezzel: \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Összes elrejtésének visszavonása</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Visszavonod %1$d elem elrejtését?</item>
+        <item quantity="other">Visszavonod %1$d elem elrejtését?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Ezek a fájlok és mappák újra megjelennek a listákban.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Elrejtés visszavonása</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Ez a lap felülírja a rendezést %1$d mappában</item>
         <item quantity="other">Ez a lap felülírja a rendezést %1$d mappában</item>

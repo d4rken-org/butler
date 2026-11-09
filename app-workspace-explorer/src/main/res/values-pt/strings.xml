@@ -892,6 +892,18 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Não ocultaste nada. Os ficheiros e pastas ocultos aparecem aqui.</string>
     <string name="explorer_hidden_paths_remove_action">Deixar de ocultar %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Pesquisar itens ocultos</string>
+    <string name="explorer_hidden_paths_search_hint">Pesquisar por nome ou caminho</string>
+    <string name="explorer_hidden_paths_search_close_action">Fechar pesquisa</string>
+    <string name="explorer_hidden_paths_search_no_matches">Nenhum item oculto corresponde a \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Deixar de ocultar tudo</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Deixar de ocultar %1$d item?</item>
+        <item quantity="many">Deixar de ocultar %1$d itens?</item>
+        <item quantity="other">Deixar de ocultar %1$d itens?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Estes ficheiros e pastas voltarão a aparecer nas listagens.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Deixar de ocultar</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Este separador substitui a ordem de ordenação em %1$d pasta</item>
         <item quantity="many">Este separador substitui a ordem de ordenação em %1$d pastas</item>

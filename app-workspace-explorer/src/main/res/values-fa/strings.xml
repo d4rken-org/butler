@@ -845,6 +845,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">هنوز چیزی را پنهان نکرده‌اید. فایل‌ها و پوشه‌های پنهان‌شده اینجا نشان داده می‌شوند.</string>
     <string name="explorer_hidden_paths_remove_action">لغو پنهان‌سازی %1$s</string>
+    <string name="explorer_hidden_paths_search_action">جستجو در موارد مخفی</string>
+    <string name="explorer_hidden_paths_search_hint">جستجو بر اساس نام یا مسیر</string>
+    <string name="explorer_hidden_paths_search_close_action">بستن جستجو</string>
+    <string name="explorer_hidden_paths_search_no_matches">هیچ مورد مخفی‌ای با \"%1$s\" مطابقت ندارد</string>
+    <string name="explorer_hidden_paths_unhide_all_action">لغو پنهان‌سازی همه</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">پنهان‌سازی %1$d مورد لغو شود؟</item>
+        <item quantity="other">پنهان‌سازی %1$d مورد لغو شود؟</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">این فایل‌ها و پوشه‌ها دوباره در فهرست‌ها نمایش داده می‌شوند.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">لغو پنهان‌سازی</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">این زبانه ترتیب مرتب‌سازی را در %1$d پوشه نادیده می‌گیرد</item>
         <item quantity="other">این زبانه ترتیب مرتب‌سازی را در %1$d پوشه نادیده می‌گیرد</item>

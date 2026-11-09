@@ -852,6 +852,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">آپ نے ابھی تک کچھ نہیں چھپایا۔ چھپائی گئی فائلیں اور فولڈرز یہاں نظر آتے ہیں۔</string>
     <string name="explorer_hidden_paths_remove_action">%1$s دوبارہ دکھائیں</string>
+    <string name="explorer_hidden_paths_search_action">چھپی ہوئی اشیا میں تلاش کریں</string>
+    <string name="explorer_hidden_paths_search_hint">نام یا پاتھ سے تلاش کریں</string>
+    <string name="explorer_hidden_paths_search_close_action">تلاش بند کریں</string>
+    <string name="explorer_hidden_paths_search_no_matches">\"%1$s\" سے ملتی کوئی چھپی ہوئی شے نہیں</string>
+    <string name="explorer_hidden_paths_unhide_all_action">سب دوبارہ دکھائیں</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">%1$d شے دوبارہ دکھائیں؟</item>
+        <item quantity="other">%1$d اشیا دوبارہ دکھائیں؟</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">یہ فائلیں اور فولڈرز فہرستوں میں دوبارہ نظر آئیں گے۔</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">دوبارہ دکھائیں</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">یہ ٹیب %1$d فولڈر میں ترتیب کی جگہ اپنی ترتیب لاگو کرتا ہے</item>
         <item quantity="other">یہ ٹیب %1$d فولڈرز میں ترتیب کی جگہ اپنی ترتیب لاگو کرتا ہے</item>

@@ -921,6 +921,19 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Нічого не приховано. Приховані файли й теки з’являться тут.</string>
     <string name="explorer_hidden_paths_remove_action">Скасувати приховування: %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Пошук у прихованих елементах</string>
+    <string name="explorer_hidden_paths_search_hint">Пошук за назвою або шляхом</string>
+    <string name="explorer_hidden_paths_search_close_action">Закрити пошук</string>
+    <string name="explorer_hidden_paths_search_no_matches">Немає прихованих елементів, що відповідають \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Скасувати приховування всіх</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Скасувати приховування %1$d елемента?</item>
+        <item quantity="few">Скасувати приховування %1$d елементів?</item>
+        <item quantity="many">Скасувати приховування %1$d елементів?</item>
+        <item quantity="other">Скасувати приховування %1$d елемента?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Ці файли й теки знову показуватимуться у списках.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Скасувати приховування</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Ця вкладка перевизначає порядок сортування в %1$d теці</item>
         <item quantity="few">Ця вкладка перевизначає порядок сортування в %1$d теках</item>

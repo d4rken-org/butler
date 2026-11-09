@@ -920,6 +920,19 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Ничего не скрыто. Скрытые файлы и папки появятся здесь.</string>
     <string name="explorer_hidden_paths_remove_action">Отменить скрытие: %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Поиск по скрытым объектам</string>
+    <string name="explorer_hidden_paths_search_hint">Поиск по имени или пути</string>
+    <string name="explorer_hidden_paths_search_close_action">Закрыть поиск</string>
+    <string name="explorer_hidden_paths_search_no_matches">Нет скрытых объектов, соответствующих «%1$s»</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Отменить скрытие всех</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Отменить скрытие %1$d объекта?</item>
+        <item quantity="few">Отменить скрытие %1$d объектов?</item>
+        <item quantity="many">Отменить скрытие %1$d объектов?</item>
+        <item quantity="other">Отменить скрытие %1$d объекта?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Эти файлы и папки снова будут показываться в списках.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Отменить скрытие</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Эта вкладка переопределяет порядок сортировки в %1$d папке</item>
         <item quantity="few">Эта вкладка переопределяет порядок сортировки в %1$d папках</item>

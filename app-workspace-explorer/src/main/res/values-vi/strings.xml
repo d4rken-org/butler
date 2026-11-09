@@ -805,6 +805,16 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Bạn chưa ẩn mục nào. Tệp và thư mục đã ẩn sẽ hiển thị ở đây.</string>
     <string name="explorer_hidden_paths_remove_action">Bỏ ẩn %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Tìm trong mục ẩn</string>
+    <string name="explorer_hidden_paths_search_hint">Tìm theo tên hoặc đường dẫn</string>
+    <string name="explorer_hidden_paths_search_close_action">Đóng tìm kiếm</string>
+    <string name="explorer_hidden_paths_search_no_matches">Không có mục ẩn nào khớp với \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Bỏ ẩn tất cả</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="other">Bỏ ẩn %1$d mục?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Các tệp và thư mục này sẽ hiển thị lại trong danh sách.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Bỏ ẩn</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">Thẻ này ghi đè thứ tự sắp xếp trong %1$d thư mục</item>
     </plurals>

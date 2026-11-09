@@ -921,6 +921,19 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Nic není skryto. Skryté soubory a složky se zobrazí zde.</string>
     <string name="explorer_hidden_paths_remove_action">Zrušit skrytí %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Hledat ve skrytých položkách</string>
+    <string name="explorer_hidden_paths_search_hint">Hledat podle názvu nebo cesty</string>
+    <string name="explorer_hidden_paths_search_close_action">Zavřít hledání</string>
+    <string name="explorer_hidden_paths_search_no_matches">Žádné skryté položky neodpovídají \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Zrušit skrytí všech</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Zrušit skrytí %1$d položky?</item>
+        <item quantity="few">Zrušit skrytí %1$d položek?</item>
+        <item quantity="many">Zrušit skrytí %1$d položky?</item>
+        <item quantity="other">Zrušit skrytí %1$d položek?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Tyto soubory a složky se znovu zobrazí v seznamech.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Zrušit skrytí</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Tato karta přepisuje pořadí řazení v %1$d složce</item>
         <item quantity="few">Tato karta přepisuje pořadí řazení v %1$d složkách</item>

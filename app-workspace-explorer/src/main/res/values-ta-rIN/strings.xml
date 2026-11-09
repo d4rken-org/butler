@@ -851,6 +851,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">நீங்கள் எதையும் மறைக்கவில்லை. மறைக்கப்பட்ட கோப்புகளும் கோப்புறைகளும் இங்கே தோன்றும்.</string>
     <string name="explorer_hidden_paths_remove_action">%1$s மறைப்பை நீக்கு</string>
+    <string name="explorer_hidden_paths_search_action">மறைக்கப்பட்ட உருப்படிகளில் தேடு</string>
+    <string name="explorer_hidden_paths_search_hint">பெயர் அல்லது பாதை மூலம் தேடு</string>
+    <string name="explorer_hidden_paths_search_close_action">தேடலை மூடு</string>
+    <string name="explorer_hidden_paths_search_no_matches">\"%1$s\" உடன் பொருந்தும் மறைக்கப்பட்ட உருப்படிகள் இல்லை</string>
+    <string name="explorer_hidden_paths_unhide_all_action">அனைத்தின் மறைப்பையும் நீக்கு</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">%1$d உருப்படியின் மறைப்பை நீக்கவா?</item>
+        <item quantity="other">%1$d உருப்படிகளின் மறைப்பை நீக்கவா?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">இந்தக் கோப்புகளும் கோப்புறைகளும் பட்டியல்களில் மீண்டும் தோன்றும்.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">மறைப்பை நீக்கு</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">இந்தத் தாவல் %1$d கோப்புறையின் வரிசைக்குப் பதிலாகத் தனது வரிசையைப் பயன்படுத்துகிறது</item>
         <item quantity="other">இந்தத் தாவல் %1$d கோப்புறைகளின் வரிசைக்குப் பதிலாகத் தனது வரிசையைப் பயன்படுத்துகிறது</item>

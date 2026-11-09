@@ -795,6 +795,18 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">Nu ai ascuns nimic. Fișierele și dosarele ascunse apar aici.</string>
     <string name="explorer_hidden_paths_remove_action">Nu mai ascunde %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Caută în elementele ascunse</string>
+    <string name="explorer_hidden_paths_search_hint">Caută după nume sau cale</string>
+    <string name="explorer_hidden_paths_search_close_action">Închide căutarea</string>
+    <string name="explorer_hidden_paths_search_no_matches">Niciun element ascuns nu corespunde cu \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Nu mai ascunde nimic</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Nu mai ascunzi %1$d element?</item>
+        <item quantity="few">Nu mai ascunzi %1$d elemente?</item>
+        <item quantity="other">Nu mai ascunzi %1$d de elemente?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">Aceste fișiere și dosare vor apărea din nou în liste.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Nu mai ascunde</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">Această filă înlocuiește ordinea de sortare în %1$d dosar</item>
         <item quantity="few">Această filă înlocuiește ordinea de sortare în %1$d dosare</item>

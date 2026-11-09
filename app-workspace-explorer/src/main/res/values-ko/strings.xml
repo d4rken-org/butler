@@ -805,6 +805,16 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">숨긴 항목이 없습니다. 숨긴 파일과 폴더가 여기에 표시됩니다.</string>
     <string name="explorer_hidden_paths_remove_action">%1$s 숨김 해제</string>
+    <string name="explorer_hidden_paths_search_action">숨김 항목 검색</string>
+    <string name="explorer_hidden_paths_search_hint">이름 또는 경로로 검색</string>
+    <string name="explorer_hidden_paths_search_close_action">검색 닫기</string>
+    <string name="explorer_hidden_paths_search_no_matches">\"%1$s\"와(과) 일치하는 숨김 항목이 없습니다</string>
+    <string name="explorer_hidden_paths_unhide_all_action">모두 숨김 해제</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="other">항목 %1$d개의 숨김을 해제할까요?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">이 파일과 폴더가 목록에 다시 표시됩니다.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">숨김 해제</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="other">이 탭은 폴더 %1$d개의 정렬 순서를 재정의합니다</item>
     </plurals>
