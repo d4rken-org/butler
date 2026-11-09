@@ -873,6 +873,17 @@
     </plurals>
     <string name="explorer_hidden_paths_empty">You haven\'t hidden anything. Hidden files and folders show up here.</string>
     <string name="explorer_hidden_paths_remove_action">Unhide %1$s</string>
+    <string name="explorer_hidden_paths_search_action">Search hidden items</string>
+    <string name="explorer_hidden_paths_search_hint">Search by name or path</string>
+    <string name="explorer_hidden_paths_search_close_action">Close search</string>
+    <string name="explorer_hidden_paths_search_no_matches">No hidden items match \"%1$s\"</string>
+    <string name="explorer_hidden_paths_unhide_all_action">Unhide all</string>
+    <plurals name="explorer_hidden_paths_unhide_all_confirm_title">
+        <item quantity="one">Unhide %1$d item?</item>
+        <item quantity="other">Unhide %1$d items?</item>
+    </plurals>
+    <string name="explorer_hidden_paths_unhide_all_confirm_message">These files and folders will show in listings again.</string>
+    <string name="explorer_hidden_paths_unhide_all_confirm_action">Unhide</string>
     <plurals name="explorer_sort_tab_overrides_notice">
         <item quantity="one">This tab overrides the sort order in %1$d folder</item>
         <item quantity="other">This tab overrides the sort order in %1$d folders</item>
