@@ -268,7 +268,7 @@ class ExplorerFloatingBarsTest : ComposeTest() {
             target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/$TOOLBAR_LAST_SEGMENT")),
         ),
     )
-    private val collapsedToolbarLabel = "Home / $TOOLBAR_LAST_SEGMENT"
+    private val collapsedToolbarLabel = listOf("Home", TOOLBAR_LAST_SEGMENT).joinToString("\u2009/\u2009")
 
     @Test
     fun `tapping the scroll-collapsed toolbar expands it again`() {
