@@ -50,6 +50,21 @@ data class SmbLocation(
     val rootPath: SmbPath
         get() = SmbPath.root(id)
 
+    /** The share [path] lives on. Null only for a server entry's root, which lists the shares. */
+    fun shareOf(path: SmbPath): String? = share ?: path.segments.firstOrNull()
+
+    /**
+     * Where [path] points inside [shareOf]: `[a, b]` is `base/path/a/b` on a share location, and
+     * `b` on share `a` of a server entry.
+     */
+    fun segmentsInShare(path: SmbPath): Segments = when {
+        isServer -> path.segments.drop(1)
+        else -> basePath + path.segments
+    }
+
+    /** A server entry's root or one of its shares: the server decides neither's name or existence. */
+    fun isProtected(path: SmbPath): Boolean = isServer && path.segments.size <= 1
+
     /**
      * `host/share` or `host:port/share/base/path`, the subtitle shown under the location name. A
      * server entry is just `host` or `host:port`.

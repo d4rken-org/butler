@@ -6,10 +6,13 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import eu.darken.smb.KotlinSmbClient
 import eu.darken.smb.SmbConnector
+import eu.darken.smb.SmbShareLister
 import javax.inject.Singleton
 
-fun interface SmbClientFactory {
+interface SmbClientFactory {
     fun create(): SmbConnector
+
+    fun createLister(): SmbShareLister
 }
 
 @Module
@@ -17,5 +20,9 @@ fun interface SmbClientFactory {
 object SmbClientFactoryModule {
     @Provides
     @Singleton
-    fun clientFactory(): SmbClientFactory = SmbClientFactory { KotlinSmbClient() }
+    fun clientFactory(): SmbClientFactory = object : SmbClientFactory {
+        override fun create(): SmbConnector = KotlinSmbClient()
+
+        override fun createLister(): SmbShareLister = KotlinSmbClient()
+    }
 }

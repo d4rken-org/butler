@@ -68,6 +68,22 @@ class SmbShareNotFoundException(
 }
 
 /**
+ * The server would not enumerate its shares for this account, while the shares themselves may still be
+ * reachable by name. Not a sign-in failure: the credentials were never the problem.
+ */
+class SmbShareListingUnavailableException(
+    val endpoint: String,
+    cause: Throwable? = null,
+) : ReadException(message = "$endpoint did not list its shares", cause = cause), HasLocalizedError {
+
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
+        throwable = this,
+        label = R.string.smb_error_share_listing_unavailable_title.toCaString(),
+        description = caString { it.getString(R.string.smb_error_share_listing_unavailable_description, endpoint) },
+    )
+}
+
+/**
  * The server only speaks SMB1. Butler does not: SMB1 has no session signing worth the name and is
  * disabled by default on every current OS, so this is reported rather than silently downgraded.
  */

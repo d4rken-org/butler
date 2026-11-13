@@ -2,13 +2,16 @@ package eu.darken.butler.common.files.smb
 
 import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.smb.SmbBlockingFile
 import eu.darken.smb.SmbFile
 import eu.darken.smb.SmbShare
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
@@ -16,6 +19,7 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import java.io.IOException
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 class SmbOutputStreamTest : BaseTest() {
@@ -23,11 +27,25 @@ class SmbOutputStreamTest : BaseTest() {
     private val file = mockk<SmbBlockingFile>(relaxed = true)
     private val handle = mockk<SmbFile> { every { blocking() } returns file }
     private val share = mockk<SmbShare> { coEvery { openFile(any(), any()) } returns handle }
-    private val location = mockk<SmbLocation> { every { basePath } returns emptyList() }
+    private val location = SmbLocation(
+        id = path.locationId,
+        label = null,
+        host = "nas.local",
+        share = "media",
+        authType = SmbLocation.AuthType.GUEST,
+        rememberCredential = false,
+        credentialVersion = 1,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        updatedAt = Instant.fromEpochMilliseconds(0),
+    )
     private var releases = 0
     private val lease = SmbConnectionPool.Lease(location, share) { releases++ }
-    private val pool = mockk<SmbConnectionPool> { coEvery { acquire(path.locationId) } returns lease }
-    private val ops = SmbFileSystemOps(pool, TestDispatcherProvider())
+    private val pool = mockk<SmbConnectionPool> {
+        coEvery { requirePro() } just Runs
+        coEvery { acquire(path) } returns lease
+    }
+    private val locationManager = mockk<SmbLocationManager> { coEvery { get(path.locationId) } returns location }
+    private val ops = SmbFileSystemOps(pool, locationManager, TestDispatcherProvider())
 
     @Test
     fun `flush then close sends buffered bytes and flushes the server once`() = runTest {

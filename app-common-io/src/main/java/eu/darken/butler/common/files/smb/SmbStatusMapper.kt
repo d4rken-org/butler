@@ -44,6 +44,17 @@ object SmbStatusMapper {
         }
     }
 
+    fun mapListShares(error: Throwable, endpoint: String): Throwable {
+        if (error is CancellationException || isMapped(error)) return error
+        return when ((error as? SmbException)?.kind) {
+            Kind.AUTHENTICATION -> SmbAuthException(endpoint, error)
+            Kind.ACCESS_DENIED, Kind.MISSING, Kind.PROTOCOL, Kind.OTHER ->
+                SmbShareListingUnavailableException(endpoint, error)
+            Kind.UNSUPPORTED_DIALECT -> SmbDialectNotSupportedException(endpoint, error)
+            else -> SmbUnreachableException(endpoint, error)
+        }
+    }
+
     fun mapOperation(error: Throwable, path: APath<*>, operation: String, write: Boolean): Throwable {
         if (error is CancellationException || isMapped(error)) return error
         val smb = error as? SmbException
@@ -78,7 +89,7 @@ object SmbStatusMapper {
     private fun isMapped(error: Throwable): Boolean = error is SmbUnreachableException || error is SmbAuthException ||
         error is SmbShareNotFoundException || error is SmbDialectNotSupportedException ||
         error is SmbShareAccessDeniedException || error is SmbCredentialUnavailableException ||
-        error is SmbProRequiredException
+        error is SmbProRequiredException || error is SmbShareListingUnavailableException
 
     private fun wrap(message: String, path: APath<*>, cause: Throwable, write: Boolean): Throwable = when {
         write -> WriteException(message, path, cause)
