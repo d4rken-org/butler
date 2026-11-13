@@ -282,6 +282,10 @@ fun SftpLocationFormSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            if (existing?.startsElsewhere(basePath = fields.basePath) == true) {
+                NetworkRootChangeWarning()
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
                     selected = usesPassword,

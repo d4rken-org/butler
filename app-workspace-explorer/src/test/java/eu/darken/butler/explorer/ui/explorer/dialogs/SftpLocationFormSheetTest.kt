@@ -343,4 +343,41 @@ class SftpLocationFormSheetTest : ComposeTest() {
         // "Remember credentials" is the only toggleable node in the add form
         composeTestRule.onNode(isToggleable()).performScrollTo().assertIsNotEnabled()
     }
+
+    @Test
+    fun `changing the base path warns until it is changed back`() {
+        setSheetContent(ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.EDIT, existing = stored))
+        composeTestRule.onAllNodes(hasText(ROOT_CHANGE_WARNING)).assertCountEquals(0)
+
+        field("Base path (optional)").performTextReplacement("/srv/builds")
+        text(ROOT_CHANGE_WARNING).performScrollTo().assertIsDisplayed()
+        saveButton().assertIsEnabled()
+
+        field("Base path (optional)").performTextReplacement("/srv")
+        composeTestRule.onAllNodes(hasText(ROOT_CHANGE_WARNING)).assertCountEquals(0)
+    }
+
+    @Test
+    fun `changing only the server does not warn`() {
+        setSheetContent(ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.EDIT, existing = stored))
+
+        field("Server address").performTextReplacement("backup.lan")
+
+        composeTestRule.onAllNodes(hasText(ROOT_CHANGE_WARNING)).assertCountEquals(0)
+    }
+
+    @Test
+    fun `a new location never warns about its base path`() {
+        setSheetContent(ExplorerDialogState.SftpLocationForm())
+
+        field("Base path (optional)").performTextInput("/srv")
+
+        composeTestRule.onAllNodes(hasText(ROOT_CHANGE_WARNING)).assertCountEquals(0)
+    }
+
+    companion object {
+        private const val ROOT_CHANGE_WARNING = "Favorites, shortcuts and other saved items for this location " +
+            "will use the new starting point. They may open a different folder or become unavailable. " +
+            "No files are moved or deleted."
+    }
 }

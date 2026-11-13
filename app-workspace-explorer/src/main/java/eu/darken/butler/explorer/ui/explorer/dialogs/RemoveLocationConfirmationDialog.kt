@@ -76,6 +76,15 @@ fun RemoveLocationConfirmationDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
+                if (isNetwork) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.explorer_network_remove_saved_items_message),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
                 if (itemCount > 1) {
                     Spacer(modifier = Modifier.height(12.dp))
 
