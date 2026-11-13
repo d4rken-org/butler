@@ -220,13 +220,13 @@ constructor(
     }
 
     override suspend fun move(source: SmbPath, destination: SmbPath): MoveOutcome {
+        requireUnprotected(source, "move")
+        requireUnprotected(destination, "replace")
         if (source.locationId != destination.locationId) {
             return MoveOutcome.NotSupported(
                 "Source and destination are different network locations"
             )
         }
-        requireUnprotected(source, "move")
-        requireUnprotected(destination, "replace")
         return mutate(source, "move") { lease ->
             if (lease.location.shareOf(source) != lease.location.shareOf(destination)) {
                 return@mutate MoveOutcome.NotSupported("Source and destination are on different shares")
