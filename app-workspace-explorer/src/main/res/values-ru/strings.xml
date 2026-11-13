@@ -358,6 +358,8 @@
     <string name="explorer_network_form_port_label">Порт</string>
     <string name="explorer_network_form_share_label">Общий ресурс</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Оставьте пустым, чтобы просматривать все общие ресурсы сервера.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Показывает все общие ресурсы этого сервера. Чтобы открыть один общий ресурс напрямую, добавьте отдельное расположение.</string>
     <string name="explorer_network_form_base_path_label">Папка внутри общего ресурса (необязательно)</string>
     <string name="explorer_network_form_auth_guest">Гость</string>
     <string name="explorer_network_form_auth_password">Имя пользователя и пароль</string>

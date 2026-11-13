@@ -296,6 +296,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Megosztás</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Hagyd üresen a szerver összes megosztásának böngészéséhez.</string>
+    <string name="explorer_network_form_share_server_entry_hint">A szerver összes megosztását mutatja. Egyetlen megosztás közvetlen megnyitásához adj hozzá külön helyet.</string>
     <string name="explorer_network_form_base_path_label">Mappa a megosztáson belül (nem kötelező)</string>
     <string name="explorer_network_form_auth_guest">Vendég</string>
     <string name="explorer_network_form_auth_password">Felhasználónév és jelszó</string>

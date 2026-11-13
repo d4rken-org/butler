@@ -359,6 +359,8 @@
     <string name="explorer_network_form_port_label">Порт</string>
     <string name="explorer_network_form_share_label">Спільний ресурс</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Залиште порожнім, щоб переглядати всі спільні ресурси сервера.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Показує всі спільні ресурси цього сервера. Щоб відкрити один спільний ресурс напряму, додайте окреме розташування.</string>
     <string name="explorer_network_form_base_path_label">Тека всередині спільного ресурсу (необов’язково)</string>
     <string name="explorer_network_form_auth_guest">Гість</string>
     <string name="explorer_network_form_auth_password">Ім’я користувача та пароль</string>

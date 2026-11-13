@@ -337,6 +337,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Resurs</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Lämna tomt för att bläddra bland alla resurser på servern.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Visar alla resurser på den här servern. Lägg till en separat plats för att öppna en resurs direkt.</string>
     <string name="explorer_network_form_base_path_label">Mapp i den delade resursen (valfritt)</string>
     <string name="explorer_network_form_auth_guest">Gäst</string>
     <string name="explorer_network_form_auth_password">Användarnamn och lösenord</string>

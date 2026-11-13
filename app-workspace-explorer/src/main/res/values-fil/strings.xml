@@ -337,6 +337,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Share</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Iwanang blangko para ma-browse ang bawat share sa server.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Ipinapakita ang bawat share sa server na ito. Para direktang buksan ang isang share, magdagdag ng hiwalay na lokasyon.</string>
     <string name="explorer_network_form_base_path_label">Folder sa loob ng share (opsyonal)</string>
     <string name="explorer_network_form_auth_guest">Bisita</string>
     <string name="explorer_network_form_auth_password">Username at password</string>

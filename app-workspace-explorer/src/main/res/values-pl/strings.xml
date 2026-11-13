@@ -356,6 +356,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Zasób</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Pozostaw puste, aby przeglądać wszystkie zasoby na serwerze.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Pokazuje wszystkie zasoby na tym serwerze. Aby otworzyć jeden zasób bezpośrednio, dodaj osobną lokalizację.</string>
     <string name="explorer_network_form_base_path_label">Folder wewnątrz zasobu (opcjonalnie)</string>
     <string name="explorer_network_form_auth_guest">Gość</string>
     <string name="explorer_network_form_auth_password">Nazwa użytkownika i hasło</string>

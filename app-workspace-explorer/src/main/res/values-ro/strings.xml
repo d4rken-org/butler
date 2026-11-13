@@ -308,6 +308,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Partajare</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Lasă gol pentru a explora toate partajările de pe server.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Afișează toate partajările de pe acest server. Pentru a deschide direct o singură partajare, adaugă o locație separată.</string>
     <string name="explorer_network_form_base_path_label">Dosar în cadrul partajării (opțional)</string>
     <string name="explorer_network_form_auth_guest">Invitat</string>
     <string name="explorer_network_form_auth_password">Nume de utilizator și parolă</string>

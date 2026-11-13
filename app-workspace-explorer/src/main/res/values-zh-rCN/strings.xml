@@ -325,6 +325,8 @@
     <string name="explorer_network_form_port_label">端口</string>
     <string name="explorer_network_form_share_label">共享</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">留空即可浏览服务器上的所有共享。</string>
+    <string name="explorer_network_form_share_server_entry_hint">显示此服务器上的所有共享。要直接打开某个共享，请另外添加一个位置。</string>
     <string name="explorer_network_form_base_path_label">共享内的文件夹（可选）</string>
     <string name="explorer_network_form_auth_guest">访客</string>
     <string name="explorer_network_form_auth_password">用户名和密码</string>

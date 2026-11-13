@@ -335,6 +335,8 @@
     <string name="explorer_network_form_port_label">Puerto</string>
     <string name="explorer_network_form_share_label">Recurso compartido</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Déjalo vacío para explorar todos los recursos compartidos del servidor.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Muestra todos los recursos compartidos de este servidor. Para abrir uno directamente, agrega una ubicación aparte.</string>
     <string name="explorer_network_form_base_path_label">Carpeta dentro del recurso compartido (opcional)</string>
     <string name="explorer_network_form_auth_guest">Invitado</string>
     <string name="explorer_network_form_auth_password">Nombre de usuario y contraseña</string>

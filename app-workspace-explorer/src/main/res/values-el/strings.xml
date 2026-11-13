@@ -335,6 +335,8 @@
     <string name="explorer_network_form_port_label">Θύρα</string>
     <string name="explorer_network_form_share_label">Κοινόχρηστος φάκελος</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Αφήστε το κενό για περιήγηση σε όλους τους κοινόχρηστους φακέλους του διακομιστή.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Εμφανίζει όλους τους κοινόχρηστους φακέλους αυτού του διακομιστή. Για να ανοίξετε απευθείας έναν κοινόχρηστο φάκελο, προσθέστε ξεχωριστή τοποθεσία.</string>
     <string name="explorer_network_form_base_path_label">Φάκελος μέσα στον κοινόχρηστο φάκελο (προαιρετικό)</string>
     <string name="explorer_network_form_auth_guest">Επισκέπτης</string>
     <string name="explorer_network_form_auth_password">Όνομα χρήστη και κωδικός πρόσβασης</string>

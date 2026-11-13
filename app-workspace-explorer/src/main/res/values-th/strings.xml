@@ -323,6 +323,8 @@
     <string name="explorer_network_form_port_label">พอร์ต</string>
     <string name="explorer_network_form_share_label">แชร์</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">เว้นว่างไว้เพื่อเรียกดูแชร์ทั้งหมดบนเซิร์ฟเวอร์</string>
+    <string name="explorer_network_form_share_server_entry_hint">แสดงแชร์ทั้งหมดบนเซิร์ฟเวอร์นี้ หากต้องการเปิดแชร์เดียวโดยตรง ให้เพิ่มตำแหน่งแยกต่างหาก</string>
     <string name="explorer_network_form_base_path_label">โฟลเดอร์ภายในแชร์ (ไม่บังคับ)</string>
     <string name="explorer_network_form_auth_guest">เกสต์</string>
     <string name="explorer_network_form_auth_password">ชื่อผู้ใช้และรหัสผ่าน</string>

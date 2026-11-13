@@ -337,6 +337,8 @@
     <string name="explorer_network_form_port_label">Porta</string>
     <string name="explorer_network_form_share_label">Condivisione</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Lascia vuoto per sfogliare tutte le condivisioni del server.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Mostra tutte le condivisioni di questo server. Per aprire direttamente una sola condivisione, aggiungi una posizione separata.</string>
     <string name="explorer_network_form_base_path_label">Cartella all’interno della condivisione (opzionale)</string>
     <string name="explorer_network_form_auth_guest">Ospite</string>
     <string name="explorer_network_form_auth_password">Nome utente e password</string>
