@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">Tento účet nemůže používat \"%1$s\" na \"%2$s\". Zkontrolujte oprávnění ke sdílené složce na serveru.</string>
     <string name="smb_error_share_not_found_title">Sdílená složka se nenalézá</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" na \"%2$s\" neexistuje.</string>
+    <string name="smb_error_share_listing_unavailable_title">Sdílené složky nelze vypsat</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s nedovolil aplikaci Butler vypsat své sdílené složky. Zadejte název sdílené složky a připojte se přímo k ní.</string>
     <string name="smb_error_dialect_title">Server je příliš starý</string>
     <string name="smb_error_dialect_description">\"%1$s\" nabízí pouze SMB1, která je nezabezpečená a není podporována. Povolte SMB2 nebo novější na serveru.</string>
     <string name="smb_error_credential_unavailable_title">Vyžaduje se přihlášení</string>

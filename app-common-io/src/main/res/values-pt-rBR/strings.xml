@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">Esta conta pode não usar \"%1$s\" em \"%2$s\". Verifique as permissões do compartilhamento no servidor.</string>
     <string name="smb_error_share_not_found_title">Compartilhamento não encontrado</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" não existe em \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Não foi possível listar os compartilhamentos</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s não permitiu que o Butler listasse seus compartilhamentos. Digite o nome de um compartilhamento para se conectar diretamente a ele.</string>
     <string name="smb_error_dialect_title">Servidor muito antigo</string>
     <string name="smb_error_dialect_description">\"%1$s\" oferece apenas SMB1, que é inseguro e não suportado. Ative SMB2 ou mais recente no servidor.</string>
     <string name="smb_error_credential_unavailable_title">Login obrigatório</string>

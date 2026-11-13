@@ -67,6 +67,8 @@
     <string name="smb_error_share_access_denied_description">\"%2$s\" இல் உள்ள \"%1$s\" ஐப் பயன்படுத்த இந்தக் கணக்குக்கு அனுமதி இல்லை. சேவையகத்தில் பகிர்வின் அனுமதிகளைச் சரிபாருங்கள்.</string>
     <string name="smb_error_share_not_found_title">பகிர்வு கிடைக்கவில்லை</string>
     <string name="smb_error_share_not_found_description">\"%2$s\" இல் \"%1$s\" இல்லை.</string>
+    <string name="smb_error_share_listing_unavailable_title">பகிர்வுகளைப் பட்டியலிட முடியவில்லை</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s தனது பகிர்வுகளைப் பட்டியலிட Butler-ஐ அனுமதிக்கவில்லை. ஒரு பகிர்வுடன் நேரடியாக இணைக்க அதன் பெயரை உள்ளிடுங்கள்.</string>
     <string name="smb_error_dialect_title">சேவையகம் மிகவும் பழையது</string>
     <string name="smb_error_dialect_description">\"%1$s\" SMB1 ஐ மட்டுமே வழங்குகிறது; அது பாதுகாப்பற்றது, ஆதரிக்கப்படாதது. சேவையகத்தில் SMB2 அல்லது அதைவிடப் புதிய பதிப்பை இயக்குங்கள்.</string>
     <string name="smb_error_credential_unavailable_title">உள்நுழைவு தேவை</string>

@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">此帳戶可能無法使用\"%2$s\"上的\"%1$s\"。請檢查伺服器上的共用權限。</string>
     <string name="smb_error_share_not_found_title">找不到共用資源</string>
     <string name="smb_error_share_not_found_description">\"%1$s\"不存在於\"%2$s\"。</string>
+    <string name="smb_error_share_listing_unavailable_title">無法列出共用資源</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s 不允許 Butler 列出其共用資源。請輸入共用資源名稱，以直接連線到該共用資源。</string>
     <string name="smb_error_dialect_title">伺服器版本太舊</string>
     <string name="smb_error_dialect_description">\"%1$s\"僅提供不安全且不受支援的SMB1。請在伺服器上啟用SMB2或更新版本。</string>
     <string name="smb_error_credential_unavailable_title">需要登入</string>

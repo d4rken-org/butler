@@ -46,6 +46,8 @@
     <string name="smb_error_share_access_denied_description">החשבון הזה אינו רשאי להשתמש ב־\"%1$s\" על \"%2$s\". יש לבדוק את הרשאות השיתוף בשרת.</string>
     <string name="smb_error_share_not_found_title">השיתוף לא נמצא</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" אינו קיים על \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">לא ניתן להציג את השיתופים</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s לא איפשר ל־Butler להציג את השיתופים שלו. יש להזין שם של שיתוף כדי להתחבר אליו ישירות.</string>
     <string name="smb_error_dialect_title">השרת ישן מדי</string>
     <string name="smb_error_dialect_description">\"%1$s\" מציע רק SMB1, שאינו מאובטח ואינו נתמך. יש להפעיל SMB2 או גרסה חדשה יותר בשרת.</string>
     <string name="smb_error_credential_unavailable_title">נדרשת כניסה</string>

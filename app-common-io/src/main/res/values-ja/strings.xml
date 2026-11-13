@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">このアカウントは \"%2$s\" 上の \"%1$s\" を使用できない可能性があります。サーバーのシェアのアクセス許可を確認してください。</string>
     <string name="smb_error_share_not_found_title">シェアが見つかりません</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" は \"%2$s\" に存在しません。</string>
+    <string name="smb_error_share_listing_unavailable_title">シェアを一覧表示できません</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s は Butler にシェアの一覧表示を許可しませんでした。シェア名を入力すると、そのシェアに直接接続できます。</string>
     <string name="smb_error_dialect_title">サーバーが古すぎます</string>
     <string name="smb_error_dialect_description">\"%1$s\" は安全でなく、サポートされていない SMB1 のみを提供しています。サーバーで SMB2 以降を有効にしてください。</string>
     <string name="smb_error_credential_unavailable_title">サインインが必要です</string>

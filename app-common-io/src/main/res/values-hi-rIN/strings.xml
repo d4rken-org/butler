@@ -46,6 +46,8 @@
     <string name="smb_error_share_access_denied_description">यह खाता \"%2$s\" पर \"%1$s\" इस्तेमाल नहीं कर सकता। सर्वर पर शेयर की अनुमतियाँ जाँचें।</string>
     <string name="smb_error_share_not_found_title">शेयर नहीं मिला</string>
     <string name="smb_error_share_not_found_description">\"%2$s\" पर \"%1$s\" मौजूद नहीं है।</string>
+    <string name="smb_error_share_listing_unavailable_title">शेयर की सूची नहीं दिखाई जा सकी</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s ने Butler को अपने शेयर की सूची नहीं देखने दी। किसी एक शेयर से सीधे जुड़ने के लिए शेयर का नाम डालें।</string>
     <string name="smb_error_dialect_title">सर्वर बहुत पुराना है</string>
     <string name="smb_error_dialect_description">\"%1$s\" केवल SMB1 देता है, जो असुरक्षित और असमर्थित है। सर्वर पर SMB2 या नया संस्करण चालू करें।</string>
     <string name="smb_error_credential_unavailable_title">साइन इन आवश्यक है</string>
