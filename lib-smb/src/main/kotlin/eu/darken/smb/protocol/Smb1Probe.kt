@@ -1,7 +1,6 @@
 package eu.darken.smb.protocol
 
 import eu.darken.smb.SmbConfig
-import eu.darken.smb.SmbEndpoint
 import java.net.InetSocketAddress
 import java.net.Socket
 import kotlin.coroutines.resume
@@ -10,7 +9,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
 /** Negotiate only, used after an SMB2 negotiate was hung up on. Never authenticates over SMB1. */
-internal suspend fun isSmb1Only(endpoint: SmbEndpoint, config: SmbConfig): Boolean =
+internal suspend fun isSmb1Only(host: String, port: Int, config: SmbConfig): Boolean =
     withContext(Dispatchers.IO) {
         suspendCancellableCoroutine { continuation ->
             val socket = Socket()
@@ -19,7 +18,7 @@ internal suspend fun isSmb1Only(endpoint: SmbEndpoint, config: SmbConfig): Boole
                 try {
                     socket.use {
                         socket.connect(
-                            InetSocketAddress(endpoint.host, endpoint.port),
+                            InetSocketAddress(host, port),
                             config.connectTimeout.inWholeMilliseconds.toInt(),
                         )
                         socket.soTimeout = config.requestTimeout.inWholeMilliseconds.toInt()

@@ -32,7 +32,24 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
-internal class Connection(private val endpoint: SmbEndpoint, private val config: SmbConfig) {
+/** The tree [Connection.connect] attaches to. IPC$ is only reachable through share listing. */
+internal sealed interface TreeTarget {
+    data class Disk(val share: String) : TreeTarget
+
+    data object Ipc : TreeTarget
+}
+
+internal class Connection(
+    private val host: String,
+    private val port: Int,
+    private val config: SmbConfig,
+    private val tree: TreeTarget,
+) {
+    constructor(
+        endpoint: SmbEndpoint,
+        config: SmbConfig,
+    ) : this(endpoint.host, endpoint.port, config, TreeTarget.Disk(endpoint.share))
+
     private val socket = Socket()
     private val closed = AtomicBoolean(false)
     private val sendLock = ReentrantLock()
@@ -48,7 +65,9 @@ internal class Connection(private val endpoint: SmbEndpoint, private val config:
     }
 
     private var multiCredit = false
-    private var maxTransact = 65536
+    var maxTransact: Int = 65536
+        private set
+
     private val random = SecureRandom()
     private var messageId = 0L
     private var credits = 1
@@ -86,17 +105,33 @@ internal class Connection(private val endpoint: SmbEndpoint, private val config:
     suspend fun connect(credentials: SmbCredentials) = io {
         socket.tcpNoDelay = true
         socket.connect(
-            InetSocketAddress(endpoint.host, endpoint.port),
+            InetSocketAddress(host, port),
             config.connectTimeout.inWholeMilliseconds.toInt(),
         )
         negotiate()
         authenticate(credentials)
-        val name = "\\\\${endpoint.host}\\${endpoint.share}".utf16()
+        val share =
+            when (tree) {
+                is TreeTarget.Disk -> tree.share
+                TreeTarget.Ipc -> "IPC$"
+            }
+        val name = "\\\\$host\\$share".utf16()
         val response =
             exchange(3, Packet().u16(9).u16(0).u16(72).u16(name.size).bytes(name).build())
-        checkStatus(response, 2)
         val wire = Wire(response)
-        protocolCheck(wire.u16(64) == 16 && wire.u8(66) == 1, "Not a disk share")
+        if (tree == TreeTarget.Ipc) {
+            if (wire.u32(8) == 0xc00000ccL)
+                throw SmbException(
+                    SmbException.Kind.MISSING,
+                    0xc00000ccL,
+                    "Server offers no IPC$ share",
+                )
+            checkStatus(response)
+            protocolCheck(wire.u16(64) == 16 && wire.u8(66) == 2, "Not an IPC share")
+        } else {
+            checkStatus(response, 2)
+            protocolCheck(wire.u16(64) == 16 && wire.u8(66) == 1, "Not a disk share")
+        }
         treeId = wire.u32(36)
         if (wire.u32(68) and 0x8000 != 0L) {
             protocolCheck(
@@ -209,6 +244,7 @@ internal class Connection(private val endpoint: SmbEndpoint, private val config:
                     9 -> Wire(body).int32(4)
                     14 -> Wire(body).int32(28)
                     16 -> Wire(body).int32(4)
+                    11 -> maxOf(Wire(body).int32(28), Wire(body).int32(44))
                     else -> body.size
                 }
             val canSplit = command == 8 || command == 9
@@ -464,7 +500,7 @@ internal class Connection(private val endpoint: SmbEndpoint, private val config:
             ntlm.authenticate(
                 challengeWire.bytes(challengeWire.u16(68), challengeWire.u16(70)),
                 credentials,
-                endpoint.host,
+                host,
             )
         try {
             val response =
@@ -634,7 +670,9 @@ internal class Connection(private val endpoint: SmbEndpoint, private val config:
         ) {
             protocolCheck(false, "Required SMB signature missing")
         }
-        if (wire.u32(8) == 0L) {
+        val status = wire.u32(8)
+        // STATUS_BUFFER_OVERFLOW carries a full READ/IOCTL body holding the truncated data.
+        if (status == 0L || status == 0x80000005L && (command == 8 || command == 11)) {
             val expected =
                 when (command) {
                     0 -> 65
@@ -645,6 +683,7 @@ internal class Connection(private val endpoint: SmbEndpoint, private val config:
                     7 -> 4
                     8,
                     9 -> 17
+                    11 -> 49
                     14,
                     16 -> 9
                     17 -> 2
@@ -658,6 +697,7 @@ internal class Connection(private val endpoint: SmbEndpoint, private val config:
                     protocolCheck(wire.u8(66) >= 80, "Invalid SMB data offset")
                     wire.bytes(wire.u8(66), wire.int32(68))
                 }
+                11 -> checkIoctlResponse(wire)
                 14,
                 16 -> {
                     protocolCheck(wire.u16(66) >= 72, "Invalid SMB data offset")
@@ -793,11 +833,25 @@ internal class Connection(private val endpoint: SmbEndpoint, private val config:
     }
 
     companion object {
+        internal const val STATUS_BUFFER_OVERFLOW = 0x80000005L
+
         private val deadlines =
             java.util.concurrent
                 .ScheduledThreadPoolExecutor(1) { runnable ->
                     Thread(runnable, "smb-deadlines").apply { isDaemon = true }
                 }
                 .apply { removeOnCancelPolicy = true }
+    }
+}
+
+/** Bounds an SMB2 IOCTL response body (StructureSize 49) and its input/output buffers. */
+internal fun checkIoctlResponse(wire: Wire) {
+    protocolCheck(wire.u16(64) == 49, "Invalid SMB response structure")
+    for (field in listOf(88, 96)) {
+        val offset = wire.int32(field)
+        val count = wire.int32(field + 4)
+        if (count == 0) continue
+        protocolCheck(offset >= 112, "Invalid SMB IOCTL buffer offset")
+        wire.bytes(offset, count)
     }
 }

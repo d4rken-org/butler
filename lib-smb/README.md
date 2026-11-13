@@ -59,6 +59,8 @@ Supported protocol scope:
 - Paged directory enumeration, metadata, capacity, directory creation, deletion,
   rename, timestamps, sequential transfers and positioned files larger than 2 GiB.
 - Concurrent requests routed by message ID and multi-credit transfers up to 1 MiB.
+- Share listing (`SmbShareLister`) through DCE/RPC srvsvc NetrShareEnum on IPC$, with
+  the session's signing and encryption. Servers omit shares they mark non-browseable.
 
 SMB1 is detected and rejected. DFS referrals, Kerberos, SMB compression, durable
 handles, leases and oplocks are outside the implemented scope. Interoperability
