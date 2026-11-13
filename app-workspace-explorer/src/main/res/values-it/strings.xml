@@ -356,6 +356,7 @@
     <string name="explorer_network_form_error_share_not_single">Inserisci solo il nome della condivisione, indica le sottocartelle più sotto</string>
     <string name="explorer_network_form_error_share_malformed">Non è un nome di condivisione valido</string>
     <string name="explorer_network_form_error_base_path">Questo percorso di cartella non può essere usato</string>
+    <string name="explorer_network_form_error_base_path_without_share">Una cartella all’interno della condivisione richiede un nome di condivisione.</string>
     <string name="explorer_network_form_error_username_blank">Inserisci un nome utente</string>
     <string name="explorer_network_form_error_password_required">Inserisci di nuovo la password per modificare il nome utente o il dominio</string>
     <string name="explorer_network_protocol_title">Aggiungi archiviazione di rete</string>

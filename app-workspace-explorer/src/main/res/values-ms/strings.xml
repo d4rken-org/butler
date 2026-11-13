@@ -303,6 +303,7 @@
     <string name="explorer_network_form_error_share_not_single">Masukkan nama perkongsian sahaja, letakkan subfolder di bawah</string>
     <string name="explorer_network_form_error_share_malformed">Ini bukan nama perkongsian yang sah</string>
     <string name="explorer_network_form_error_base_path">Laluan folder ini tidak boleh digunakan</string>
+    <string name="explorer_network_form_error_base_path_without_share">Folder dalam perkongsian memerlukan nama perkongsian.</string>
     <string name="explorer_network_form_error_username_blank">Masukkan nama pengguna</string>
     <string name="explorer_network_form_error_password_required">Masukkan kata laluan semula untuk menukar nama pengguna atau domain</string>
     <string name="explorer_network_protocol_title">Tambah storan rangkaian</string>

@@ -356,6 +356,7 @@
     <string name="explorer_network_form_error_share_not_single">Pangalan lang ng share ang ilagay, ilagay sa ibaba ang mga subfolder</string>
     <string name="explorer_network_form_error_share_malformed">Hindi wastong pangalan ng share ito</string>
     <string name="explorer_network_form_error_base_path">Hindi magagamit ang path ng folder na ito</string>
+    <string name="explorer_network_form_error_base_path_without_share">Kailangan ng pangalan ng share para sa folder sa loob ng share.</string>
     <string name="explorer_network_form_error_username_blank">Ilagay ang username</string>
     <string name="explorer_network_form_error_password_required">Ilagay muli ang password para palitan ang username o domain</string>
     <string name="explorer_network_protocol_title">Magdagdag ng storage sa network</string>

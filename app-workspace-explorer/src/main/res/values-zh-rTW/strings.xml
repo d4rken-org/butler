@@ -342,6 +342,7 @@
     <string name="explorer_network_form_error_share_not_single">請只輸入共用名稱，子資料夾請填在下方</string>
     <string name="explorer_network_form_error_share_malformed">這不是有效的共用名稱</string>
     <string name="explorer_network_form_error_base_path">無法使用此資料夾路徑</string>
+    <string name="explorer_network_form_error_base_path_without_share">共用資料夾內的路徑需要共用名稱。</string>
     <string name="explorer_network_form_error_username_blank">請輸入使用者名稱</string>
     <string name="explorer_network_form_error_password_required">如要變更使用者名稱或網域，請重新輸入密碼</string>
     <string name="explorer_network_protocol_title">新增網路儲存空間</string>

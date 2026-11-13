@@ -366,6 +366,7 @@
     <string name="explorer_network_form_error_share_not_single">Enter only the share name, put subfolders below</string>
     <string name="explorer_network_form_error_share_malformed">This is not a valid share name</string>
     <string name="explorer_network_form_error_base_path">This folder path cannot be used</string>
+    <string name="explorer_network_form_error_base_path_without_share">A folder inside the share needs a share name.</string>
     <string name="explorer_network_form_error_username_blank">Enter a username</string>
     <string name="explorer_network_form_error_password_required">Enter the password again to change the username or domain</string>
 

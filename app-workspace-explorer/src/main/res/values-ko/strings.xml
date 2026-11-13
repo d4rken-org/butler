@@ -342,6 +342,7 @@
     <string name="explorer_network_form_error_share_not_single">공유 이름만 입력하고, 하위 폴더는 아래에 입력하세요</string>
     <string name="explorer_network_form_error_share_malformed">올바른 공유 이름이 아닙니다</string>
     <string name="explorer_network_form_error_base_path">이 폴더 경로는 사용할 수 없습니다</string>
+    <string name="explorer_network_form_error_base_path_without_share">공유 내 폴더를 지정하려면 공유 이름이 필요합니다.</string>
     <string name="explorer_network_form_error_username_blank">사용자 이름을 입력하세요</string>
     <string name="explorer_network_form_error_password_required">사용자 이름이나 도메인을 변경하려면 비밀번호를 다시 입력하세요</string>
     <string name="explorer_network_protocol_title">네트워크 저장공간 추가</string>

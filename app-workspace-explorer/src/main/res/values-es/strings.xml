@@ -354,6 +354,7 @@
     <string name="explorer_network_form_error_share_not_single">Escribe solo el nombre del recurso compartido, indica las subcarpetas más abajo</string>
     <string name="explorer_network_form_error_share_malformed">Este no es un nombre de recurso compartido válido</string>
     <string name="explorer_network_form_error_base_path">No se puede usar esta ruta de carpeta</string>
+    <string name="explorer_network_form_error_base_path_without_share">Una carpeta dentro del recurso compartido necesita un nombre de recurso compartido.</string>
     <string name="explorer_network_form_error_username_blank">Escribe un nombre de usuario</string>
     <string name="explorer_network_form_error_password_required">Vuelve a escribir la contraseña para cambiar el nombre de usuario o el dominio</string>
     <string name="explorer_network_protocol_title">Agregar almacenamiento de red</string>

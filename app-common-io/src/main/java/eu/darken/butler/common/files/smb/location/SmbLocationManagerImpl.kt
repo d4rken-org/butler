@@ -50,7 +50,7 @@ class SmbLocationManagerImpl @Inject constructor(
         label: String?,
         host: String,
         port: Int,
-        share: String,
+        share: String?,
         basePath: Segments,
         domain: String?,
         username: String?,
@@ -58,6 +58,7 @@ class SmbLocationManagerImpl @Inject constructor(
         rememberCredential: Boolean,
         password: CharArray?,
     ): SmbLocation {
+        require(share != null || basePath.isEmpty()) { "A server entry has no base path" }
         val now = Clock.System.now()
         val location = SmbLocation(
             id = Uuid.random(),
@@ -89,7 +90,7 @@ class SmbLocationManagerImpl @Inject constructor(
         label: String?,
         host: String,
         port: Int,
-        share: String,
+        share: String?,
         basePath: Segments,
         domain: String?,
         username: String?,
@@ -98,6 +99,10 @@ class SmbLocationManagerImpl @Inject constructor(
         password: CharArray?,
     ): SmbLocation {
         val existing = dao.get(id)?.toLocation() ?: throw IllegalArgumentException("Unknown location: $id")
+        require((share == null) == existing.isServer) {
+            "A location cannot switch between a server entry and a share"
+        }
+        require(share != null || basePath.isEmpty()) { "A server entry has no base path" }
 
         // The domain is part of the stored credential, so changing it invalidates it just like a
         // changed username does.

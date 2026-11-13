@@ -371,6 +371,7 @@
     <string name="explorer_network_form_error_share_not_single">Introduz apenas o nome da partilha; indica as subpastas abaixo</string>
     <string name="explorer_network_form_error_share_malformed">Este nome de partilha não é válido</string>
     <string name="explorer_network_form_error_base_path">Este caminho de pasta não pode ser usado</string>
+    <string name="explorer_network_form_error_base_path_without_share">Uma pasta dentro da partilha precisa do nome de uma partilha.</string>
     <string name="explorer_network_form_error_username_blank">Introduz um nome de utilizador</string>
     <string name="explorer_network_form_error_password_required">Introduz novamente a palavra-passe para alterar o nome de utilizador ou o domínio</string>
     <string name="explorer_network_protocol_title">Adicionar armazenamento de rede</string>

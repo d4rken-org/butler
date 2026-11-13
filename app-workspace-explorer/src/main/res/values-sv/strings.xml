@@ -356,6 +356,7 @@
     <string name="explorer_network_form_error_share_not_single">Ange endast resursnamnet, ange undermappar nedanför</string>
     <string name="explorer_network_form_error_share_malformed">Det här är inte ett giltigt resursnamn</string>
     <string name="explorer_network_form_error_base_path">Den här mappsökvägen kan inte användas</string>
+    <string name="explorer_network_form_error_base_path_without_share">En mapp i den delade resursen kräver ett resursnamn.</string>
     <string name="explorer_network_form_error_username_blank">Ange ett användarnamn</string>
     <string name="explorer_network_form_error_password_required">Ange lösenordet igen för att ändra användarnamnet eller domänen</string>
     <string name="explorer_network_protocol_title">Lägg till nätverkslagring</string>

@@ -149,6 +149,7 @@ class ExplorerSmbLocationController(
             domain = input.domain,
             username = input.username,
             requireUsername = input.authType == SmbLocation.AuthType.PASSWORD,
+            requireShare = true,
         )
         if (parsed is SmbLocationInput.Result.Invalid) {
             dialogs.show(formState.copy(error = parsed.issues.first().message()))
@@ -194,7 +195,7 @@ class ExplorerSmbLocationController(
             connectionTester.test(
                 host = details.host,
                 port = details.port,
-                share = details.share,
+                share = checkNotNull(details.share),
                 username = if (usesPassword) details.username else null,
                 domain = details.domain,
                 password = if (usesPassword) password ?: storedCredential?.password else null,
@@ -290,6 +291,7 @@ class ExplorerSmbLocationController(
         SmbLocationInput.Issue.ShareNotSingleComponent -> R.string.explorer_network_form_error_share_not_single
         SmbLocationInput.Issue.ShareMalformed -> R.string.explorer_network_form_error_share_malformed
         SmbLocationInput.Issue.BasePathMalformed -> R.string.explorer_network_form_error_base_path
+        SmbLocationInput.Issue.BasePathWithoutShare -> R.string.explorer_network_form_error_base_path_without_share
         SmbLocationInput.Issue.UsernameBlank -> R.string.explorer_network_form_error_username_blank
     }.toCaString()
 

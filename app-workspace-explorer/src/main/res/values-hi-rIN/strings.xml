@@ -315,6 +315,7 @@
     <string name="explorer_network_form_error_share_not_single">केवल शेयर का नाम दर्ज करें, सबफ़ोल्डर नीचे रखें</string>
     <string name="explorer_network_form_error_share_malformed">यह शेयर का मान्य नाम नहीं है</string>
     <string name="explorer_network_form_error_base_path">यह फ़ोल्डर पथ इस्तेमाल नहीं किया जा सकता</string>
+    <string name="explorer_network_form_error_base_path_without_share">शेयर के अंदर के फ़ोल्डर के लिए शेयर का नाम ज़रूरी है।</string>
     <string name="explorer_network_form_error_username_blank">उपयोगकर्ता नाम दर्ज करें</string>
     <string name="explorer_network_form_error_password_required">उपयोगकर्ता नाम या डोमेन बदलने के लिए पासवर्ड फिर दर्ज करें</string>
     <string name="explorer_network_protocol_title">नेटवर्क स्टोरेज जोड़ें</string>

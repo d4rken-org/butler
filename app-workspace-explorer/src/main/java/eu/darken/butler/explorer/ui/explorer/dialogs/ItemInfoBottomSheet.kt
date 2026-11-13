@@ -433,10 +433,12 @@ private fun NetworkStorageInfo(
     InfoCard {
         NetworkEndpointFields(item = item, onCopyToClipboard = onCopyToClipboard)
 
-        InfoField(
-            label = stringResource(R.string.explorer_info_network_share_label),
-            value = location.share,
-        )
+        location.share?.let { share ->
+            InfoField(
+                label = stringResource(R.string.explorer_info_network_share_label),
+                value = share,
+            )
+        }
 
         InfoField(
             label = stringResource(R.string.explorer_info_type_label),

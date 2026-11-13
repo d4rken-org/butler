@@ -378,6 +378,7 @@
     <string name="explorer_network_form_error_share_not_single">Введіть лише назву спільного ресурсу, підтеки вкажіть нижче</string>
     <string name="explorer_network_form_error_share_malformed">Це недійсна назва спільного ресурсу</string>
     <string name="explorer_network_form_error_base_path">Цей шлях до теки не можна використати</string>
+    <string name="explorer_network_form_error_base_path_without_share">Для теки всередині спільного ресурсу потрібна назва спільного ресурсу.</string>
     <string name="explorer_network_form_error_username_blank">Введіть ім’я користувача</string>
     <string name="explorer_network_form_error_password_required">Введіть пароль ще раз, щоб змінити ім’я користувача або домен</string>
     <string name="explorer_network_protocol_title">Додати мережеве сховище</string>

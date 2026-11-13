@@ -359,6 +359,7 @@
     <string name="explorer_network_form_error_share_not_single">షేర్ పేరును మాత్రమే నమోదు చేయండి, ఉపఫోల్డర్‌లను కింద నమోదు చేయండి</string>
     <string name="explorer_network_form_error_share_malformed">ఇది చెల్లుబాటు అయ్యే షేర్ పేరు కాదు</string>
     <string name="explorer_network_form_error_base_path">ఈ ఫోల్డర్ పాత్‌ను ఉపయోగించలేము</string>
+    <string name="explorer_network_form_error_base_path_without_share">షేర్‌లోని ఫోల్డర్‌కు షేర్ పేరు అవసరం.</string>
     <string name="explorer_network_form_error_username_blank">వినియోగదారు పేరును నమోదు చేయండి</string>
     <string name="explorer_network_form_error_password_required">వినియోగదారు పేరు లేదా డొమైన్‌ను మార్చడానికి పాస్‌వర్డ్‌ను మళ్లీ నమోదు చేయండి</string>
     <string name="explorer_network_protocol_title">నెట్‌వర్క్ నిల్వను జోడించండి</string>

@@ -64,6 +64,52 @@ class SmbLocationDatabaseMigrationTest : BaseTest() {
         }
     }
 
+    @Test
+    fun `a stored location survives the migration to version 3`() {
+        helper.createDatabase(DB_NAME, 2).use { db ->
+            db.execSQL(
+                "INSERT INTO smb_locations (locationId, label, host, port, share, basePath, domain, " +
+                    "username, authType, rememberCredential, credentialVersion, createdAt, updatedAt, lastSeenAt) " +
+                    "VALUES ('11111111-1111-1111-1111-111111111111', 'Home NAS', 'nas.local', 445, " +
+                    "'media', 'movies', 'WORKGROUP', 'darken', 'PASSWORD', 1, 3, 1000, 2000, 3000)"
+            )
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 3, true, *SmbLocationDatabase.MIGRATIONS).use { db ->
+            db.query("SELECT * FROM smb_locations").use { cursor ->
+                cursor.count shouldBe 1
+                cursor.moveToFirst() shouldBe true
+                cursor.string("locationId") shouldBe "11111111-1111-1111-1111-111111111111"
+                cursor.string("label") shouldBe "Home NAS"
+                cursor.string("host") shouldBe "nas.local"
+                cursor.long("port") shouldBe 445L
+                cursor.string("share") shouldBe "media"
+                cursor.string("basePath") shouldBe "movies"
+                cursor.string("domain") shouldBe "WORKGROUP"
+                cursor.string("username") shouldBe "darken"
+                cursor.string("authType") shouldBe "PASSWORD"
+                cursor.long("rememberCredential") shouldBe 1L
+                cursor.long("credentialVersion") shouldBe 3L
+                cursor.long("createdAt") shouldBe 1000L
+                cursor.long("updatedAt") shouldBe 2000L
+                cursor.long("lastSeenAt") shouldBe 3000L
+            }
+
+            db.execSQL(
+                "INSERT INTO smb_locations (locationId, label, host, port, share, basePath, domain, " +
+                    "username, authType, rememberCredential, credentialVersion, createdAt, updatedAt) " +
+                    "VALUES ('22222222-2222-2222-2222-222222222222', NULL, 'nas.local', 445, " +
+                    "NULL, '', NULL, NULL, 'GUEST', 0, 1, 4000, 4000)"
+            )
+            db.query("SELECT share FROM smb_locations WHERE locationId = '22222222-2222-2222-2222-222222222222'")
+                .use { cursor ->
+                    cursor.count shouldBe 1
+                    cursor.moveToFirst() shouldBe true
+                    cursor.isNull(cursor.getColumnIndexOrThrow("share")) shouldBe true
+                }
+        }
+    }
+
     private fun Cursor.string(column: String): String? = getString(getColumnIndexOrThrow(column))
 
     private fun Cursor.long(column: String): Long = getLong(getColumnIndexOrThrow(column))
