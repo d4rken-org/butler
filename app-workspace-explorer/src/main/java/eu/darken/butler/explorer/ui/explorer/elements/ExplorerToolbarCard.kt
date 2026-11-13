@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,6 +68,7 @@ fun ExplorerToolbarCard(
     breadcrumbs: List<ExplorerBreadcrumb>,
     design: WorkspaceDesign,
     collapsedFraction: Float = 0f,
+    onExpand: (() -> Unit)? = null,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: (APath<*>) -> Unit,
     onCommitEditedPath: ((APath<*>, String) -> Unit)? = null,
@@ -112,6 +114,7 @@ fun ExplorerToolbarCard(
             PickerToolbarContent(
                 breadcrumbs = breadcrumbs,
                 isCollapsed = isCollapsed,
+                onExpand = onExpand,
                 pickerSelection = pickerSelection,
                 selectionCount = selectionCount,
                 saveAsFilename = saveAsFilename,
@@ -126,6 +129,7 @@ fun ExplorerToolbarCard(
             NormalToolbarContent(
                 breadcrumbs = breadcrumbs,
                 isCollapsed = isCollapsed,
+                onExpand = onExpand,
                 cutoutWidth = cutoutWidth,
                 onBreadcrumbClick = onBreadcrumbClick,
                 onNavigateToPath = onNavigateToPath,
@@ -144,6 +148,7 @@ fun ExplorerToolbarCard(
 private fun NormalToolbarContent(
     breadcrumbs: List<ExplorerBreadcrumb>,
     isCollapsed: Boolean,
+    onExpand: (() -> Unit)?,
     cutoutWidth: Dp,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: (APath<*>) -> Unit,
@@ -162,6 +167,7 @@ private fun NormalToolbarContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .expandClickable(onExpand)
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -241,6 +247,7 @@ private fun SaveAsFilenameInput(
 private fun PickerToolbarContent(
     breadcrumbs: List<ExplorerBreadcrumb>,
     isCollapsed: Boolean,
+    onExpand: (() -> Unit)?,
     pickerSelection: PickerConfig.Selection,
     selectionCount: Int,
     saveAsFilename: String,
@@ -268,6 +275,7 @@ private fun PickerToolbarContent(
                 Row(
                     modifier = Modifier
                         .weight(1f)
+                        .expandClickable(onExpand)
                         .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
@@ -358,6 +366,9 @@ private fun PickerToolbarContent(
         }
     }
 }
+
+private fun Modifier.expandClickable(onExpand: (() -> Unit)?): Modifier =
+    if (onExpand != null) clickable(onClick = onExpand) else this
 
 @Composable
 private fun getCollapsedBreadcrumbText(breadcrumbs: List<ExplorerBreadcrumb>): String? {

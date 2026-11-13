@@ -76,6 +76,7 @@ internal fun FloatingBarScope.ExplorerTopBars(
             breadcrumbs = state.breadcrumbs,
             design = design,
             collapsedFraction = collapsedFraction,
+            onExpand = expand,
             onBreadcrumbClick = { target -> vm?.navigate(target) },
             onNavigateToPath = { path -> vm?.navigateToPath(path) },
             onCommitEditedPath = { current, edited -> vm?.navigateToEditedPath(current, edited) },
