@@ -419,4 +419,6 @@ internal class SambaServer(
     }
 
     fun endpoint(share: String) = SmbEndpoint(host, share, getMappedPort(445))
+
+    fun server() = SmbServer(host, getMappedPort(445))
 }

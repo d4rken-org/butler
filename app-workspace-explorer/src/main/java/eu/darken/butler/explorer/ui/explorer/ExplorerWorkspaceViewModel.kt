@@ -1519,7 +1519,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerActionBarItem.Common.Rename -> {
                 dismissDialog()
                 // Archive contents are read-only; the F2 shortcut bypasses action-bar gating.
-                if (action.item.path is ArchivePath) return@launch
+                if (action.item.path is ArchivePath || stateSnap.currentLocation.hasFixedEntries) return@launch
                 val event = ExplorerDialogEvent.ShowRename(
                     item = action.item.lookup.lookedUp,
                 )
@@ -2361,6 +2361,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // archive, for either a path paste or a text-snippet paste.
         val pasteLocation = getState().currentLocation
         if (pasteLocation is ExplorerLocation.Directory && pasteLocation.path is ArchivePath) return@launch
+        if (pasteLocation.hasFixedEntries) return@launch
         when (clip) {
             is ClipboardClip.Paths -> {
                 val currentLocation = getState().currentLocation
@@ -2952,7 +2953,11 @@ internal fun List<ExplorerItem>?.hasSameItemsAs(other: List<ExplorerItem>?): Boo
  * user owns, which holds for a folder listing and for Recent's index rows alike.
  */
 private val ExplorerLocation?.allowsPathDeletion: Boolean
-    get() = this is ExplorerLocation.Directory || this is ExplorerLocation.Recent
+    get() = (this is ExplorerLocation.Directory && !hasFixedEntries) || this is ExplorerLocation.Recent
+
+/** See [ExplorerLocation.Directory.Info.entriesFixed]; the keyboard shortcuts bypass action-bar gating. */
+private val ExplorerLocation?.hasFixedEntries: Boolean
+    get() = (this as? ExplorerLocation.Directory)?.info?.entriesFixed == true
 
 /**
  * Waits for the tab to actually be SHOWING [location]: a settled [ExplorerWorkspace.State] whose

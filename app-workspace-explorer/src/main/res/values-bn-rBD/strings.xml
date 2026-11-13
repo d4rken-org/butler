@@ -340,6 +340,8 @@
     <string name="explorer_network_form_port_label">পোর্ট</string>
     <string name="explorer_network_form_share_label">শেয়ার</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">সার্ভারের সব শেয়ার ব্রাউজ করতে খালি রাখুন।</string>
+    <string name="explorer_network_form_share_server_entry_hint">এই সার্ভারের সব শেয়ার দেখায়। সরাসরি একটি শেয়ার খুলতে আলাদা একটি অবস্থান যোগ করুন।</string>
     <string name="explorer_network_form_base_path_label">শেয়ারের ভেতরের ফোল্ডার (ঐচ্ছিক)</string>
     <string name="explorer_network_form_auth_guest">অতিথি</string>
     <string name="explorer_network_form_auth_password">ব্যবহারকারীর নাম ও পাসওয়ার্ড</string>
@@ -359,6 +361,7 @@
     <string name="explorer_network_form_error_share_not_single">শুধু শেয়ারের নাম দিন, সাবফোল্ডার নিচে দিন</string>
     <string name="explorer_network_form_error_share_malformed">এটি বৈধ শেয়ারের নাম নয়</string>
     <string name="explorer_network_form_error_base_path">এই ফোল্ডার পাথ ব্যবহার করা যায় না</string>
+    <string name="explorer_network_form_error_base_path_without_share">শেয়ারের ভেতরের ফোল্ডারের জন্য শেয়ারের নাম প্রয়োজন।</string>
     <string name="explorer_network_form_error_username_blank">ব্যবহারকারীর নাম দিন</string>
     <string name="explorer_network_form_error_password_required">ব্যবহারকারীর নাম বা ডোমেইন বদলাতে আবার পাসওয়ার্ড দিন</string>
     <string name="explorer_network_protocol_title">নেটওয়ার্ক স্টোরেজ যোগ করুন</string>

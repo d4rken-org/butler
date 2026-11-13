@@ -26,12 +26,12 @@ class NetworkLocationNamesUpdaterTest : BaseTest() {
         override val locations = MutableStateFlow<List<SmbLocation>>(emptyList())
         override suspend fun get(id: Uuid) = locations.value.firstOrNull { it.id == id }
         override suspend fun create(
-            label: String?, host: String, port: Int, share: String, basePath: Segments, domain: String?,
+            label: String?, host: String, port: Int, share: String?, basePath: Segments, domain: String?,
             username: String?, authType: SmbLocation.AuthType, rememberCredential: Boolean, password: CharArray?,
         ): SmbLocation = throw NotImplementedError()
 
         override suspend fun update(
-            id: Uuid, label: String?, host: String, port: Int, share: String, basePath: Segments, domain: String?,
+            id: Uuid, label: String?, host: String, port: Int, share: String?, basePath: Segments, domain: String?,
             username: String?, authType: SmbLocation.AuthType, rememberCredential: Boolean, password: CharArray?,
         ): SmbLocation = throw NotImplementedError()
 

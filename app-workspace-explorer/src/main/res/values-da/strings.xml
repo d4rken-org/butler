@@ -337,6 +337,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Deling</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Lad feltet stå tomt for at gennemse alle delinger på serveren.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Viser alle delinger på denne server. Tilføj en separat placering for at åbne én deling direkte.</string>
     <string name="explorer_network_form_base_path_label">Mappe i delingen (valgfri)</string>
     <string name="explorer_network_form_auth_guest">Gæst</string>
     <string name="explorer_network_form_auth_password">Brugernavn og adgangskode</string>
@@ -356,6 +358,7 @@
     <string name="explorer_network_form_error_share_not_single">Indtast kun delingsnavnet, og angiv undermapper nedenfor</string>
     <string name="explorer_network_form_error_share_malformed">Dette er ikke et gyldigt delingsnavn</string>
     <string name="explorer_network_form_error_base_path">Denne mappesti kan ikke bruges</string>
+    <string name="explorer_network_form_error_base_path_without_share">En mappe i delingen kræver et delingsnavn.</string>
     <string name="explorer_network_form_error_username_blank">Indtast et brugernavn</string>
     <string name="explorer_network_form_error_password_required">Indtast adgangskoden igen for at ændre brugernavnet eller domænet</string>
     <string name="explorer_network_protocol_title">Tilføj netværkslager</string>

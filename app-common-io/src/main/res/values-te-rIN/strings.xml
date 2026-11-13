@@ -67,6 +67,8 @@
     <string name="smb_error_share_access_denied_description">ఈ ఖాతాకు \"%2$s\"లోని \"%1$s\"ను ఉపయోగించడానికి అనుమతి లేదు. సర్వర్‌లో షేర్ అనుమతులను తనిఖీ చేయండి.</string>
     <string name="smb_error_share_not_found_title">షేర్ కనుగొనబడలేదు</string>
     <string name="smb_error_share_not_found_description">\"%2$s\"లో \"%1$s\" లేదు.</string>
+    <string name="smb_error_share_listing_unavailable_title">షేర్‌ల జాబితాను చూపలేము</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s తన షేర్‌ల జాబితాను చూపడానికి Butlerను అనుమతించలేదు. ఒక షేర్‌కు నేరుగా కనెక్ట్ అవ్వడానికి షేర్ పేరును నమోదు చేయండి.</string>
     <string name="smb_error_dialect_title">సర్వర్ చాలా పాతది</string>
     <string name="smb_error_dialect_description">\"%1$s\" SMB1ను మాత్రమే అందిస్తుంది. అది సురక్షితం కాదు, దానికి మద్దతు కూడా లేదు. సర్వర్‌లో SMB2 లేదా కొత్త వెర్షన్‌ను ఎనేబుల్ చేయండి.</string>
     <string name="smb_error_credential_unavailable_title">సైన్ ఇన్ అవసరం</string>

@@ -335,6 +335,8 @@
     <string name="explorer_network_form_port_label">Θύρα</string>
     <string name="explorer_network_form_share_label">Κοινόχρηστος φάκελος</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Αφήστε το κενό για περιήγηση σε όλους τους κοινόχρηστους φακέλους του διακομιστή.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Εμφανίζει όλους τους κοινόχρηστους φακέλους αυτού του διακομιστή. Για να ανοίξετε απευθείας έναν κοινόχρηστο φάκελο, προσθέστε ξεχωριστή τοποθεσία.</string>
     <string name="explorer_network_form_base_path_label">Φάκελος μέσα στον κοινόχρηστο φάκελο (προαιρετικό)</string>
     <string name="explorer_network_form_auth_guest">Επισκέπτης</string>
     <string name="explorer_network_form_auth_password">Όνομα χρήστη και κωδικός πρόσβασης</string>
@@ -354,6 +356,7 @@
     <string name="explorer_network_form_error_share_not_single">Εισαγάγετε μόνο το όνομα του κοινόχρηστου φακέλου, οι υποφάκελοι μπαίνουν παρακάτω</string>
     <string name="explorer_network_form_error_share_malformed">Αυτό δεν είναι έγκυρο όνομα κοινόχρηστου φακέλου</string>
     <string name="explorer_network_form_error_base_path">Αυτή η διαδρομή φακέλου δεν μπορεί να χρησιμοποιηθεί</string>
+    <string name="explorer_network_form_error_base_path_without_share">Ένας φάκελος μέσα στον κοινόχρηστο φάκελο χρειάζεται όνομα κοινόχρηστου φακέλου.</string>
     <string name="explorer_network_form_error_username_blank">Εισαγάγετε όνομα χρήστη</string>
     <string name="explorer_network_form_error_password_required">Εισαγάγετε ξανά τον κωδικό πρόσβασης για να αλλάξετε το όνομα χρήστη ή τον τομέα</string>
     <string name="explorer_network_protocol_title">Προσθήκη δικτυακού αποθηκευτικού χώρου</string>

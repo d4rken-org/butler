@@ -1,10 +1,27 @@
 package eu.darken.butler.common.files.smb
 
+import eu.darken.butler.common.adb.AdbManager
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.Existence
+import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.CreateAction
+import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.Segments
+import eu.darken.butler.common.files.local.LocalFileSystemOps
+import eu.darken.butler.common.files.local.LocalGateway
+import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
+import eu.darken.butler.common.files.local.routing.AccessMode
+import eu.darken.butler.common.files.local.routing.LocalPathRoutingPolicy
+import eu.darken.butler.common.files.local.routing.ModeSession
+import eu.darken.butler.common.files.local.routing.ModeSessionFactory
+import eu.darken.butler.common.files.local.routing.RouteDecision
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialCipher
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
@@ -12,9 +29,15 @@ import eu.darken.butler.common.files.smb.credentials.db.SmbCredentialEntity
 import eu.darken.butler.common.files.smb.credentials.db.SmbCredentialsDao
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.sharedresource.useRes
+import eu.darken.butler.common.storage.StorageManager2
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -22,6 +45,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -37,6 +61,8 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import java.io.File
+import java.nio.file.Files
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
@@ -57,7 +83,7 @@ class SmbGatewayIntegrationTest : BaseTest() {
             label: String?,
             host: String,
             port: Int,
-            share: String,
+            share: String?,
             basePath: Segments,
             domain: String?,
             username: String?,
@@ -71,7 +97,7 @@ class SmbGatewayIntegrationTest : BaseTest() {
             label: String?,
             host: String,
             port: Int,
-            share: String,
+            share: String?,
             basePath: Segments,
             domain: String?,
             username: String?,
@@ -133,9 +159,10 @@ class SmbGatewayIntegrationTest : BaseTest() {
         val location: MutableStateFlow<SmbLocation>,
     )
 
+    /** @param share null for a server entry, whose root lists the container's shares. */
     private suspend fun rig(
         container: GenericContainer<*>,
-        share: String = SHARE_NAME,
+        share: String? = SHARE_NAME,
         authType: SmbLocation.AuthType = SmbLocation.AuthType.PASSWORD,
     ): Rig {
         val location = MutableStateFlow(
@@ -157,16 +184,60 @@ class SmbGatewayIntegrationTest : BaseTest() {
         if (authType == SmbLocation.AuthType.PASSWORD) {
             credentialStore.store(locationId, 1, USERNAME, null, PASSWORD.toCharArray(), remember = false)
         }
-        val clientFactory = SmbClientFactory { eu.darken.smb.KotlinSmbClient() }
+        val locationManager = FakeLocationManager(location)
         val pool = SmbConnectionPool(
             appScope = TestScope(),
-            locationManager = FakeLocationManager(location),
+            locationManager = locationManager,
             credentialStore = credentialStore,
-            clientFactory = clientFactory,
+            clientFactory = SmbClientFactoryModule.clientFactory(),
             upgradeRepo = FakeUpgradeRepo(),
         )
-        return Rig(SmbFileSystemOps(pool, TestDispatcherProvider()), pool, credentialStore, location)
+        return Rig(SmbFileSystemOps(pool, locationManager, TestDispatcherProvider()), pool, credentialStore, location)
     }
+
+    private fun Rig.gateway() = SmbGateway(TestScope(), TestDispatcherProvider(), ops, pool)
+
+    /** SMB plus direct local storage, with no root, ADB or isolated service behind it. */
+    private fun Rig.gatewaySwitch(): GatewaySwitch {
+        val localOps = LocalFileSystemOps(mockk(relaxed = true))
+        val localGateway = LocalGateway(
+            appScope = TestScope(),
+            dispatcherProvider = TestDispatcherProvider(),
+            fileSystemOps = localOps,
+            rootManager = mockk<RootManager>(relaxed = true),
+            adbManager = mockk<AdbManager>(relaxed = true),
+            accessChecker = mockk<LocalPathAccessChecker>(relaxed = true) {
+                every { shouldTryNormalAccess(any(), any()) } returns true
+            },
+            isolatedServiceClient = mockk(relaxed = true),
+            storageManager = mockk<StorageManager2>(relaxed = true),
+            routingPolicy = mockk<LocalPathRoutingPolicy>(relaxed = true) {
+                coEvery { classify(any(), any(), any()) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+                every { proactiveChildren(any()) } returns emptySet()
+            },
+            modeSessionFactory = mockk<ModeSessionFactory>(relaxed = true) {
+                coEvery { open(AccessMode.DIRECT) } answers { ModeSession(AccessMode.DIRECT, localOps, null, null) }
+            },
+        )
+        return GatewaySwitch(
+            appScope = TestScope(),
+            dispatcherProvider = TestDispatcherProvider(),
+            safGateway = mockk(relaxed = true),
+            localGateway = localGateway,
+            archiveGateway = mockk(relaxed = true),
+            smbGateway = gateway(),
+            sftpGateway = mockk(relaxed = true),
+            webdavGateway = mockk(relaxed = true),
+            safLocationManager = mockk(relaxed = true),
+            proxyPfdFactory = mockk(relaxed = true),
+        )
+    }
+
+    private suspend fun SmbFileSystemOps.writeText(path: SmbPath, text: String) =
+        openOutputStream(path).sink().buffer().use { it.writeUtf8(text) }
+
+    private suspend fun SmbFileSystemOps.readText(path: SmbPath): String =
+        openInputStream(path).source().buffer().use { it.readUtf8() }
 
     private fun path(vararg segments: String) = SmbPath(locationId, segments.toList())
 
@@ -336,6 +407,203 @@ class SmbGatewayIntegrationTest : BaseTest() {
 
         rig.pool.close()
     }
+
+    // region server entries
+
+    @Test
+    fun `a server entry's root lists the browsable disk shares`() = runTest {
+        assumeTrue(dockerAvailable)
+        val rig = rig(sambaContainer, share = null)
+        val ops = rig.ops
+        val root = path()
+
+        ops.lookup(root, LookupOptions()).fileType shouldBe FileType.DIRECTORY
+        ops.exists(root) shouldBe true
+        ops.existsStrict(root) shouldBe Existence.PRESENT
+        ops.canWrite(root) shouldBe false
+
+        val shares = ops.lookupFiles(root, LookupOptions())
+        // `private` is browseable = no, IPC$ is no disk share
+        shares.map { it.name } shouldBe listOf(PUBLIC_SHARE)
+        shares.single().lookedUp shouldBe root.child(PUBLIC_SHARE)
+        shares.single().fileType shouldBe FileType.DIRECTORY
+        ops.listFiles(root) shouldBe listOf(root.child(PUBLIC_SHARE))
+
+        rig.pool.close()
+    }
+
+    @Test
+    fun `a share left out of the listing is still reachable by path`() = runTest {
+        assumeTrue(dockerAvailable)
+        val rig = rig(sambaContainer, share = null)
+        val ops = rig.ops
+        val share = path(SHARE_NAME)
+
+        ops.existsStrict(share) shouldBe Existence.PRESENT
+        ops.canWrite(share) shouldBe true
+
+        val dir = share.child("server-entry-${Uuid.random()}")
+        val nested = dir.child("a", "b")
+        ops.createDir(nested, createParents = true)
+        ops.lookup(nested, LookupOptions()).fileType shouldBe FileType.DIRECTORY
+
+        val file = nested.child("hello.txt")
+        ops.writeText(file, "hello share")
+        ops.readText(file) shouldBe "hello share"
+        ops.lookup(file, LookupOptions()).size shouldBe "hello share".length.toLong()
+        ops.lookupFiles(nested, LookupOptions()).map { it.name } shouldBe listOf("hello.txt")
+        ops.existsStrict(file) shouldBe Existence.PRESENT
+        ops.existsStrict(nested.child("nothing-here")) shouldBe Existence.ABSENT
+
+        // The same directory, seen through a location for the share itself
+        val shareRig = rig(sambaContainer)
+        val viaShare = SmbPath(locationId, listOf(dir.name, "a", "b", "hello.txt"))
+        shareRig.ops.readText(viaShare) shouldBe "hello share"
+        shareRig.pool.close()
+
+        ops.delete(dir, recursive = true) shouldBe true
+        ops.exists(dir) shouldBe false
+
+        rig.pool.close()
+    }
+
+    @Test
+    fun `nothing can be created next to a server's shares`() = runTest {
+        assumeTrue(dockerAvailable)
+        val rig = rig(sambaContainer, share = null)
+        val ops = rig.ops
+        val newShare = path("new-share-${Uuid.random()}")
+
+        shouldThrow<WriteException> { ops.createDir(newShare) }
+        shouldThrow<WriteException> { ops.createFile(newShare) }
+        shouldThrow<WriteException> { ops.openOutputStream(newShare) }
+        shouldThrow<WriteException> { ops.file(newShare, readWrite = true) }
+        shouldThrow<WriteException> { ops.createDir(path(), createParents = true) }
+        ops.setModifiedAt(path(PUBLIC_SHARE), Instant.fromEpochMilliseconds(0)) shouldBe false
+
+        ops.lookupFiles(path(), LookupOptions()).map { it.name } shouldBe listOf(PUBLIC_SHARE)
+
+        rig.pool.close()
+    }
+
+    @Test
+    fun `a move between two shares of a server entry copies and removes the source`() = runTest {
+        assumeTrue(dockerAvailable)
+        val rig = rig(sambaContainer, share = null)
+        val ops = rig.ops
+        val gateway = rig.gateway()
+        val run = "cross-share-${Uuid.random()}"
+
+        val sourceDir = path(SHARE_NAME, run)
+        ops.createDir(sourceDir.child("tree"), createParents = true)
+        ops.writeText(sourceDir.child("file.txt"), "moved file")
+        ops.writeText(sourceDir.child("tree", "inner.txt"), "moved tree")
+        val targetDir = path(PUBLIC_SHARE, run)
+        ops.createDir(targetDir)
+
+        ops.move(sourceDir.child("file.txt"), targetDir.child("file.txt"))
+            .shouldBeInstanceOf<MoveOutcome.NotSupported>()
+        ops.exists(sourceDir.child("file.txt")) shouldBe true
+
+        val result = gateway.move(
+            setOf(sourceDir.child("file.txt"), sourceDir.child("tree")),
+            targetDir,
+            null,
+            MoveAction.Options(),
+        ).toList().last()
+
+        result.shouldBeInstanceOf<MoveAction.State.Completed<*, *, *, *>>()
+        ops.exists(sourceDir.child("file.txt")) shouldBe false
+        ops.exists(sourceDir.child("tree")) shouldBe false
+        ops.readText(targetDir.child("file.txt")) shouldBe "moved file"
+        ops.readText(targetDir.child("tree", "inner.txt")) shouldBe "moved tree"
+
+        ops.delete(sourceDir, recursive = true) shouldBe true
+        ops.delete(targetDir, recursive = true) shouldBe true
+        rig.pool.close()
+    }
+
+    @Test
+    fun `the server root and its shares cannot be deleted or moved`() = runTest {
+        assumeTrue(dockerAvailable)
+        val rig = rig(sambaContainer, share = null)
+        val ops = rig.ops
+        val gateway = rig.gateway()
+        val sentinel = path(SHARE_NAME, "sentinel-${Uuid.random()}", "keep.txt")
+        ops.createDir(sentinel.parent!!)
+        ops.writeText(sentinel, "keep me")
+        val deleteAll = DeleteAction.Options<SmbPath>(recursive = true)
+
+        shouldThrow<WriteException> { gateway.delete(setOf(path()), deleteAll).toList() }
+        shouldThrow<WriteException> { gateway.delete(setOf(path(SHARE_NAME)), deleteAll).toList() }
+        // A mixed batch is refused as a whole, its deletable item included
+        shouldThrow<WriteException> { gateway.delete(setOf(sentinel, path(SHARE_NAME)), deleteAll).toList() }
+        shouldThrow<WriteException> {
+            gateway.move(setOf(path(SHARE_NAME)), path(PUBLIC_SHARE), null, MoveAction.Options()).toList()
+        }
+        shouldThrow<WriteException> {
+            gateway.move(setOf(path()), path(PUBLIC_SHARE), null, MoveAction.Options()).toList()
+        }
+        shouldThrow<WriteException> {
+            gateway.move(setOf(sentinel), path(), null, MoveAction.Options()).toList()
+        }
+        shouldThrow<WriteException> {
+            gateway.copy(setOf(sentinel), path(), null, CopyAction.Options()).toList()
+        }
+        shouldThrow<WriteException> {
+            gateway.create(path("new-share"), CreateAction.CreateType.DIRECTORY, CreateAction.Options()).toList()
+        }
+        shouldThrow<WriteException> { ops.delete(path(SHARE_NAME), recursive = true) }
+        shouldThrow<WriteException> { ops.delete(path(), recursive = true) }
+        shouldThrow<WriteException> { ops.move(path(SHARE_NAME), path(PUBLIC_SHARE, "private")) }
+
+        ops.readText(sentinel) shouldBe "keep me"
+        ops.existsStrict(path(SHARE_NAME)) shouldBe Existence.PRESENT
+
+        ops.delete(sentinel.parent!!, recursive = true) shouldBe true
+        rig.pool.close()
+    }
+
+    @Test
+    fun `a share cannot be moved out of a server entry to local storage`() = runTest {
+        assumeTrue(dockerAvailable)
+        val rig = rig(sambaContainer, share = null)
+        val ops = rig.ops
+        val switch = rig.gatewaySwitch()
+        val sentinel = path(SHARE_NAME, "sentinel-${Uuid.random()}", "keep.txt")
+        ops.createDir(sentinel.parent!!)
+        ops.writeText(sentinel, "keep me")
+        val localDir = Files.createTempDirectory("smb-server-entry").toFile()
+        try {
+            val local = LocalPath.build(localDir)
+
+            shouldThrow<WriteException> {
+                switch.move(setOf<APath<*>>(path(SHARE_NAME)), local, null, MoveAction.Options()).toList()
+            }
+            shouldThrow<WriteException> {
+                switch.move(setOf<APath<*>>(path()), local, null, MoveAction.Options()).toList()
+            }
+
+            val localFile = File(localDir, "upload.txt").apply { writeText("upload") }
+            shouldThrow<WriteException> {
+                switch.copy(setOf<APath<*>>(LocalPath.build(localFile)), path(), null, CopyAction.Options()).toList()
+            }
+            shouldThrow<WriteException> {
+                switch.move(setOf<APath<*>>(LocalPath.build(localFile)), path(), null, MoveAction.Options()).toList()
+            }
+
+            ops.readText(sentinel) shouldBe "keep me"
+            localFile.readText() shouldBe "upload"
+            localDir.list()!!.toList() shouldBe listOf("upload.txt")
+        } finally {
+            localDir.deleteRecursively()
+        }
+
+        ops.delete(sentinel.parent!!, recursive = true) shouldBe true
+        rig.pool.close()
+    }
+
+    // endregion
 
     companion object {
         private const val SMB_PORT = 445

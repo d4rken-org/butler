@@ -356,6 +356,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Zasób</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Pozostaw puste, aby przeglądać wszystkie zasoby na serwerze.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Pokazuje wszystkie zasoby na tym serwerze. Aby otworzyć jeden zasób bezpośrednio, dodaj osobną lokalizację.</string>
     <string name="explorer_network_form_base_path_label">Folder wewnątrz zasobu (opcjonalnie)</string>
     <string name="explorer_network_form_auth_guest">Gość</string>
     <string name="explorer_network_form_auth_password">Nazwa użytkownika i hasło</string>
@@ -375,6 +377,7 @@
     <string name="explorer_network_form_error_share_not_single">Wpisz tylko nazwę zasobu, podfoldery podaj poniżej</string>
     <string name="explorer_network_form_error_share_malformed">To nie jest prawidłowa nazwa zasobu</string>
     <string name="explorer_network_form_error_base_path">Tej ścieżki folderu nie można użyć</string>
+    <string name="explorer_network_form_error_base_path_without_share">Folder wewnątrz zasobu wymaga nazwy zasobu.</string>
     <string name="explorer_network_form_error_username_blank">Wpisz nazwę użytkownika</string>
     <string name="explorer_network_form_error_password_required">Wpisz hasło ponownie, aby zmienić nazwę użytkownika lub domenę</string>
     <string name="explorer_network_protocol_title">Dodaj magazyn sieciowy</string>

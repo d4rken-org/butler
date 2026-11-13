@@ -284,6 +284,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Perkongsian</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Biarkan kosong untuk melayari setiap perkongsian pada pelayan.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Menunjukkan setiap perkongsian pada pelayan ini. Untuk membuka satu perkongsian secara terus, tambah lokasi berasingan.</string>
     <string name="explorer_network_form_base_path_label">Folder dalam perkongsian (pilihan)</string>
     <string name="explorer_network_form_auth_guest">Tetamu</string>
     <string name="explorer_network_form_auth_password">Nama pengguna dan kata laluan</string>
@@ -303,6 +305,7 @@
     <string name="explorer_network_form_error_share_not_single">Masukkan nama perkongsian sahaja, letakkan subfolder di bawah</string>
     <string name="explorer_network_form_error_share_malformed">Ini bukan nama perkongsian yang sah</string>
     <string name="explorer_network_form_error_base_path">Laluan folder ini tidak boleh digunakan</string>
+    <string name="explorer_network_form_error_base_path_without_share">Folder dalam perkongsian memerlukan nama perkongsian.</string>
     <string name="explorer_network_form_error_username_blank">Masukkan nama pengguna</string>
     <string name="explorer_network_form_error_password_required">Masukkan kata laluan semula untuk menukar nama pengguna atau domain</string>
     <string name="explorer_network_protocol_title">Tambah storan rangkaian</string>

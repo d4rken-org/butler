@@ -16,8 +16,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import eu.darken.smb.SmbConnector
-import eu.darken.smb.SmbShare
+import eu.darken.smb.SmbCredentials
+import eu.darken.smb.SmbEndpoint
 import eu.darken.smb.SmbException
+import eu.darken.smb.SmbServer
+import eu.darken.smb.SmbShare
+import eu.darken.smb.SmbShareInfo
+import eu.darken.smb.SmbShareLister
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -64,7 +69,7 @@ class SmbConnectionPoolTest : BaseTest() {
             label: String?,
             host: String,
             port: Int,
-            share: String,
+            share: String?,
             basePath: Segments,
             domain: String?,
             username: String?,
@@ -78,7 +83,7 @@ class SmbConnectionPoolTest : BaseTest() {
             label: String?,
             host: String,
             port: Int,
-            share: String,
+            share: String?,
             basePath: Segments,
             domain: String?,
             username: String?,
@@ -92,14 +97,23 @@ class SmbConnectionPoolTest : BaseTest() {
             throw UnsupportedOperationException()
     }
 
+    private val serverLocation = location(Uuid.parse("33333333-3333-3333-3333-333333333333")).copy(share = null)
+
+    private fun server(vararg segments: String) = SmbPath(serverLocation.id, segments.toList())
+
     private class FakeClientFactory : SmbClientFactory {
         val shares = mutableListOf<SmbShare>()
         val clients = mutableListOf<SmbConnector>()
+        val endpoints = mutableListOf<SmbEndpoint>()
         val shareConnected = mutableListOf<Boolean>()
         val closeHooks = mutableListOf<(() -> Unit)?>()
 
         /** Holds the next connect mid-negotiation, after its credential was resolved, until completed. */
         var nextConnectGate: CompletableDeferred<Unit>? = null
+
+        var shareInfos: List<SmbShareInfo> = emptyList()
+        var listError: Exception? = null
+        val listings = mutableListOf<Pair<SmbServer, SmbCredentials>>()
 
         override fun create(): SmbConnector {
             val index = shares.size
@@ -108,7 +122,8 @@ class SmbConnectionPoolTest : BaseTest() {
                 every { disconnect() } answers { closeHooks[index]?.invoke() }
             }
             val gate = nextConnectGate.also { nextConnectGate = null }
-            val client = SmbConnector { _, _ ->
+            val client = SmbConnector { endpoint, _ ->
+                endpoints.add(endpoint)
                 gate?.await()
                 share
             }
@@ -118,11 +133,17 @@ class SmbConnectionPoolTest : BaseTest() {
             clients.add(client)
             return client
         }
+
+        override fun createLister(): SmbShareLister = SmbShareLister { server, credentials ->
+            listings.add(server to credentials)
+            listError?.let { throw it }
+            shareInfos
+        }
     }
 
     private fun pool(
         factory: FakeClientFactory,
-        locations: List<SmbLocation> = listOf(locationA, locationB),
+        locations: List<SmbLocation> = listOf(locationA, locationB, serverLocation),
         evictions: SharedFlow<Uuid> = MutableSharedFlow(),
     ): SmbConnectionPool = pool(factory, FakeLocationManager(locations.associateBy { it.id }), evictions)
 
@@ -130,17 +151,168 @@ class SmbConnectionPoolTest : BaseTest() {
         factory: FakeClientFactory,
         locationManager: FakeLocationManager,
         evictions: SharedFlow<Uuid> = MutableSharedFlow(),
-    ): SmbConnectionPool {
-        val credentialStore = mockk<SmbCredentialStore>(relaxed = true) {
+        credentialStore: SmbCredentialStore = mockk<SmbCredentialStore>(relaxed = true) {
             every { this@mockk.evictions } returns evictions
+        },
+        pro: Boolean = true,
+    ): SmbConnectionPool = SmbConnectionPool(
+        appScope = TestScope(),
+        locationManager = locationManager,
+        credentialStore = credentialStore,
+        clientFactory = factory,
+        upgradeRepo = FakeUpgradeRepo(pro = pro),
+    )
+
+    private fun shareInfo(name: String, type: SmbShareInfo.Type = SmbShareInfo.Type.DISK, special: Boolean = false) =
+        SmbShareInfo(name = name, type = type, special = special, comment = "")
+
+    @Test
+    fun `each share of a server entry gets its own session`() = runTest {
+        val factory = FakeClientFactory()
+        val pool = pool(factory)
+
+        pool.use(server("media", "a"), retryOnTransportLoss = false) { }
+        pool.use(server("photos"), retryOnTransportLoss = false) { }
+        pool.use(server("media"), retryOnTransportLoss = false) { }
+
+        factory.clients.size shouldBe 2
+        factory.endpoints.map { it.share } shouldBe listOf("media", "photos")
+    }
+
+    @Test
+    fun `evicting a server entry drops the sessions of all its shares`() = runTest {
+        val factory = FakeClientFactory()
+        val pool = pool(factory)
+        pool.use(server("media"), retryOnTransportLoss = false) { }
+        pool.use(server("photos"), retryOnTransportLoss = false) { }
+        pool.use(SmbPath.root(locationA.id), retryOnTransportLoss = false) { }
+
+        pool.evict(serverLocation.id)
+
+        verify { factory.shares[0].disconnect() }
+        verify { factory.shares[1].disconnect() }
+        verify(exactly = 0) { factory.shares[2].disconnect() }
+    }
+
+    @Test
+    fun `a lease on a server entry addresses paths below their share`() = runTest {
+        val factory = FakeClientFactory()
+        val pool = pool(factory)
+
+        val lease = pool.acquire(server("media", "2024", "a.mkv"))
+
+        lease.relativePath(server("media", "2024", "a.mkv")).segments shouldBe listOf("2024", "a.mkv")
+        lease.relativePath(server("media")).segments shouldBe emptyList()
+        lease.close()
+    }
+
+    @Test
+    fun `a share location keeps addressing paths below its base path`() = runTest {
+        val factory = FakeClientFactory()
+        val based = locationA.copy(basePath = listOf("movies"))
+        val pool = pool(factory, listOf(based))
+
+        val lease = pool.acquire(SmbPath(based.id, listOf("a.mkv")))
+
+        lease.relativePath(SmbPath(based.id, listOf("a.mkv"))).segments shouldBe listOf("movies", "a.mkv")
+        factory.endpoints.single().share shouldBe "media"
+        lease.close()
+    }
+
+    @Test
+    fun `a server entry's root has no share to connect to`() = runTest {
+        val factory = FakeClientFactory()
+        val pool = pool(factory)
+
+        shouldThrow<IllegalArgumentException> {
+            pool.use(serverLocation.rootPath, retryOnTransportLoss = true) { }
         }
-        return SmbConnectionPool(
-            appScope = TestScope(),
-            locationManager = locationManager,
-            credentialStore = credentialStore,
-            clientFactory = factory,
-            upgradeRepo = FakeUpgradeRepo(),
+        shouldThrow<IllegalArgumentException> { pool.acquire(serverLocation.rootPath) }
+
+        factory.clients.size shouldBe 0
+    }
+
+    @Test
+    fun `listing returns only browsable disk shares, sorted by name`() = runTest {
+        val factory = FakeClientFactory()
+        factory.shareInfos = listOf(
+            shareInfo("photos"),
+            shareInfo("IPC$", SmbShareInfo.Type.IPC, special = true),
+            shareInfo("Backup"),
+            shareInfo("C$", special = true),
+            shareInfo("hidden$"),
+            shareInfo("printer", SmbShareInfo.Type.PRINTER),
+            shareInfo("apps"),
         )
+        val pool = pool(factory)
+
+        pool.listShares(serverLocation.id).map { it.name } shouldBe listOf("apps", "Backup", "photos")
+
+        factory.listings.single().first shouldBe SmbServer(serverLocation.host, serverLocation.port)
+        factory.listings.single().second shouldBe SmbCredentials.Guest
+        factory.clients.size shouldBe 0
+    }
+
+    @Test
+    fun `listing asks the server every time`() = runTest {
+        val factory = FakeClientFactory()
+        val pool = pool(factory)
+
+        pool.listShares(serverLocation.id)
+        pool.listShares(serverLocation.id)
+
+        factory.listings.size shouldBe 2
+    }
+
+    @Test
+    fun `a free user's listing never reaches the server`() = runTest {
+        val factory = FakeClientFactory()
+        val locations = FakeLocationManager(mapOf(serverLocation.id to serverLocation))
+        val pool = pool(factory, locations, pro = false)
+
+        shouldThrow<SmbProRequiredException> { pool.listShares(serverLocation.id) }
+
+        factory.listings.size shouldBe 0
+    }
+
+    @Test
+    fun `listing signs in with the stored credential and wipes it afterwards`() = runTest {
+        val factory = FakeClientFactory()
+        val passwordServer = serverLocation.copy(authType = SmbLocation.AuthType.PASSWORD, username = "darken")
+        val resolved = mutableListOf<SmbCredential>()
+        val credentialStore = mockk<SmbCredentialStore>(relaxed = true) {
+            every { this@mockk.evictions } returns MutableSharedFlow()
+            coEvery { resolve(any()) } coAnswers {
+                SmbCredential("darken", "WORKGROUP", "hunter2".toCharArray()).also { resolved.add(it) }
+            }
+        }
+        val pool = pool(
+            factory,
+            FakeLocationManager(mapOf(passwordServer.id to passwordServer)),
+            credentialStore = credentialStore,
+        )
+
+        pool.listShares(passwordServer.id)
+        factory.listError = SmbException(SmbException.Kind.AUTHENTICATION)
+        shouldThrow<SmbAuthException> { pool.listShares(passwordServer.id) }
+
+        val sent = factory.listings.map { it.second.shouldBeInstanceOf<SmbCredentials.Password>() }
+        sent.map { it.username } shouldBe listOf("darken", "darken")
+        sent.map { it.domain } shouldBe listOf("WORKGROUP", "WORKGROUP")
+        resolved.size shouldBe 2
+        resolved.forEach { credential -> credential.password.all { it == Char(0) } shouldBe true }
+    }
+
+    @Test
+    fun `listing failures are mapped`() = runTest {
+        val factory = FakeClientFactory()
+        val pool = pool(factory)
+
+        factory.listError = SmbException(SmbException.Kind.ACCESS_DENIED)
+        shouldThrow<SmbShareListingUnavailableException> { pool.listShares(serverLocation.id) }
+
+        factory.listError = SmbException(SmbException.Kind.TRANSPORT)
+        shouldThrow<SmbUnreachableException> { pool.listShares(serverLocation.id) }
     }
 
     @Test
@@ -227,7 +399,7 @@ class SmbConnectionPoolTest : BaseTest() {
     fun `a stale generation closes only after its last lease is returned`() = runTest {
         val factory = FakeClientFactory()
         val pool = pool(factory)
-        val lease = pool.acquire(locationA.id)
+        val lease = pool.acquire(locationA.rootPath)
 
         pool.evict(locationA.id)
         verify(exactly = 0) { factory.shares[0].disconnect() }
@@ -240,8 +412,8 @@ class SmbConnectionPoolTest : BaseTest() {
     fun `closing a lease twice releases it once`() = runTest {
         val factory = FakeClientFactory()
         val pool = pool(factory)
-        val first = pool.acquire(locationA.id)
-        val second = pool.acquire(locationA.id)
+        val first = pool.acquire(locationA.rootPath)
+        val second = pool.acquire(locationA.rootPath)
 
         first.close()
         first.close()
@@ -257,7 +429,7 @@ class SmbConnectionPoolTest : BaseTest() {
         val factory = FakeClientFactory()
         val pool = pool(factory)
         pool.use(SmbPath.root(locationA.id), retryOnTransportLoss = false) { }
-        val leased = pool.acquire(locationB.id)
+        val leased = pool.acquire(locationB.rootPath)
 
         pool.trimIdle(FAR_FUTURE)
 
@@ -278,7 +450,7 @@ class SmbConnectionPoolTest : BaseTest() {
             val factory = FakeClientFactory()
             val pool = pool(factory)
             // Cached, unleased and past the idle timeout: exactly what the sweep collects
-            pool.acquire(locationA.id).close()
+            pool.acquire(locationA.rootPath).close()
 
             val start = CyclicBarrier(2)
             val sweep = async(Dispatchers.IO) {
@@ -287,7 +459,7 @@ class SmbConnectionPoolTest : BaseTest() {
             }
             val lease = async(Dispatchers.IO) {
                 start.await(BARRIER_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                pool.acquire(locationA.id)
+                pool.acquire(locationA.rootPath)
             }.await()
             sweep.await()
 
@@ -300,12 +472,12 @@ class SmbConnectionPoolTest : BaseTest() {
     fun `a share that was closed under us is never handed out`() = runTest {
         val factory = FakeClientFactory()
         val pool = pool(factory)
-        val first = pool.acquire(locationA.id)
+        val first = pool.acquire(locationA.rootPath)
         first.close()
 
         factory.shareConnected[0] = false
 
-        val second = pool.acquire(locationA.id)
+        val second = pool.acquire(locationA.rootPath)
 
         second.share shouldNotBe first.share
         second.share.connected shouldBe true
@@ -330,7 +502,7 @@ class SmbConnectionPoolTest : BaseTest() {
     fun `the pool reconnects after it was closed`() = runTest {
         val factory = FakeClientFactory()
         val pool = pool(factory)
-        pool.acquire(locationA.id).close()
+        pool.acquire(locationA.rootPath).close()
 
         pool.close()
         pool.use(SmbPath.root(locationA.id), retryOnTransportLoss = false) { }
@@ -343,10 +515,10 @@ class SmbConnectionPoolTest : BaseTest() {
         val factory = FakeClientFactory()
         val locations = FakeLocationManager(mapOf(locationA.id to locationA))
         val pool = pool(factory, locations)
-        val inFlight = pool.acquire(locationA.id)
+        val inFlight = pool.acquire(locationA.rootPath)
 
         locations.locationsById = mapOf(locationA.id to locationA.copy(host = "other.local"))
-        val afterEdit = pool.acquire(locationA.id)
+        val afterEdit = pool.acquire(locationA.rootPath)
 
         afterEdit.location.host shouldBe "other.local"
         factory.clients.size shouldBe 2
@@ -388,11 +560,11 @@ class SmbConnectionPoolTest : BaseTest() {
             upgradeRepo = FakeUpgradeRepo(),
         )
 
-        val beforeEdit = async { pool.acquire(passwordLocation.id) }
+        val beforeEdit = async { pool.acquire(passwordLocation.rootPath) }
         runCurrent()
 
         locations.locationsById = mapOf(passwordLocation.id to passwordLocation.copy(host = "other.local"))
-        val afterEdit = async { pool.acquire(passwordLocation.id) }
+        val afterEdit = async { pool.acquire(passwordLocation.rootPath) }
         runCurrent()
 
         // The old-endpoint connect publishes first, the post-edit one right after
@@ -409,7 +581,7 @@ class SmbConnectionPoolTest : BaseTest() {
         oldLease.close()
         newLease.close()
 
-        val next = pool.acquire(passwordLocation.id)
+        val next = pool.acquire(passwordLocation.rootPath)
         next.location.host shouldBe "other.local"
         next.close()
     }
@@ -444,7 +616,7 @@ class SmbConnectionPoolTest : BaseTest() {
 
         val gate = CompletableDeferred<Unit>()
         factory.nextConnectGate = gate
-        val pending = async { runCatching { pool.acquire(passwordLocation.id) } }
+        val pending = async { runCatching { pool.acquire(passwordLocation.rootPath) } }
         runCurrent()
         factory.clients.size shouldBe 1
 
@@ -459,7 +631,7 @@ class SmbConnectionPoolTest : BaseTest() {
         factory.clients.size shouldBe 1
 
         credentialAvailable = true
-        val next = pool.acquire(passwordLocation.id)
+        val next = pool.acquire(passwordLocation.rootPath)
         next.share shouldNotBe factory.shares[0]
         factory.clients.size shouldBe 2
         next.close()
@@ -474,7 +646,7 @@ class SmbConnectionPoolTest : BaseTest() {
         val factory = FakeClientFactory()
         val locations = FakeLocationManager(mapOf(locationA.id to locationA, locationB.id to locationB))
         val pool = pool(factory, locations)
-        pool.acquire(locationA.id).close()
+        pool.acquire(locationA.rootPath).close()
 
         val teardownStarted = CountDownLatch(1)
         val teardownRelease = CountDownLatch(1)
@@ -487,11 +659,11 @@ class SmbConnectionPoolTest : BaseTest() {
             locationA.id to locationA.copy(host = "other.local"),
             locationB.id to locationB,
         )
-        val displacing = async(Dispatchers.IO) { pool.acquire(locationA.id) }
+        val displacing = async(Dispatchers.IO) { pool.acquire(locationA.rootPath) }
         teardownStarted.await(BARRIER_TIMEOUT_SECONDS, TimeUnit.SECONDS) shouldBe true
 
         val unrelated = withTimeoutOrNull(PROGRESS_TIMEOUT_MS) {
-            withContext(Dispatchers.IO) { pool.acquire(locationB.id) }
+            withContext(Dispatchers.IO) { pool.acquire(locationB.rootPath) }
         }
         teardownRelease.countDown()
 
@@ -505,7 +677,7 @@ class SmbConnectionPoolTest : BaseTest() {
     fun `replacing a dead session does not stall other locations`() = runBlocking {
         val factory = FakeClientFactory()
         val pool = pool(factory)
-        pool.acquire(locationA.id).close()
+        pool.acquire(locationA.rootPath).close()
 
         val teardownStarted = CountDownLatch(1)
         val teardownRelease = CountDownLatch(1)
@@ -516,11 +688,11 @@ class SmbConnectionPoolTest : BaseTest() {
 
         // The cached generation is skipped on lookup and only disposed of when connect() publishes
         factory.shareConnected[0] = false
-        val reconnecting = async(Dispatchers.IO) { pool.acquire(locationA.id) }
+        val reconnecting = async(Dispatchers.IO) { pool.acquire(locationA.rootPath) }
         teardownStarted.await(BARRIER_TIMEOUT_SECONDS, TimeUnit.SECONDS) shouldBe true
 
         val unrelated = withTimeoutOrNull(PROGRESS_TIMEOUT_MS) {
-            withContext(Dispatchers.IO) { pool.acquire(locationB.id) }
+            withContext(Dispatchers.IO) { pool.acquire(locationB.rootPath) }
         }
         teardownRelease.countDown()
 

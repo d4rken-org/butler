@@ -359,6 +359,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Sdílená složka</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Ponechte prázdné, chcete-li procházet všechny sdílené složky na serveru.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Zobrazuje všechny sdílené složky na tomto serveru. Chcete-li otevřít jednu sdílenou složku přímo, přidejte samostatné umístění.</string>
     <string name="explorer_network_form_base_path_label">Složka uvnitř sdílené složky (volitelné)</string>
     <string name="explorer_network_form_auth_guest">Host</string>
     <string name="explorer_network_form_auth_password">Uživatelské jméno a heslo</string>
@@ -378,6 +380,7 @@
     <string name="explorer_network_form_error_share_not_single">Zadejte pouze název sdílené složky, podsložky uveďte níže</string>
     <string name="explorer_network_form_error_share_malformed">Toto není platný název sdílené složky</string>
     <string name="explorer_network_form_error_base_path">Tuto cestu ke složce nelze použít</string>
+    <string name="explorer_network_form_error_base_path_without_share">Složka uvnitř sdílené složky vyžaduje název sdílené složky.</string>
     <string name="explorer_network_form_error_username_blank">Zadejte uživatelské jméno</string>
     <string name="explorer_network_form_error_password_required">Pro změnu uživatelského jména nebo domény zadejte heslo znovu</string>
     <string name="explorer_network_protocol_title">Přidat síťové úložiště</string>

@@ -358,6 +358,8 @@
     <string name="explorer_network_form_port_label">Порт</string>
     <string name="explorer_network_form_share_label">Общий ресурс</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Оставьте пустым, чтобы просматривать все общие ресурсы сервера.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Показывает все общие ресурсы этого сервера. Чтобы открыть один общий ресурс напрямую, добавьте отдельное расположение.</string>
     <string name="explorer_network_form_base_path_label">Папка внутри общего ресурса (необязательно)</string>
     <string name="explorer_network_form_auth_guest">Гость</string>
     <string name="explorer_network_form_auth_password">Имя пользователя и пароль</string>
@@ -377,6 +379,7 @@
     <string name="explorer_network_form_error_share_not_single">Введите только имя общего ресурса, подпапки укажите ниже</string>
     <string name="explorer_network_form_error_share_malformed">Это не является допустимым именем общего ресурса</string>
     <string name="explorer_network_form_error_base_path">Этот путь к папке нельзя использовать</string>
+    <string name="explorer_network_form_error_base_path_without_share">Для папки внутри общего ресурса нужно имя общего ресурса.</string>
     <string name="explorer_network_form_error_username_blank">Введите имя пользователя</string>
     <string name="explorer_network_form_error_password_required">Введите пароль ещё раз, чтобы изменить имя пользователя или домен</string>
     <string name="explorer_network_protocol_title">Добавить сетевое хранилище</string>

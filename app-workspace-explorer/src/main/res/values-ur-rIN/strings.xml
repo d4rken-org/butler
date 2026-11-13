@@ -338,6 +338,8 @@
     <string name="explorer_network_form_port_label">پورٹ</string>
     <string name="explorer_network_form_share_label">شیئر</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">سرور پر موجود تمام شیئرز براؤز کرنے کے لیے خالی چھوڑیں۔</string>
+    <string name="explorer_network_form_share_server_entry_hint">اس سرور پر موجود تمام شیئرز دکھاتا ہے۔ کسی ایک شیئر کو براہ راست کھولنے کے لیے الگ مقام شامل کریں۔</string>
     <string name="explorer_network_form_base_path_label">شیئر کے اندر فولڈر (اختیاری)</string>
     <string name="explorer_network_form_auth_guest">مہمان</string>
     <string name="explorer_network_form_auth_password">صارف نام اور پاس ورڈ</string>
@@ -357,6 +359,7 @@
     <string name="explorer_network_form_error_share_not_single">صرف شیئر کا نام درج کریں، ذیلی فولڈر نیچے درج کریں</string>
     <string name="explorer_network_form_error_share_malformed">یہ شیئر کا درست نام نہیں ہے</string>
     <string name="explorer_network_form_error_base_path">اس فولڈر کا راستہ استعمال نہیں کیا جا سکتا</string>
+    <string name="explorer_network_form_error_base_path_without_share">شیئر کے اندر فولڈر کے لیے شیئر کا نام ضروری ہے۔</string>
     <string name="explorer_network_form_error_username_blank">صارف نام درج کریں</string>
     <string name="explorer_network_form_error_password_required">صارف نام یا ڈومین بدلنے کے لیے پاس ورڈ دوبارہ درج کریں</string>
     <string name="explorer_network_protocol_title">نیٹ ورک اسٹوریج شامل کریں</string>

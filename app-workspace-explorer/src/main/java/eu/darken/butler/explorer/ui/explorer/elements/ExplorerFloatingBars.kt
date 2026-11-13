@@ -180,7 +180,9 @@ internal fun FloatingBarScope.ExplorerBottomBars(
         clipboardEntries = clipboardState.entries,
         initialExpanded = initialClipboardExpanded,
         // Mirrors what pasteClipboard() itself refuses, so the bar never offers a paste that no-ops.
-        canPaste = state.currentLocation.let { it is ExplorerLocation.Directory && it.path !is ArchivePath },
+        canPaste = state.currentLocation.let {
+            it is ExplorerLocation.Directory && it.path !is ArchivePath && it.info?.entriesFixed != true
+        },
         onAction = { action ->
             when (action) {
                 is ClipboardBarAction.Paste -> vm?.pasteClipboard(action.clip)

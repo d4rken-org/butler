@@ -61,13 +61,12 @@ class SmbLocationFormSheetTest : ComposeTest() {
     }
 
     @Test
-    fun `saving is blocked until host share and password are filled in`() {
+    fun `saving is blocked until host and password are filled in`() {
         setSheetContent(ExplorerDialogState.SmbLocationForm())
 
         composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsNotEnabled()
 
         composeTestRule.onNodeWithText("Server address").performScrollTo().performTextInput("nas.local")
-        composeTestRule.onNodeWithText("Share").performScrollTo().performTextInput("media")
         composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsNotEnabled()
 
         composeTestRule.onNodeWithText("Password").performScrollTo().performTextInput("hunter2")
@@ -83,6 +82,53 @@ class SmbLocationFormSheetTest : ComposeTest() {
         composeTestRule.onNodeWithText("Guest").performScrollTo().performClick()
 
         composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsEnabled()
+    }
+
+    @Test
+    fun `a new location can be saved without a share`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm())
+
+        composeTestRule.onNodeWithText("Leave empty to browse every share on the server.")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Server address").performScrollTo().performTextInput("nas.local")
+        composeTestRule.onNodeWithText("Guest").performScrollTo().performClick()
+
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsEnabled()
+    }
+
+    @Test
+    fun `the folder inside the share waits for a share`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm())
+
+        composeTestRule.onNodeWithText(BASE_PATH_LABEL).performScrollTo().assertIsNotEnabled()
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextInput("media")
+
+        composeTestRule.onNodeWithText(BASE_PATH_LABEL).performScrollTo().assertIsEnabled()
+    }
+
+    @Test
+    fun `editing a server entry offers neither a share nor a folder`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored.copy(share = null)))
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().assertIsNotEnabled()
+        composeTestRule.onNodeWithText(BASE_PATH_LABEL).performScrollTo().assertIsNotEnabled()
+        composeTestRule.onNodeWithText(
+            "Shows every share on this server. To open one share directly, add a separate location.",
+        ).performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsEnabled()
+    }
+
+    @Test
+    fun `editing a share location still requires the share`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored))
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextReplacement("")
+
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsNotEnabled()
+        composeTestRule.onNodeWithText(BASE_PATH_LABEL).performScrollTo().assertIsEnabled()
+        composeTestRule.onAllNodesWithTextCount("Leave empty to browse every share on the server.") shouldBe 0
     }
 
     @Test
@@ -279,6 +325,9 @@ class SmbLocationFormSheetTest : ComposeTest() {
         submitted!!.password shouldBe ""
     }
 
+    companion object {
+        private const val BASE_PATH_LABEL = "Folder inside the share (optional)"
+    }
 }
 
 private fun androidx.compose.ui.test.junit4.ComposeContentTestRule.onAllNodesWithTextCount(text: String): Int =

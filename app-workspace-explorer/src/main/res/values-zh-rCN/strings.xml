@@ -325,6 +325,8 @@
     <string name="explorer_network_form_port_label">端口</string>
     <string name="explorer_network_form_share_label">共享</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">留空即可浏览服务器上的所有共享。</string>
+    <string name="explorer_network_form_share_server_entry_hint">显示此服务器上的所有共享。要直接打开某个共享，请另外添加一个位置。</string>
     <string name="explorer_network_form_base_path_label">共享内的文件夹（可选）</string>
     <string name="explorer_network_form_auth_guest">访客</string>
     <string name="explorer_network_form_auth_password">用户名和密码</string>
@@ -344,6 +346,7 @@
     <string name="explorer_network_form_error_share_not_single">请仅输入共享名称，子文件夹请填写在下方</string>
     <string name="explorer_network_form_error_share_malformed">这不是有效的共享名称</string>
     <string name="explorer_network_form_error_base_path">无法使用此文件夹路径</string>
+    <string name="explorer_network_form_error_base_path_without_share">共享内的文件夹需要共享名称。</string>
     <string name="explorer_network_form_error_username_blank">请输入用户名</string>
     <string name="explorer_network_form_error_password_required">要更改用户名或域，请重新输入密码</string>
     <string name="explorer_network_protocol_title">添加网络存储</string>

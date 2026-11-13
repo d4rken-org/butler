@@ -308,6 +308,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Partajare</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Lasă gol pentru a explora toate partajările de pe server.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Afișează toate partajările de pe acest server. Pentru a deschide direct o singură partajare, adaugă o locație separată.</string>
     <string name="explorer_network_form_base_path_label">Dosar în cadrul partajării (opțional)</string>
     <string name="explorer_network_form_auth_guest">Invitat</string>
     <string name="explorer_network_form_auth_password">Nume de utilizator și parolă</string>
@@ -327,6 +329,7 @@
     <string name="explorer_network_form_error_share_not_single">Introdu doar numele partajării; adaugă subdosarele mai jos</string>
     <string name="explorer_network_form_error_share_malformed">Acesta nu este un nume de partajare valid</string>
     <string name="explorer_network_form_error_base_path">Această cale de dosar nu poate fi folosită</string>
+    <string name="explorer_network_form_error_base_path_without_share">Un dosar în cadrul partajării necesită un nume de partajare.</string>
     <string name="explorer_network_form_error_username_blank">Introdu un nume de utilizator</string>
     <string name="explorer_network_form_error_password_required">Introdu din nou parola pentru a schimba numele de utilizator sau domeniul</string>
     <string name="explorer_network_protocol_title">Adaugă stocare în rețea</string>

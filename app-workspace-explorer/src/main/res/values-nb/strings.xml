@@ -337,6 +337,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Delt ressurs</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">La feltet stå tomt for å bla gjennom alle delte ressurser på serveren.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Viser alle delte ressurser på denne serveren. For å åpne én delt ressurs direkte, legg til en egen plassering.</string>
     <string name="explorer_network_form_base_path_label">Mappe i den delte ressursen (valgfritt)</string>
     <string name="explorer_network_form_auth_guest">Gjest</string>
     <string name="explorer_network_form_auth_password">Brukernavn og passord</string>
@@ -356,6 +358,7 @@
     <string name="explorer_network_form_error_share_not_single">Skriv inn bare navnet på den delte ressursen, og angi undermapper nedenfor</string>
     <string name="explorer_network_form_error_share_malformed">Dette er ikke et gyldig navn på en delt ressurs</string>
     <string name="explorer_network_form_error_base_path">Denne mappestien kan ikke brukes</string>
+    <string name="explorer_network_form_error_base_path_without_share">En mappe i den delte ressursen krever navnet på en delt ressurs.</string>
     <string name="explorer_network_form_error_username_blank">Skriv inn et brukernavn</string>
     <string name="explorer_network_form_error_password_required">Skriv inn passordet på nytt for å endre brukernavn eller domene</string>
     <string name="explorer_network_protocol_title">Legg til nettverkslagring</string>

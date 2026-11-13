@@ -13,9 +13,12 @@ import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isProForUi
-import eu.darken.smb.SmbShare
 import eu.darken.smb.SmbCredentials
 import eu.darken.smb.SmbEndpoint
+import eu.darken.smb.SmbServer
+import eu.darken.smb.SmbShare
+import eu.darken.smb.SmbShareInfo
+import eu.darken.smb.SmbPath as LibraryPath
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -32,7 +35,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 /**
- * Keeps one SMB session per (location, credential generation) alive across operations.
+ * Keeps one SMB session per (location, share, credential generation) alive across operations. A share
+ * location has one share, a server entry one per share that was opened below its root.
  *
  * Every operation and every stream or file handle handed out holds a lease on the generation it
  * came from. Retiring a generation waits for its last lease before disconnecting it. An already
@@ -48,11 +52,11 @@ class SmbConnectionPool @Inject constructor(
 ) {
 
     /**
-     * Network shares are a Pro feature. Both entry points below go through here, so this covers every
+     * Network shares are a Pro feature. Every entry point below goes through here, so this covers every
      * SMB byte - including the primitives [SmbGateway] inherits from [SmbFileSystemOps] rather than
      * overriding, and the streams and file handles a lease outlives.
      */
-    private suspend fun requirePro() {
+    internal suspend fun requirePro() {
         if (!upgradeRepo.isProForUi()) throw SmbProRequiredException()
     }
 
@@ -64,6 +68,9 @@ class SmbConnectionPool @Inject constructor(
     ) : AutoCloseable {
         private var released = false
 
+        /** [path] as the server addresses it on [share]. */
+        fun relativePath(path: SmbPath): LibraryPath = LibraryPath(location.segmentsInShare(path))
+
         @Synchronized
         override fun close() {
             if (released) return
@@ -72,7 +79,7 @@ class SmbConnectionPool @Inject constructor(
         }
     }
 
-    private data class Key(val locationId: Uuid, val credentialVersion: Int)
+    private data class Key(val locationId: Uuid, val share: String, val credentialVersion: Int)
 
     private class Generation(
         val key: Key,
@@ -108,7 +115,7 @@ class SmbConnectionPool @Inject constructor(
     }
 
     /**
-     * Runs [block] against a live share.
+     * Runs [block] against the live share [path] is on.
      *
      * @param retryOnTransportLoss only for operations that are safe to repeat. A create, delete,
      * rename or write may have reached the server before the transport died, replaying it could
@@ -121,7 +128,7 @@ class SmbConnectionPool @Inject constructor(
     ): R {
         requirePro()
         try {
-            return acquire(path.locationId).use { block(it) }
+            return acquire(path).use { block(it) }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -130,19 +137,22 @@ class SmbConnectionPool @Inject constructor(
         }
 
         evict(path.locationId)
-        return acquire(path.locationId).use { block(it) }
+        return acquire(path).use { block(it) }
     }
 
     /**
-     * Leases a share the caller keeps open (streams, file handles). The caller MUST close the
-     * returned lease, even when its own close throws.
+     * Leases the share [path] is on, for callers that keep it open (streams, file handles). The caller
+     * MUST close the returned lease, even when its own close throws.
+     *
+     * @throws IllegalArgumentException for a server entry's root, which is on no share
      */
-    suspend fun acquire(locationId: Uuid): Lease {
+    suspend fun acquire(path: SmbPath): Lease {
         requirePro()
-        val location = locationManager.get(locationId)
-            ?: throw SmbUnreachableException(locationId.toString())
+        val location = locationManager.get(path.locationId)
+            ?: throw SmbUnreachableException(path.locationId.toString())
+        val share = requireNotNull(location.shareOf(path)) { "The root of server entry ${location.id} has no share" }
 
-        val key = Key(locationId, location.credentialVersion)
+        val key = Key(location.id, share, location.credentialVersion)
 
         repeat(CONNECT_ATTEMPTS) {
             var displaced: Generation? = null
@@ -152,8 +162,8 @@ class SmbConnectionPool @Inject constructor(
                 }
                 when {
                     cached == null -> null
-                    // The key only covers the credential generation, so an edited host, port, share,
-                    // base path or domain would otherwise keep being served from the old endpoint.
+                    // The key only covers the share and the credential generation, so an edited host,
+                    // port, base path or domain would otherwise keep being served from the old endpoint.
                     !cached.location.hasSameEndpoint(location) -> {
                         displaced = generations.remove(key)
                         null
@@ -195,28 +205,20 @@ class SmbConnectionPool @Inject constructor(
      * location was evicted while connecting. The caller then connects anew.
      */
     private suspend fun connect(location: SmbLocation, key: Key): Generation? {
+        val shareName = key.share
         val endpoint = location.endpointLabel
         val epoch = lock.withLock { epochOf(location.id) }
 
-        val credential = when (location.authType) {
-            SmbLocation.AuthType.GUEST -> null
-            SmbLocation.AuthType.PASSWORD -> credentialStore.resolve(location)
-        }
-
-        val fresh = try {
-            val credentials = when (credential) {
-                null -> SmbCredentials.Guest
-                else -> SmbCredentials.Password(credential.username, credential.password, credential.domain.orEmpty())
+        val fresh = withCredentials(location) { credentials ->
+            try {
+                val share = clientFactory.create().connect(SmbEndpoint(location.host, shareName, location.port), credentials)
+                Generation(key, location, share)
+            } catch (error: Exception) {
+                throw SmbStatusMapper.mapConnect(error, endpoint, shareName)
             }
-            val share = clientFactory.create().connect(SmbEndpoint(location.host, location.share, location.port), credentials)
-            Generation(key, location, share)
-        } catch (error: Exception) {
-            throw SmbStatusMapper.mapConnect(error, endpoint, location.share)
-        } finally {
-            credential?.wipe()
         }
 
-        log(TAG, INFO) { "Connected to $endpoint (credential generation ${key.credentialVersion})" }
+        log(TAG, INFO) { "Connected to $endpoint, share $shareName (credential generation ${key.credentialVersion})" }
 
         var redundant: Generation? = null
         var displaced: Generation? = null
@@ -259,6 +261,48 @@ class SmbConnectionPool @Inject constructor(
         return leased
     }
 
+    /**
+     * Resolves the credential [location] signs in with and wipes it once [block] returns. A resolve
+     * failure, e.g. a forgotten credential, propagates as is.
+     */
+    private suspend fun <R> withCredentials(location: SmbLocation, block: suspend (SmbCredentials) -> R): R {
+        val credential = when (location.authType) {
+            SmbLocation.AuthType.GUEST -> null
+            SmbLocation.AuthType.PASSWORD -> credentialStore.resolve(location)
+        }
+        try {
+            val credentials = when (credential) {
+                null -> SmbCredentials.Guest
+                else -> SmbCredentials.Password(credential.username, credential.password, credential.domain.orEmpty())
+            }
+            return block(credentials)
+        } finally {
+            credential?.wipe()
+        }
+    }
+
+    /**
+     * The shares a server entry's root shows, sorted by name. Asked fresh every time, over a connection
+     * of its own that is closed again before this returns.
+     */
+    suspend fun listShares(locationId: Uuid): List<SmbShareInfo> {
+        requirePro()
+        val location = locationManager.get(locationId)
+            ?: throw SmbUnreachableException(locationId.toString())
+        val endpoint = location.endpointLabel
+
+        val shares = withCredentials(location) { credentials ->
+            try {
+                clientFactory.createLister().listShares(SmbServer(location.host, location.port), credentials)
+            } catch (error: Exception) {
+                throw SmbStatusMapper.mapListShares(error, endpoint)
+            }
+        }
+        return shares
+            .filter { it.isBrowsable() }
+            .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+    }
+
     /** Everything the session is bound to that [Key] does not cover. */
     private fun SmbLocation.hasSameEndpoint(other: SmbLocation): Boolean = host == other.host &&
         port == other.port &&
@@ -268,7 +312,7 @@ class SmbConnectionPool @Inject constructor(
 
     private fun epochOf(locationId: Uuid): Long = closeEpoch + (evictionEpochs[locationId] ?: 0L)
 
-    /** Drops every generation of a location, e.g. after its credential changed. */
+    /** Drops every generation of a location, of all its shares, e.g. after its credential changed. */
     suspend fun evict(locationId: Uuid) {
         val dropped = lock.withLock {
             evictionEpochs[locationId] = (evictionEpochs[locationId] ?: 0L) + 1

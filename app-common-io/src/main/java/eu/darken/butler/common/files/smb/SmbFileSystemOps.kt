@@ -11,11 +11,13 @@ import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.SmbPath
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.smb.location.SmbLocation
+import eu.darken.butler.common.files.smb.location.SmbLocationManager
 import eu.darken.smb.SmbBlockingFile
 import eu.darken.smb.SmbEntry
 import eu.darken.smb.SmbFileType
@@ -33,14 +35,47 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 import okio.FileHandle
 
-/** SMB gateway adapters backed by leases from [SmbConnectionPool]. */
+/**
+ * SMB gateway adapters backed by leases from [SmbConnectionPool].
+ *
+ * A server entry's root is on no share: it is answered here, and lists the server's shares.
+ */
 @Singleton
 class SmbFileSystemOps
 @Inject
 constructor(
     private val pool: SmbConnectionPool,
+    private val locationManager: SmbLocationManager,
     private val dispatcherProvider: DispatcherProvider,
 ) : FileSystemOps<SmbPath, SmbPathLookup> {
+
+    /** The server entry [path] is the root of, null for every other path. */
+    private suspend fun serverRootOf(path: SmbPath): SmbLocation? {
+        if (path.segments.isNotEmpty()) return null
+        return locationManager.get(path.locationId)?.takeIf { it.isServer }
+    }
+
+    internal suspend fun isServerRoot(path: SmbPath): Boolean = serverRootOf(path) != null
+
+    /** See [SmbLocation.isProtected]. Answered from the stored location, without a session. */
+    internal suspend fun isProtected(path: SmbPath): Boolean {
+        if (path.segments.size > 1) return false
+        return locationManager.get(path.locationId)?.isProtected(path) == true
+    }
+
+    /** Refuses [operation] on a protected path before any request reaches the server. */
+    private suspend fun requireUnprotected(path: SmbPath, operation: String) {
+        if (path.segments.size > 1) return
+        pool.requirePro()
+        if (isProtected(path)) throw WriteException("Cannot $operation a server or one of its shares", path)
+    }
+
+    private fun shareLookup(path: SmbPath) = SmbPathLookup(
+        lookedUp = path,
+        fileType = FileType.DIRECTORY,
+        size = null,
+        modifiedAt = null,
+    )
 
     private suspend fun <R> read(
         path: SmbPath,
@@ -71,8 +106,9 @@ constructor(
             }
         }
 
-    override suspend fun lookup(path: SmbPath, options: LookupOptions): SmbPathLookup =
-        try {
+    override suspend fun lookup(path: SmbPath, options: LookupOptions): SmbPathLookup {
+        if (serverRootOf(path) != null) return shareLookup(path)
+        return try {
             read(path, "lookup") { lease ->
                 lease.share.stat(lease.relativePath(path)).toLookup(path)
             }
@@ -89,20 +125,28 @@ constructor(
                 error = e.message,
             )
         }
+    }
 
     override suspend fun listFiles(path: SmbPath): List<SmbPath> =
         lookupFiles(path, LookupOptions()).map { it.lookedUp }
 
     /** Directory pages carry metadata too, with no lookup per child. */
-    override suspend fun lookupFiles(path: SmbPath, options: LookupOptions): List<SmbPathLookup> =
-        read(path, "lookupFiles") { lease ->
+    override suspend fun lookupFiles(path: SmbPath, options: LookupOptions): List<SmbPathLookup> {
+        serverRootOf(path)?.let { location ->
+            return withContext(dispatcherProvider.IO) {
+                pool.listShares(location.id).map { shareLookup(path.child(it.name)) }
+            }
+        }
+        return read(path, "lookupFiles") { lease ->
             lease.share.list(lease.relativePath(path)).toList().map { entry ->
                 entry.toLookup(path.child(entry.path.segments.last()))
             }
         }
+    }
 
-    override suspend fun exists(path: SmbPath): Boolean =
-        try {
+    override suspend fun exists(path: SmbPath): Boolean {
+        if (serverRootOf(path) != null) return true
+        return try {
             read(path, "exists") { lease ->
                 lease.share.stat(lease.relativePath(path))
                 true
@@ -113,16 +157,20 @@ constructor(
             log(TAG, VERBOSE) { "exists($path) -> false ($e)" }
             false
         }
+    }
 
-    override suspend fun existsStrict(path: SmbPath): Existence =
-        try {
+    override suspend fun existsStrict(path: SmbPath): Existence {
+        if (serverRootOf(path) != null) return Existence.PRESENT
+        return try {
             read(path, "existsStrict") { lease ->
                 // The lease itself is the proof: it only exists once the share was reached. That
-                // proof
-                // covers the share root only, a base path addresses a directory inside it and is
-                // probed.
-                if (path.segments.isEmpty() && lease.location.basePath.isEmpty())
-                    return@read Existence.PRESENT
+                // proof covers the share root only, a base path addresses a directory inside it and
+                // is probed.
+                val shareRoot = when {
+                    lease.location.isServer -> path.segments.size == 1
+                    else -> path.segments.isEmpty() && lease.location.basePath.isEmpty()
+                }
+                if (shareRoot) return@read Existence.PRESENT
                 try {
                     lease.share.stat(lease.relativePath(path))
                     Existence.PRESENT
@@ -136,9 +184,11 @@ constructor(
             log(TAG, WARN) { "existsStrict($path) could not be answered: ${e.asLog()}" }
             Existence.UNKNOWN
         }
+    }
 
-    override suspend fun delete(path: SmbPath, recursive: Boolean): Boolean =
-        mutate(path, "delete") { lease ->
+    override suspend fun delete(path: SmbPath, recursive: Boolean): Boolean {
+        requireUnprotected(path, "delete")
+        return mutate(path, "delete") { lease ->
             try {
                 lease.share.delete(lease.relativePath(path), recursive)
                 true
@@ -146,32 +196,41 @@ constructor(
                 if (SmbStatusMapper.isMissing(e)) false else throw e
             }
         }
+    }
+
+    /** Creates missing parents down from the share, never the share or a server root itself. */
+    private suspend fun createParentsOf(path: SmbPath) {
+        val parent = path.parent ?: return
+        if (parent.segments.isEmpty() || isProtected(parent) || exists(parent)) return
+        createDir(parent, createParents = true)
+    }
 
     override suspend fun createDir(path: SmbPath, createParents: Boolean) {
-        val parent = path.parent
-        if (createParents && parent != null && parent.segments.isNotEmpty() && !exists(parent)) {
-            createDir(parent, createParents = true)
-        }
+        requireUnprotected(path, "create")
+        if (createParents) createParentsOf(path)
         mutate(path, "createDir") { lease -> lease.share.mkdir(lease.relativePath(path)) }
     }
 
     override suspend fun createFile(path: SmbPath, createParents: Boolean) {
-        val parent = path.parent
-        if (createParents && parent != null && parent.segments.isNotEmpty() && !exists(parent)) {
-            createDir(parent, createParents = true)
-        }
+        requireUnprotected(path, "create")
+        if (createParents) createParentsOf(path)
         mutate(path, "createFile") { lease ->
             lease.share.openFile(lease.relativePath(path), SmbOpenMode.CREATE_NEW).use {}
         }
     }
 
     override suspend fun move(source: SmbPath, destination: SmbPath): MoveOutcome {
+        requireUnprotected(source, "move")
+        requireUnprotected(destination, "replace")
         if (source.locationId != destination.locationId) {
             return MoveOutcome.NotSupported(
                 "Source and destination are different network locations"
             )
         }
         return mutate(source, "move") { lease ->
+            if (lease.location.shareOf(source) != lease.location.shareOf(destination)) {
+                return@mutate MoveOutcome.NotSupported("Source and destination are on different shares")
+            }
             lease.share.move(lease.relativePath(source), lease.relativePath(destination))
             MoveOutcome.Moved
         }
@@ -187,7 +246,7 @@ constructor(
         var resource: T? = null
         try {
             return withContext(dispatcherProvider.IO) {
-                lease = pool.acquire(path.locationId)
+                lease = pool.acquire(path)
                 block(lease).also { resource = it }
             }
         } catch (error: Throwable) {
@@ -232,8 +291,9 @@ constructor(
             java.io.BufferedInputStream(stream, 256 * 1024)
         }
 
-    override suspend fun openOutputStream(path: SmbPath, append: Boolean): OutputStream =
-        openResource(path, "openOutputStream", true) { lease ->
+    override suspend fun openOutputStream(path: SmbPath, append: Boolean): OutputStream {
+        requireUnprotected(path, "write")
+        return openResource(path, "openOutputStream", true) { lease ->
             val file =
                 lease.share
                     .openFile(
@@ -281,9 +341,11 @@ constructor(
                 throw error
             }
         }
+    }
 
-    override suspend fun file(path: SmbPath, readWrite: Boolean): FileHandle =
-        openResource(path, "file", readWrite) { lease ->
+    override suspend fun file(path: SmbPath, readWrite: Boolean): FileHandle {
+        if (readWrite) requireUnprotected(path, "write")
+        return openResource(path, "file", readWrite) { lease ->
             val file =
                 lease.share.openFile(
                     lease.relativePath(path),
@@ -291,9 +353,11 @@ constructor(
                 )
             SmbFileHandle(readWrite, file.blocking(), lease)
         }
+    }
 
     override suspend fun setModifiedAt(path: SmbPath, modifiedAt: Instant): Boolean =
         try {
+            requireUnprotected(path, "change")
             mutate(path, "setModifiedAt") { lease ->
                 lease.share.setModifiedAt(lease.relativePath(path), modifiedAt)
                 true
@@ -321,10 +385,12 @@ constructor(
     // The server enforces access, and probing it costs a round trip per item during listings.
     override suspend fun canRead(path: SmbPath): Boolean = true
 
-    override suspend fun canWrite(path: SmbPath): Boolean = true
+    /** Whether children can be created here, which the server decides everywhere but at a server root. */
+    override suspend fun canWrite(path: SmbPath): Boolean = serverRootOf(path) == null
 
-    override suspend fun getFileSystem(path: SmbPath): FileSystem =
-        try {
+    override suspend fun getFileSystem(path: SmbPath): FileSystem {
+        if (serverRootOf(path) != null) return FileSystem()
+        return try {
             read(path, "getFileSystem") { lease ->
                 val info = lease.share.capacity()
                 FileSystem(freeSpace = info.freeBytes, totalSpace = info.totalBytes)
@@ -335,6 +401,7 @@ constructor(
             log(TAG, WARN) { "getFileSystem($path) failed: ${e.asLog()}" }
             FileSystem()
         }
+    }
 
     private fun SmbEntry.toLookup(path: SmbPath) =
         SmbPathLookup(
@@ -350,14 +417,11 @@ constructor(
             createdAt = createdAt,
         )
 
-    private fun SmbConnectionPool.Lease.relativePath(path: SmbPath): LibraryPath =
-        LibraryPath(location.basePath + path.segments)
-
     companion object {
         val TAG = logTag("SMB", "FileSystemOps")
 
         fun smbPath(location: SmbLocation, path: SmbPath): String {
-            return LibraryPath(location.basePath + path.segments).segments.joinToString("\\")
+            return LibraryPath(location.segmentsInShare(path)).segments.joinToString("\\")
         }
     }
 }

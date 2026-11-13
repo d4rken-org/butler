@@ -340,6 +340,8 @@
     <string name="explorer_network_form_port_label">పోర్ట్</string>
     <string name="explorer_network_form_share_label">షేర్</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">సర్వర్‌లోని అన్ని షేర్‌లను బ్రౌజ్ చేయడానికి ఖాళీగా ఉంచండి.</string>
+    <string name="explorer_network_form_share_server_entry_hint">ఈ సర్వర్‌లోని అన్ని షేర్‌లను చూపిస్తుంది. ఒక షేర్‌ను నేరుగా తెరవడానికి, ప్రత్యేక స్థానాన్ని జోడించండి.</string>
     <string name="explorer_network_form_base_path_label">షేర్‌లోని ఫోల్డర్ (ఐచ్ఛికం)</string>
     <string name="explorer_network_form_auth_guest">అతిథి</string>
     <string name="explorer_network_form_auth_password">వినియోగదారు పేరు మరియు పాస్‌వర్డ్</string>
@@ -359,6 +361,7 @@
     <string name="explorer_network_form_error_share_not_single">షేర్ పేరును మాత్రమే నమోదు చేయండి, ఉపఫోల్డర్‌లను కింద నమోదు చేయండి</string>
     <string name="explorer_network_form_error_share_malformed">ఇది చెల్లుబాటు అయ్యే షేర్ పేరు కాదు</string>
     <string name="explorer_network_form_error_base_path">ఈ ఫోల్డర్ పాత్‌ను ఉపయోగించలేము</string>
+    <string name="explorer_network_form_error_base_path_without_share">షేర్‌లోని ఫోల్డర్‌కు షేర్ పేరు అవసరం.</string>
     <string name="explorer_network_form_error_username_blank">వినియోగదారు పేరును నమోదు చేయండి</string>
     <string name="explorer_network_form_error_password_required">వినియోగదారు పేరు లేదా డొమైన్‌ను మార్చడానికి పాస్‌వర్డ్‌ను మళ్లీ నమోదు చేయండి</string>
     <string name="explorer_network_protocol_title">నెట్‌వర్క్ నిల్వను జోడించండి</string>

@@ -14,6 +14,7 @@ class SmbLocationInputTest : BaseTest() {
         basePath: String = "",
         username: String = "darken",
         requireUsername: Boolean = false,
+        requireShare: Boolean = false,
     ) = SmbLocationInput.parse(
         host = host,
         port = port,
@@ -21,6 +22,7 @@ class SmbLocationInputTest : BaseTest() {
         basePath = basePath,
         username = username,
         requireUsername = requireUsername,
+        requireShare = requireShare,
     )
 
     private fun issuesOf(result: SmbLocationInput.Result) =
@@ -77,7 +79,27 @@ class SmbLocationInputTest : BaseTest() {
     @Test
     fun `a share must be a single component`() {
         issuesOf(parse(share = "media/movies")) shouldBe listOf(SmbLocationInput.Issue.ShareNotSingleComponent)
-        issuesOf(parse(share = "")) shouldBe listOf(SmbLocationInput.Issue.ShareBlank)
+    }
+
+    @Test
+    fun `an empty share parses as a server entry`() {
+        parsedOf(parse(share = "")).share shouldBe null
+        parsedOf(parse(share = " / ")).share shouldBe null
+    }
+
+    @Test
+    fun `an empty share is blank when a share is required`() {
+        issuesOf(parse(share = "", requireShare = true)) shouldBe listOf(SmbLocationInput.Issue.ShareBlank)
+        issuesOf(parse(share = "", basePath = "movies", requireShare = true)) shouldBe
+            listOf(SmbLocationInput.Issue.ShareBlank)
+        parsedOf(parse(share = "media", requireShare = true)).share shouldBe "media"
+    }
+
+    @Test
+    fun `a base path needs a share`() {
+        issuesOf(parse(share = "", basePath = "movies")) shouldBe
+            listOf(SmbLocationInput.Issue.BasePathWithoutShare)
+        parsedOf(parse(share = "", basePath = "//")).basePath shouldBe emptyList()
     }
 
     @Test

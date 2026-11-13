@@ -332,6 +332,8 @@
     <string name="explorer_network_form_port_label">Porta</string>
     <string name="explorer_network_form_share_label">Compartilhamento</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Deixe em branco para navegar por todos os compartilhamentos do servidor.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Mostra todos os compartilhamentos deste servidor. Para abrir um compartilhamento diretamente, adicione um local separado.</string>
     <string name="explorer_network_form_base_path_label">Pasta dentro do compartilhamento (opcional)</string>
     <string name="explorer_network_form_auth_guest">Convidado</string>
     <string name="explorer_network_form_auth_password">Nome de usuário e senha</string>
@@ -351,6 +353,7 @@
     <string name="explorer_network_form_error_share_not_single">Digite apenas o nome do compartilhamento, coloque subpastas abaixo</string>
     <string name="explorer_network_form_error_share_malformed">Este não é um nome de compartilhamento válido</string>
     <string name="explorer_network_form_error_base_path">Este caminho de pasta não pode ser usado</string>
+    <string name="explorer_network_form_error_base_path_without_share">Uma pasta dentro do compartilhamento precisa de um nome de compartilhamento.</string>
     <string name="explorer_network_form_error_username_blank">Digite um nome de usuário</string>
     <string name="explorer_network_form_error_password_required">Digite a senha novamente para alterar o nome de usuário ou domínio</string>
     <string name="explorer_network_protocol_title">Adicionar armazenamento de rede</string>

@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">Ovom računu nije dopušteno koristiti \"%1$s\" na poslužitelju \"%2$s\". Provjeri dozvole dijeljene mape na poslužitelju.</string>
     <string name="smb_error_share_not_found_title">Dijeljena mapa nije pronađena</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" ne postoji na poslužitelju \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Nije moguće prikazati dijeljene mape</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s nije dopustio Butleru prikaz svojih dijeljenih mapa. Unesi naziv dijeljene mape za izravno povezivanje s njom.</string>
     <string name="smb_error_dialect_title">Poslužitelj je prestar</string>
     <string name="smb_error_dialect_description">\"%1$s\" podržava samo SMB1, koji nije siguran ni podržan. Na poslužitelju omogući SMB2 ili noviju verziju.</string>
     <string name="smb_error_credential_unavailable_title">Potrebna je prijava</string>

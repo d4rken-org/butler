@@ -223,6 +223,8 @@ jobs:
               "NTLM unit tests": Path("lib-smb/build/test-results/test/TEST-eu.darken.smb.NtlmTest.xml"),
               "Cancellation unit tests": Path("lib-smb/build/test-results/test/TEST-eu.darken.smb.CancellationTest.xml"),
               "SMBJ wire reference": Path("lib-smb/build/test-results/test/TEST-eu.darken.smb.SmbjWireContractTest.xml"),
+              "Share enumeration unit tests": Path("lib-smb/build/test-results/test/TEST-eu.darken.smb.ShareEnumTest.xml"),
+              "Share listing": Path("lib-smb/build/test-results/contractTest/TEST-eu.darken.smb.ShareListingContractTest.xml"),
               "SMBJ reference": Path("lib-smb/build/test-results/contractTest/TEST-eu.darken.smb.SmbjContractTest.xml"),
               "Kotlin implementation": Path("lib-smb/build/test-results/contractTest/TEST-eu.darken.smb.KotlinSmbContractTest.xml"),
               "Security and transport": Path("lib-smb/build/test-results/contractTest/TEST-eu.darken.smb.ProtocolSecurityTest.xml"),

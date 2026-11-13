@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">Tài khoản này có thể không được phép sử dụng \"%1$s\" trên \"%2$s\". Kiểm tra quyền chia sẻ trên máy chủ.</string>
     <string name="smb_error_share_not_found_title">Không tìm thấy chia sẻ</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" không tồn tại trên \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Không thể liệt kê các chia sẻ</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s không cho phép Butler liệt kê các chia sẻ của máy chủ. Nhập tên chia sẻ để kết nối trực tiếp với một chia sẻ.</string>
     <string name="smb_error_dialect_title">Máy chủ quá cũ</string>
     <string name="smb_error_dialect_description">\"%1$s\" chỉ cung cấp SMB1, cái này không an toàn và không được hỗ trợ. Bật SMB2 hoặc phiên bản mới hơn trên máy chủ.</string>
     <string name="smb_error_credential_unavailable_title">Cần đăng nhập</string>

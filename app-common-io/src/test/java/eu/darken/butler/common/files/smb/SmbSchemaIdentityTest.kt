@@ -22,6 +22,7 @@ class SmbSchemaIdentityTest : BaseTest() {
         roomSchemaIdentityHashes(SmbLocationDatabase::class.java) shouldBe mapOf(
             1 to "eb27303b4a3a1e72d78484ceddc62669",
             2 to "1ad05dcbfce071dad7fd762b538468fa",
+            3 to "dd20d335d83d16c5741be748b7e84c9a",
         )
     }
 

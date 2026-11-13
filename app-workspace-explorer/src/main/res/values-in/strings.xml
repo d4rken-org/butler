@@ -320,6 +320,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Share</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Biarkan kosong untuk menjelajahi semua share di server.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Menampilkan semua share di server ini. Untuk membuka satu share secara langsung, tambahkan lokasi terpisah.</string>
     <string name="explorer_network_form_base_path_label">Folder di dalam share (opsional)</string>
     <string name="explorer_network_form_auth_guest">Tamu</string>
     <string name="explorer_network_form_auth_password">Nama pengguna dan kata sandi</string>
@@ -339,6 +341,7 @@
     <string name="explorer_network_form_error_share_not_single">Masukkan nama share saja, letakkan subfolder di bawahnya</string>
     <string name="explorer_network_form_error_share_malformed">Ini bukan nama share yang valid</string>
     <string name="explorer_network_form_error_base_path">Jalur folder ini tidak dapat digunakan</string>
+    <string name="explorer_network_form_error_base_path_without_share">Folder di dalam share memerlukan nama share.</string>
     <string name="explorer_network_form_error_username_blank">Masukkan nama pengguna</string>
     <string name="explorer_network_form_error_password_required">Masukkan kembali kata sandi untuk mengubah nama pengguna atau domain</string>
     <string name="explorer_network_protocol_title">Tambahkan penyimpanan jaringan</string>

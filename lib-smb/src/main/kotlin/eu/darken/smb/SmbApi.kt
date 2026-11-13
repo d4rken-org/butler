@@ -16,6 +16,28 @@ public data class SmbEndpoint(val host: String, val share: String, val port: Int
     }
 }
 
+public data class SmbServer(val host: String, val port: Int = 445) {
+    init {
+        require(host.isNotBlank() && host.none { it == '/' || it == '\\' || it == '\u0000' })
+        require(port in 1..65535)
+    }
+}
+
+public data class SmbShareInfo(
+    val name: String,
+    val type: Type,
+    val special: Boolean,
+    val comment: String,
+) {
+    public enum class Type {
+        DISK,
+        PRINTER,
+        DEVICE,
+        IPC,
+        OTHER,
+    }
+}
+
 public class SmbPath(segments: List<String> = emptyList()) {
     public val segments: List<String> = java.util.Collections.unmodifiableList(segments.toList())
 
@@ -83,6 +105,11 @@ public data class SmbConfig(
 
 public fun interface SmbConnector {
     public suspend fun connect(endpoint: SmbEndpoint, credentials: SmbCredentials): SmbShare
+}
+
+/** Lists every share the server reports, including special and non-disk shares. */
+public fun interface SmbShareLister {
+    public suspend fun listShares(server: SmbServer, credentials: SmbCredentials): List<SmbShareInfo>
 }
 
 public interface SmbResource {

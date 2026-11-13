@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">قد لا يتمكن هذا الحساب من استخدام \"%1$s\" على \"%2$s\". تحقق من أذونات المشاركة على الخادم.</string>
     <string name="smb_error_share_not_found_title">لم يتم العثور على المشاركة</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" غير موجود على \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">تعذّر عرض المشاركات</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s لم يسمح لـ Butler بعرض مشاركاته. أدخل اسم مشاركة للاتصال بمشاركة واحدة مباشرةً.</string>
     <string name="smb_error_dialect_title">الخادم قديم جداً</string>
     <string name="smb_error_dialect_description">\"%1$s\" يقدم فقط SMB1، وهو غير آمن وغير مدعوم. فعّل SMB2 أو أحدث على الخادم.</string>
     <string name="smb_error_credential_unavailable_title">تسجيل دخول مطلوب</string>

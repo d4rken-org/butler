@@ -323,6 +323,8 @@
     <string name="explorer_network_form_port_label">連接埠</string>
     <string name="explorer_network_form_share_label">共用</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">留空即可瀏覽伺服器上的所有共用資料夾。</string>
+    <string name="explorer_network_form_share_server_entry_hint">顯示此伺服器上的所有共用資料夾。若要直接開啟某個共用資料夾，請另外新增一個位置。</string>
     <string name="explorer_network_form_base_path_label">共用資料夾內的路徑（選填）</string>
     <string name="explorer_network_form_auth_guest">訪客</string>
     <string name="explorer_network_form_auth_password">使用者名稱與密碼</string>
@@ -342,6 +344,7 @@
     <string name="explorer_network_form_error_share_not_single">請只輸入共用名稱，子資料夾請填在下方</string>
     <string name="explorer_network_form_error_share_malformed">這不是有效的共用名稱</string>
     <string name="explorer_network_form_error_base_path">無法使用此資料夾路徑</string>
+    <string name="explorer_network_form_error_base_path_without_share">共用資料夾內的路徑需要共用名稱。</string>
     <string name="explorer_network_form_error_username_blank">請輸入使用者名稱</string>
     <string name="explorer_network_form_error_password_required">如要變更使用者名稱或網域，請重新輸入密碼</string>
     <string name="explorer_network_protocol_title">新增網路儲存空間</string>

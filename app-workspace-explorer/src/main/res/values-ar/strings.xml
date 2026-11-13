@@ -380,6 +380,8 @@
     <string name="explorer_network_form_port_label">المنفذ</string>
     <string name="explorer_network_form_share_label">المشاركة</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">اتركه فارغًا لتصفح كل المشاركات على الخادم.</string>
+    <string name="explorer_network_form_share_server_entry_hint">يعرض كل المشاركات على هذا الخادم. لفتح مشاركة واحدة مباشرةً، أضف موقعًا منفصلًا.</string>
     <string name="explorer_network_form_base_path_label">المجلد داخل المشاركة (اختياري)</string>
     <string name="explorer_network_form_auth_guest">ضيف</string>
     <string name="explorer_network_form_auth_password">اسم المستخدم وكلمة المرور</string>
@@ -399,6 +401,7 @@
     <string name="explorer_network_form_error_share_not_single">أدخل اسم المشاركة فقط، وضع المجلدات الفرعية أدناه</string>
     <string name="explorer_network_form_error_share_malformed">هذا ليس اسم مشاركة صالحًا</string>
     <string name="explorer_network_form_error_base_path">لا يمكن استخدام مسار هذا المجلد</string>
+    <string name="explorer_network_form_error_base_path_without_share">يتطلب المجلد داخل المشاركة اسم مشاركة.</string>
     <string name="explorer_network_form_error_username_blank">أدخل اسم المستخدم</string>
     <string name="explorer_network_form_error_password_required">أدخل كلمة المرور مرة أخرى لتغيير اسم المستخدم أو النطاق</string>
     <string name="explorer_network_protocol_title">إضافة تخزين شبكة</string>

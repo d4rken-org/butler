@@ -105,6 +105,61 @@ class SmbStatusMapperTest : BaseTest() {
 
     // endregion
 
+    // region share listing
+
+    @Test
+    fun `a rejected sign-in while listing is an auth failure`() {
+        SmbStatusMapper.mapListShares(apiError(Kind.AUTHENTICATION), "nas.local")
+            .shouldBeInstanceOf<SmbAuthException>()
+            .isSmbSignInFailure() shouldBe true
+    }
+
+    @Test
+    fun `a refused listing is not a sign-in failure`() {
+        for (kind in listOf(Kind.ACCESS_DENIED, Kind.MISSING, Kind.PROTOCOL, Kind.OTHER)) {
+            val mapped = SmbStatusMapper.mapListShares(apiError(kind), "nas.local")
+            mapped.shouldBeInstanceOf<SmbShareListingUnavailableException>().endpoint shouldBe "nas.local"
+            mapped.isSmbSignInFailure() shouldBe false
+        }
+    }
+
+    @Test
+    fun `a lost transport while listing is unreachable`() {
+        SmbStatusMapper.mapListShares(apiError(Kind.TRANSPORT), "nas.local")
+            .shouldBeInstanceOf<SmbUnreachableException>()
+        SmbStatusMapper.mapListShares(UnknownHostException("nas.local"), "nas.local")
+            .shouldBeInstanceOf<SmbUnreachableException>()
+        SmbStatusMapper.mapListShares(apiError(Kind.SHARE_MISSING), "nas.local")
+            .shouldBeInstanceOf<SmbUnreachableException>()
+    }
+
+    @Test
+    fun `an SMB1-only server is reported as such while listing`() {
+        SmbStatusMapper.mapListShares(apiError(Kind.UNSUPPORTED_DIALECT), "nas.local")
+            .shouldBeInstanceOf<SmbDialectNotSupportedException>()
+    }
+
+    @Test
+    fun `listing passes cancellation and mapped failures through`() {
+        val cancel = CancellationException("stop")
+        SmbStatusMapper.mapListShares(cancel, "nas.local") shouldBe cancel
+
+        val auth = SmbAuthException("nas.local")
+        SmbStatusMapper.mapListShares(auth, "nas.local") shouldBe auth
+
+        val unavailable = SmbShareListingUnavailableException("nas.local")
+        SmbStatusMapper.mapListShares(unavailable, "nas.local") shouldBe unavailable
+        SmbStatusMapper.mapOperation(unavailable, path, "lookupFiles", write = false) shouldBe unavailable
+    }
+
+    @Test
+    fun `a wrapped listing refusal is still not a sign-in failure`() {
+        val wrapped = ReadException("listing failed", path, SmbShareListingUnavailableException("nas.local"))
+        wrapped.isSmbSignInFailure() shouldBe false
+    }
+
+    // endregion
+
     // region operations
 
     @Test

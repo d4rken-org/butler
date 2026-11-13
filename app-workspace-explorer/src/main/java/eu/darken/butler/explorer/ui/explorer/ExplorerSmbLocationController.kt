@@ -141,14 +141,18 @@ class ExplorerSmbLocationController(
         input: SmbLocationFormInput,
         password: CharArray?,
     ) {
+        // A new location without a share is a server entry. An edit keeps the kind it was saved as,
+        // SmbLocationManager.update refuses switching.
+        val isServerEntry = existing?.isServer == true
         val parsed = SmbLocationInput.parse(
             host = input.host,
             port = input.port,
-            share = input.share,
+            share = if (isServerEntry) "" else input.share,
             basePath = input.basePath,
             domain = input.domain,
             username = input.username,
             requireUsername = input.authType == SmbLocation.AuthType.PASSWORD,
+            requireShare = existing != null && !isServerEntry,
         )
         if (parsed is SmbLocationInput.Result.Invalid) {
             dialogs.show(formState.copy(error = parsed.issues.first().message()))
@@ -290,6 +294,7 @@ class ExplorerSmbLocationController(
         SmbLocationInput.Issue.ShareNotSingleComponent -> R.string.explorer_network_form_error_share_not_single
         SmbLocationInput.Issue.ShareMalformed -> R.string.explorer_network_form_error_share_malformed
         SmbLocationInput.Issue.BasePathMalformed -> R.string.explorer_network_form_error_base_path
+        SmbLocationInput.Issue.BasePathWithoutShare -> R.string.explorer_network_form_error_base_path_without_share
         SmbLocationInput.Issue.UsernameBlank -> R.string.explorer_network_form_error_username_blank
     }.toCaString()
 

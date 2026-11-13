@@ -20,7 +20,9 @@ data class SmbLocation(
     val label: String?,
     val host: String,
     val port: Int = SmbLocationInput.DEFAULT_PORT,
-    val share: String,
+    /** Null for a server entry, whose root lists the shares the server offers. */
+    val share: String?,
+    /** Directory below [share] the location starts in, always empty for a server entry. */
     val basePath: Segments = emptyList(),
     val domain: String? = null,
     /** Display copy of the username, the authoritative one is stored with the credential. */
@@ -42,19 +44,42 @@ data class SmbLocation(
         PASSWORD,
     }
 
+    val isServer: Boolean
+        get() = share == null
+
     val rootPath: SmbPath
         get() = SmbPath.root(id)
 
-    /** `host/share` or `host:port/share/base/path`, the subtitle shown under the location name. */
+    /** The share [path] lives on. Null only for a server entry's root, which lists the shares. */
+    fun shareOf(path: SmbPath): String? = share ?: path.segments.firstOrNull()
+
+    /**
+     * Where [path] points inside [shareOf]: `[a, b]` is `base/path/a/b` on a share location, and
+     * `b` on share `a` of a server entry.
+     */
+    fun segmentsInShare(path: SmbPath): Segments = when {
+        isServer -> path.segments.drop(1)
+        else -> basePath + path.segments
+    }
+
+    /** A server entry's root or one of its shares: the server decides neither's name or existence. */
+    fun isProtected(path: SmbPath): Boolean = isServer && path.segments.size <= 1
+
+    /**
+     * `host/share` or `host:port/share/base/path`, the subtitle shown under the location name. A
+     * server entry is just `host` or `host:port`.
+     */
     val endpointLabel: String
         get() = buildString {
             append(host)
             if (port != SmbLocationInput.DEFAULT_PORT) append(":$port")
-            append("/")
-            append(share)
-            basePath.forEach { append("/$it") }
+            if (share != null) {
+                append("/")
+                append(share)
+                basePath.forEach { append("/$it") }
+            }
         }
 
     val displayName: CaString
-        get() = (label?.takeIf { it.isNotBlank() } ?: share).toCaString()
+        get() = (label?.takeIf { it.isNotBlank() } ?: share ?: host).toCaString()
 }

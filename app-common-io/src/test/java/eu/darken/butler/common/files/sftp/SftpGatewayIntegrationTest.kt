@@ -33,7 +33,7 @@ import eu.darken.butler.common.files.sftp.credentials.SftpCredentialStore
 import eu.darken.butler.common.files.sftp.location.SftpLocation
 import eu.darken.butler.common.files.sftp.location.TrustedHostKey
 import eu.darken.butler.common.files.smb.FakeUpgradeRepo
-import eu.darken.butler.common.files.smb.SmbClientFactory
+import eu.darken.butler.common.files.smb.SmbClientFactoryModule
 import eu.darken.butler.common.files.smb.SmbConnectionPool
 import eu.darken.butler.common.files.smb.SmbFileSystemOps
 import eu.darken.butler.common.files.smb.SmbGateway
@@ -147,10 +147,9 @@ class SftpGatewayIntegrationTest : BaseTest() {
         )
         val sftpGateway = SftpGateway(TestScope(), dispatchers, SftpFileSystemOps(pool, dispatchers), pool)
 
-        val smbPool = smb?.let { smbPool(it) }
-        val smbGateway = smbPool
-            ?.let { SmbGateway(TestScope(), dispatchers, SmbFileSystemOps(it, dispatchers), it) }
-            ?: mockk(relaxed = true)
+        val smbParts = smb?.let { smbGateway(it) }
+        val smbPool = smbParts?.second
+        val smbGateway = smbParts?.first ?: mockk(relaxed = true)
 
         val switch = GatewaySwitch(
             appScope = TestScope(),
@@ -191,7 +190,7 @@ class SftpGatewayIntegrationTest : BaseTest() {
         )
     }
 
-    private fun smbPool(container: GenericContainer<*>): SmbConnectionPool {
+    private fun smbGateway(container: GenericContainer<*>): Pair<SmbGateway, SmbConnectionPool> {
         val location = SmbLocation(
             id = smbId,
             label = "samba",
@@ -205,16 +204,18 @@ class SftpGatewayIntegrationTest : BaseTest() {
             createdAt = Instant.fromEpochMilliseconds(0),
             updatedAt = Instant.fromEpochMilliseconds(0),
         )
-        return SmbConnectionPool(
+        val locationManager = mockk<SmbLocationManager> { coEvery { get(smbId) } returns location }
+        val pool = SmbConnectionPool(
             appScope = TestScope(),
-            locationManager = mockk<SmbLocationManager> { coEvery { get(smbId) } returns location },
+            locationManager = locationManager,
             credentialStore = mockk<SmbCredentialStore>(relaxed = true) {
                 every { evictions } returns MutableSharedFlow()
                 coEvery { resolve(any()) } answers { SmbCredential("butler", null, "butlerpass".toCharArray()) }
             },
-            clientFactory = SmbClientFactory { eu.darken.smb.KotlinSmbClient() },
+            clientFactory = SmbClientFactoryModule.clientFactory(),
             upgradeRepo = FakeUpgradeRepo(),
         )
+        return SmbGateway(TestScope(), dispatchers, SmbFileSystemOps(pool, locationManager, dispatchers), pool) to pool
     }
 
     // region atmoz/sftp helpers

@@ -337,6 +337,8 @@
     <string name="explorer_network_form_port_label">Порт</string>
     <string name="explorer_network_form_share_label">Споделен ресурс</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Остави празно, за да разглеждаш всички споделени ресурси на сървъра.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Показва всички споделени ресурси на този сървър. За да отвориш директно един споделен ресурс, добави отделно местоположение.</string>
     <string name="explorer_network_form_base_path_label">Папка в споделения ресурс (незадължително)</string>
     <string name="explorer_network_form_auth_guest">Гост</string>
     <string name="explorer_network_form_auth_password">Потребителско име и парола</string>
@@ -356,6 +358,7 @@
     <string name="explorer_network_form_error_share_not_single">Въведи само името на споделения ресурс, а подпапките посочи по-долу</string>
     <string name="explorer_network_form_error_share_malformed">Това не е валидно име на споделен ресурс</string>
     <string name="explorer_network_form_error_base_path">Този път до папка не може да се използва</string>
+    <string name="explorer_network_form_error_base_path_without_share">Папката в споделения ресурс изисква име на споделения ресурс.</string>
     <string name="explorer_network_form_error_username_blank">Въведи потребителско име</string>
     <string name="explorer_network_form_error_password_required">Въведи паролата отново, за да промениш потребителското име или домейна</string>
     <string name="explorer_network_protocol_title">Добави мрежово хранилище</string>

@@ -562,6 +562,7 @@ class GatewaySwitch @Inject constructor(
         options: CopyAction.Options
     ): Flow<CopyAction.State<*, *, *, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayCopy(): ${sources.size} sources -> $target" }
+        if (target is SmbPath) smbGateway.requireCreatableTarget(target)
 
         val transferOptions = TransferStrategy.Options(
             preserveAttributes = options.preserveAttributes,
@@ -614,6 +615,7 @@ class GatewaySwitch @Inject constructor(
         options: MoveAction.Options
     ): Flow<MoveAction.State<*, *, *, *>> = flow {
         log(TAG, DEBUG) { "performCrossGatewayMove(): ${sources.size} sources -> $target" }
+        if (target is SmbPath) smbGateway.requireCreatableTarget(target)
 
         val transferOptions = options.toTransferOptions(overwrite = false)
 
@@ -633,9 +635,12 @@ class GatewaySwitch @Inject constructor(
             // Moving OUT of an archive implies deleting the source entry - archives are read-only.
             is ArchivePath -> throw WriteException("Archives are read-only", sources.first())
 
+            // Moving out deletes each source once it is copied, so protected sources are refused first.
             is SmbPath -> {
                 @Suppress("UNCHECKED_CAST")
-                (sources as Collection<SmbPath>).moveCrossType(target, transferOptions, onIssue)
+                val smbSources = sources as Collection<SmbPath>
+                smbGateway.requireMutableSources(smbSources)
+                smbSources.moveCrossType(target, transferOptions, onIssue)
                     .collect { state -> emit(state) }
             }
 

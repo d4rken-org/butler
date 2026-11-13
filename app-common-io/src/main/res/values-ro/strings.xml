@@ -46,6 +46,8 @@
     <string name="smb_error_share_access_denied_description">Acest cont nu poate folosi \"%1$s\" pe \"%2$s\". Verifică permisiunile partajării pe server.</string>
     <string name="smb_error_share_not_found_title">Partajare negăsită</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" nu există pe \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Partajările nu pot fi listate</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s nu a permis aplicației Butler să-i listeze partajările. Introdu numele unei partajări pentru a te conecta direct la ea.</string>
     <string name="smb_error_dialect_title">Server prea vechi</string>
     <string name="smb_error_dialect_description">\"%1$s\" oferă doar SMB1, care este nesigur și neacceptat. Activează SMB2 sau o versiune mai nouă pe server.</string>
     <string name="smb_error_credential_unavailable_title">Este necesară autentificarea</string>

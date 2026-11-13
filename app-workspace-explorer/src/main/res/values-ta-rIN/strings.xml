@@ -337,6 +337,8 @@
     <string name="explorer_network_form_port_label">போர்ட்</string>
     <string name="explorer_network_form_share_label">பகிர்வு</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">சர்வரில் உள்ள எல்லா பகிர்வுகளையும் உலாவ காலியாக விடவும்.</string>
+    <string name="explorer_network_form_share_server_entry_hint">இந்த சர்வரில் உள்ள எல்லா பகிர்வுகளையும் காட்டுகிறது. ஒரு பகிர்வை நேரடியாகத் திறக்க, தனி இருப்பிடத்தைச் சேர்க்கவும்.</string>
     <string name="explorer_network_form_base_path_label">பகிர்வுக்குள் உள்ள கோப்புறை (விருப்பத்தேர்வு)</string>
     <string name="explorer_network_form_auth_guest">விருந்தினர்</string>
     <string name="explorer_network_form_auth_password">பயனர்பெயரும் கடவுச்சொல்லும்</string>
@@ -356,6 +358,7 @@
     <string name="explorer_network_form_error_share_not_single">பகிர்வுப் பெயரை மட்டும் உள்ளிடுங்கள்; துணைக் கோப்புறைகளை கீழே குறிப்பிடுங்கள்</string>
     <string name="explorer_network_form_error_share_malformed">இது செல்லுபடியாகும் பகிர்வுப் பெயர் அல்ல</string>
     <string name="explorer_network_form_error_base_path">இந்தக் கோப்புறைப் பாதையைப் பயன்படுத்த முடியாது</string>
+    <string name="explorer_network_form_error_base_path_without_share">பகிர்வுக்குள் உள்ள கோப்புறைக்கு பகிர்வுப் பெயர் தேவை.</string>
     <string name="explorer_network_form_error_username_blank">பயனர்பெயரை உள்ளிடுங்கள்</string>
     <string name="explorer_network_form_error_password_required">பயனர்பெயர் அல்லது டொமைனை மாற்ற கடவுச்சொல்லை மீண்டும் உள்ளிடுங்கள்</string>
     <string name="explorer_network_protocol_title">பிணையச் சேமிப்பகத்தைச் சேர்</string>

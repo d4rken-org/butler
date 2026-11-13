@@ -335,6 +335,8 @@
     <string name="explorer_network_form_port_label">پورت</string>
     <string name="explorer_network_form_share_label">اشتراک</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">برای مرور همه اشتراک‌های سرور، خالی بگذارید.</string>
+    <string name="explorer_network_form_share_server_entry_hint">همه اشتراک‌های این سرور را نشان می‌دهد. برای باز کردن مستقیم یک اشتراک، یک مکان جداگانه اضافه کنید.</string>
     <string name="explorer_network_form_base_path_label">پوشه داخل اشتراک (اختیاری)</string>
     <string name="explorer_network_form_auth_guest">مهمان</string>
     <string name="explorer_network_form_auth_password">نام کاربری و گذرواژه</string>
@@ -354,6 +356,7 @@
     <string name="explorer_network_form_error_share_not_single">فقط نام اشتراک را وارد کنید، زیرپوشه‌ها را در پایین قرار دهید</string>
     <string name="explorer_network_form_error_share_malformed">این نام اشتراک معتبر نیست</string>
     <string name="explorer_network_form_error_base_path">این مسیر پوشه قابل استفاده نیست</string>
+    <string name="explorer_network_form_error_base_path_without_share">پوشه داخل اشتراک به نام اشتراک نیاز دارد.</string>
     <string name="explorer_network_form_error_username_blank">نام کاربری را وارد کنید</string>
     <string name="explorer_network_form_error_password_required">برای تغییر نام کاربری یا دامنه، گذرواژه را دوباره وارد کنید</string>
     <string name="explorer_network_protocol_title">افزودن حافظه شبکه</string>

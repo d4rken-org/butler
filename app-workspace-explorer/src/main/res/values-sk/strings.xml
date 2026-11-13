@@ -358,6 +358,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Zdieľaný priečinok</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Nechaj prázdne, ak chceš prehliadať všetky zdieľané priečinky na serveri.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Zobrazuje všetky zdieľané priečinky na tomto serveri. Ak chceš otvoriť jeden zdieľaný priečinok priamo, pridaj samostatné umiestnenie.</string>
     <string name="explorer_network_form_base_path_label">Priečinok v zdieľanom priečinku (nepovinné)</string>
     <string name="explorer_network_form_auth_guest">Hosť</string>
     <string name="explorer_network_form_auth_password">Používateľské meno a heslo</string>
@@ -377,6 +379,7 @@
     <string name="explorer_network_form_error_share_not_single">Zadaj iba názov zdieľaného priečinka, podpriečinky uveď nižšie</string>
     <string name="explorer_network_form_error_share_malformed">Toto nie je platný názov zdieľaného priečinka</string>
     <string name="explorer_network_form_error_base_path">Túto cestu k priečinku nemožno použiť</string>
+    <string name="explorer_network_form_error_base_path_without_share">Priečinok v zdieľanom priečinku vyžaduje názov zdieľaného priečinka.</string>
     <string name="explorer_network_form_error_username_blank">Zadaj používateľské meno</string>
     <string name="explorer_network_form_error_password_required">Ak chceš zmeniť používateľské meno alebo doménu, zadaj heslo znova</string>
     <string name="explorer_network_protocol_title">Pridať sieťové úložisko</string>

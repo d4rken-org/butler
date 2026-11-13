@@ -1,21 +1,26 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import android.content.Context
 import eu.darken.butler.common.files.smb.SmbConnectionTester
+import eu.darken.butler.common.files.smb.SmbShareListingUnavailableException
 import eu.darken.butler.common.files.smb.credentials.SmbCredential
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialUnavailableException
 import eu.darken.butler.common.files.smb.credentials.SmbCredentialStore
 import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.smb.location.SmbLocationManager
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
 import eu.darken.butler.explorer.ui.explorer.dialogs.SmbLocationFormInput
 import eu.darken.butler.upgrade.UpgradeRepo
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.CancellationException
@@ -31,6 +36,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
+import eu.darken.butler.common.io.R as IoR
 
 class ExplorerSmbLocationControllerTest : BaseTest() {
 
@@ -247,6 +253,93 @@ class ExplorerSmbLocationControllerTest : BaseTest() {
             locationManager.create(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         }
         dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    private val resourceContext = mockk<Context>().apply {
+        every { getString(any()) } answers { "string:${firstArg<Int>()}" }
+        every { getString(any(), *anyVararg()) } answers { "string:${firstArg<Int>()}" }
+    }
+
+    private fun serverEntry() = location("NAS").copy(share = null, authType = SmbLocation.AuthType.GUEST)
+
+    @Test
+    fun `a new location without a share lists the shares and saves a server entry`() = runTest {
+        val locationManager = savingLocationManager()
+        val tester = mockk<SmbConnectionTester>(relaxed = true)
+        val dialogs = dialogs()
+        val controller = controller(locationManager, dialogs, connectionTester = tester)
+        controller.showAddForm()
+
+        controller.onFormSubmit(guestInput.copy(share = ""))
+        runCurrent()
+
+        coVerify(exactly = 1) { tester.test("nas.local", 445, null, null, any(), null) }
+        coVerify(exactly = 1) {
+            locationManager.create(any(), "nas.local", 445, null, emptyList(), any(), any(), any(), any(), any())
+        }
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `a server that refuses to list its shares shows why and saves nothing`() = runTest {
+        val locationManager = savingLocationManager()
+        val tester = mockk<SmbConnectionTester>().apply {
+            coEvery { test(any(), any(), any(), any(), any(), any()) } throws
+                SmbShareListingUnavailableException("nas.local")
+        }
+        val dialogs = dialogs()
+        val controller = controller(locationManager, dialogs, connectionTester = tester)
+        controller.showAddForm()
+
+        controller.onFormSubmit(guestInput.copy(share = ""))
+        runCurrent()
+
+        coVerify(exactly = 0) {
+            locationManager.create(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+        }
+        val form = dialogs.current().shouldBeInstanceOf<ExplorerDialogState.SmbLocationForm>()
+        form.isTesting shouldBe false
+        form.error!!.get(resourceContext) shouldContain
+            "string:${IoR.string.smb_error_share_listing_unavailable_description}"
+    }
+
+    @Test
+    fun `editing a server entry keeps it one`() = runTest {
+        val locationManager = mockk<SmbLocationManager>().apply {
+            coEvery {
+                update(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            } returns serverEntry()
+        }
+        val tester = mockk<SmbConnectionTester>(relaxed = true)
+        val dialogs = dialogs().apply { show(ExplorerDialogState.SmbLocationForm(existing = serverEntry())) }
+        val controller = controller(locationManager, dialogs, connectionTester = tester)
+
+        controller.onFormSubmit(guestInput.copy(share = "", label = "Basement"))
+        runCurrent()
+
+        coVerify(exactly = 1) { tester.test("nas.local", 445, null, null, any(), null) }
+        coVerify(exactly = 1) {
+            locationManager.update(
+                locationId, "Basement", "nas.local", 445, null, emptyList(), any(), any(), any(), any(), any(),
+            )
+        }
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `editing a share location still requires a share`() = runTest {
+        val locationManager = mockk<SmbLocationManager>()
+        val tester = mockk<SmbConnectionTester>(relaxed = true)
+        val existing = location("NAS").copy(authType = SmbLocation.AuthType.GUEST)
+        val dialogs = dialogs().apply { show(ExplorerDialogState.SmbLocationForm(existing = existing)) }
+        val controller = controller(locationManager, dialogs, connectionTester = tester)
+
+        controller.onFormSubmit(guestInput.copy(share = " "))
+        runCurrent()
+
+        coVerify(exactly = 0) { tester.test(any(), any(), any(), any(), any(), any()) }
+        val form = dialogs.current().shouldBeInstanceOf<ExplorerDialogState.SmbLocationForm>()
+        form.error!!.get(resourceContext) shouldBe "string:${R.string.explorer_network_form_error_share_blank}"
     }
 
     @Test

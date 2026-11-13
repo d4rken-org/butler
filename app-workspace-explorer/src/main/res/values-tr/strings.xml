@@ -332,6 +332,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Paylaşım</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Sunucudaki tüm paylaşımlara göz atmak için boş bırakın.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Bu sunucudaki tüm paylaşımları gösterir. Tek bir paylaşımı doğrudan açmak için ayrı bir konum ekleyin.</string>
     <string name="explorer_network_form_base_path_label">Paylaşım içindeki klasör (isteğe bağlı)</string>
     <string name="explorer_network_form_auth_guest">Misafir</string>
     <string name="explorer_network_form_auth_password">Kullanıcı adı ve şifre</string>
@@ -351,6 +353,7 @@
     <string name="explorer_network_form_error_share_not_single">Yalnızca paylaşım adını girin, alt klasörleri aşağıya ekleyin</string>
     <string name="explorer_network_form_error_share_malformed">Bu geçerli bir paylaşım adı değil</string>
     <string name="explorer_network_form_error_base_path">Bu klasör yolu kullanılamaz</string>
+    <string name="explorer_network_form_error_base_path_without_share">Paylaşım içindeki bir klasör için paylaşım adı gerekir.</string>
     <string name="explorer_network_form_error_username_blank">Bir kullanıcı adı girin</string>
     <string name="explorer_network_form_error_password_required">Kullanıcı adını veya etki alanını değiştirmek için şifreyi yeniden girin</string>
     <string name="explorer_network_protocol_title">Ağ depolaması ekle</string>
