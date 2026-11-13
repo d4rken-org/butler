@@ -385,6 +385,9 @@ fun ViewerWorkspacePage(
                                 onBackClick = if (isModal) {
                                     { onPageAction(ViewerPageAction.Close) }
                                 } else null,
+                                // Zoomed-in content keeps the toolbar collapsed until the zoom is
+                                // reset, so a tap there has nothing to expand.
+                                onExpand = if (isToolbarCollapsed) null else expand,
                             )
                         }
 
