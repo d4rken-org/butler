@@ -1,17 +1,37 @@
 package eu.darken.butler.explorer.ui.explorer.elements
 
 import android.content.Context
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.Home
+import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.explorer.core.ExplorerBreadcrumb
+import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.hidden.HideFeedback
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.ui.explorer.ExplorerBarKeys
@@ -24,7 +44,9 @@ import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
+import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
@@ -234,6 +256,74 @@ class ExplorerFloatingBarsTest : ComposeTest() {
             .assertDoesNotExist()
     }
 
+    private val toolbarBreadcrumbs = listOf(
+        ExplorerBreadcrumb(
+            label = "Home".toCaString(),
+            icon = Icons.TwoTone.Home,
+            target = ExplorerNavigation.Target.Home,
+        ),
+        ExplorerBreadcrumb(
+            label = TOOLBAR_LAST_SEGMENT.toCaString(),
+            icon = Icons.TwoTone.FolderOpen,
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/$TOOLBAR_LAST_SEGMENT")),
+        ),
+    )
+    private val collapsedToolbarLabel = "Home / $TOOLBAR_LAST_SEGMENT"
+
+    @Test
+    fun `tapping the scroll-collapsed toolbar expands it again`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                val topStackState = rememberFloatingBarStackState(position = BarPosition.TOP)
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(topStackState.nestedScrollConnection),
+                        contentPadding = PaddingValues(top = topStackState.contentPaddingDp()),
+                    ) {
+                        items(100) { index ->
+                            Text(
+                                text = "Item $index",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                            )
+                        }
+                    }
+                    FloatingBarStack(
+                        position = BarPosition.TOP,
+                        state = topStackState,
+                    ) {
+                        ExplorerTopBars(
+                            workspaceId = Workspace.Id(),
+                            // Split-pane layout: keeps the mascot-bearing workspace button, which
+                            // Robolectric cannot rasterise, out of the toolbar cutout.
+                            design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                            state = MockDataProvider.createReadyState(breadcrumbs = toolbarBreadcrumbs),
+                            vm = null,
+                            showProgress = false,
+                        )
+                    }
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText(TOOLBAR_LAST_SEGMENT).assertIsDisplayed()
+
+        composeTestRule.onRoot().performTouchInput { swipeUp(startY = centerY, endY = top) }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText(TOOLBAR_LAST_SEGMENT).assertDoesNotExist()
+        composeTestRule.onNodeWithText(collapsedToolbarLabel).assertIsDisplayed()
+
+        composeTestRule.onNodeWithText(collapsedToolbarLabel, useUnmergedTree = true).performTouchInput { click() }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText(TOOLBAR_LAST_SEGMENT).assertIsDisplayed()
+        composeTestRule.onNodeWithText(collapsedToolbarLabel).assertDoesNotExist()
+    }
+
     private fun twoCompletedOperations() = OperationsDisplayState(
         operations = listOf(
             MockDataProvider.createMockCompletedOperation(title = COMPLETED_TITLE, minutesAgo = 9),
@@ -249,5 +339,6 @@ class ExplorerFloatingBarsTest : ComposeTest() {
         private const val LATEST_CLIP = "latest.txt"
         private const val OLDER_CLIP = "older.txt"
         private const val HIDDEN_NAME = "notes.txt"
+        private const val TOOLBAR_LAST_SEGMENT = "Photos"
     }
 }
