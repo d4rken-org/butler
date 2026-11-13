@@ -186,6 +186,7 @@ fun HistoryWorkspacePage(
                         entryCount = state.entryCount,
                         totalCount = state.totalCount,
                         collapsedFraction = collapsedFraction,
+                        onExpand = expand,
                         onRemoveOutcome = onRemoveOutcome,
                         onRemoveKind = onRemoveKind,
                         onRemovePathScope = onRemovePathScope,
