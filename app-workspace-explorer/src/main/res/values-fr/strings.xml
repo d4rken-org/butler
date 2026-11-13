@@ -332,6 +332,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Partage</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Laissez vide pour parcourir tous les partages du serveur.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Affiche tous les partages de ce serveur. Pour ouvrir directement un seul partage, ajoutez un emplacement distinct.</string>
     <string name="explorer_network_form_base_path_label">Dossier dans le partage (facultatif)</string>
     <string name="explorer_network_form_auth_guest">Invité</string>
     <string name="explorer_network_form_auth_password">Nom d’utilisateur et mot de passe</string>

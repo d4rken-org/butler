@@ -380,6 +380,8 @@
     <string name="explorer_network_form_port_label">المنفذ</string>
     <string name="explorer_network_form_share_label">المشاركة</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">اتركه فارغًا لتصفح كل المشاركات على الخادم.</string>
+    <string name="explorer_network_form_share_server_entry_hint">يعرض كل المشاركات على هذا الخادم. لفتح مشاركة واحدة مباشرةً، أضف موقعًا منفصلًا.</string>
     <string name="explorer_network_form_base_path_label">المجلد داخل المشاركة (اختياري)</string>
     <string name="explorer_network_form_auth_guest">ضيف</string>
     <string name="explorer_network_form_auth_password">اسم المستخدم وكلمة المرور</string>

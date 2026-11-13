@@ -284,6 +284,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Perkongsian</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Biarkan kosong untuk melayari setiap perkongsian pada pelayan.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Menunjukkan setiap perkongsian pada pelayan ini. Untuk membuka satu perkongsian secara terus, tambah lokasi berasingan.</string>
     <string name="explorer_network_form_base_path_label">Folder dalam perkongsian (pilihan)</string>
     <string name="explorer_network_form_auth_guest">Tetamu</string>
     <string name="explorer_network_form_auth_password">Nama pengguna dan kata laluan</string>

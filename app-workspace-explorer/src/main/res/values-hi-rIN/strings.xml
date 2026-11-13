@@ -296,6 +296,8 @@
     <string name="explorer_network_form_port_label">पोर्ट</string>
     <string name="explorer_network_form_share_label">शेयर</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">सर्वर के सभी शेयर ब्राउज़ करने के लिए खाली छोड़ें।</string>
+    <string name="explorer_network_form_share_server_entry_hint">इस सर्वर के सभी शेयर दिखाता है। किसी एक शेयर को सीधे खोलने के लिए अलग स्थान जोड़ें।</string>
     <string name="explorer_network_form_base_path_label">शेयर के अंदर का फ़ोल्डर (वैकल्पिक)</string>
     <string name="explorer_network_form_auth_guest">अतिथि</string>
     <string name="explorer_network_form_auth_password">उपयोगकर्ता नाम और पासवर्ड</string>

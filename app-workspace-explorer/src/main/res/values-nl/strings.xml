@@ -335,6 +335,8 @@
     <string name="explorer_network_form_port_label">Poort</string>
     <string name="explorer_network_form_share_label">Share</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Laat leeg om alle shares op de server te doorbladeren.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Toont alle shares op deze server. Voeg een aparte locatie toe om één share direct te openen.</string>
     <string name="explorer_network_form_base_path_label">Map binnen de share (optioneel)</string>
     <string name="explorer_network_form_auth_guest">Gast</string>
     <string name="explorer_network_form_auth_password">Gebruikersnaam en wachtwoord</string>

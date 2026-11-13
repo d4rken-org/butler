@@ -349,6 +349,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Dijeljena mapa</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Ostavi prazno za pregledavanje svih dijeljenih mapa na poslužitelju.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Prikazuje sve dijeljene mape na ovom poslužitelju. Za izravno otvaranje jedne dijeljene mape dodaj zasebnu lokaciju.</string>
     <string name="explorer_network_form_base_path_label">Mapa unutar dijeljene mape (neobavezno)</string>
     <string name="explorer_network_form_auth_guest">Gost</string>
     <string name="explorer_network_form_auth_password">Korisničko ime i lozinka</string>

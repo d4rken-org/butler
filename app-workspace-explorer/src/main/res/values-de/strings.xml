@@ -335,6 +335,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Freigabe</string>
     <string name="explorer_network_form_share_hint">medien</string>
+    <string name="explorer_network_form_share_optional_hint">Leer lassen, um alle Freigaben des Servers zu durchsuchen.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Zeigt alle Freigaben dieses Servers. Um eine einzelne Freigabe direkt zu öffnen, füge einen eigenen Speicherort hinzu.</string>
     <string name="explorer_network_form_base_path_label">Ordner innerhalb der Freigabe (optional)</string>
     <string name="explorer_network_form_auth_guest">Gast</string>
     <string name="explorer_network_form_auth_password">Benutzername und Passwort</string>

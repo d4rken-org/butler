@@ -323,6 +323,8 @@
     <string name="explorer_network_form_port_label">ポート</string>
     <string name="explorer_network_form_share_label">共有</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">空欄のままにすると、サーバー上のすべての共有を閲覧できます。</string>
+    <string name="explorer_network_form_share_server_entry_hint">このサーバー上のすべての共有を表示します。1 つの共有を直接開くには、別の場所として追加してください。</string>
     <string name="explorer_network_form_base_path_label">共有内のフォルダ（任意）</string>
     <string name="explorer_network_form_auth_guest">ゲスト</string>
     <string name="explorer_network_form_auth_password">ユーザー名とパスワード</string>

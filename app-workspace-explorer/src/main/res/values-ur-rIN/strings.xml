@@ -338,6 +338,8 @@
     <string name="explorer_network_form_port_label">پورٹ</string>
     <string name="explorer_network_form_share_label">شیئر</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">سرور پر موجود تمام شیئرز براؤز کرنے کے لیے خالی چھوڑیں۔</string>
+    <string name="explorer_network_form_share_server_entry_hint">اس سرور پر موجود تمام شیئرز دکھاتا ہے۔ کسی ایک شیئر کو براہ راست کھولنے کے لیے الگ مقام شامل کریں۔</string>
     <string name="explorer_network_form_base_path_label">شیئر کے اندر فولڈر (اختیاری)</string>
     <string name="explorer_network_form_auth_guest">مہمان</string>
     <string name="explorer_network_form_auth_password">صارف نام اور پاس ورڈ</string>

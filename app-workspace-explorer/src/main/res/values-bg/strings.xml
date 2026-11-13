@@ -337,6 +337,8 @@
     <string name="explorer_network_form_port_label">Порт</string>
     <string name="explorer_network_form_share_label">Споделен ресурс</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Остави празно, за да разглеждаш всички споделени ресурси на сървъра.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Показва всички споделени ресурси на този сървър. За да отвориш директно един споделен ресурс, добави отделно местоположение.</string>
     <string name="explorer_network_form_base_path_label">Папка в споделения ресурс (незадължително)</string>
     <string name="explorer_network_form_auth_guest">Гост</string>
     <string name="explorer_network_form_auth_password">Потребителско име и парола</string>

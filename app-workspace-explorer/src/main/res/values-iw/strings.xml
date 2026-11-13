@@ -320,6 +320,8 @@
     <string name="explorer_network_form_port_label">יציאה</string>
     <string name="explorer_network_form_share_label">שיתוף</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">אפשר להשאיר ריק כדי לעיין בכל השיתופים בשרת.</string>
+    <string name="explorer_network_form_share_server_entry_hint">מציג את כל השיתופים בשרת הזה. כדי לפתוח שיתוף אחד ישירות, יש להוסיף מיקום נפרד.</string>
     <string name="explorer_network_form_base_path_label">תיקייה בתוך השיתוף (אופציונלי)</string>
     <string name="explorer_network_form_auth_guest">אורח</string>
     <string name="explorer_network_form_auth_password">שם משתמש וסיסמה</string>

@@ -337,6 +337,8 @@
     <string name="explorer_network_form_port_label">போர்ட்</string>
     <string name="explorer_network_form_share_label">பகிர்வு</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">சர்வரில் உள்ள எல்லா பகிர்வுகளையும் உலாவ காலியாக விடவும்.</string>
+    <string name="explorer_network_form_share_server_entry_hint">இந்த சர்வரில் உள்ள எல்லா பகிர்வுகளையும் காட்டுகிறது. ஒரு பகிர்வை நேரடியாகத் திறக்க, தனி இருப்பிடத்தைச் சேர்க்கவும்.</string>
     <string name="explorer_network_form_base_path_label">பகிர்வுக்குள் உள்ள கோப்புறை (விருப்பத்தேர்வு)</string>
     <string name="explorer_network_form_auth_guest">விருந்தினர்</string>
     <string name="explorer_network_form_auth_password">பயனர்பெயரும் கடவுச்சொல்லும்</string>

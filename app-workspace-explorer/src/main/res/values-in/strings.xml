@@ -320,6 +320,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Share</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Biarkan kosong untuk menjelajahi semua share di server.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Menampilkan semua share di server ini. Untuk membuka satu share secara langsung, tambahkan lokasi terpisah.</string>
     <string name="explorer_network_form_base_path_label">Folder di dalam share (opsional)</string>
     <string name="explorer_network_form_auth_guest">Tamu</string>
     <string name="explorer_network_form_auth_password">Nama pengguna dan kata sandi</string>

@@ -323,6 +323,8 @@
     <string name="explorer_network_form_port_label">Cổng</string>
     <string name="explorer_network_form_share_label">Chia sẻ</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Để trống để duyệt mọi phần chia sẻ trên máy chủ.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Hiển thị mọi phần chia sẻ trên máy chủ này. Để mở trực tiếp một phần chia sẻ, hãy thêm một vị trí riêng.</string>
     <string name="explorer_network_form_base_path_label">Thư mục bên trong phần chia sẻ (tùy chọn)</string>
     <string name="explorer_network_form_auth_guest">Khách</string>
     <string name="explorer_network_form_auth_password">Tên đăng nhập và mật khẩu</string>

@@ -358,6 +358,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Zdieľaný priečinok</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Nechaj prázdne, ak chceš prehliadať všetky zdieľané priečinky na serveri.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Zobrazuje všetky zdieľané priečinky na tomto serveri. Ak chceš otvoriť jeden zdieľaný priečinok priamo, pridaj samostatné umiestnenie.</string>
     <string name="explorer_network_form_base_path_label">Priečinok v zdieľanom priečinku (nepovinné)</string>
     <string name="explorer_network_form_auth_guest">Hosť</string>
     <string name="explorer_network_form_auth_password">Používateľské meno a heslo</string>

@@ -337,6 +337,8 @@
     <string name="explorer_network_form_port_label">Portti</string>
     <string name="explorer_network_form_share_label">Jako</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Jätä tyhjäksi, jos haluat selata kaikkia palvelimen jakoja.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Näyttää kaikki tämän palvelimen jaot. Jos haluat avata yhden jaon suoraan, lisää erillinen sijainti.</string>
     <string name="explorer_network_form_base_path_label">Jaon sisäinen kansio (valinnainen)</string>
     <string name="explorer_network_form_auth_guest">Vieras</string>
     <string name="explorer_network_form_auth_password">Käyttäjänimi ja salasana</string>

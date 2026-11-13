@@ -340,6 +340,8 @@
     <string name="explorer_network_form_port_label">পোর্ট</string>
     <string name="explorer_network_form_share_label">শেয়ার</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">সার্ভারের সব শেয়ার ব্রাউজ করতে খালি রাখুন।</string>
+    <string name="explorer_network_form_share_server_entry_hint">এই সার্ভারের সব শেয়ার দেখায়। সরাসরি একটি শেয়ার খুলতে আলাদা একটি অবস্থান যোগ করুন।</string>
     <string name="explorer_network_form_base_path_label">শেয়ারের ভেতরের ফোল্ডার (ঐচ্ছিক)</string>
     <string name="explorer_network_form_auth_guest">অতিথি</string>
     <string name="explorer_network_form_auth_password">ব্যবহারকারীর নাম ও পাসওয়ার্ড</string>
