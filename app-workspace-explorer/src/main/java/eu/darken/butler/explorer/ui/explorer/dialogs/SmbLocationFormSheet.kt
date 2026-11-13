@@ -102,13 +102,10 @@ fun SmbLocationFormSheet(
     var revealedPassword by remember(usesPassword, keepsStoredCredential) {
         mutableStateOf<RevealedPassword?>(null)
     }
-    // A server entry stays one and a share location keeps its share: stored paths are relative to
-    // what the location points at, so switching would repoint them.
-    val isServerEntry = existing?.isServer == true
-    val requiresShare = existing != null && !isServerEntry
+    // The folder field is disabled without a share, so whatever it still shows is not submitted.
+    val submittedBasePath = if (share.isBlank()) "" else basePath
     val canSubmit = !state.isTesting && !isRevealing &&
         host.isNotBlank() &&
-        (!requiresShare || share.isNotBlank()) &&
         (!usesPassword || password.isNotEmpty() || keepsStoredCredential)
 
     PaneScopedBottomSheet(
@@ -159,18 +156,12 @@ fun SmbLocationFormSheet(
                     modifier = Modifier.weight(0.4f),
                 )
 
-                val shareHint = when {
-                    isServerEntry -> R.string.explorer_network_form_share_server_entry_hint
-                    existing == null -> R.string.explorer_network_form_share_optional_hint
-                    else -> null
-                }
                 OutlinedTextField(
                     value = share,
                     onValueChange = { share = it },
-                    enabled = !isServerEntry,
                     label = { Text(stringResource(R.string.explorer_network_form_share_label)) },
                     placeholder = { Text(stringResource(R.string.explorer_network_form_share_hint)) },
-                    supportingText = shareHint?.let { { Text(stringResource(it)) } },
+                    supportingText = { Text(stringResource(R.string.explorer_network_form_share_optional_hint)) },
                     singleLine = true,
                     modifier = Modifier.weight(0.6f),
                 )
@@ -180,7 +171,7 @@ fun SmbLocationFormSheet(
                 value = basePath,
                 onValueChange = { basePath = it },
                 // A folder only exists inside a share
-                enabled = if (existing == null) share.isNotBlank() else !isServerEntry,
+                enabled = share.isNotBlank(),
                 label = { Text(stringResource(R.string.explorer_network_form_base_path_label)) },
                 textStyle = LocalTextStyle.current.asPathStyle(),
                 singleLine = true,
@@ -348,7 +339,7 @@ fun SmbLocationFormSheet(
                                 host = host,
                                 port = port,
                                 share = share,
-                                basePath = basePath,
+                                basePath = submittedBasePath,
                                 authType = authType,
                                 username = username,
                                 domain = domain,

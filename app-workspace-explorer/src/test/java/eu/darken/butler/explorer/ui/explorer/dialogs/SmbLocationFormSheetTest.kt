@@ -109,26 +109,44 @@ class SmbLocationFormSheetTest : ComposeTest() {
     }
 
     @Test
-    fun `editing a server entry offers neither a share nor a folder`() {
+    fun `editing a server entry offers a share, and the folder once a share is set`() {
         setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored.copy(share = null)))
 
-        composeTestRule.onNodeWithText("Share").performScrollTo().assertIsNotEnabled()
+        composeTestRule.onNodeWithText("Share").performScrollTo().assertIsEnabled()
         composeTestRule.onNodeWithText(BASE_PATH_LABEL).performScrollTo().assertIsNotEnabled()
-        composeTestRule.onNodeWithText(
-            "Shows every share on this server. To open one share directly, add a separate location.",
-        ).performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("Leave empty to browse every share on the server.")
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsEnabled()
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextInput("media")
+
+        composeTestRule.onNodeWithText(BASE_PATH_LABEL).performScrollTo().assertIsEnabled()
         composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsEnabled()
     }
 
     @Test
-    fun `editing a share location still requires the share`() {
+    fun `clearing the share of a share location can still be saved`() {
         setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored))
 
         composeTestRule.onNodeWithText("Share").performScrollTo().performTextReplacement("")
 
-        composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsNotEnabled()
-        composeTestRule.onNodeWithText(BASE_PATH_LABEL).performScrollTo().assertIsEnabled()
-        composeTestRule.onAllNodesWithTextCount("Leave empty to browse every share on the server.") shouldBe 0
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsEnabled()
+        composeTestRule.onNodeWithText(BASE_PATH_LABEL).performScrollTo().assertIsNotEnabled()
+        composeTestRule.onNodeWithText("Leave empty to browse every share on the server.")
+            .performScrollTo()
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun `a folder left behind by a cleared share is not submitted`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored.copy(basePath = listOf("movies"))))
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextReplacement("")
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().performClick()
+
+        submitted!!.share shouldBe ""
+        submitted!!.basePath shouldBe ""
     }
 
     @Test

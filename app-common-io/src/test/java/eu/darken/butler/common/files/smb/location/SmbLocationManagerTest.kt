@@ -218,29 +218,31 @@ class SmbLocationManagerTest : BaseTest() {
     }
 
     @Test
-    fun `a share location cannot become a server entry`() = runTest {
+    fun `a share location can become a server entry`() = runTest {
         val manager = manager()
         val location = manager.createSample()
-        val locationRows = locationsDao.rows.value
-        val credentialRows = credentialsDao.rows.value
 
-        shouldThrow<IllegalArgumentException> { manager.updateShare(location, share = null) }
+        val updated = manager.updateShare(location, share = null)
 
-        locationsDao.rows.value shouldBe locationRows
-        credentialsDao.rows.value shouldBe credentialRows
+        updated.isServer shouldBe true
+        locationsDao.rows.value.single().share shouldBe null
+        val stored = manager.get(location.id)!!
+        stored.isServer shouldBe true
+        stored.basePath shouldBe emptyList()
     }
 
     @Test
-    fun `a server entry cannot become a share location`() = runTest {
+    fun `a server entry can become a share location`() = runTest {
         val manager = manager()
         val location = manager.createServer()
-        val locationRows = locationsDao.rows.value
-        val credentialRows = credentialsDao.rows.value
 
-        shouldThrow<IllegalArgumentException> { manager.updateShare(location, share = "media") }
+        val updated = manager.updateShare(location, share = "media")
 
-        locationsDao.rows.value shouldBe locationRows
-        credentialsDao.rows.value shouldBe credentialRows
+        updated.share shouldBe "media"
+        locationsDao.rows.value.single().share shouldBe "media"
+        val stored = manager.get(location.id)!!
+        stored.isServer shouldBe false
+        stored.share shouldBe "media"
     }
 
     @Test
