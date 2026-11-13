@@ -102,9 +102,13 @@ fun SmbLocationFormSheet(
     var revealedPassword by remember(usesPassword, keepsStoredCredential) {
         mutableStateOf<RevealedPassword?>(null)
     }
+    // A server entry stays one and a share location keeps its share: stored paths are relative to
+    // what the location points at, so switching would repoint them.
+    val isServerEntry = existing?.isServer == true
+    val requiresShare = existing != null && !isServerEntry
     val canSubmit = !state.isTesting && !isRevealing &&
         host.isNotBlank() &&
-        share.isNotBlank() &&
+        (!requiresShare || share.isNotBlank()) &&
         (!usesPassword || password.isNotEmpty() || keepsStoredCredential)
 
     PaneScopedBottomSheet(
@@ -155,11 +159,18 @@ fun SmbLocationFormSheet(
                     modifier = Modifier.weight(0.4f),
                 )
 
+                val shareHint = when {
+                    isServerEntry -> R.string.explorer_network_form_share_server_entry_hint
+                    existing == null -> R.string.explorer_network_form_share_optional_hint
+                    else -> null
+                }
                 OutlinedTextField(
                     value = share,
                     onValueChange = { share = it },
+                    enabled = !isServerEntry,
                     label = { Text(stringResource(R.string.explorer_network_form_share_label)) },
                     placeholder = { Text(stringResource(R.string.explorer_network_form_share_hint)) },
+                    supportingText = shareHint?.let { { Text(stringResource(it)) } },
                     singleLine = true,
                     modifier = Modifier.weight(0.6f),
                 )
@@ -168,6 +179,8 @@ fun SmbLocationFormSheet(
             OutlinedTextField(
                 value = basePath,
                 onValueChange = { basePath = it },
+                // A folder only exists inside a share
+                enabled = if (existing == null) share.isNotBlank() else !isServerEntry,
                 label = { Text(stringResource(R.string.explorer_network_form_base_path_label)) },
                 textStyle = LocalTextStyle.current.asPathStyle(),
                 singleLine = true,
@@ -373,6 +386,17 @@ private fun SmbLocationFormSheetEditPreview() {
         onDismiss = {},
         onSubmit = {},
         onRevealPassword = { RevealedPassword("hunter2") },
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SmbLocationFormSheetEditServerEntryPreview() {
+    SmbLocationFormSheet(
+        state = ExplorerDialogState.SmbLocationForm(existing = previewLocation().copy(share = null)),
+        onDismiss = {},
+        onSubmit = {},
     )
 }
 
