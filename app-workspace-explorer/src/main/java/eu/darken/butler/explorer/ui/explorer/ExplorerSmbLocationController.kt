@@ -141,18 +141,15 @@ class ExplorerSmbLocationController(
         input: SmbLocationFormInput,
         password: CharArray?,
     ) {
-        // A new location without a share is a server entry. An edit keeps the kind it was saved as,
-        // SmbLocationManager.update refuses switching.
-        val isServerEntry = existing?.isServer == true
+        // No share means a server entry, for a new location and an edited one alike.
         val parsed = SmbLocationInput.parse(
             host = input.host,
             port = input.port,
-            share = if (isServerEntry) "" else input.share,
+            share = input.share,
             basePath = input.basePath,
             domain = input.domain,
             username = input.username,
             requireUsername = input.authType == SmbLocation.AuthType.PASSWORD,
-            requireShare = existing != null && !isServerEntry,
         )
         if (parsed is SmbLocationInput.Result.Invalid) {
             dialogs.show(formState.copy(error = parsed.issues.first().message()))

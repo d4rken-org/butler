@@ -327,8 +327,35 @@ class ExplorerSmbLocationControllerTest : BaseTest() {
     }
 
     @Test
-    fun `editing a share location still requires a share`() = runTest {
-        val locationManager = mockk<SmbLocationManager>()
+    fun `editing a server entry with a share turns it into a share location`() = runTest {
+        val locationManager = mockk<SmbLocationManager>().apply {
+            coEvery {
+                update(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            } returns location("NAS")
+        }
+        val tester = mockk<SmbConnectionTester>(relaxed = true)
+        val dialogs = dialogs().apply { show(ExplorerDialogState.SmbLocationForm(existing = serverEntry())) }
+        val controller = controller(locationManager, dialogs, connectionTester = tester)
+
+        controller.onFormSubmit(guestInput.copy(share = " /media/ ", basePath = "movies"))
+        runCurrent()
+
+        coVerify(exactly = 1) { tester.test("nas.local", 445, "media", null, any(), null) }
+        coVerify(exactly = 1) {
+            locationManager.update(
+                locationId, any(), "nas.local", 445, "media", listOf("movies"), any(), any(), any(), any(), any(),
+            )
+        }
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `clearing the share of a share location saves a server entry`() = runTest {
+        val locationManager = mockk<SmbLocationManager>().apply {
+            coEvery {
+                update(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            } returns serverEntry()
+        }
         val tester = mockk<SmbConnectionTester>(relaxed = true)
         val existing = location("NAS").copy(authType = SmbLocation.AuthType.GUEST)
         val dialogs = dialogs().apply { show(ExplorerDialogState.SmbLocationForm(existing = existing)) }
@@ -337,9 +364,30 @@ class ExplorerSmbLocationControllerTest : BaseTest() {
         controller.onFormSubmit(guestInput.copy(share = " "))
         runCurrent()
 
+        coVerify(exactly = 1) { tester.test("nas.local", 445, null, null, any(), null) }
+        coVerify(exactly = 1) {
+            locationManager.update(
+                locationId, any(), "nas.local", 445, null, emptyList(), any(), any(), any(), any(), any(),
+            )
+        }
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `a folder without a share is refused when editing too`() = runTest {
+        val locationManager = mockk<SmbLocationManager>()
+        val tester = mockk<SmbConnectionTester>(relaxed = true)
+        val existing = location("NAS").copy(authType = SmbLocation.AuthType.GUEST)
+        val dialogs = dialogs().apply { show(ExplorerDialogState.SmbLocationForm(existing = existing)) }
+        val controller = controller(locationManager, dialogs, connectionTester = tester)
+
+        controller.onFormSubmit(guestInput.copy(share = "", basePath = "movies"))
+        runCurrent()
+
         coVerify(exactly = 0) { tester.test(any(), any(), any(), any(), any(), any()) }
         val form = dialogs.current().shouldBeInstanceOf<ExplorerDialogState.SmbLocationForm>()
-        form.error!!.get(resourceContext) shouldBe "string:${R.string.explorer_network_form_error_share_blank}"
+        form.error!!.get(resourceContext) shouldBe
+            "string:${R.string.explorer_network_form_error_base_path_without_share}"
     }
 
     @Test

@@ -41,12 +41,8 @@ interface SmbLocationManager {
      * A null [password] keeps the stored credential, which is only valid while the username stays
      * the same: a new username with no password would silently reuse the old user's password.
      *
-     * A location cannot switch between server entry and share location: stored paths are the
-     * location id plus segments, so switching would repoint favorites and history at other folders.
-     *
-     * @throws IllegalArgumentException if the username changes without a password, if [share] turns
-     * a share location into a server entry or the other way round, or for a server entry with a
-     * [basePath]
+     * @throws IllegalArgumentException if the username changes without a password, or for a server
+     * entry with a [basePath]
      */
     suspend fun update(
         id: Uuid,

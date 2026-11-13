@@ -99,9 +99,6 @@ class SmbLocationManagerImpl @Inject constructor(
         password: CharArray?,
     ): SmbLocation {
         val existing = dao.get(id)?.toLocation() ?: throw IllegalArgumentException("Unknown location: $id")
-        require((share == null) == existing.isServer) {
-            "A location cannot switch between a server entry and a share"
-        }
         require(share != null || basePath.isEmpty()) { "A server entry has no base path" }
 
         // The domain is part of the stored credential, so changing it invalidates it just like a
