@@ -338,6 +338,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler zapomni dane serwera oraz zapisane hasło. Nic na serwerze nie zostanie usunięte.</string>
     <string name="explorer_network_remove_saved_items_message">Ulubione, skróty i inne zapisane elementy z nią powiązane przestaną działać.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Ulubione, skróty i inne zapisane elementy z nimi powiązane przestaną działać.</string>
     <string name="explorer_network_disconnect_location_action">Rozłącz</string>
     <string name="explorer_network_disconnect_confirmation_title">Rozłączyć %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -360,6 +361,7 @@
     <string name="explorer_network_form_share_optional_hint">Pozostaw puste, aby przeglądać wszystkie zasoby na serwerze.</string>
     <string name="explorer_network_form_base_path_label">Folder wewnątrz zasobu (opcjonalnie)</string>
     <string name="explorer_network_form_root_change_warning">Ulubione, skróty i inne zapisane elementy tej lokalizacji będą używać nowego punktu początkowego. Mogą otworzyć inny folder lub stać się niedostępne. Żadne pliki nie są przenoszone ani usuwane.</string>
+    <string name="explorer_network_form_add_as_new_action">Dodaj jako nową lokalizację</string>
     <string name="explorer_network_form_auth_guest">Gość</string>
     <string name="explorer_network_form_auth_password">Nazwa użytkownika i hasło</string>
     <string name="explorer_network_form_username_label">Nazwa użytkownika</string>

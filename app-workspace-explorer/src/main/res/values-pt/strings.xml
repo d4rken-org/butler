@@ -335,6 +335,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">O Butler esquece os dados do servidor e a palavra-passe guardada. Nada no servidor é eliminado.</string>
     <string name="explorer_network_remove_saved_items_message">Os favoritos, atalhos e outros itens guardados associados a ela deixarão de funcionar.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Os favoritos, atalhos e outros itens guardados associados a elas deixarão de funcionar.</string>
     <string name="explorer_network_disconnect_location_action">Desligar</string>
     <string name="explorer_network_disconnect_confirmation_title">Desligar %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -356,6 +357,7 @@
     <string name="explorer_network_form_share_optional_hint">Deixa em branco para explorar todas as partilhas do servidor.</string>
     <string name="explorer_network_form_base_path_label">Pasta dentro da partilha (opcional)</string>
     <string name="explorer_network_form_root_change_warning">Os favoritos, atalhos e outros itens guardados desta localização vão usar o novo ponto de partida. Podem abrir outra pasta ou deixar de estar disponíveis. Nenhum ficheiro é movido nem eliminado.</string>
+    <string name="explorer_network_form_add_as_new_action">Adicionar como nova localização</string>
     <string name="explorer_network_form_auth_guest">Convidado</string>
     <string name="explorer_network_form_auth_password">Nome de utilizador e palavra-passe</string>
     <string name="explorer_network_form_username_label">Nome de utilizador</string>

@@ -324,6 +324,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler সার্ভারের বিস্তারিত ও সংরক্ষিত পাসওয়ার্ড ভুলে যাবে। সার্ভারের কোনো কিছু মুছে ফেলা হবে না।</string>
     <string name="explorer_network_remove_saved_items_message">এর সাথে যুক্ত পছন্দের, শর্টকাট ও অন্যান্য সংরক্ষিত আইটেম আর কাজ করবে না।</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">এগুলোর সাথে যুক্ত পছন্দের, শর্টকাট ও অন্যান্য সংরক্ষিত আইটেম আর কাজ করবে না।</string>
     <string name="explorer_network_disconnect_location_action">সংযোগ বিচ্ছিন্ন করুন</string>
     <string name="explorer_network_disconnect_confirmation_title">%1$s-এর সংযোগ বিচ্ছিন্ন করবেন?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -344,6 +345,7 @@
     <string name="explorer_network_form_share_optional_hint">সার্ভারের সব শেয়ার ব্রাউজ করতে খালি রাখুন।</string>
     <string name="explorer_network_form_base_path_label">শেয়ারের ভেতরের ফোল্ডার (ঐচ্ছিক)</string>
     <string name="explorer_network_form_root_change_warning">এই অবস্থানের পছন্দের, শর্টকাট ও অন্যান্য সংরক্ষিত আইটেম নতুন শুরুর বিন্দু ব্যবহার করবে। সেগুলো অন্য ফোল্ডার খুলতে পারে বা অনুপলব্ধ হয়ে যেতে পারে। কোনো ফাইল সরানো বা মুছে ফেলা হয় না।</string>
+    <string name="explorer_network_form_add_as_new_action">নতুন অবস্থান হিসেবে যোগ করুন</string>
     <string name="explorer_network_form_auth_guest">অতিথি</string>
     <string name="explorer_network_form_auth_password">ব্যবহারকারীর নাম ও পাসওয়ার্ড</string>
     <string name="explorer_network_form_username_label">ব্যবহারকারীর নাম</string>

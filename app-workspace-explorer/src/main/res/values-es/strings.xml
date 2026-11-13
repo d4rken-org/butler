@@ -319,6 +319,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler olvida los datos del servidor y la contraseña guardada. No se elimina nada en el servidor.</string>
     <string name="explorer_network_remove_saved_items_message">Los favoritos, accesos directos y otros elementos guardados vinculados a ella dejarán de funcionar.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Los favoritos, accesos directos y otros elementos guardados vinculados a ellas dejarán de funcionar.</string>
     <string name="explorer_network_disconnect_location_action">Desconectar</string>
     <string name="explorer_network_disconnect_confirmation_title">¿Desconectar %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -339,6 +340,7 @@
     <string name="explorer_network_form_share_optional_hint">Déjalo vacío para explorar todos los recursos compartidos del servidor.</string>
     <string name="explorer_network_form_base_path_label">Carpeta dentro del recurso compartido (opcional)</string>
     <string name="explorer_network_form_root_change_warning">Los favoritos, accesos directos y otros elementos guardados de esta ubicación usarán el nuevo punto de partida. Podrían abrir otra carpeta o dejar de estar disponibles. No se mueve ni se elimina ningún archivo.</string>
+    <string name="explorer_network_form_add_as_new_action">Agregar como nueva ubicación</string>
     <string name="explorer_network_form_auth_guest">Invitado</string>
     <string name="explorer_network_form_auth_password">Nombre de usuario y contraseña</string>
     <string name="explorer_network_form_username_label">Nombre de usuario</string>

@@ -308,6 +308,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler จะลืมรายละเอียดเซิร์ฟเวอร์และรหัสผ่านที่บันทึกไว้ ไม่มีสิ่งใดบนเซิร์ฟเวอร์ถูกลบ</string>
     <string name="explorer_network_remove_saved_items_message">รายการโปรด ทางลัด และรายการที่บันทึกไว้อื่นๆ ที่ลิงก์กับตำแหน่งนี้จะใช้งานไม่ได้อีก</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">รายการโปรด ทางลัด และรายการที่บันทึกไว้อื่นๆ ที่ลิงก์กับตำแหน่งเหล่านี้จะใช้งานไม่ได้อีก</string>
     <string name="explorer_network_disconnect_location_action">ตัดการเชื่อมต่อ</string>
     <string name="explorer_network_disconnect_confirmation_title">ตัดการเชื่อมต่อ %1$s ไหม</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -327,6 +328,7 @@
     <string name="explorer_network_form_share_optional_hint">เว้นว่างไว้เพื่อเรียกดูแชร์ทั้งหมดบนเซิร์ฟเวอร์</string>
     <string name="explorer_network_form_base_path_label">โฟลเดอร์ภายในแชร์ (ไม่บังคับ)</string>
     <string name="explorer_network_form_root_change_warning">รายการโปรด ทางลัด และรายการที่บันทึกไว้อื่นๆ ของตำแหน่งนี้จะใช้จุดเริ่มต้นใหม่ ซึ่งอาจเปิดโฟลเดอร์อื่นหรือใช้งานไม่ได้ ไม่มีไฟล์ใดถูกย้ายหรือลบ</string>
+    <string name="explorer_network_form_add_as_new_action">เพิ่มเป็นตำแหน่งใหม่</string>
     <string name="explorer_network_form_auth_guest">เกสต์</string>
     <string name="explorer_network_form_auth_password">ชื่อผู้ใช้และรหัสผ่าน</string>
     <string name="explorer_network_form_username_label">ชื่อผู้ใช้</string>

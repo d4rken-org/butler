@@ -319,6 +319,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler vergisst die Serverdaten und das gespeicherte Passwort. Auf dem Server wird nichts gelöscht.</string>
     <string name="explorer_network_remove_saved_items_message">Favoriten, Verknüpfungen und andere damit verknüpfte gespeicherte Einträge funktionieren dann nicht mehr.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Favoriten, Verknüpfungen und andere damit verknüpfte gespeicherte Einträge funktionieren dann nicht mehr.</string>
     <string name="explorer_network_disconnect_location_action">Trennen</string>
     <string name="explorer_network_disconnect_confirmation_title">%1$s trennen?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -339,6 +340,7 @@
     <string name="explorer_network_form_share_optional_hint">Leer lassen, um alle Freigaben des Servers zu durchsuchen.</string>
     <string name="explorer_network_form_base_path_label">Ordner innerhalb der Freigabe (optional)</string>
     <string name="explorer_network_form_root_change_warning">Favoriten, Verknüpfungen und andere gespeicherte Einträge für diesen Speicherort verwenden den neuen Startpunkt. Sie öffnen dann eventuell einen anderen Ordner oder sind nicht mehr verfügbar. Es werden keine Dateien verschoben oder gelöscht.</string>
+    <string name="explorer_network_form_add_as_new_action">Als neuen Speicherort hinzufügen</string>
     <string name="explorer_network_form_auth_guest">Gast</string>
     <string name="explorer_network_form_auth_password">Benutzername und Passwort</string>
     <string name="explorer_network_form_username_label">Benutzername</string>

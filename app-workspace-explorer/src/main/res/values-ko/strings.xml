@@ -308,6 +308,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler가 서버 정보와 저장된 비밀번호를 잊습니다. 서버의 데이터는 삭제되지 않습니다.</string>
     <string name="explorer_network_remove_saved_items_message">여기에 연결된 즐겨찾기, 바로가기 및 기타 저장된 항목이 더 이상 작동하지 않습니다.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">이들에 연결된 즐겨찾기, 바로가기 및 기타 저장된 항목이 더 이상 작동하지 않습니다.</string>
     <string name="explorer_network_disconnect_location_action">연결 해제</string>
     <string name="explorer_network_disconnect_confirmation_title">%1$s 연결을 해제할까요?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -327,6 +328,7 @@
     <string name="explorer_network_form_share_optional_hint">비워 두면 서버의 모든 공유를 찾아볼 수 있습니다.</string>
     <string name="explorer_network_form_base_path_label">공유 내 폴더(선택)</string>
     <string name="explorer_network_form_root_change_warning">이 위치의 즐겨찾기, 바로가기 및 기타 저장된 항목은 새 시작 지점을 사용합니다. 다른 폴더가 열리거나 사용할 수 없게 될 수 있습니다. 파일은 이동되거나 삭제되지 않습니다.</string>
+    <string name="explorer_network_form_add_as_new_action">새 위치로 추가</string>
     <string name="explorer_network_form_auth_guest">게스트</string>
     <string name="explorer_network_form_auth_password">사용자 이름과 비밀번호</string>
     <string name="explorer_network_form_username_label">사용자 이름</string>

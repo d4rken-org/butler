@@ -319,6 +319,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler جزئیات سرور و گذرواژه ذخیره‌شده را فراموش می‌کند. چیزی در سرور حذف نمی‌شود.</string>
     <string name="explorer_network_remove_saved_items_message">علاقه‌مندی‌ها، میان‌برها و دیگر موارد ذخیره‌شده مرتبط با آن دیگر کار نمی‌کنند.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">علاقه‌مندی‌ها، میان‌برها و دیگر موارد ذخیره‌شده مرتبط با آن‌ها دیگر کار نمی‌کنند.</string>
     <string name="explorer_network_disconnect_location_action">قطع اتصال</string>
     <string name="explorer_network_disconnect_confirmation_title">اتصال %1$s قطع شود؟</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -339,6 +340,7 @@
     <string name="explorer_network_form_share_optional_hint">برای مرور همه اشتراک‌های سرور، خالی بگذارید.</string>
     <string name="explorer_network_form_base_path_label">پوشه داخل اشتراک (اختیاری)</string>
     <string name="explorer_network_form_root_change_warning">علاقه‌مندی‌ها، میان‌برها و دیگر موارد ذخیره‌شده این مکان از نقطه شروع جدید استفاده می‌کنند. ممکن است پوشه دیگری را باز کنند یا در دسترس نباشند. هیچ فایلی جابه‌جا یا حذف نمی‌شود.</string>
+    <string name="explorer_network_form_add_as_new_action">افزودن به‌عنوان مکان جدید</string>
     <string name="explorer_network_form_auth_guest">مهمان</string>
     <string name="explorer_network_form_auth_password">نام کاربری و گذرواژه</string>
     <string name="explorer_network_form_username_label">نام کاربری</string>

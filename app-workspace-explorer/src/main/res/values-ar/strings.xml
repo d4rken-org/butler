@@ -360,6 +360,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">سينسى Butler تفاصيل الخادم وكلمة المرور المحفوظة. لن يُحذف أي شيء على الخادم.</string>
     <string name="explorer_network_remove_saved_items_message">ستتوقف المفضلة والاختصارات والعناصر المحفوظة الأخرى المرتبطة به عن العمل.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">ستتوقف المفضلة والاختصارات والعناصر المحفوظة الأخرى المرتبطة بها عن العمل.</string>
     <string name="explorer_network_disconnect_location_action">قطع الاتصال</string>
     <string name="explorer_network_disconnect_confirmation_title">قطع الاتصال بـ %1$s؟</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -384,6 +385,7 @@
     <string name="explorer_network_form_share_optional_hint">اتركه فارغًا لتصفح كل المشاركات على الخادم.</string>
     <string name="explorer_network_form_base_path_label">المجلد داخل المشاركة (اختياري)</string>
     <string name="explorer_network_form_root_change_warning">ستستخدم المفضلة والاختصارات والعناصر المحفوظة الأخرى لهذا الموقع نقطة البداية الجديدة. قد تفتح مجلدًا مختلفًا أو تصبح غير متاحة. لا يُنقل أي ملف ولا يُحذف.</string>
+    <string name="explorer_network_form_add_as_new_action">إضافة كموقع جديد</string>
     <string name="explorer_network_form_auth_guest">ضيف</string>
     <string name="explorer_network_form_auth_password">اسم المستخدم وكلمة المرور</string>
     <string name="explorer_network_form_username_label">اسم المستخدم</string>

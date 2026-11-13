@@ -282,6 +282,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">A Butler elfelejti a kiszolgáló adatait és a mentett jelszót. A kiszolgálón semmi sem törlődik.</string>
     <string name="explorer_network_remove_saved_items_message">A hozzá kapcsolódó kedvencek, parancsikonok és egyéb mentett elemek nem fognak működni.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">A hozzájuk kapcsolódó kedvencek, parancsikonok és egyéb mentett elemek nem fognak működni.</string>
     <string name="explorer_network_disconnect_location_action">Kapcsolat bontása</string>
     <string name="explorer_network_disconnect_confirmation_title">Bontod a kapcsolatot: %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -300,6 +301,7 @@
     <string name="explorer_network_form_share_optional_hint">Hagyd üresen a szerver összes megosztásának böngészéséhez.</string>
     <string name="explorer_network_form_base_path_label">Mappa a megosztáson belül (nem kötelező)</string>
     <string name="explorer_network_form_root_change_warning">A hely kedvencei, parancsikonjai és egyéb mentett elemei az új kiindulópontot fogják használni. Előfordulhat, hogy másik mappát nyitnak meg, vagy elérhetetlenné válnak. Egyetlen fájl sem lesz áthelyezve vagy törölve.</string>
+    <string name="explorer_network_form_add_as_new_action">Hozzáadás új helyként</string>
     <string name="explorer_network_form_auth_guest">Vendég</string>
     <string name="explorer_network_form_auth_password">Felhasználónév és jelszó</string>
     <string name="explorer_network_form_username_label">Felhasználónév</string>

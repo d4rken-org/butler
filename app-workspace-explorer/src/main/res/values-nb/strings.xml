@@ -321,6 +321,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler glemmer serverdetaljene og det lagrede passordet. Ingenting på serveren blir slettet.</string>
     <string name="explorer_network_remove_saved_items_message">Favoritter, snarveier og andre lagrede elementer som er knyttet til den, slutter å fungere.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Favoritter, snarveier og andre lagrede elementer som er knyttet til dem, slutter å fungere.</string>
     <string name="explorer_network_disconnect_location_action">Koble fra</string>
     <string name="explorer_network_disconnect_confirmation_title">Koble fra %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -341,6 +342,7 @@
     <string name="explorer_network_form_share_optional_hint">La feltet stå tomt for å bla gjennom alle delte ressurser på serveren.</string>
     <string name="explorer_network_form_base_path_label">Mappe i den delte ressursen (valgfritt)</string>
     <string name="explorer_network_form_root_change_warning">Favoritter, snarveier og andre lagrede elementer for denne plasseringen vil bruke det nye startpunktet. De kan åpne en annen mappe eller bli utilgjengelige. Ingen filer flyttes eller slettes.</string>
+    <string name="explorer_network_form_add_as_new_action">Legg til som ny plassering</string>
     <string name="explorer_network_form_auth_guest">Gjest</string>
     <string name="explorer_network_form_auth_password">Brukernavn og passord</string>
     <string name="explorer_network_form_username_label">Brukernavn</string>
