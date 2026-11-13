@@ -1,18 +1,32 @@
 package eu.darken.butler.apps.ui.details
 
+import android.content.Context
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.apps.R
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.common.WorkspaceToolbarDefaults
@@ -195,5 +209,186 @@ class AppDetailsToolbarCardTest : ComposeTest() {
         }
 
         composeTestRule.onNodeWithContentDescription("Search components").assertDoesNotExist()
+    }
+
+    private val context: Context = ApplicationProvider.getApplicationContext()
+
+    private val app = AppsMockDataProvider.Presets.chrome
+    private val appLabel: String
+        get() = app.label.get(context)
+    private val subtitle: String
+        get() = context.getString(R.string.apps_details_section_components)
+    private val collapsedTitle: String
+        get() = "$appLabel · $subtitle"
+    private val backLabel: String
+        get() = context.getString(R.string.appdetails_back_generic_action)
+    private val searchToggleLabel: String
+        get() = context.getString(R.string.apps_components_search_action)
+
+    private var expandCalls = 0
+    private var backCalls = 0
+    private var searchToggleCalls = 0
+
+    private fun setCard(
+        collapsedFraction: Float = 1f,
+        searchActive: Boolean = false,
+        withExpand: Boolean = true,
+        cardModifier: Modifier = Modifier,
+    ) {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Box(modifier = cardModifier) {
+                    // The Components sub-screen: back button, title and search toggle side by side.
+                    AppDetailsToolbarCard(
+                        app = app,
+                        design = multiPane,
+                        collapsedFraction = collapsedFraction,
+                        subtitle = subtitle,
+                        onBackClick = { backCalls++ },
+                        searchActive = searchActive,
+                        searchQuery = TextFieldValue(),
+                        onSearchToggle = { searchToggleCalls++ },
+                        onExpand = if (withExpand) {
+                            { expandCalls++ }
+                        } else {
+                            null
+                        },
+                    )
+                }
+            }
+        }
+        composeTestRule.waitForIdle()
+    }
+
+    private fun tapCentreOfText(text: String) {
+        composeTestRule.onNodeWithText(text, useUnmergedTree = true).performTouchInput { click() }
+        composeTestRule.waitForIdle()
+    }
+
+    @Test
+    fun `the tappable collapsed toolbar keeps the collapsed toolbar height`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                AppDetailsToolbarCard(
+                    modifier = Modifier.testTag(cardTag),
+                    app = app,
+                    design = multiPane,
+                    collapsedFraction = 1f,
+                    onExpand = { expandCalls++ },
+                )
+            }
+        }
+
+        val card = composeTestRule.onNodeWithTag(cardTag).getUnclippedBoundsInRoot()
+
+        (card.bottom - card.top) shouldBe WorkspaceToolbarDefaults.MinHeightCollapsed
+    }
+
+    @Test
+    fun `tapping the collapsed title asks the bar to expand`() {
+        setCard()
+
+        tapCentreOfText(collapsedTitle)
+
+        expandCalls shouldBe 1
+        backCalls shouldBe 0
+        searchToggleCalls shouldBe 0
+    }
+
+    @Test
+    fun `tapping the collapsed app icon asks the bar to expand`() {
+        setCard()
+
+        composeTestRule.onNodeWithContentDescription(appLabel, useUnmergedTree = true)
+            .performTouchInput { click() }
+        composeTestRule.waitForIdle()
+
+        expandCalls shouldBe 1
+    }
+
+    @Test
+    fun `tapping the expanded title does not ask the bar to expand`() {
+        setCard(collapsedFraction = 0f)
+
+        tapCentreOfText(appLabel)
+
+        expandCalls shouldBe 0
+    }
+
+    @Test
+    fun `the collapsed title is not tappable without an expand handler`() {
+        setCard(withExpand = false)
+
+        composeTestRule.onNodeWithText(collapsedTitle).assertIsDisplayed()
+        composeTestRule.onAllNodes(hasClickAction() and hasText(collapsedTitle)).assertCountEquals(0)
+    }
+
+    private fun assertTitleAndControlsStaySeparate() {
+        tapCentreOfText(collapsedTitle)
+        expandCalls shouldBe 1
+
+        composeTestRule.onNodeWithContentDescription(backLabel).performTouchInput { click() }
+        composeTestRule.waitForIdle()
+        backCalls shouldBe 1
+
+        composeTestRule.onNodeWithContentDescription(searchToggleLabel).performTouchInput { click() }
+        composeTestRule.waitForIdle()
+        searchToggleCalls shouldBe 1
+
+        expandCalls shouldBe 1
+    }
+
+    @Test
+    fun `the collapsed title expands while back and search keep their own actions`() {
+        setCard()
+
+        assertTitleAndControlsStaySeparate()
+    }
+
+    @Test
+    fun `the back button edge facing the title keeps its own action`() {
+        setCard()
+
+        composeTestRule.onNodeWithContentDescription(backLabel).performTouchInput {
+            click(Offset(width - 1f, centerY))
+        }
+        composeTestRule.waitForIdle()
+
+        backCalls shouldBe 1
+        expandCalls shouldBe 0
+    }
+
+    @Test
+    fun `the search toggle edge facing the title keeps its own action`() {
+        setCard()
+
+        composeTestRule.onNodeWithContentDescription(searchToggleLabel).performTouchInput {
+            click(Offset(1f, centerY))
+        }
+        composeTestRule.waitForIdle()
+
+        searchToggleCalls shouldBe 1
+        expandCalls shouldBe 0
+    }
+
+    @Test
+    fun `a narrow collapsed toolbar keeps the title and the controls separate`() {
+        setCard(cardModifier = Modifier.width(280.dp))
+
+        assertTitleAndControlsStaySeparate()
+    }
+
+    @Test
+    fun `the collapsed search field is never inside the expand target`() {
+        setCard(searchActive = true)
+
+        composeTestRule
+            .onAllNodes(hasClickAction() and hasAnyDescendant(hasSetTextAction()), useUnmergedTree = true)
+            .assertCountEquals(0)
+
+        composeTestRule.onNode(hasSetTextAction()).performTouchInput { click() }
+        composeTestRule.waitForIdle()
+
+        expandCalls shouldBe 0
     }
 }

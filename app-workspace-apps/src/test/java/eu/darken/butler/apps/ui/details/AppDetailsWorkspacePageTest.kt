@@ -1,5 +1,6 @@
 package eu.darken.butler.apps.ui.details
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -8,17 +9,27 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
+import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
 import eu.darken.butler.apps.core.details.AppInfoState
 import eu.darken.butler.apps.core.details.PackageInfoState
+import eu.darken.butler.apps.core.details.components.ComponentEnabledState
+import eu.darken.butler.apps.core.details.components.ComponentEntry
+import eu.darken.butler.apps.core.details.components.ComponentKind
 import eu.darken.butler.apps.core.details.components.ComponentsUiState
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.apps.ui.details.components.ComponentsActionBarItem
@@ -27,6 +38,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
@@ -337,5 +349,109 @@ class AppDetailsWorkspacePageTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         actions shouldBe listOf(AppDetailsPageAction.ClearComponentSelection)
+    }
+
+    private val context: Context = ApplicationProvider.getApplicationContext()
+
+    private val appLabel: String
+        get() = AppsMockDataProvider.Presets.chrome.label.get(context)
+
+    /** Enough rows to scroll the list well past the toolbar's collapse distance. */
+    private val manyComponents = previewComponentsData.copy(
+        activities = (1..40).map { index ->
+            ComponentEntry(
+                kind = ComponentKind.ACTIVITY,
+                packageName = "com.example.app",
+                className = "com.example.app.Activity$index",
+                isExported = false,
+                enabledState = ComponentEnabledState.ENABLED,
+            )
+        },
+    )
+
+    private fun setRoutePage(tab: DetailTab) {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                AppDetailsWorkspacePage(
+                    design = multiPane,
+                    state = AppDetailsWorkspace.State(
+                        appState = AppInfoState.Ready(AppsMockDataProvider.Presets.chrome),
+                        selectedTab = tab,
+                        packageInfo = PackageInfoState.Ready(previewPackageInfo),
+                        callerWorkspaceId = stackedOnCaller,
+                    ),
+                    componentsState = ComponentsUiState.Ready(manyComponents),
+                    workspaceId = Workspace.Id(),
+                    onPageAction = {},
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+    }
+
+    private fun collapseToolbarByScrolling() {
+        composeTestRule.onRoot().performTouchInput { swipeUp(startY = centerY, endY = top) }
+        composeTestRule.waitForIdle()
+    }
+
+    private fun tapText(text: String) {
+        composeTestRule.onNodeWithText(text, useUnmergedTree = true).performTouchInput { click() }
+        composeTestRule.waitForIdle()
+    }
+
+    /**
+     * Expanded, the app name is a text of its own above the subtitle; collapsed, both are joined
+     * into one. The subtitle alone is no marker, the route's content may use the same words.
+     */
+    private fun assertSubScreenToolbarExpandsOnTap(subtitle: String) {
+        val joined = "$appLabel · $subtitle"
+        composeTestRule.onNodeWithText(appLabel).assertIsDisplayed()
+        composeTestRule.onNodeWithText(joined).assertDoesNotExist()
+
+        collapseToolbarByScrolling()
+
+        composeTestRule.onNodeWithText(joined).assertIsDisplayed()
+        composeTestRule.onNodeWithText(appLabel).assertDoesNotExist()
+
+        tapText(joined)
+
+        composeTestRule.onNodeWithText(appLabel).assertIsDisplayed()
+        composeTestRule.onNodeWithText(joined).assertDoesNotExist()
+    }
+
+    @Test
+    fun `tapping the scroll-collapsed package info toolbar expands it again`() {
+        setRoutePage(DetailTab.PACKAGE_INFO)
+
+        assertSubScreenToolbarExpandsOnTap(context.getString(R.string.appdetails_packageinfo_title))
+    }
+
+    @Test
+    fun `tapping the scroll-collapsed components toolbar expands it again`() {
+        setRoutePage(DetailTab.COMPONENTS)
+
+        assertSubScreenToolbarExpandsOnTap(context.getString(R.string.apps_details_section_components))
+    }
+
+    /** The overview title is one line in both states; the app icon shrinks while collapsed. */
+    @Test
+    fun `tapping the scroll-collapsed overview toolbar expands it again`() {
+        setRoutePage(DetailTab.OVERVIEW)
+
+        fun iconWidth() = composeTestRule
+            .onNodeWithContentDescription(appLabel, useUnmergedTree = true)
+            .getUnclippedBoundsInRoot()
+            .width
+        val expandedIconWidth = iconWidth()
+        composeTestRule.onNodeWithText(appLabel).assertIsDisplayed()
+
+        collapseToolbarByScrolling()
+
+        iconWidth() shouldBeLessThan expandedIconWidth
+        composeTestRule.onNodeWithText(appLabel).assertIsDisplayed()
+
+        tapText(appLabel)
+
+        iconWidth() shouldBe expandedIconWidth
     }
 }

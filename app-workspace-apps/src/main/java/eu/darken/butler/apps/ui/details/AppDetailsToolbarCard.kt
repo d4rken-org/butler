@@ -1,6 +1,7 @@
 package eu.darken.butler.apps.ui.details
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -85,6 +86,7 @@ fun AppDetailsToolbarCard(
     searchHint: String? = null,
     onSearchQueryChange: (TextFieldValue) -> Unit = {},
     onSearchToggle: (() -> Unit)? = null,
+    onExpand: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val isCollapsed = collapsedFraction > 0.5f
@@ -143,9 +145,24 @@ fun AppDetailsToolbarCard(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // While searching, the back button and app icon give way to the input - the close button
-            // is the way back out, and it restores both.
-            if (!searchActive) {
+            // App name over the sub-screen subtitle, joined onto one line where there is no room for
+            // two (collapsed), and replaced by the search input while active. Collapsing only
+            // shrinks paddings and type - it must never drop the search field, because
+            // CollapseOnScroll never hides the bar itself.
+            if (searchActive) {
+                // The back button and app icon give way to the input - the close button is the way
+                // back out, and it restores both.
+                Spacer(modifier = Modifier.width(8.dp))
+                // Bare field, not AppsSearchBar: its surface inside the card would be a card in a
+                // card, stacking both paddings and pushing the toolbar past the workspace button.
+                AppsSearchField(
+                    modifier = Modifier.weight(1f),
+                    query = searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                    hint = searchHint ?: stringResource(R.string.apps_components_search_hint),
+                    autoFocus = true,
+                )
+            } else {
                 // Back button (modal close or sub-screen navigation)
                 if (onBackClick != null) {
                     IconButton(
@@ -165,69 +182,62 @@ fun AppDetailsToolbarCard(
                     Spacer(modifier = Modifier.width(8.dp))
                 }
 
-                // App icon
-                if (app != null) {
-                    TintedAsyncImage(
-                        model = app.install,
-                        contentDescription = app.label.asComposable(),
-                        modifier = Modifier.size(iconSize)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.TwoTone.Android,
-                        contentDescription = null,
-                        modifier = Modifier.size(iconSize),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // App name over the sub-screen subtitle, joined onto one line where there is no room for
-            // two (collapsed), and replaced by the search input while active. Collapsing only
-            // shrinks paddings and type - it must never drop the search field, because
-            // CollapseOnScroll never hides the bar itself.
-            if (searchActive) {
-                // Bare field, not AppsSearchBar: its surface inside the card would be a card in a
-                // card, stacking both paddings and pushing the toolbar past the workspace button.
-                AppsSearchField(
-                    modifier = Modifier.weight(1f),
-                    query = searchQuery,
-                    onQueryChange = onSearchQueryChange,
-                    hint = searchHint ?: stringResource(R.string.apps_components_search_hint),
-                    autoFocus = true,
-                )
-            } else if (isTwoLine) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = title.orEmpty(),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        text = subtitle.orEmpty(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            } else {
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = listOfNotNull(title, subtitle).joinToString(" · "),
-                    style = if (isCollapsed) {
-                        MaterialTheme.typography.bodyMedium
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .expandClickable(if (isCollapsed) onExpand else null),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // App icon
+                    if (app != null) {
+                        TintedAsyncImage(
+                            model = app.install,
+                            contentDescription = app.label.asComposable(),
+                            modifier = Modifier.size(iconSize)
+                        )
                     } else {
-                        MaterialTheme.typography.titleMedium
-                    },
-                    fontWeight = if (isCollapsed) null else FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                        Icon(
+                            imageVector = Icons.TwoTone.Android,
+                            contentDescription = null,
+                            modifier = Modifier.size(iconSize),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    if (isTwoLine) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = title.orEmpty(),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = subtitle.orEmpty(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    } else {
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = listOfNotNull(title, subtitle).joinToString(" · "),
+                            style = if (isCollapsed) {
+                                MaterialTheme.typography.bodyMedium
+                            } else {
+                                MaterialTheme.typography.titleMedium
+                            },
+                            fontWeight = if (isCollapsed) null else FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
             }
 
             if (onSearchToggle != null) {
@@ -250,6 +260,9 @@ fun AppDetailsToolbarCard(
         }
     }
 }
+
+private fun Modifier.expandClickable(onExpand: (() -> Unit)?): Modifier =
+    if (onExpand != null) clickable(onClick = onExpand) else this
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
