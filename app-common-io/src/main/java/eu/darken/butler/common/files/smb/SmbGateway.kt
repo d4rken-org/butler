@@ -19,6 +19,7 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.operations.GenericCrossTypeCopyStrategy
@@ -152,11 +153,28 @@ class SmbGateway @Inject constructor(
         return total
     }
 
+    /**
+     * Refuses a batch that would delete or move a server entry's root or one of its shares, before
+     * any of it is touched. A traversal would otherwise empty the share child by child and only then
+     * fail on the share itself.
+     */
+    suspend fun requireMutableSources(sources: Collection<SmbPath>) {
+        val refused = sources.firstOrNull { fileSystemOps.isProtected(it) } ?: return
+        throw WriteException("Cannot delete or move a server or one of its shares", refused)
+    }
+
+    /** Refuses a batch that would place items directly in a server entry's root, i.e. create shares. */
+    suspend fun requireCreatableTarget(destination: SmbPath) {
+        if (!fileSystemOps.isServerRoot(destination)) return
+        throw WriteException("Cannot create items next to the shares of a server", destination)
+    }
+
     override suspend fun delete(
         targets: Set<SmbPath>,
         options: DeleteAction.Options<SmbPath>
     ): Flow<DeleteAction.State<SmbPath, SmbPathLookup>> = flow {
         log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
+        requireMutableSources(targets)
 
         targets.deleteGeneric(
             fileSystemOps = fileSystemOps,
@@ -178,6 +196,7 @@ class SmbGateway @Inject constructor(
         options: CopyAction.Options
     ): Flow<CopyAction.State<SmbPath, SmbPathLookup, SmbPath, SmbPathLookup>> = flow {
         log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
+        requireCreatableTarget(destination)
 
         sources.copyGeneric(
             destination = destination,
@@ -204,6 +223,8 @@ class SmbGateway @Inject constructor(
         options: MoveAction.Options
     ): Flow<MoveAction.State<SmbPath, SmbPathLookup, SmbPath, SmbPathLookup>> = flow {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
+        requireMutableSources(sources)
+        requireCreatableTarget(destination)
 
         sources.moveGeneric(
             destination = destination,
@@ -226,6 +247,7 @@ class SmbGateway @Inject constructor(
         options: CreateAction.Options
     ): Flow<CreateAction.State<SmbPath, SmbPathLookup>> = flow {
         log(TAG, VERBOSE) { "create(): $target (type=$type)" }
+        requireCreatableTarget(target.parent ?: target)
 
         target.createGeneric(
             fileSystemOps = fileSystemOps,
