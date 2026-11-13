@@ -31,11 +31,13 @@ object ExplorerDragPayloadFactory {
 
         // Mirrors the Cut/Move gating in DirectoryActionProvider: archive content is read-only and a
         // move also has to delete from the source directory. Recent is an index rather than a
-        // directory to move out of and has no writability of its own, so it drags copy-only.
+        // directory to move out of and has no writability of its own, so it drags copy-only. The shares
+        // at an SMB server's root cannot be moved either.
         val allowMove = location is ExplorerLocation.Directory &&
             location.path !is ArchivePath &&
             items.none { it.path is ArchivePath } &&
-            location.info?.isWritable == true
+            location.info?.isWritable == true &&
+            location.info?.entriesFixed != true
 
         return WorkspaceDragPayload(
             sourceWorkspaceId = workspaceId,

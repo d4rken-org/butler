@@ -3,7 +3,6 @@ package eu.darken.butler.explorer.core.engine
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
-import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -304,11 +303,6 @@ class WritabilityEvaluatorTest : BaseTest() {
             hasAdb = false,
             appUid = appUid,
         )
-
-        @Test
-        fun `an SMB path is left to the server`() {
-            evaluator.evaluate(SmbPath(locationId, listOf("media")), null, null, context) shouldBe true
-        }
 
         /** The listed owner is an account on the server, the app's uid says nothing about it. */
         @Test

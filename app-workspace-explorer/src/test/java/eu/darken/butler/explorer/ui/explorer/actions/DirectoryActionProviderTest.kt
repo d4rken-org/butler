@@ -217,6 +217,69 @@ class DirectoryActionProviderTest : BaseTest() {
         actions.filterIsInstance<ExplorerActionBarItem.Directory.Delete>().single().isEnabled shouldBe true
     }
 
+    private val serverRoot = ExplorerLocation.Directory(
+        items = null,
+        info = ExplorerLocation.Directory.Info(isWritable = false, entriesFixed = true),
+        path = SmbPath(LOCATION_ID, emptyList()),
+    )
+
+    private fun share(name: String) = ExplorerItem.RegularDirectory(
+        lookup = SmbPathLookup(
+            lookedUp = SmbPath(LOCATION_ID, listOf(name)),
+            fileType = FileType.DIRECTORY,
+            size = null,
+            modifiedAt = null,
+        ),
+    )
+
+    @Test
+    fun `fixed entries hide Create instead of disabling it`() {
+        val actions = provider().getActions(
+            location = serverRoot,
+            selectionState = ExplorerSelectionState(),
+            viewStyle = ExplorerViewStyle(),
+            trashEnabled = false,
+        )
+
+        actions.any { it is ExplorerActionBarItem.Directory.Create } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Common.Refresh } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent } shouldBe true
+    }
+
+    @Test
+    fun `a selection of fixed entries offers only the non-mutating actions`() {
+        val actions = selectionActions(serverRoot, setOf(share("media")))
+
+        actions.any { it is ExplorerActionBarItem.Directory.Rename } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Directory.Cut } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Directory.Delete } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Directory.Compress } shouldBe false
+        actions.any {
+            it is ExplorerActionBarItem.Common.HidePaths || it is ExplorerActionBarItem.Common.UnhidePaths
+        } shouldBe false
+
+        actions.any { it is ExplorerActionBarItem.Directory.Copy } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Directory.OpenSelection } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Common.Info } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Common.AddToFavorites } shouldBe true
+    }
+
+    @Test
+    fun `an opened share keeps every action`() {
+        val shareLocation = ExplorerLocation.Directory(
+            items = null,
+            info = ExplorerLocation.Directory.Info(isWritable = true),
+            path = SmbPath(LOCATION_ID, listOf("media")),
+        )
+        val actions = selectionActions(shareLocation, setOf(networkFile("remote.txt")))
+
+        actions.single { it is ExplorerActionBarItem.Directory.Rename }
+        actions.filterIsInstance<ExplorerActionBarItem.Directory.Cut>().single().isEnabled shouldBe true
+        actions.filterIsInstance<ExplorerActionBarItem.Directory.Delete>().single().isEnabled shouldBe true
+        actions.any { it is ExplorerActionBarItem.Directory.Compress } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Common.HidePaths } shouldBe true
+    }
+
     @Test
     fun `a real archive file offers Extract`() {
         val actions = selectionActions(directory(null), setOf(MockDataProvider.createMockRegularFile("real.zip")))

@@ -106,6 +106,8 @@ sealed interface ExplorerLocation {
             val volumeTotalSpace: Long? = null,
             val isWritable: Boolean = false,
             val isReadable: Boolean = true,
+            /** The listed entries cannot be renamed, moved or deleted, e.g. the shares of an SMB server. */
+            val entriesFixed: Boolean = false,
         ) : LocationInfo
 
         companion object {
