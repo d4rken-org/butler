@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">이 계정은 \"%2$s\"의 공유 \"%1$s\"을 사용할 수 없습니다. 서버에서 공유 권한을 확인하십시오.</string>
     <string name="smb_error_share_not_found_title">공유를 찾을 수 없습니다</string>
     <string name="smb_error_share_not_found_description">공유 \"%1$s\"이 \"%2$s\"에 없습니다.</string>
+    <string name="smb_error_share_listing_unavailable_title">공유 목록을 가져올 수 없습니다</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s에서 Butler가 공유 목록을 가져오도록 허용하지 않았습니다. 공유 이름을 입력하여 해당 공유에 직접 연결하십시오.</string>
     <string name="smb_error_dialect_title">서버가 너무 오래되었습니다</string>
     <string name="smb_error_dialect_description">\"%1$s\" 서버는 안전하지 않고 지원하지 않는 SMB1만 제공합니다. 서버에서 SMB2 이상을 활성화하십시오.</string>
     <string name="smb_error_credential_unavailable_title">로그인 필요</string>

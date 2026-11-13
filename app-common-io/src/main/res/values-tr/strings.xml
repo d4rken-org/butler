@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">Bu hesap \"%2$s\" üzerinde \"%1$s\" kullanımına izin vermiyor. Sunucudaki paylaşım izinlerini kontrol edin.</string>
     <string name="smb_error_share_not_found_title">Paylaşım bulunamadı</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" \"%2$s\" üzerinde yok.</string>
+    <string name="smb_error_share_listing_unavailable_title">Paylaşımlar listelenemiyor</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s, Butler\'ın paylaşımlarını listelemesine izin vermedi. Doğrudan bir paylaşıma bağlanmak için paylaşım adını girin.</string>
     <string name="smb_error_dialect_title">Sunucu çok eski</string>
     <string name="smb_error_dialect_description">\"%1$s\" yalnızca SMB1 sunarken, bu güvensiz ve desteklenmiyor. Sunucuda SMB2 veya daha yenisini etkinleştirin.</string>
     <string name="smb_error_credential_unavailable_title">Oturum açma gerekli</string>

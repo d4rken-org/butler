@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">To konto może nie korzystać z \"%1$s\" na \"%2$s\". Sprawdź uprawnienia udziału na serwerze.</string>
     <string name="smb_error_share_not_found_title">Udział nie znaleziony</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" nie istnieje na \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Nie można wyświetlić udziałów</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s nie pozwolił aplikacji Butler wyświetlić swoich udziałów. Wpisz nazwę udziału, aby połączyć się bezpośrednio z nim.</string>
     <string name="smb_error_dialect_title">Serwer za stary</string>
     <string name="smb_error_dialect_description">\"%1$s\" oferuje tylko SMB1, które jest niezabezpieczone i nieobsługiwane. Włącz SMB2 lub nowszą wersję na serwerze.</string>
     <string name="smb_error_credential_unavailable_title">Wymagane logowanie</string>

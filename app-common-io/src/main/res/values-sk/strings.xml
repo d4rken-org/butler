@@ -67,6 +67,8 @@
     <string name="smb_error_share_access_denied_description">Tento účet nemá povolené používať zdieľaný priečinok \"%1$s\" na serveri \"%2$s\". Skontroluj oprávnenia zdieľaného priečinka na serveri.</string>
     <string name="smb_error_share_not_found_title">Zdieľaný priečinok sa nenašiel</string>
     <string name="smb_error_share_not_found_description">Zdieľaný priečinok \"%1$s\" neexistuje na serveri \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Zdieľané priečinky nemožno zobraziť</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s nepovolil aplikácii Butler zobraziť svoje zdieľané priečinky. Zadaj názov zdieľaného priečinka a pripoj sa priamo k nemu.</string>
     <string name="smb_error_dialect_title">Server je príliš starý</string>
     <string name="smb_error_dialect_description">Server \"%1$s\" ponúka iba SMB1, ktorý je nezabezpečený a nepodporovaný. Povoľ na serveri SMB2 alebo novší protokol.</string>
     <string name="smb_error_credential_unavailable_title">Vyžaduje sa prihlásenie</string>

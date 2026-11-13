@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">此账户可能无权使用 \"%2$s\" 上的 \"%1$s\"。请检查服务器上的共享权限。</string>
     <string name="smb_error_share_not_found_title">未找到共享</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" 不存在于 \"%2$s\" 上。</string>
+    <string name="smb_error_share_listing_unavailable_title">无法列出共享</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s 不允许 Butler 列出其共享。请输入共享名称以直接连接到某个共享。</string>
     <string name="smb_error_dialect_title">服务器过旧</string>
     <string name="smb_error_dialect_description">\"%1$s\" 仅提供 SMB1，这是不安全的且不被支持。在服务器上启用 SMB2 或更新的版本。</string>
     <string name="smb_error_credential_unavailable_title">需要登录</string>

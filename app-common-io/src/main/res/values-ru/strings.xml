@@ -67,6 +67,8 @@
     <string name="smb_error_share_access_denied_description">Эта учётная запись может не использовать \"%1$s\" на \"%2$s\". Проверьте разрешения папки на сервере.</string>
     <string name="smb_error_share_not_found_title">Папка не найдена</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" не существует на \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Не удалось получить список папок</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s не разрешил Butler получить список общих папок. Введите имя папки, чтобы подключиться к ней напрямую.</string>
     <string name="smb_error_dialect_title">Сервер устарел</string>
     <string name="smb_error_dialect_description">\"%1$s\" поддерживает только SMB1, которая небезопасна и не поддерживается. Включите SMB2 или новее на сервере.</string>
     <string name="smb_error_credential_unavailable_title">Требуется вход</string>

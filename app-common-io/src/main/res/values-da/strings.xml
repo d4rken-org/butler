@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">Denne konto har ikke tilladelse til at bruge \"%1$s\" på \"%2$s\". Kontroller delingens tilladelser på serveren.</string>
     <string name="smb_error_share_not_found_title">Deling ikke fundet</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" findes ikke på \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Kan ikke vise delinger</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s lod ikke Butler vise sine delinger. Angiv navnet på en deling for at oprette forbindelse direkte til den.</string>
     <string name="smb_error_dialect_title">Serveren er for gammel</string>
     <string name="smb_error_dialect_description">\"%1$s\" tilbyder kun SMB1, som er usikkert og ikke understøttes. Aktiver SMB2 eller nyere på serveren.</string>
     <string name="smb_error_credential_unavailable_title">Login påkrævet</string>

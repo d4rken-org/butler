@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">Dit account mag \"%1$s\" op \"%2$s\" niet gebruiken. Controleer de sharerechten op de server.</string>
     <string name="smb_error_share_not_found_title">Share niet gevonden</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" bestaat niet op \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Kan shares niet weergeven</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s liet Butler de shares niet weergeven. Voer de naam van een share in om er rechtstreeks verbinding mee te maken.</string>
     <string name="smb_error_dialect_title">Server te oud</string>
     <string name="smb_error_dialect_description">\"%1$s\" biedt alleen SMB1, wat onveilig en niet ondersteund is. Schakel SMB2 of nieuwer in op de server.</string>
     <string name="smb_error_credential_unavailable_title">Aanmelding vereist</string>

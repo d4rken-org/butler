@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">Αυτός ο λογαριασμός ενδέχεται να μην μπορεί να χρησιμοποιήσει το \"%1$s\" στο \"%2$s\". Ελέγξτε τα δικαιώματα κοινής χρήσης στο διακομιστή.</string>
     <string name="smb_error_share_not_found_title">Το κοινό δεν βρέθηκε</string>
     <string name="smb_error_share_not_found_description">Το \"%1$s\" δεν υπάρχει στο \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Δεν είναι δυνατή η εμφάνιση των κοινόχρηστων φακέλων</string>
+    <string name="smb_error_share_listing_unavailable_description">Το %1$s δεν επέτρεψε στο Butler να εμφανίσει τους κοινόχρηστους φακέλους του. Εισαγάγετε το όνομα ενός κοινόχρηστου φακέλου για να συνδεθείτε απευθείας σε αυτόν.</string>
     <string name="smb_error_dialect_title">Ο διακομιστής είναι πολύ παλιός</string>
     <string name="smb_error_dialect_description">Το \"%1$s\" προσφέρει μόνο SMB1, το οποίο είναι ανασφαλές και δεν υποστηρίζεται. Ενεργοποιήστε SMB2 ή νεότερο στο διακομιστή.</string>
     <string name="smb_error_credential_unavailable_title">Απαιτείται σύνδεση</string>

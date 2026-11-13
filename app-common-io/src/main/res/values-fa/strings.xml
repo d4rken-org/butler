@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">این حساب ممکن است نتواند از \"%1$s\" روی \"%2$s\" استفاده کند. مجوزهای اشتراک را روی سرور بررسی کنید.</string>
     <string name="smb_error_share_not_found_title">اشتراک یافت نشد</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" روی \"%2$s\" وجود ندارد.</string>
+    <string name="smb_error_share_listing_unavailable_title">فهرست اشتراک‌ها ممکن نیست</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s اجازه نداد Butler اشتراک‌هایش را فهرست کند. نام یک اشتراک را وارد کنید تا مستقیماً به آن متصل شوید.</string>
     <string name="smb_error_dialect_title">سرور خیلی قدیمی است</string>
     <string name="smb_error_dialect_description">\"%1$s\" تنها SMB1 را ارائه می‌دهد، که نامطمئن و پشتیبانی نشده است. SMB2 یا جدیدتر را روی سرور فعال کنید.</string>
     <string name="smb_error_credential_unavailable_title">ورود مورد نیاز است</string>

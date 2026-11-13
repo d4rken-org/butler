@@ -46,6 +46,8 @@
     <string name="smb_error_share_access_denied_description">Ez a fiók nem használhatja a(z) \"%1$s\" megosztást itt: \"%2$s\". Ellenőrizd a megosztás engedélyeit a kiszolgálón.</string>
     <string name="smb_error_share_not_found_title">A megosztás nem található</string>
     <string name="smb_error_share_not_found_description">A(z) \"%1$s\" nem létezik itt: \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">A megosztások nem listázhatók</string>
+    <string name="smb_error_share_listing_unavailable_description">A(z) %1$s nem engedte, hogy a Butler listázza a megosztásait. Adj meg egy megosztásnevet, hogy közvetlenül ahhoz csatlakozz.</string>
     <string name="smb_error_dialect_title">A kiszolgáló túl régi</string>
     <string name="smb_error_dialect_description">A(z) \"%1$s\" csak SMB1-et kínál, amely nem biztonságos és nem támogatott. Engedélyezd az SMB2-t vagy újabbat a kiszolgálón.</string>
     <string name="smb_error_credential_unavailable_title">Bejelentkezés szükséges</string>

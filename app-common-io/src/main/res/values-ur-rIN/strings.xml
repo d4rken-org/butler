@@ -67,6 +67,8 @@
     <string name="smb_error_share_access_denied_description">اس اکاؤنٹ کو \"%2$s\" پر \"%1$s\" استعمال کرنے کی اجازت نہیں ہے۔ سرور پر شیئر کی اجازتیں جانچیں۔</string>
     <string name="smb_error_share_not_found_title">شیئر نہیں ملا</string>
     <string name="smb_error_share_not_found_description">\"%2$s\" پر \"%1$s\" موجود نہیں ہے۔</string>
+    <string name="smb_error_share_listing_unavailable_title">شیئرز کی فہرست نہیں دکھائی جا سکتی</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s نے Butler کو اپنے شیئرز کی فہرست دکھانے نہیں دی۔ کسی ایک شیئر سے براہ راست جڑنے کے لیے شیئر کا نام درج کریں۔</string>
     <string name="smb_error_dialect_title">سرور بہت پرانا ہے</string>
     <string name="smb_error_dialect_description">\"%1$s\" صرف SMB1 فراہم کرتا ہے، جو غیر محفوظ ہے اور اس کی معاونت نہیں کی جاتی۔ سرور پر SMB2 یا اس سے نیا ورژن فعال کریں۔</string>
     <string name="smb_error_credential_unavailable_title">سائن اِن درکار ہے</string>

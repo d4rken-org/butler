@@ -66,6 +66,8 @@
     <string name="smb_error_share_access_denied_description">Цей обліковий запис не може використовувати \"%1$s\" на \"%2$s\". Перевірте дозволи ресурсу на сервері.</string>
     <string name="smb_error_share_not_found_title">Ресурс не знайдено</string>
     <string name="smb_error_share_not_found_description">\"%1$s\" не існує на \"%2$s\".</string>
+    <string name="smb_error_share_listing_unavailable_title">Не вдалося отримати список ресурсів</string>
+    <string name="smb_error_share_listing_unavailable_description">%1$s не дозволив Butler отримати список спільних ресурсів. Введіть назву ресурсу, щоб підключитися до нього напряму.</string>
     <string name="smb_error_dialect_title">Сервер надто старий</string>
     <string name="smb_error_dialect_description">\"%1$s\" пропонує тільки SMB1, що є небезпечним і не підтримується. Увімкніть SMB2 або новішу версію на сервері.</string>
     <string name="smb_error_credential_unavailable_title">Потрібен вхід</string>
