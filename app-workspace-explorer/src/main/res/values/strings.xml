@@ -347,6 +347,8 @@
     <string name="explorer_network_form_port_label">Port</string>
     <string name="explorer_network_form_share_label">Share</string>
     <string name="explorer_network_form_share_hint">media</string>
+    <string name="explorer_network_form_share_optional_hint">Leave empty to browse every share on the server.</string>
+    <string name="explorer_network_form_share_server_entry_hint">Shows every share on this server. To open one share directly, add a separate location.</string>
     <string name="explorer_network_form_base_path_label">Folder inside the share (optional)</string>
     <string name="explorer_network_form_auth_guest">Guest</string>
     <string name="explorer_network_form_auth_password">Username and password</string>
