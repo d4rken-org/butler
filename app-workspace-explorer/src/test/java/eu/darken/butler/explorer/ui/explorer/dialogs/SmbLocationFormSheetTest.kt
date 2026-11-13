@@ -61,13 +61,12 @@ class SmbLocationFormSheetTest : ComposeTest() {
     }
 
     @Test
-    fun `saving is blocked until host share and password are filled in`() {
+    fun `saving is blocked until host and password are filled in`() {
         setSheetContent(ExplorerDialogState.SmbLocationForm())
 
         composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsNotEnabled()
 
         composeTestRule.onNodeWithText("Server address").performScrollTo().performTextInput("nas.local")
-        composeTestRule.onNodeWithText("Share").performScrollTo().performTextInput("media")
         composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsNotEnabled()
 
         composeTestRule.onNodeWithText("Password").performScrollTo().performTextInput("hunter2")
