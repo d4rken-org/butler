@@ -79,7 +79,10 @@ fun RemoveLocationConfirmationDialog(
                 if (isNetwork) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = stringResource(R.string.explorer_network_remove_saved_items_message),
+                        text = stringResource(
+                            if (itemCount == 1) R.string.explorer_network_remove_saved_items_message
+                            else R.string.explorer_network_remove_saved_items_message_multiple
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -142,6 +145,20 @@ private fun RemoveLocationConfirmationDialogNetworkPreview() {
     RemoveLocationConfirmationDialog(
         items = listOf(
             MockDataProvider.createMockStorageNetwork(name = "Home NAS"),
+        ),
+        onDismiss = {},
+        onConfirm = {}
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RemoveLocationConfirmationDialogNetworkMultiplePreview() {
+    RemoveLocationConfirmationDialog(
+        items = listOf(
+            MockDataProvider.createMockStorageNetwork(name = "Home NAS"),
+            MockDataProvider.createMockStorageNetwork(name = "Office NAS"),
         ),
         onDismiss = {},
         onConfirm = {}
