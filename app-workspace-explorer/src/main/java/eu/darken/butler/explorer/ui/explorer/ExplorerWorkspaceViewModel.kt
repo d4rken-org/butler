@@ -1999,6 +1999,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onSmbLocationFormSubmit(input: SmbLocationFormInput) = smbLocations.onFormSubmit(input)
 
+    fun onSmbLocationFormSubmitAsNew(input: SmbLocationFormInput) = smbLocations.onFormSubmitAsNew(input)
+
     fun onNetworkProtocolChosen(protocol: NetworkProtocol) {
         log(tag) { "onNetworkProtocolChosen($protocol)" }
         if (!dialogs.dismissIfCurrent(ExplorerDialogState.NetworkProtocolChooser)) return
@@ -2010,6 +2012,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun onSftpLocationFormSubmit(input: SftpLocationFormInput) = sftpLocations.onFormSubmit(input)
+
+    fun onSftpLocationFormSubmitAsNew(input: SftpLocationFormInput) = sftpLocations.onFormSubmitAsNew(input)
 
     fun onPickSftpKeyFile() = sftpLocations.pickKeyFile()
 
@@ -2029,6 +2033,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun onReviewSftpHostKeyChange(change: SftpHostKeyChangedException) = sftpLocations.reviewHostKeyChange(change)
 
     fun onWebDavLocationFormSubmit(input: WebDavLocationFormInput) = webDavLocations.onFormSubmit(input)
+
+    fun onWebDavLocationFormSubmitAsNew(input: WebDavLocationFormInput) =
+        webDavLocations.onFormSubmitAsNew(input)
 
     fun onWebDavCertificateAccepted(confirmationId: Uuid, input: WebDavLocationFormInput) =
         webDavLocations.onCertificateAccepted(confirmationId, input)

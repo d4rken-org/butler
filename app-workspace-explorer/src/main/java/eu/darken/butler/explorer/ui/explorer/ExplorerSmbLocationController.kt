@@ -120,16 +120,24 @@ class ExplorerSmbLocationController(
         }
     }
 
-    fun onFormSubmit(input: SmbLocationFormInput) = doLaunch {
+    fun onFormSubmit(input: SmbLocationFormInput) = submit(input, asNew = false)
+
+    /**
+     * Saves an edited form as another location: the edited one, its credential and everything saved
+     * below it stay as they are. Without a typed password the stored one is copied over.
+     */
+    fun onFormSubmitAsNew(input: SmbLocationFormInput) = submit(input, asNew = true)
+
+    private fun submit(input: SmbLocationFormInput, asNew: Boolean): Unit = doLaunch {
         val formState = dialogs.current() as? ExplorerDialogState.SmbLocationForm ?: return@doLaunch
         val existing = formState.existing
-        log(tag) { "onFormSubmit(existing=${existing?.id})" }
+        log(tag) { "onFormSubmit(existing=${existing?.id}, asNew=$asNew)" }
 
         val password = input.password.takeIf { it.isNotEmpty() }?.toCharArray()
         // Every exit below - a validation error, a failed test, a failed save - leaves through here,
         // so the entered password never outlives the submit.
         try {
-            submit(formState, existing, input, password)
+            submit(formState, existing, input, password, asNew)
         } finally {
             password?.fill(Char(0))
         }
@@ -140,6 +148,7 @@ class ExplorerSmbLocationController(
         existing: SmbLocation?,
         input: SmbLocationFormInput,
         password: CharArray?,
+        asNew: Boolean,
     ) {
         // No share means a server entry, for a new location and an edited one alike.
         val parsed = SmbLocationInput.parse(
@@ -192,61 +201,64 @@ class ExplorerSmbLocationController(
         }
 
         try {
-            connectionTester.test(
-                host = details.host,
-                port = details.port,
-                share = details.share,
-                username = if (usesPassword) details.username else null,
-                domain = details.domain,
-                password = if (usesPassword) password ?: storedCredential?.password else null,
-            )
-        } catch (e: Exception) {
-            log(tag, ERROR) { "onFormSubmit(): Connection test failed: ${e.asLog()}" }
-            dialogs.showIfCurrent(testing, formState.copy(isTesting = false, error = e.localizedDescription()))
-            return
+            try {
+                connectionTester.test(
+                    host = details.host,
+                    port = details.port,
+                    share = details.share,
+                    username = if (usesPassword) details.username else null,
+                    domain = details.domain,
+                    password = if (usesPassword) password ?: storedCredential?.password else null,
+                )
+            } catch (e: Exception) {
+                log(tag, ERROR) { "onFormSubmit(): Connection test failed: ${e.asLog()}" }
+                dialogs.showIfCurrent(testing, formState.copy(isTesting = false, error = e.localizedDescription()))
+                return
+            }
+
+            if (dialogs.current() !== testing) {
+                log(tag, WARN) { "onFormSubmit(): Form was closed during the connection test, not saving" }
+                return
+            }
+
+            try {
+                if (existing == null || asNew) {
+                    locationManager.create(
+                        label = input.label.trim().takeIf { it.isNotEmpty() },
+                        host = details.host,
+                        port = details.port,
+                        share = details.share,
+                        basePath = details.basePath,
+                        domain = details.domain,
+                        username = details.username,
+                        authType = input.authType,
+                        rememberCredential = input.rememberCredential,
+                        // Saved as a new location, the stored password is copied rather than kept
+                        password = password ?: storedCredential?.password,
+                    )
+                } else {
+                    locationManager.update(
+                        id = existing.id,
+                        label = input.label.trim().takeIf { it.isNotEmpty() },
+                        host = details.host,
+                        port = details.port,
+                        share = details.share,
+                        basePath = details.basePath,
+                        domain = details.domain,
+                        username = details.username,
+                        authType = input.authType,
+                        rememberCredential = input.rememberCredential,
+                        password = password,
+                    )
+                }
+                log(tag, INFO) { "onFormSubmit(): Saved network location, asNew=$asNew" }
+            } catch (e: Exception) {
+                log(tag, ERROR) { "onFormSubmit(): Failed to save: ${e.asLog()}" }
+                dialogs.showIfCurrent(testing, formState.copy(isTesting = false, error = e.localizedDescription()))
+                return
+            }
         } finally {
             storedCredential?.wipe()
-        }
-
-        if (dialogs.current() !== testing) {
-            log(tag, WARN) { "onFormSubmit(): Form was closed during the connection test, not saving" }
-            return
-        }
-
-        try {
-            if (existing == null) {
-                locationManager.create(
-                    label = input.label.trim().takeIf { it.isNotEmpty() },
-                    host = details.host,
-                    port = details.port,
-                    share = details.share,
-                    basePath = details.basePath,
-                    domain = details.domain,
-                    username = details.username,
-                    authType = input.authType,
-                    rememberCredential = input.rememberCredential,
-                    password = password,
-                )
-            } else {
-                locationManager.update(
-                    id = existing.id,
-                    label = input.label.trim().takeIf { it.isNotEmpty() },
-                    host = details.host,
-                    port = details.port,
-                    share = details.share,
-                    basePath = details.basePath,
-                    domain = details.domain,
-                    username = details.username,
-                    authType = input.authType,
-                    rememberCredential = input.rememberCredential,
-                    password = password,
-                )
-            }
-            log(tag, INFO) { "onFormSubmit(): Saved network location" }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "onFormSubmit(): Failed to save: ${e.asLog()}" }
-            dialogs.showIfCurrent(testing, formState.copy(isTesting = false, error = e.localizedDescription()))
-            return
         }
 
         dialogs.showIfCurrent(testing, ExplorerDialogState.None)

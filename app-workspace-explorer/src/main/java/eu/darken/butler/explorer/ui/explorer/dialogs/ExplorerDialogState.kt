@@ -289,7 +289,8 @@ enum class SftpFormMode {
  * A server key presented to a connection test, waiting for the user's decision.
  *
  * Accepting it only counts for exactly this endpoint, key and form: [formRevision] and
- * [keyGeneration] are the field and key-file state the test ran with.
+ * [keyGeneration] are the field and key-file state the test ran with. [asNew] marks a test of an
+ * edited form that is being saved as another location.
  */
 data class SftpHostKeyConfirmation(
     val host: String,
@@ -297,6 +298,7 @@ data class SftpHostKeyConfirmation(
     val presentedKey: TrustedHostKey,
     val formRevision: Int,
     val keyGeneration: Int,
+    val asNew: Boolean = false,
     val id: Uuid = Uuid.random(),
 )
 
@@ -329,12 +331,14 @@ enum class WebDavFormMode {
 /**
  * A certificate the system does not trust, presented to a connection test and waiting for the
  * user's decision. Accepting it only counts for the [url] that was tested, with the fields as they
- * were at [formRevision].
+ * were at [formRevision]. [asNew] marks a test of an edited form that is being saved as another
+ * location.
  */
 data class WebDavCertificateConfirmation(
     val url: String,
     val presented: WebDavCertificateInfo,
     val formRevision: Int,
+    val asNew: Boolean = false,
     val id: Uuid = Uuid.random(),
 )
 

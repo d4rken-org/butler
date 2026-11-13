@@ -28,6 +28,7 @@ import kotlin.uuid.Uuid
 class SmbLocationFormSheetTest : ComposeTest() {
 
     private var submitted: SmbLocationFormInput? = null
+    private var submittedAsNew: SmbLocationFormInput? = null
 
     private val stored = SmbLocation(
         id = Uuid.parse("11111111-2222-3333-4444-555555555555"),
@@ -53,6 +54,7 @@ class SmbLocationFormSheetTest : ComposeTest() {
                         state = state,
                         onDismiss = {},
                         onSubmit = { submitted = it },
+                        onSubmitAsNew = { submittedAsNew = it },
                         onRevealPassword = onRevealPassword,
                     )
                 }
@@ -192,6 +194,40 @@ class SmbLocationFormSheetTest : ComposeTest() {
         composeTestRule.onNodeWithText("Share").performScrollTo().performTextInput("media")
 
         composeTestRule.onAllNodesWithTextCount(ROOT_CHANGE_WARNING) shouldBe 0
+    }
+
+    @Test
+    fun `add as new is offered with the warning and hands over the fields`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored))
+        composeTestRule.onAllNodesWithTextCount(ADD_AS_NEW) shouldBe 0
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextReplacement("photos")
+        composeTestRule.onNodeWithText(ADD_AS_NEW).performScrollTo().assertIsEnabled().performClick()
+
+        submittedAsNew!!.share shouldBe "photos"
+        submittedAsNew!!.host shouldBe "nas.local"
+        submitted shouldBe null
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextReplacement("media")
+        composeTestRule.onAllNodesWithTextCount(ADD_AS_NEW) shouldBe 0
+    }
+
+    @Test
+    fun `add as new is blocked while the connection is being tested`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored, isTesting = true))
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextReplacement("photos")
+
+        composeTestRule.onNodeWithText(ADD_AS_NEW).performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test
+    fun `a new location never offers add as new`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm())
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextInput("media")
+
+        composeTestRule.onAllNodesWithTextCount(ADD_AS_NEW) shouldBe 0
     }
 
     @Test
@@ -390,6 +426,7 @@ class SmbLocationFormSheetTest : ComposeTest() {
 
     companion object {
         private const val BASE_PATH_LABEL = "Folder inside the share (optional)"
+        private const val ADD_AS_NEW = "Add as new location"
         private const val ROOT_CHANGE_WARNING = "Favorites, shortcuts and other saved items for this location " +
             "will use the new starting point. They may open a different folder or become unavailable. " +
             "No files are moved or deleted."

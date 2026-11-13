@@ -137,6 +137,8 @@ fun WebDavLocationFormSheet(
     fields: WebDavLocationFormFields = rememberWebDavLocationFormFields(state),
     onDismiss: () -> Unit,
     onSubmit: (WebDavLocationFormInput) -> Unit,
+    /** Saves the form as another location, see [NetworkRootChangeWarning]. */
+    onSubmitAsNew: (WebDavLocationFormInput) -> Unit,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
     isPro: Boolean = rememberIsPro(),
@@ -250,7 +252,10 @@ fun WebDavLocationFormSheet(
             }
 
             if (existing?.startsElsewhere(url = fields.url) == true) {
-                NetworkRootChangeWarning()
+                NetworkRootChangeWarning(
+                    onAddAsNew = { onSubmitAsNew(fields.toInput()) },
+                    addAsNewEnabled = canSubmit,
+                )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -396,6 +401,7 @@ private fun WebDavLocationFormSheetAddPreview() {
         state = ExplorerDialogState.WebDavLocationForm(),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
     )
 }
 
@@ -407,6 +413,7 @@ private fun WebDavLocationFormSheetFreePreview() {
         state = ExplorerDialogState.WebDavLocationForm(),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
         isPro = false,
     )
 }
@@ -422,6 +429,7 @@ private fun WebDavLocationFormSheetCleartextPreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
     )
 }
 
@@ -436,6 +444,7 @@ private fun WebDavLocationFormSheetSignInPreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
     )
 }
 
@@ -451,6 +460,7 @@ private fun WebDavLocationFormSheetTestingPreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
     )
 }
 
@@ -466,6 +476,7 @@ private fun WebDavLocationFormSheetErrorPreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
     )
 }
 
@@ -487,6 +498,26 @@ private fun WebDavLocationFormSheetFieldIssuesPreview() {
         fields = fields,
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WebDavLocationFormSheetStartsElsewherePreview() {
+    val existing = previewWebDavLocation()
+    val fields = remember {
+        WebDavLocationFormFields(existing).apply {
+            url = "https://cloud.example.com/remote.php/dav/files/bob/"
+        }
+    }
+    WebDavLocationFormSheet(
+        state = ExplorerDialogState.WebDavLocationForm(mode = WebDavFormMode.EDIT, existing = existing),
+        fields = fields,
+        onDismiss = {},
+        onSubmit = {},
+        onSubmitAsNew = {},
     )
 }
 

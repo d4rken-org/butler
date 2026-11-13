@@ -351,6 +351,7 @@
     <string name="explorer_network_form_share_optional_hint">Leave empty to browse every share on the server.</string>
     <string name="explorer_network_form_base_path_label">Folder inside the share (optional)</string>
     <string name="explorer_network_form_root_change_warning">Favorites, shortcuts and other saved items for this location will use the new starting point. They may open a different folder or become unavailable. No files are moved or deleted.</string>
+    <string name="explorer_network_form_add_as_new_action">Add as new location</string>
     <string name="explorer_network_form_auth_guest">Guest</string>
     <string name="explorer_network_form_auth_password">Username and password</string>
     <string name="explorer_network_form_username_label">Username</string>

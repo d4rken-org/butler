@@ -34,6 +34,7 @@ import testhelpers.TestApplication
 class WebDavLocationFormSheetTest : ComposeTest() {
 
     private var submitted: WebDavLocationFormInput? = null
+    private var submittedAsNew: WebDavLocationFormInput? = null
 
     private val stored = previewWebDavLocation()
 
@@ -45,6 +46,7 @@ class WebDavLocationFormSheetTest : ComposeTest() {
                         state = state,
                         onDismiss = {},
                         onSubmit = { submitted = it },
+                        onSubmitAsNew = { submittedAsNew = it },
                         isPro = isPro,
                     )
                 }
@@ -64,6 +66,8 @@ class WebDavLocationFormSheetTest : ComposeTest() {
 
     private val rootChangeWarning = "Favorites, shortcuts and other saved items for this location will use the " +
         "new starting point. They may open a different folder or become unavailable. No files are moved or deleted."
+
+    private val addAsNew = "Add as new location"
 
     @Test
     fun `saving is blocked until URL, username and password are filled in`() {
@@ -175,6 +179,7 @@ class WebDavLocationFormSheetTest : ComposeTest() {
                         state = state,
                         onDismiss = {},
                         onSubmit = { submitted = it },
+                        onSubmitAsNew = { submittedAsNew = it },
                         isPro = true,
                     )
                 }
@@ -261,5 +266,30 @@ class WebDavLocationFormSheetTest : ComposeTest() {
         field("Server URL").performTextInput("https://cloud.example.com/remote.php/dav/files/bob/")
 
         composeTestRule.onNodeWithText(rootChangeWarning).assertDoesNotExist()
+    }
+
+    @Test
+    fun `add as new is offered with the warning and hands over the fields`() {
+        setSheetContent(ExplorerDialogState.WebDavLocationForm(mode = WebDavFormMode.EDIT, existing = stored))
+        composeTestRule.onNodeWithText(addAsNew).assertDoesNotExist()
+
+        val bobUrl = "https://cloud.example.com/remote.php/dav/files/bob/"
+        field(stored.url).performTextReplacement(bobUrl)
+        composeTestRule.onNodeWithText(addAsNew).performScrollTo().assertIsEnabled().performClick()
+
+        submittedAsNew!!.url shouldBe bobUrl
+        submitted shouldBe null
+
+        field(bobUrl).performTextReplacement(stored.url)
+        composeTestRule.onNodeWithText(addAsNew).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a new location never offers add as new`() {
+        setSheetContent(ExplorerDialogState.WebDavLocationForm())
+
+        field("Server URL").performTextInput("https://cloud.example.com/remote.php/dav/files/bob/")
+
+        composeTestRule.onNodeWithText(addAsNew).assertDoesNotExist()
     }
 }

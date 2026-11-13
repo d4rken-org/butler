@@ -96,6 +96,7 @@ fun ExplorerDialogHost(
                 state = dialogState,
                 onDismiss = { vm?.dismissDialog() },
                 onSubmit = { input -> vm?.onSmbLocationFormSubmit(input) },
+                onSubmitAsNew = { input -> vm?.onSmbLocationFormSubmitAsNew(input) },
                 onRevealPassword = { vm?.onRevealSmbFormPassword(dialogState) },
                 topInset = topInset,
                 bottomInset = bottomInset,
@@ -116,6 +117,7 @@ fun ExplorerDialogHost(
                 fields = fields,
                 onDismiss = { vm?.dismissDialog() },
                 onSubmit = { input -> vm?.onSftpLocationFormSubmit(input) },
+                onSubmitAsNew = { input -> vm?.onSftpLocationFormSubmitAsNew(input) },
                 onPickKeyFile = { vm?.onPickSftpKeyFile() },
                 topInset = topInset,
                 bottomInset = bottomInset,
@@ -153,6 +155,7 @@ fun ExplorerDialogHost(
                 fields = fields,
                 onDismiss = { vm?.dismissDialog() },
                 onSubmit = { input -> vm?.onWebDavLocationFormSubmit(input) },
+                onSubmitAsNew = { input -> vm?.onWebDavLocationFormSubmitAsNew(input) },
                 topInset = topInset,
                 bottomInset = bottomInset,
             )

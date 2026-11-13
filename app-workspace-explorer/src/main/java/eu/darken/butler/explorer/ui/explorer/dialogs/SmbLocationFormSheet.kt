@@ -69,6 +69,8 @@ fun SmbLocationFormSheet(
     state: ExplorerDialogState.SmbLocationForm,
     onDismiss: () -> Unit,
     onSubmit: (SmbLocationFormInput) -> Unit,
+    /** Saves the form as another location, see [NetworkRootChangeWarning]. */
+    onSubmitAsNew: (SmbLocationFormInput) -> Unit,
     onRevealPassword: suspend () -> RevealedPassword? = { null },
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
@@ -107,6 +109,19 @@ fun SmbLocationFormSheet(
     val canSubmit = !state.isTesting && !isRevealing &&
         host.isNotBlank() &&
         (!usesPassword || password.isNotEmpty() || keepsStoredCredential)
+
+    fun toInput() = SmbLocationFormInput(
+        label = label,
+        host = host,
+        port = port,
+        share = share,
+        basePath = submittedBasePath,
+        authType = authType,
+        username = username,
+        domain = domain,
+        password = password,
+        rememberCredential = rememberCredential,
+    )
 
     PaneScopedBottomSheet(
         visible = true,
@@ -179,7 +194,10 @@ fun SmbLocationFormSheet(
             )
 
             if (existing?.startsElsewhere(share = share, basePath = submittedBasePath) == true) {
-                NetworkRootChangeWarning()
+                NetworkRootChangeWarning(
+                    onAddAsNew = { onSubmitAsNew(toInput()) },
+                    addAsNewEnabled = canSubmit,
+                )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -336,22 +354,7 @@ fun SmbLocationFormSheet(
                 }
 
                 Button(
-                    onClick = {
-                        onSubmit(
-                            SmbLocationFormInput(
-                                label = label,
-                                host = host,
-                                port = port,
-                                share = share,
-                                basePath = submittedBasePath,
-                                authType = authType,
-                                username = username,
-                                domain = domain,
-                                password = password,
-                                rememberCredential = rememberCredential,
-                            )
-                        )
-                    },
+                    onClick = { onSubmit(toInput()) },
                     enabled = canSubmit,
                 ) {
                     Text(stringResource(R.string.explorer_network_form_test_and_save_action))
@@ -369,6 +372,7 @@ private fun SmbLocationFormSheetAddPreview() {
         state = ExplorerDialogState.SmbLocationForm(),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
     )
 }
 
@@ -380,6 +384,7 @@ private fun SmbLocationFormSheetEditPreview() {
         state = ExplorerDialogState.SmbLocationForm(existing = previewLocation()),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
         onRevealPassword = { RevealedPassword("hunter2") },
     )
 }
@@ -392,6 +397,7 @@ private fun SmbLocationFormSheetEditServerEntryPreview() {
         state = ExplorerDialogState.SmbLocationForm(existing = previewLocation().copy(share = null)),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
     )
 }
 
@@ -403,6 +409,7 @@ private fun SmbLocationFormSheetFreePreview() {
         state = ExplorerDialogState.SmbLocationForm(),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
         isPro = false,
     )
 }
@@ -415,6 +422,7 @@ private fun SmbLocationFormSheetTestingPreview() {
         state = ExplorerDialogState.SmbLocationForm(existing = previewLocation(), isTesting = true),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
     )
 }
 
@@ -429,6 +437,7 @@ private fun SmbLocationFormSheetErrorPreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
     )
 }
 

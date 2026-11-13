@@ -390,6 +390,115 @@ class ExplorerSmbLocationControllerTest : BaseTest() {
             "string:${R.string.explorer_network_form_error_base_path_without_share}"
     }
 
+    private fun passwordLocation() = location("NAS").copy(username = "darken")
+
+    private val passwordInput = guestInput.copy(
+        authType = SmbLocation.AuthType.PASSWORD,
+        username = "darken",
+    )
+
+    private val createdPasswords = mutableListOf<String?>()
+    private val testedPasswords = mutableListOf<String?>()
+
+    private fun recordingLocationManager() = mockk<SmbLocationManager>().apply {
+        coEvery {
+            create(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+        } coAnswers {
+            createdPasswords.add(arg<CharArray?>(9)?.concatToString())
+            location("Photos")
+        }
+    }
+
+    private fun recordingTester() = mockk<SmbConnectionTester>().apply {
+        coEvery { test(any(), any(), any(), any(), any(), any()) } coAnswers {
+            testedPasswords.add(arg<CharArray?>(5)?.concatToString())
+            Unit
+        }
+    }
+
+    private fun SmbLocationManager.verifyOriginalUntouched() {
+        coVerify(exactly = 0) { update(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { delete(any()) }
+    }
+
+    @Test
+    fun `adding an edited form as new tests and creates it with the stored password`() = runTest {
+        val existing = passwordLocation()
+        val credential = SmbCredential("darken", null, "saved-password".toCharArray())
+        val store = mockk<SmbCredentialStore>().apply { coEvery { resolve(existing) } returns credential }
+        val locationManager = recordingLocationManager()
+        val tester = recordingTester()
+        val dialogs = dialogs().apply { show(ExplorerDialogState.SmbLocationForm(existing = existing)) }
+        val controller = controller(
+            locationManager,
+            dialogs,
+            credentialStore = store,
+            connectionTester = tester,
+            upgradeRepo = FakeUpgradeRepo(pro = false),
+        )
+
+        controller.onFormSubmitAsNew(passwordInput.copy(label = " Photos ", share = "photos", basePath = "2024"))
+        runCurrent()
+
+        coVerify(exactly = 1) { tester.test("nas.local", 445, "photos", "darken", any(), any()) }
+        testedPasswords shouldBe listOf("saved-password")
+        coVerify(exactly = 1) {
+            locationManager.create(
+                "Photos", "nas.local", 445, "photos", listOf("2024"), any(), "darken",
+                SmbLocation.AuthType.PASSWORD, true, any(),
+            )
+        }
+        createdPasswords shouldBe listOf("saved-password")
+        credential.password.all { it == Char(0) } shouldBe true
+        locationManager.verifyOriginalUntouched()
+        dialogs.current() shouldBe ExplorerDialogState.None
+        coVerify(exactly = 1) { workspace.navigate(ExplorerNavigation.Refresh) }
+        controller.upgradeHint.value?.reason shouldBe SmbUpgradeHint.Reason.SAVED
+    }
+
+    @Test
+    fun `adding as new uses a typed password instead of the stored one`() = runTest {
+        val store = mockk<SmbCredentialStore>()
+        val locationManager = recordingLocationManager()
+        val dialogs = dialogs().apply { show(ExplorerDialogState.SmbLocationForm(existing = passwordLocation())) }
+        val controller = controller(
+            locationManager,
+            dialogs,
+            credentialStore = store,
+            connectionTester = recordingTester(),
+        )
+
+        controller.onFormSubmitAsNew(passwordInput.copy(share = "photos", password = "typed-password"))
+        runCurrent()
+
+        testedPasswords shouldBe listOf("typed-password")
+        createdPasswords shouldBe listOf("typed-password")
+        coVerify(exactly = 0) { store.resolve(any()) }
+        locationManager.verifyOriginalUntouched()
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `adding as new with an unusable stored password shows the error and saves nothing`() = runTest {
+        val existing = passwordLocation()
+        val store = mockk<SmbCredentialStore>().apply {
+            coEvery { resolve(existing) } throws SmbCredentialUnavailableException(locationId, "Missing")
+        }
+        val locationManager = recordingLocationManager()
+        val tester = recordingTester()
+        val dialogs = dialogs().apply { show(ExplorerDialogState.SmbLocationForm(existing = existing)) }
+        val controller = controller(locationManager, dialogs, credentialStore = store, connectionTester = tester)
+
+        controller.onFormSubmitAsNew(passwordInput.copy(share = "photos"))
+        runCurrent()
+
+        testedPasswords shouldBe emptyList()
+        createdPasswords shouldBe emptyList()
+        val form = dialogs.current().shouldBeInstanceOf<ExplorerDialogState.SmbLocationForm>()
+        form.isTesting shouldBe false
+        (form.error != null) shouldBe true
+    }
+
     @Test
     fun `the edit form opens with what is stored now, not what the row was drawn from`() = runTest {
         val locationManager = mockk<SmbLocationManager>().apply {
