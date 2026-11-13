@@ -62,6 +62,9 @@ class WebDavLocationFormSheetTest : ComposeTest() {
 
     private val cleartextWarning = "Unencrypted connection: your password and files are sent in plain text."
 
+    private val rootChangeWarning = "Favorites, shortcuts and other saved items for this location will use the " +
+        "new starting point. They may open a different folder or become unavailable. No files are moved or deleted."
+
     @Test
     fun `saving is blocked until URL, username and password are filled in`() {
         setSheetContent(ExplorerDialogState.WebDavLocationForm())
@@ -227,5 +230,36 @@ class WebDavLocationFormSheetTest : ComposeTest() {
             .assertIsNotEnabled()
         // "Remember password" is the only toggleable node in the add form
         composeTestRule.onNode(isToggleable()).performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test
+    fun `changing the path of the URL warns until it is changed back`() {
+        setSheetContent(ExplorerDialogState.WebDavLocationForm(mode = WebDavFormMode.EDIT, existing = stored))
+        composeTestRule.onNodeWithText(rootChangeWarning).assertDoesNotExist()
+
+        field(stored.url).performTextReplacement("https://cloud.example.com/remote.php/dav/files/bob/")
+        composeTestRule.onNodeWithText(rootChangeWarning).performScrollTo().assertIsDisplayed()
+        saveButton().assertIsEnabled()
+
+        field("https://cloud.example.com/remote.php/dav/files/bob/").performTextReplacement(stored.url)
+        composeTestRule.onNodeWithText(rootChangeWarning).assertDoesNotExist()
+    }
+
+    @Test
+    fun `changing only the server of the URL does not warn`() {
+        setSheetContent(ExplorerDialogState.WebDavLocationForm(mode = WebDavFormMode.EDIT, existing = stored))
+
+        field(stored.url).performTextReplacement("http://nas.local:8080/remote.php/dav/files/alice")
+
+        composeTestRule.onNodeWithText(rootChangeWarning).assertDoesNotExist()
+    }
+
+    @Test
+    fun `a new location never warns about its path`() {
+        setSheetContent(ExplorerDialogState.WebDavLocationForm())
+
+        field("Server URL").performTextInput("https://cloud.example.com/remote.php/dav/files/bob/")
+
+        composeTestRule.onNodeWithText(rootChangeWarning).assertDoesNotExist()
     }
 }

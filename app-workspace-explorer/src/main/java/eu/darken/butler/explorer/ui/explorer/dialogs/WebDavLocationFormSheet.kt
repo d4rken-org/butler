@@ -249,6 +249,10 @@ fun WebDavLocationFormSheet(
                 }
             }
 
+            if (existing?.startsElsewhere(url = fields.url) == true) {
+                NetworkRootChangeWarning()
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
                     selected = !usesPassword,

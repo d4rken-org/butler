@@ -150,6 +150,51 @@ class SmbLocationFormSheetTest : ComposeTest() {
     }
 
     @Test
+    fun `changing the share warns until it is changed back`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored))
+        composeTestRule.onAllNodesWithTextCount(ROOT_CHANGE_WARNING) shouldBe 0
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextReplacement("photos")
+        composeTestRule.onNodeWithText(ROOT_CHANGE_WARNING).performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("Test & save").performScrollTo().assertIsEnabled()
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextReplacement("media")
+        composeTestRule.onAllNodesWithTextCount(ROOT_CHANGE_WARNING) shouldBe 0
+    }
+
+    @Test
+    fun `changing the folder or clearing the share warns`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored))
+
+        composeTestRule.onNodeWithText(BASE_PATH_LABEL).performScrollTo().performTextInput("movies")
+        composeTestRule.onNodeWithText(ROOT_CHANGE_WARNING).performScrollTo().assertIsDisplayed()
+
+        composeTestRule.onNodeWithText("movies").performScrollTo().performTextReplacement("")
+        composeTestRule.onAllNodesWithTextCount(ROOT_CHANGE_WARNING) shouldBe 0
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextReplacement("")
+        composeTestRule.onNodeWithText(ROOT_CHANGE_WARNING).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun `changing only the server does not warn`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm(existing = stored))
+
+        composeTestRule.onNodeWithText("Server address").performScrollTo().performTextReplacement("nas2.local")
+
+        composeTestRule.onAllNodesWithTextCount(ROOT_CHANGE_WARNING) shouldBe 0
+    }
+
+    @Test
+    fun `a new location never warns about its share`() {
+        setSheetContent(ExplorerDialogState.SmbLocationForm())
+
+        composeTestRule.onNodeWithText("Share").performScrollTo().performTextInput("media")
+
+        composeTestRule.onAllNodesWithTextCount(ROOT_CHANGE_WARNING) shouldBe 0
+    }
+
+    @Test
     fun `the guest toggle hides the credential fields`() {
         setSheetContent(ExplorerDialogState.SmbLocationForm())
         composeTestRule.onNodeWithText("Username").performScrollTo().assertIsDisplayed()
@@ -345,6 +390,9 @@ class SmbLocationFormSheetTest : ComposeTest() {
 
     companion object {
         private const val BASE_PATH_LABEL = "Folder inside the share (optional)"
+        private const val ROOT_CHANGE_WARNING = "Favorites, shortcuts and other saved items for this location " +
+            "will use the new starting point. They may open a different folder or become unavailable. " +
+            "No files are moved or deleted."
     }
 }
 

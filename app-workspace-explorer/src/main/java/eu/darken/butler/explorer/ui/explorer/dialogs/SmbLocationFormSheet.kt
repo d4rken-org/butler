@@ -178,6 +178,10 @@ fun SmbLocationFormSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            if (existing?.startsElsewhere(share = share, basePath = submittedBasePath) == true) {
+                NetworkRootChangeWarning()
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
                     selected = authType == SmbLocation.AuthType.GUEST,
