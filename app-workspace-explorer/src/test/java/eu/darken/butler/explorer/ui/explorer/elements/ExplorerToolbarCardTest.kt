@@ -61,7 +61,7 @@ class ExplorerToolbarCardTest : ComposeTest() {
             target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Download/$LAST_SEGMENT")),
         ),
     )
-    private val collapsedLabel = "Home / Download / $LAST_SEGMENT"
+    private val collapsedLabel = listOf("Home", "Download", LAST_SEGMENT).joinToString("\u2009/\u2009")
 
     private val cancelLabel: String
         get() = context.getString(CommonR.string.general_cancel_action)
