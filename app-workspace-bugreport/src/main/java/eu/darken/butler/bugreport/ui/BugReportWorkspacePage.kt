@@ -11,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -243,6 +244,7 @@ fun BugReportWorkspacePage(
                         recordingStartedAt = state.recordingStartedAt,
                         recordingLogSize = state.recordingLogSize,
                         isCollapsed = collapsedFraction > 0.5f,
+                        onExpand = expand,
                         onStopRecording = onStopRecording,
                         onDeleteAll = onDeleteAll,
                     )
@@ -277,7 +279,7 @@ fun BugReportWorkspacePage(
 }
 
 @Composable
-private fun BugReportToolbarCard(
+internal fun BugReportToolbarCard(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     hasReports: Boolean,
@@ -285,6 +287,7 @@ private fun BugReportToolbarCard(
     recordingStartedAt: Long,
     recordingLogSize: Long,
     isCollapsed: Boolean,
+    onExpand: (() -> Unit)? = null,
     onStopRecording: () -> Unit,
     onDeleteAll: () -> Unit,
 ) {
@@ -345,6 +348,7 @@ private fun BugReportToolbarCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .expandClickable(if (isCollapsed) onExpand else null)
                     .heightIn(min = headerMinHeight)
                     // Match the collapsed inset used by the other workspaces' toolbars (e.g. Searcher).
                     .padding(start = if (isCollapsed) 8.dp else 0.dp),
@@ -399,6 +403,9 @@ private fun BugReportToolbarCard(
         }
     }
 }
+
+private fun Modifier.expandClickable(onExpand: (() -> Unit)?): Modifier =
+    if (onExpand != null) clickable(onClick = onExpand) else this
 
 /**
  * Starts/stops a recording from the bottom bar. The error tint only appears while recording, so an
