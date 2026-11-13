@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.ui.editor.elements
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,6 +78,7 @@ fun EditorToolbarCard(
     canRedo: Boolean,
     onAction: (EditorPageAction) -> Unit,
     collapsedFraction: Float = 0f,
+    onExpand: (() -> Unit)? = null,
 ) {
     val isLoading = progress != null
     val isCollapsed = collapsedFraction > 0.5f
@@ -112,6 +114,7 @@ fun EditorToolbarCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .expandClickable(onExpand)
                     .padding(start = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -360,6 +363,9 @@ fun EditorToolbarCard(
         }
     }
 }
+
+private fun Modifier.expandClickable(onExpand: (() -> Unit)?): Modifier =
+    if (onExpand != null) clickable(onClick = onExpand) else this
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
