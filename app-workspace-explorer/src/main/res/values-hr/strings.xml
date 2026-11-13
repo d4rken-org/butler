@@ -331,6 +331,7 @@
         <item quantity="other">Ukloniti %1$d lokacija mrežne pohrane?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler zaboravlja podatke o poslužitelju i spremljenu lozinku. Ništa se na poslužitelju ne briše.</string>
+    <string name="explorer_network_remove_saved_items_message">Favoriti, prečaci i druge spremljene stavke povezane s njom prestat će raditi.</string>
     <string name="explorer_network_disconnect_location_action">Odspoji</string>
     <string name="explorer_network_disconnect_confirmation_title">Odspojiti %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -350,8 +351,8 @@
     <string name="explorer_network_form_share_label">Dijeljena mapa</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Ostavi prazno za pregledavanje svih dijeljenih mapa na poslužitelju.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Prikazuje sve dijeljene mape na ovom poslužitelju. Za izravno otvaranje jedne dijeljene mape dodaj zasebnu lokaciju.</string>
     <string name="explorer_network_form_base_path_label">Mapa unutar dijeljene mape (neobavezno)</string>
+    <string name="explorer_network_form_root_change_warning">Favoriti, prečaci i druge spremljene stavke za ovu lokaciju koristit će novu početnu točku. Mogu otvoriti drugu mapu ili postati nedostupni. Nijedna datoteka se ne premješta niti briše.</string>
     <string name="explorer_network_form_auth_guest">Gost</string>
     <string name="explorer_network_form_auth_password">Korisničko ime i lozinka</string>
     <string name="explorer_network_form_username_label">Korisničko ime</string>

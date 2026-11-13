@@ -315,6 +315,7 @@
         <item quantity="other">Remover %1$d armazenamentos de rede?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">O Butler esquece os detalhes do servidor e a senha salva. Nada no servidor é excluído.</string>
+    <string name="explorer_network_remove_saved_items_message">Favoritos, atalhos e outros itens salvos vinculados a ele deixarão de funcionar.</string>
     <string name="explorer_network_disconnect_location_action">Desconectar</string>
     <string name="explorer_network_disconnect_confirmation_title">Desconectar %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -333,8 +334,8 @@
     <string name="explorer_network_form_share_label">Compartilhamento</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Deixe em branco para navegar por todos os compartilhamentos do servidor.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Mostra todos os compartilhamentos deste servidor. Para abrir um compartilhamento diretamente, adicione um local separado.</string>
     <string name="explorer_network_form_base_path_label">Pasta dentro do compartilhamento (opcional)</string>
+    <string name="explorer_network_form_root_change_warning">Favoritos, atalhos e outros itens salvos deste local usarão o novo ponto de partida. Eles podem abrir outra pasta ou ficar indisponíveis. Nenhum arquivo é movido ou excluído.</string>
     <string name="explorer_network_form_auth_guest">Convidado</string>
     <string name="explorer_network_form_auth_password">Nome de usuário e senha</string>
     <string name="explorer_network_form_username_label">Nome de usuário</string>

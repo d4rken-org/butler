@@ -281,6 +281,7 @@
         <item quantity="other">%1$d नेटवर्क स्टोरेज हटाएँ?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler सर्वर के विवरण और सहेजा गया पासवर्ड भूल जाएगा। सर्वर पर कुछ नहीं मिटेगा।</string>
+    <string name="explorer_network_remove_saved_items_message">इससे जुड़े पसंदीदा, शॉर्टकट और अन्य सहेजे गए आइटम काम करना बंद कर देंगे।</string>
     <string name="explorer_network_disconnect_location_action">डिस्कनेक्ट करें</string>
     <string name="explorer_network_disconnect_confirmation_title">%1$s डिस्कनेक्ट करें?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -297,8 +298,8 @@
     <string name="explorer_network_form_share_label">शेयर</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">सर्वर के सभी शेयर ब्राउज़ करने के लिए खाली छोड़ें।</string>
-    <string name="explorer_network_form_share_server_entry_hint">इस सर्वर के सभी शेयर दिखाता है। किसी एक शेयर को सीधे खोलने के लिए अलग स्थान जोड़ें।</string>
     <string name="explorer_network_form_base_path_label">शेयर के अंदर का फ़ोल्डर (वैकल्पिक)</string>
+    <string name="explorer_network_form_root_change_warning">इस स्थान के पसंदीदा, शॉर्टकट और अन्य सहेजे गए आइटम नए शुरुआती बिंदु का उपयोग करेंगे। वे कोई दूसरा फ़ोल्डर खोल सकते हैं या उपलब्ध नहीं रह सकते। कोई फ़ाइल न तो स्थानांतरित की जाती है और न ही मिटाई जाती है।</string>
     <string name="explorer_network_form_auth_guest">अतिथि</string>
     <string name="explorer_network_form_auth_password">उपयोगकर्ता नाम और पासवर्ड</string>
     <string name="explorer_network_form_username_label">उपयोगकर्ता नाम</string>

@@ -320,6 +320,7 @@
         <item quantity="other">Да се премахнат ли %1$d мрежови хранилища?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler забравя данните за сървъра и запазената парола. Нищо на сървъра не се изтрива.</string>
+    <string name="explorer_network_remove_saved_items_message">Любимите, преките пътища и другите запазени елементи, свързани с него, ще спрат да работят.</string>
     <string name="explorer_network_disconnect_location_action">Прекъсни връзката</string>
     <string name="explorer_network_disconnect_confirmation_title">Да се прекъсне ли връзката с %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -338,8 +339,8 @@
     <string name="explorer_network_form_share_label">Споделен ресурс</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Остави празно, за да разглеждаш всички споделени ресурси на сървъра.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Показва всички споделени ресурси на този сървър. За да отвориш директно един споделен ресурс, добави отделно местоположение.</string>
     <string name="explorer_network_form_base_path_label">Папка в споделения ресурс (незадължително)</string>
+    <string name="explorer_network_form_root_change_warning">Любимите, преките пътища и другите запазени елементи за това местоположение ще използват новата начална точка. Възможно е да отварят друга папка или да станат недостъпни. Никакви файлове не се преместват или изтриват.</string>
     <string name="explorer_network_form_auth_guest">Гост</string>
     <string name="explorer_network_form_auth_password">Потребителско име и парола</string>
     <string name="explorer_network_form_username_label">Потребителско име</string>

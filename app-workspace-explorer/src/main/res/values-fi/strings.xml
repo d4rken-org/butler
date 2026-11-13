@@ -320,6 +320,7 @@
         <item quantity="other">Poistetaanko %1$d verkkotallennustilaa?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler unohtaa palvelimen tiedot ja tallennetun salasanan. Palvelimelta ei poisteta mitään.</string>
+    <string name="explorer_network_remove_saved_items_message">Siihen liitetyt suosikit, pikakuvakkeet ja muut tallennetut kohteet lakkaavat toimimasta.</string>
     <string name="explorer_network_disconnect_location_action">Katkaise yhteys</string>
     <string name="explorer_network_disconnect_confirmation_title">Katkaistaanko yhteys kohteeseen %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -338,8 +339,8 @@
     <string name="explorer_network_form_share_label">Jako</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Jätä tyhjäksi, jos haluat selata kaikkia palvelimen jakoja.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Näyttää kaikki tämän palvelimen jaot. Jos haluat avata yhden jaon suoraan, lisää erillinen sijainti.</string>
     <string name="explorer_network_form_base_path_label">Jaon sisäinen kansio (valinnainen)</string>
+    <string name="explorer_network_form_root_change_warning">Tämän sijainnin suosikit, pikakuvakkeet ja muut tallennetut kohteet käyttävät uutta aloituskohtaa. Ne voivat avata eri kansion tai lakata olemasta käytettävissä. Tiedostoja ei siirretä eikä poisteta.</string>
     <string name="explorer_network_form_auth_guest">Vieras</string>
     <string name="explorer_network_form_auth_password">Käyttäjänimi ja salasana</string>
     <string name="explorer_network_form_username_label">Käyttäjänimi</string>

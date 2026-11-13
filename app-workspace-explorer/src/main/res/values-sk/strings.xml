@@ -339,6 +339,7 @@
         <item quantity="other">Odstrániť %1$d sieťových úložísk?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler zabudne údaje o serveri a uložené heslo. Na serveri sa nič neodstráni.</string>
+    <string name="explorer_network_remove_saved_items_message">Obľúbené, skratky a ďalšie uložené položky, ktoré sú s ním prepojené, prestanú fungovať.</string>
     <string name="explorer_network_disconnect_location_action">Odpojiť</string>
     <string name="explorer_network_disconnect_confirmation_title">Odpojiť %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -359,8 +360,8 @@
     <string name="explorer_network_form_share_label">Zdieľaný priečinok</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Nechaj prázdne, ak chceš prehliadať všetky zdieľané priečinky na serveri.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Zobrazuje všetky zdieľané priečinky na tomto serveri. Ak chceš otvoriť jeden zdieľaný priečinok priamo, pridaj samostatné umiestnenie.</string>
     <string name="explorer_network_form_base_path_label">Priečinok v zdieľanom priečinku (nepovinné)</string>
+    <string name="explorer_network_form_root_change_warning">Obľúbené, skratky a ďalšie uložené položky tohto umiestnenia budú používať nový východiskový bod. Môžu otvoriť iný priečinok alebo prestať byť dostupné. Žiadne súbory sa nepresúvajú ani neodstraňujú.</string>
     <string name="explorer_network_form_auth_guest">Hosť</string>
     <string name="explorer_network_form_auth_password">Používateľské meno a heslo</string>
     <string name="explorer_network_form_username_label">Používateľské meno</string>

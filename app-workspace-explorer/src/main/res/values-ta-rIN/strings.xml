@@ -320,6 +320,7 @@
         <item quantity="other">%1$d பிணையச் சேமிப்பகங்களை அகற்றவா?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">சேவையக விவரங்களையும் சேமித்த கடவுச்சொல்லையும் Butler மறந்துவிடும். சேவையகத்தில் எதுவும் நீக்கப்படாது.</string>
+    <string name="explorer_network_remove_saved_items_message">இதனுடன் இணைக்கப்பட்ட பிடித்தவை, குறுக்குவழிகள் மற்றும் பிற சேமித்த உருப்படிகள் வேலை செய்வதை நிறுத்திவிடும்.</string>
     <string name="explorer_network_disconnect_location_action">இணைப்பைத் துண்டி</string>
     <string name="explorer_network_disconnect_confirmation_title">%1$s இணைப்பைத் துண்டிக்கவா?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -338,8 +339,8 @@
     <string name="explorer_network_form_share_label">பகிர்வு</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">சர்வரில் உள்ள எல்லா பகிர்வுகளையும் உலாவ காலியாக விடவும்.</string>
-    <string name="explorer_network_form_share_server_entry_hint">இந்த சர்வரில் உள்ள எல்லா பகிர்வுகளையும் காட்டுகிறது. ஒரு பகிர்வை நேரடியாகத் திறக்க, தனி இருப்பிடத்தைச் சேர்க்கவும்.</string>
     <string name="explorer_network_form_base_path_label">பகிர்வுக்குள் உள்ள கோப்புறை (விருப்பத்தேர்வு)</string>
+    <string name="explorer_network_form_root_change_warning">இந்த இருப்பிடத்துக்கான பிடித்தவை, குறுக்குவழிகள் மற்றும் பிற சேமித்த உருப்படிகள் புதிய தொடக்கப் புள்ளியைப் பயன்படுத்தும். அவை வேறு கோப்புறையைத் திறக்கலாம் அல்லது கிடைக்காமல் போகலாம். எந்தக் கோப்பும் நகர்த்தப்படுவதோ நீக்கப்படுவதோ இல்லை.</string>
     <string name="explorer_network_form_auth_guest">விருந்தினர்</string>
     <string name="explorer_network_form_auth_password">பயனர்பெயரும் கடவுச்சொல்லும்</string>
     <string name="explorer_network_form_username_label">பயனர்பெயர்</string>
