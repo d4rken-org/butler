@@ -170,6 +170,52 @@ internal class ProtocolSecurityTest {
         }
 
     @Test
+    fun `cancelled share listing during a pipe read closes its connection`() = runBlocking {
+        SambaServer().use { server ->
+            server.start()
+            val readSent = CountDownLatch(1)
+            SmbProxy(
+                    server.endpoint("public"),
+                    upstream = { frame ->
+                        if (Wire(frame).u16(12) == 8) {
+                            readSent.countDown()
+                            emptyList()
+                        } else listOf(frame)
+                    },
+                    downstream = { frame ->
+                        val wire = Wire(frame)
+                        // Guest replies are unsigned, so the transceive can be cut short to force
+                        // a follow-up pipe read.
+                        if (wire.u16(12) == 11 && wire.u32(8) == 0L && wire.u32(100) > 16) {
+                            listOf(
+                                frame.copyOf(wire.int32(96) + 16).also {
+                                    it.put32(8, 0x80000005)
+                                    it.put32(100, 16)
+                                }
+                            )
+                        } else listOf(frame)
+                    },
+                )
+                .use { proxy ->
+                    val listing =
+                        async(Dispatchers.Default) {
+                            KotlinSmbClient()
+                                .listShares(
+                                    SmbServer(proxy.endpoint.host, proxy.endpoint.port),
+                                    SmbCredentials.Guest,
+                                )
+                        }
+                    assertTrue(withContext(Dispatchers.IO) { readSent.await(3, TimeUnit.SECONDS) })
+                    withTimeout(3000) { listing.cancelAndJoin() }
+                    assertTrue(listing.isCancelled)
+                    val closed =
+                        withContext(Dispatchers.IO) { proxy.clientClosed.await(3, TimeUnit.SECONDS) }
+                    assertTrue(closed)
+                }
+        }
+    }
+
+    @Test
     fun `server mandated encryption works without a client opt in`() = runBlocking {
         SambaServer(encrypt = true).use { server ->
             server.start()
@@ -412,12 +458,18 @@ private class SmbProxy(
     private val workers = java.util.concurrent.CopyOnWriteArrayList<Thread>()
     val endpoint = SmbEndpoint("127.0.0.1", target.share, listener.localPort)
 
+    /** Released once the client side of the relay reaches EOF or fails. */
+    val clientClosed = CountDownLatch(1)
+
     init {
         worker {
             try {
                 val client = listener.accept().apply { tcpNoDelay = true }.also(sockets::add)
                 val server = Socket(target.host, target.port).apply { tcpNoDelay = true }.also(sockets::add)
-                worker { relay(client, server, upstream) }
+                worker {
+                    relay(client, server, upstream)
+                    clientClosed.countDown()
+                }
                 worker { relay(server, client, downstream) }
             } catch (_: java.io.IOException) {}
         }
