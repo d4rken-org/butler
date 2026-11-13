@@ -373,6 +373,7 @@ fun AppDetailsWorkspacePage(
                             onBackClick = { onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW)) },
                             backContentDescription = stringResource(R.string.appdetails_back_generic_action),
                             currentWorkspaceId = workspaceId,
+                            onExpand = expand,
                         )
                     } else if (showComponents) {
                         AppDetailsToolbarCard(
@@ -384,6 +385,7 @@ fun AppDetailsWorkspacePage(
                             onBackClick = { onPageAction(AppDetailsPageAction.NavigateToTab(DetailTab.OVERVIEW)) },
                             backContentDescription = stringResource(R.string.appdetails_back_generic_action),
                             currentWorkspaceId = workspaceId,
+                            onExpand = expand,
                             searchActive = searchActive,
                             searchQuery = searchQuery,
                             searchHint = stringResource(R.string.apps_components_search_hint),
@@ -408,6 +410,7 @@ fun AppDetailsWorkspacePage(
                                 stringResource(R.string.appdetails_back_action)
                             } else null,
                             currentWorkspaceId = workspaceId,
+                            onExpand = expand,
                         )
                     }
                 }
