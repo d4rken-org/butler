@@ -1,6 +1,7 @@
 package eu.darken.butler.viewer.ui.viewer
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -64,6 +65,7 @@ fun ViewerToolbarCard(
     /** Shown in the folder block: the file's 1-based position and the listing's size, null without one. */
     position: Pair<Int, Int>? = null,
     onBackClick: (() -> Unit)? = null,
+    onExpand: (() -> Unit)? = null,
 ) {
     val positionLabel = position?.let { (index, count) ->
         stringResource(R.string.viewer_toolbar_position, index, count) to
@@ -101,7 +103,9 @@ fun ViewerToolbarCard(
             ) {
                 onBackClick?.let { ViewerBackButton(onClick = it) }
                 Text(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .expandClickable(onExpand),
                     text = fileName,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -185,6 +189,9 @@ fun ViewerToolbarCard(
         }
     }
 }
+
+private fun Modifier.expandClickable(onExpand: (() -> Unit)?): Modifier =
+    if (onExpand != null) clickable(onClick = onExpand) else this
 
 /** Leaves a drill-down viewer; absent when the viewer is a tab of its own. */
 @Composable
