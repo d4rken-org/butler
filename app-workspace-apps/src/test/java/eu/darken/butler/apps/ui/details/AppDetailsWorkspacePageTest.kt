@@ -22,6 +22,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.unit.width
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
