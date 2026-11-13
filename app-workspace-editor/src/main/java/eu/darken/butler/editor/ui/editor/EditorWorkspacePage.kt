@@ -186,6 +186,7 @@ fun EditorWorkspacePage(
                         canRedo = state.canRedo,
                         onAction = onPageAction,
                         collapsedFraction = collapsedFraction,
+                        onExpand = expand,
                     )
                 }
                 FloatingBar(
