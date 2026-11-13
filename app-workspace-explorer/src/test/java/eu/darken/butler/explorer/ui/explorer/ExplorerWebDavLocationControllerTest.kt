@@ -589,6 +589,133 @@ class ExplorerWebDavLocationControllerTest : BaseTest() {
 
     // endregion
 
+    // region add as new
+
+    private val photosUrl = "https://cloud.example.com/remote.php/dav/files/alice/Photos/"
+
+    private fun kotlinx.coroutines.test.TestScope.editForAsNew():
+        Pair<ExplorerDialogController, ExplorerWebDavLocationController> {
+        val dialogs = dialogs()
+        val controller = controller(dialogs)
+        dialogs.show(ExplorerDialogState.WebDavLocationForm(mode = WebDavFormMode.EDIT, existing = stored))
+        return dialogs to controller
+    }
+
+    private fun verifyOriginalUntouched() {
+        coVerify(exactly = 0) { locationManager.update(any(), any(), any(), any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { locationManager.delete(any()) }
+        retrusts.shouldBeEmpty()
+    }
+
+    @Test
+    fun `adding as new tests and creates it with the stored password and leaves the original`() = runTest {
+        val (dialogs, controller) = editForAsNew()
+
+        testResults.add(WebDavConnectionTester.Result.Success)
+        controller.onFormSubmitAsNew(input(url = photosUrl, label = "Photos", password = ""))
+        advanceUntilIdle()
+
+        testCalls.single().pin shouldBe pin(1)
+        testCalls.single().password shouldBe "stored-secret"
+        val created = saved.single()
+        created.existingId shouldBe null
+        created.url shouldBe photosUrl
+        created.pin shouldBe pin(1)
+        created.password shouldBe "stored-secret"
+        storedCredential.single().password.all { it == Char(0) } shouldBe true
+        savedPasswords.forEach { array -> array.all { it == Char(0) } shouldBe true }
+        verifyOriginalUntouched()
+        dialogs.current() shouldBe ExplorerDialogState.None
+        coVerify { workspace.navigate(ExplorerNavigation.Refresh) }
+    }
+
+    @Test
+    fun `adding as new uses a typed password instead of the stored one`() = runTest {
+        val (_, controller) = editForAsNew()
+
+        testResults.add(WebDavConnectionTester.Result.Success)
+        controller.onFormSubmitAsNew(input(url = photosUrl, password = "typed-secret"))
+        advanceUntilIdle()
+
+        testCalls.single().password shouldBe "typed-secret"
+        saved.single().existingId shouldBe null
+        saved.single().password shouldBe "typed-secret"
+        coVerify(exactly = 0) { credentialStore.resolve(any()) }
+        verifyOriginalUntouched()
+    }
+
+    @Test
+    fun `adding as new on another server confirms its certificate instead of reusing the pin`() = runTest {
+        val (dialogs, controller) = editForAsNew()
+
+        testResults.add(WebDavConnectionTester.Result.CertificateUntrusted(certificate(2)))
+        controller.onFormSubmitAsNew(input(url = "https://dav.example.org/", password = ""))
+        advanceUntilIdle()
+
+        testCalls.single().pin shouldBe null
+        saved.shouldBeEmpty()
+        val confirmation = dialogs.form().certificateConfirmation.shouldNotBeNull()
+        confirmation.asNew shouldBe true
+
+        testResults.add(WebDavConnectionTester.Result.Success)
+        controller.onCertificateAccepted(confirmation.id, input(url = "https://dav.example.org/", password = ""))
+        advanceUntilIdle()
+
+        testCalls.last().pin shouldBe pin(2)
+        val created = saved.single()
+        created.existingId shouldBe null
+        created.url shouldBe "https://dav.example.org/"
+        created.pin shouldBe pin(2)
+        created.password shouldBe "stored-secret"
+        verifyOriginalUntouched()
+    }
+
+    @Test
+    fun `adding as new over plain HTTP on the same host does not reuse the pin`() = runTest {
+        val (_, controller) = editForAsNew()
+
+        testResults.add(WebDavConnectionTester.Result.Success)
+        controller.onFormSubmitAsNew(
+            input(url = "http://cloud.example.com:443/remote.php/dav/files/alice/", password = ""),
+        )
+        advanceUntilIdle()
+
+        testCalls.single().pin shouldBe null
+        saved.single().existingId shouldBe null
+        saved.single().pin shouldBe null
+    }
+
+    @Test
+    fun `adding as new never offers to re-trust the original`() = runTest {
+        val (dialogs, controller) = editForAsNew()
+
+        testResults.add(WebDavConnectionTester.Result.CertificateMismatch(certificate(1), certificate(2)))
+        controller.onFormSubmitAsNew(input(url = photosUrl, password = ""))
+        advanceUntilIdle()
+
+        saved.shouldBeEmpty()
+        dialogs.form().retrustConfirmation shouldBe null
+        dialogs.form().error shouldNotBe null
+        verifyOriginalUntouched()
+    }
+
+    @Test
+    fun `adding as new with an unusable stored password shows the error and saves nothing`() = runTest {
+        coEvery { credentialStore.resolve(stored) } throws
+            eu.darken.butler.common.files.webdav.credentials.WebDavCredentialUnavailableException(stored.id, "Missing")
+        val (dialogs, controller) = editForAsNew()
+
+        controller.onFormSubmitAsNew(input(url = photosUrl, password = ""))
+        advanceUntilIdle()
+
+        testCalls.shouldBeEmpty()
+        saved.shouldBeEmpty()
+        dialogs.form().isTesting shouldBe false
+        dialogs.form().error shouldNotBe null
+    }
+
+    // endregion
+
     // region sign-in
 
     @Test

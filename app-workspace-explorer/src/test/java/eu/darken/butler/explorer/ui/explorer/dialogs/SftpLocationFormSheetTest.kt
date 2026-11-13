@@ -40,6 +40,7 @@ import kotlin.uuid.Uuid
 class SftpLocationFormSheetTest : ComposeTest() {
 
     private var submitted: SftpLocationFormInput? = null
+    private var submittedAsNew: SftpLocationFormInput? = null
     private var keyPicks = 0
 
     private val stored = SftpLocation(
@@ -72,6 +73,7 @@ class SftpLocationFormSheetTest : ComposeTest() {
                         state = state,
                         onDismiss = {},
                         onSubmit = { submitted = it },
+                        onSubmitAsNew = { submittedAsNew = it },
                         onPickKeyFile = { keyPicks++ },
                     )
                 }
@@ -144,6 +146,7 @@ class SftpLocationFormSheetTest : ComposeTest() {
                         state = state,
                         onDismiss = {},
                         onSubmit = { submitted = it },
+                        onSubmitAsNew = { submittedAsNew = it },
                         onPickKeyFile = { keyPicks++ },
                     )
                 }
@@ -375,7 +378,33 @@ class SftpLocationFormSheetTest : ComposeTest() {
         composeTestRule.onAllNodes(hasText(ROOT_CHANGE_WARNING)).assertCountEquals(0)
     }
 
+    @Test
+    fun `add as new is offered with the warning and hands over the fields`() {
+        setSheetContent(ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.EDIT, existing = stored))
+        composeTestRule.onAllNodes(hasText(ADD_AS_NEW)).assertCountEquals(0)
+
+        field("Base path (optional)").performTextReplacement("/srv/builds")
+        text(ADD_AS_NEW).performScrollTo().assertIsEnabled().performClick()
+
+        submittedAsNew!!.basePath shouldBe "/srv/builds"
+        submittedAsNew!!.host shouldBe "build.lan"
+        submitted shouldBe null
+
+        field("Base path (optional)").performTextReplacement("/srv")
+        composeTestRule.onAllNodes(hasText(ADD_AS_NEW)).assertCountEquals(0)
+    }
+
+    @Test
+    fun `a new location never offers add as new`() {
+        setSheetContent(ExplorerDialogState.SftpLocationForm())
+
+        field("Base path (optional)").performTextInput("/srv")
+
+        composeTestRule.onAllNodes(hasText(ADD_AS_NEW)).assertCountEquals(0)
+    }
+
     companion object {
+        private const val ADD_AS_NEW = "Add as new location"
         private const val ROOT_CHANGE_WARNING = "Favorites, shortcuts and other saved items for this location " +
             "will use the new starting point. They may open a different folder or become unavailable. " +
             "No files are moved or deleted."

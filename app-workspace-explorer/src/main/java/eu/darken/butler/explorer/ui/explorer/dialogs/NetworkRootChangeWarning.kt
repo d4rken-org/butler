@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
@@ -8,6 +9,7 @@ import androidx.compose.material.icons.twotone.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,27 +28,39 @@ import java.net.URI
 
 /**
  * Saved paths below a network location are its id plus segments relative to where it starts, so an
- * edit that moves the start repoints favorites, shortcuts and the like.
+ * edit that moves the start repoints favorites, shortcuts and the like. [onAddAsNew] saves the form
+ * as another location instead, which leaves the edited one and its saved items as they are.
  */
 @Composable
 fun NetworkRootChangeWarning(
     modifier: Modifier = Modifier,
+    onAddAsNew: () -> Unit,
+    addAsNewEnabled: Boolean = true,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Icon(
-            imageVector = Icons.TwoTone.Warning,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-        )
-        Text(
-            text = stringResource(R.string.explorer_network_form_root_change_warning),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error,
-        )
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                imageVector = Icons.TwoTone.Warning,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+            )
+            Text(
+                text = stringResource(R.string.explorer_network_form_root_change_warning),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+        TextButton(
+            onClick = onAddAsNew,
+            enabled = addAsNewEnabled,
+            modifier = Modifier.align(Alignment.End),
+        ) {
+            Text(stringResource(R.string.explorer_network_form_add_as_new_action))
+        }
     }
 }
 
@@ -91,5 +105,12 @@ private fun pathSegmentsOf(url: String) = WebDavLocationInput.splitPath(URI(url)
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun NetworkRootChangeWarningPreview() {
-    NetworkRootChangeWarning()
+    NetworkRootChangeWarning(onAddAsNew = {})
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun NetworkRootChangeWarningDisabledPreview() {
+    NetworkRootChangeWarning(onAddAsNew = {}, addAsNewEnabled = false)
 }

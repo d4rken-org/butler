@@ -339,10 +339,19 @@ class ExplorerSftpLocationController(
 
     // region submit
 
-    fun onFormSubmit(input: SftpLocationFormInput) = doLaunch {
+    fun onFormSubmit(input: SftpLocationFormInput) = submit(input, asNew = false)
+
+    /**
+     * Saves an edited form as another location: the edited one, its credential and everything saved
+     * below it stay as they are. Without a newly typed secret or picked key the stored one is copied
+     * over; the host key pin only while the endpoint is the same.
+     */
+    fun onFormSubmitAsNew(input: SftpLocationFormInput) = submit(input, asNew = true)
+
+    private fun submit(input: SftpLocationFormInput, asNew: Boolean) = doLaunch {
         val form = dialogs.current() as? ExplorerDialogState.SftpLocationForm ?: return@doLaunch
         if (form.isBusy()) return@doLaunch
-        log(tag) { "onFormSubmit(existing=${form.existing?.id}, ${form.mode})" }
+        log(tag) { "onFormSubmit(existing=${form.existing?.id}, ${form.mode}, asNew=$asNew)" }
 
         val details = parse(form, input) ?: return@doLaunch
         val testing = form.copy(isTesting = true, error = null)
@@ -351,7 +360,15 @@ class ExplorerSftpLocationController(
         val existing = form.existing
         // An unchanged endpoint keeps its pin, a new one has to present its key first.
         val pinnedKey = existing?.hostKey?.takeIf { details.host == existing.host && details.port == existing.port }
-        connectAndSave(testing, input, details, pinnedKey = pinnedKey, acceptedKey = null)
+        connectAndSave(
+            testing,
+            input,
+            details,
+            pinnedKey = pinnedKey,
+            // A new location stores the pin it was tested against
+            acceptedKey = pinnedKey?.takeIf { asNew },
+            asNew = asNew,
+        )
     }
 
     /**
@@ -389,7 +406,14 @@ class ExplorerSftpLocationController(
         val testing = form.copy(hostKeyConfirmation = null, isTesting = true, error = null)
         if (!dialogs.replaceIfCurrent(form, testing)) return@doLaunch
         log(tag, INFO) { "onHostKeyAccepted(): Testing again, pinned to ${confirmation.presentedKey}" }
-        connectAndSave(testing, input, details!!, confirmation.presentedKey, confirmation.presentedKey)
+        connectAndSave(
+            testing,
+            input,
+            details!!,
+            pinnedKey = confirmation.presentedKey,
+            acceptedKey = confirmation.presentedKey,
+            asNew = confirmation.asNew,
+        )
     }
 
     fun onHostKeyRejected(confirmationId: Uuid) {
@@ -408,6 +432,7 @@ class ExplorerSftpLocationController(
     /**
      * @param pinnedKey the key the connection must present, null to learn the one it presents
      * @param acceptedKey the key the user accepted for a new endpoint, saved as its pin
+     * @param asNew saves a new location even though the form edits [ExplorerDialogState.SftpLocationForm.existing]
      */
     private suspend fun connectAndSave(
         testing: ExplorerDialogState.SftpLocationForm,
@@ -415,8 +440,9 @@ class ExplorerSftpLocationController(
         details: SftpLocationInput.Parsed,
         pinnedKey: TrustedHostKey?,
         acceptedKey: TrustedHostKey?,
+        asNew: Boolean,
     ) {
-        val secrets = resolveSecrets(testing, input, details) ?: return
+        val secrets = resolveSecrets(testing, input, details, asNew) ?: return
         try {
             val result = try {
                 connectionTester.test(
@@ -442,7 +468,7 @@ class ExplorerSftpLocationController(
             when (result) {
                 is SftpConnectionTester.Result.Success -> when {
                     pinnedKey == null -> fail(testing, R.string.explorer_sftp_form_error_unconfirmed.toCaString())
-                    else -> save(testing, input, details, secrets, acceptedKey)
+                    else -> save(testing, input, details, secrets, acceptedKey, asNew)
                 }
 
                 is SftpConnectionTester.Result.HostKeyUnknown -> when {
@@ -457,6 +483,7 @@ class ExplorerSftpLocationController(
                                 presentedKey = result.presentedKey,
                                 formRevision = input.revision,
                                 keyGeneration = secrets.keyGeneration,
+                                asNew = asNew,
                             ),
                         ),
                     )
@@ -464,7 +491,8 @@ class ExplorerSftpLocationController(
 
                 is SftpConnectionTester.Result.HostKeyMismatch -> {
                     val existing = testing.existing
-                    if (existing != null && details.host == existing.host && details.port == existing.port) {
+                    // Re-trusting changes the edited location, which saving as new must leave alone.
+                    if (!asNew && existing != null && details.host == existing.host && details.port == existing.port) {
                         dialogs.showIfCurrent(
                             testing,
                             testing.copy(
@@ -500,6 +528,7 @@ class ExplorerSftpLocationController(
         details: SftpLocationInput.Parsed,
         secrets: Secrets,
         acceptedKey: TrustedHostKey?,
+        asNew: Boolean,
     ) {
         if (dialogs.current() !== testing) {
             log(tag, WARN) { "save(): The form moved on while testing, nothing saved" }
@@ -508,7 +537,7 @@ class ExplorerSftpLocationController(
         val existing = testing.existing
         val label = input.label.trim().takeIf { it.isNotEmpty() }
         val passphraseHeld = try {
-            if (existing == null) {
+            if (existing == null || asNew) {
                 locationManager.create(
                     label = label,
                     host = details.host,
@@ -556,7 +585,7 @@ class ExplorerSftpLocationController(
             fail(testing, R.string.explorer_sftp_form_error_location_changed.toCaString())
             return
         }
-        log(tag, INFO) { "save(): Saved SFTP location" }
+        log(tag, INFO) { "save(): Saved SFTP location, asNew=$asNew" }
 
         dialogs.dismissIfCurrent(testing)
         clearSelection()
@@ -658,10 +687,12 @@ class ExplorerSftpLocationController(
         override fun toString(): String = "Secrets(<redacted>)"
     }
 
+    /** With [asNew] a stored secret is saved again for the new location, nothing is kept. */
     private suspend fun resolveSecrets(
         testing: ExplorerDialogState.SftpLocationForm,
         input: SftpLocationFormInput,
         details: SftpLocationInput.Parsed,
+        asNew: Boolean,
     ): Secrets? {
         val existing = testing.existing
         val keepsStored = existing?.canReuseCredentialFor(details.username, input.authType, input.rememberCredential) == true
@@ -686,7 +717,12 @@ class ExplorerSftpLocationController(
                     else -> {
                         val stored = resolveStored(testing) { credentialStore.resolve(existing!!) }
                         if (stored !is SftpCredential.Password) return null
-                        Secrets(testPassword = stored.password, keyGeneration = generation, stored = stored)
+                        Secrets(
+                            testPassword = stored.password,
+                            savePassword = if (asNew) stored.password.copyOf() else null,
+                            keyGeneration = generation,
+                            stored = stored,
+                        )
                     }
                 }
             }
@@ -710,6 +746,8 @@ class ExplorerSftpLocationController(
                         fail(testing, R.string.explorer_sftp_form_error_key_required.toCaString())
                         null
                     }
+
+                    asNew -> storedKeyCopySecrets(testing, existing!!, passphrase, generation)
 
                     else -> storedKeySecrets(testing, existing!!, input, details, passphrase, generation)
                 }
@@ -792,6 +830,37 @@ class ExplorerSftpLocationController(
                 stored = stored,
             )
         }
+    }
+
+    /**
+     * No key file picked for a new location: the stored key is saved again, with [typed], else the
+     * passphrase held or stored for it.
+     */
+    private suspend fun storedKeyCopySecrets(
+        testing: ExplorerDialogState.SftpLocationForm,
+        location: SftpLocation,
+        typed: CharArray?,
+        generation: Int,
+    ): Secrets? {
+        val stored = try {
+            resolveStored(testing) { credentialStore.resolveStoredKey(location, typed) } ?: return null
+        } finally {
+            typed?.fill(Char(0))
+        }
+        val passphrase = stored.passphrase
+        if (location.asksForPassphrase && passphrase == null) {
+            stored.wipe()
+            fail(testing, R.string.explorer_sftp_form_error_passphrase_required.toCaString())
+            return null
+        }
+        return Secrets(
+            testKey = stored.keyBytes,
+            testPassphrase = passphrase,
+            saveKey = stored.keyBytes.copyOf(),
+            savePassphrase = passphrase?.copyOf(),
+            keyGeneration = generation,
+            stored = stored,
+        )
     }
 
     /** Nothing typed while editing: the test runs against the stored secret, never against nothing. */

@@ -160,6 +160,8 @@ fun SftpLocationFormSheet(
     fields: SftpLocationFormFields = rememberSftpLocationFormFields(state),
     onDismiss: () -> Unit,
     onSubmit: (SftpLocationFormInput) -> Unit,
+    /** Saves the form as another location, see [NetworkRootChangeWarning]. */
+    onSubmitAsNew: (SftpLocationFormInput) -> Unit,
     onPickKeyFile: () -> Unit,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
@@ -283,7 +285,10 @@ fun SftpLocationFormSheet(
             )
 
             if (existing?.startsElsewhere(basePath = fields.basePath) == true) {
-                NetworkRootChangeWarning()
+                NetworkRootChangeWarning(
+                    onAddAsNew = { onSubmitAsNew(fields.toInput()) },
+                    addAsNewEnabled = canSubmit,
+                )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -493,6 +498,7 @@ private fun SftpLocationFormSheetAddPreview() {
         state = ExplorerDialogState.SftpLocationForm(),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
         onPickKeyFile = {},
     )
 }
@@ -505,6 +511,7 @@ private fun SftpLocationFormSheetFreePreview() {
         state = ExplorerDialogState.SftpLocationForm(),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
         onPickKeyFile = {},
         isPro = false,
     )
@@ -522,6 +529,7 @@ private fun SftpLocationFormSheetEditKeyPreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
         onPickKeyFile = {},
     )
 }
@@ -537,6 +545,7 @@ private fun SftpLocationFormSheetEditAskPassphrasePreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
         onPickKeyFile = {},
     )
 }
@@ -552,6 +561,7 @@ private fun SftpLocationFormSheetSignInAskPassphrasePreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
         onPickKeyFile = {},
     )
 }
@@ -567,6 +577,7 @@ private fun SftpLocationFormSheetSignInPreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
         onPickKeyFile = {},
     )
 }
@@ -583,6 +594,7 @@ private fun SftpLocationFormSheetTestingPreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
         onPickKeyFile = {},
     )
 }
@@ -599,6 +611,23 @@ private fun SftpLocationFormSheetErrorPreview() {
         ),
         onDismiss = {},
         onSubmit = {},
+        onSubmitAsNew = {},
+        onPickKeyFile = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SftpLocationFormSheetStartsElsewherePreview() {
+    val existing = previewSftpLocation()
+    val fields = remember { SftpLocationFormFields(existing).apply { basePath = "/srv/releases" } }
+    SftpLocationFormSheet(
+        state = ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.EDIT, existing = existing),
+        fields = fields,
+        onDismiss = {},
+        onSubmit = {},
+        onSubmitAsNew = {},
         onPickKeyFile = {},
     )
 }

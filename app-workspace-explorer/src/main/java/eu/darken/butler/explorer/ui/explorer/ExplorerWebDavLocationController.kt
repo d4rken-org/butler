@@ -106,10 +106,19 @@ class ExplorerWebDavLocationController(
 
     // region submit
 
-    fun onFormSubmit(input: WebDavLocationFormInput) = doLaunch {
+    fun onFormSubmit(input: WebDavLocationFormInput) = submit(input, asNew = false)
+
+    /**
+     * Saves an edited form as another location: the edited one, its credential and everything saved
+     * below it stay as they are. Without a typed password the stored one is copied over; the pinned
+     * certificate only while the HTTPS origin is the same.
+     */
+    fun onFormSubmitAsNew(input: WebDavLocationFormInput) = submit(input, asNew = true)
+
+    private fun submit(input: WebDavLocationFormInput, asNew: Boolean) = doLaunch {
         val form = dialogs.current() as? ExplorerDialogState.WebDavLocationForm ?: return@doLaunch
         if (form.isBusy()) return@doLaunch
-        log(tag) { "onFormSubmit(existing=${form.existing?.id}, ${form.mode})" }
+        log(tag) { "onFormSubmit(existing=${form.existing?.id}, ${form.mode}, asNew=$asNew)" }
 
         val details = when (val parsed = parseDetails(input)) {
             is WebDavLocationInput.Result.Valid -> parsed.parsed
@@ -124,7 +133,7 @@ class ExplorerWebDavLocationController(
         val testing = form.copy(isTesting = true, error = null, issues = emptyList())
         if (!dialogs.replaceIfCurrent(form, testing)) return@doLaunch
 
-        connectAndSave(testing, input, details, pin = form.existing?.pinFor(details))
+        connectAndSave(testing, input, details, pin = form.existing?.pinFor(details), asNew = asNew)
     }
 
     /**
@@ -157,7 +166,7 @@ class ExplorerWebDavLocationController(
         if (!dialogs.replaceIfCurrent(form, testing)) return@doLaunch
         val accepted = confirmation.presented.toTrustedCertificate()
         log(tag, INFO) { "onCertificateAccepted(): Testing again, pinned to $accepted" }
-        connectAndSave(testing, input, details, pin = accepted)
+        connectAndSave(testing, input, details, pin = accepted, asNew = confirmation.asNew)
     }
 
     fun onCertificateRejected(confirmationId: Uuid) {
@@ -176,14 +185,16 @@ class ExplorerWebDavLocationController(
     /**
      * @param pin the certificate the connection must present, saved as the location's pin once it
      * did; null accepts only what the system trusts and saves no pin
+     * @param asNew saves a new location even though the form edits [ExplorerDialogState.WebDavLocationForm.existing]
      */
     private suspend fun connectAndSave(
         testing: ExplorerDialogState.WebDavLocationForm,
         input: WebDavLocationFormInput,
         details: WebDavLocationInput.Parsed,
         pin: TrustedCertificate?,
+        asNew: Boolean,
     ) {
-        val secrets = resolveSecrets(testing, input, details) ?: return
+        val secrets = resolveSecrets(testing, input, details, asNew) ?: return
         try {
             val result = try {
                 connectionTester.test(
@@ -203,7 +214,7 @@ class ExplorerWebDavLocationController(
             log(tag, INFO) { "connectAndSave(): Test result ${result::class.simpleName}" }
 
             when (result) {
-                WebDavConnectionTester.Result.Success -> save(testing, input, details, secrets, pin)
+                WebDavConnectionTester.Result.Success -> save(testing, input, details, secrets, pin, asNew)
 
                 is WebDavConnectionTester.Result.CertificateUntrusted -> when {
                     pin != null -> fail(testing, R.string.explorer_webdav_form_error_unconfirmed.toCaString())
@@ -215,6 +226,7 @@ class ExplorerWebDavLocationController(
                                 url = details.url,
                                 presented = result.presented,
                                 formRevision = input.revision,
+                                asNew = asNew,
                             ),
                         ),
                     )
@@ -222,7 +234,8 @@ class ExplorerWebDavLocationController(
 
                 is WebDavConnectionTester.Result.CertificateMismatch -> {
                     val existing = testing.existing
-                    if (existing != null && pin != null && pin == existing.pinnedCertificate) {
+                    // Re-trusting changes the edited location, which saving as new must leave alone.
+                    if (!asNew && existing != null && pin != null && pin == existing.pinnedCertificate) {
                         dialogs.showIfCurrent(
                             testing,
                             testing.copy(
@@ -257,6 +270,7 @@ class ExplorerWebDavLocationController(
         details: WebDavLocationInput.Parsed,
         secrets: Secrets,
         pin: TrustedCertificate?,
+        asNew: Boolean,
     ) {
         if (dialogs.current() !== testing) {
             log(tag, WARN) { "save(): The form moved on while testing, nothing saved" }
@@ -264,7 +278,7 @@ class ExplorerWebDavLocationController(
         }
         val existing = testing.existing
         try {
-            if (existing == null) {
+            if (existing == null || asNew) {
                 locationManager.create(
                     label = details.label,
                     url = details.url,
@@ -286,7 +300,7 @@ class ExplorerWebDavLocationController(
                     pinnedCertificate = pin,
                 )
             }
-            log(tag, INFO) { "save(): Saved WebDAV location, pinned=${pin != null}" }
+            log(tag, INFO) { "save(): Saved WebDAV location, pinned=${pin != null}, asNew=$asNew" }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -381,10 +395,12 @@ class ExplorerWebDavLocationController(
         override fun toString(): String = "Secrets(<redacted>)"
     }
 
+    /** With [asNew] the stored password is saved again for the new location, nothing is kept. */
     private suspend fun resolveSecrets(
         testing: ExplorerDialogState.WebDavLocationForm,
         input: WebDavLocationFormInput,
         details: WebDavLocationInput.Parsed,
+        asNew: Boolean,
     ): Secrets? {
         if (details.authType == WebDavLocation.AuthType.ANONYMOUS) return Secrets()
 
@@ -407,7 +423,11 @@ class ExplorerWebDavLocationController(
 
             else -> {
                 val stored = resolveStored(testing, existing!!) as? WebDavCredential.Password ?: return null
-                Secrets(testPassword = stored.password, stored = stored)
+                Secrets(
+                    testPassword = stored.password,
+                    savePassword = if (asNew) stored.password.copyOf() else null,
+                    stored = stored,
+                )
             }
         }
     }

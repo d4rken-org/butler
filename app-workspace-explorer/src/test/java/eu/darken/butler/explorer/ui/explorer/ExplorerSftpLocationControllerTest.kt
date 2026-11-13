@@ -704,6 +704,165 @@ class ExplorerSftpLocationControllerTest : BaseTest() {
 
     // endregion
 
+    // region add as new
+
+    private fun kotlinx.coroutines.test.TestScope.editForAsNew(
+        location: SftpLocation = stored,
+    ): Pair<ExplorerDialogController, ExplorerSftpLocationController> {
+        val dialogs = dialogs()
+        val controller = controller(dialogs)
+        dialogs.show(ExplorerDialogState.SftpLocationForm(mode = SftpFormMode.EDIT, existing = location))
+        return dialogs to controller
+    }
+
+    /** No update, hold, re-trust or delete reached the edited location. */
+    private fun verifyOriginalUntouched() {
+        managerCalls shouldBe emptyList()
+        retrusts shouldBe emptyList()
+        coVerify(exactly = 0) { locationManager.delete(any()) }
+    }
+
+    @Test
+    fun `adding as new tests and creates it with the stored password and leaves the original`() = runTest {
+        val credential = SftpCredential.Password("darken", "stored-secret".toCharArray())
+        coEvery { credentialStore.resolve(stored) } returns credential
+        val (dialogs, controller) = editForAsNew()
+
+        testResults.add(success())
+        controller.onFormSubmitAsNew(input(label = "Copy", password = ""))
+        advanceUntilIdle()
+
+        testCalls.single().password shouldBe "stored-secret"
+        testCalls.single().trustedKey shouldBe hostKey(1)
+        val created = saved.single()
+        created.existingId shouldBe null
+        created.host shouldBe "build.lan"
+        created.password shouldBe "stored-secret"
+        created.hostKey shouldBe hostKey(1)
+        credential.password.all { it == Char(0) } shouldBe true
+        verifyOriginalUntouched()
+        dialogs.current() shouldBe ExplorerDialogState.None
+        coVerify(exactly = 1) { workspace.navigate(ExplorerNavigation.Refresh) }
+    }
+
+    @Test
+    fun `adding as new uses a typed password instead of the stored one`() = runTest {
+        val (_, controller) = editForAsNew()
+
+        testResults.add(success())
+        controller.onFormSubmitAsNew(input(password = "typed-secret"))
+        advanceUntilIdle()
+
+        testCalls.single().password shouldBe "typed-secret"
+        saved.single().existingId shouldBe null
+        saved.single().password shouldBe "typed-secret"
+        coVerify(exactly = 0) { credentialStore.resolve(any()) }
+        verifyOriginalUntouched()
+    }
+
+    @Test
+    fun `adding as new copies the stored key and its passphrase`() = runTest {
+        val (dialogs, controller) = editForAsNew(keyLocation)
+
+        testResults.add(success())
+        controller.onFormSubmitAsNew(keyInput(rememberPassphrase = true))
+        advanceUntilIdle()
+
+        testCalls.single().privateKey shouldBe "STORED-KEY"
+        testCalls.single().passphrase shouldBe "stored-phrase"
+        val created = saved.single()
+        created.existingId shouldBe null
+        created.privateKey shouldBe "STORED-KEY"
+        created.passphrase shouldBe "stored-phrase"
+        created.hostKey shouldBe hostKey(1)
+        verifyOriginalUntouched()
+        dialogs.current() shouldBe ExplorerDialogState.None
+    }
+
+    @Test
+    fun `adding as new from a key that asks for its passphrase with none held needs one`() = runTest {
+        heldPassphrase = null
+        val (dialogs, controller) = editForAsNew(askingLocation)
+
+        controller.onFormSubmitAsNew(keyInput(rememberPassphrase = false))
+        advanceUntilIdle()
+
+        testCalls shouldBe emptyList()
+        saved shouldBe emptyList()
+        dialogs.form().error shouldNotBe null
+    }
+
+    @Test
+    fun `adding as new on another server confirms its key instead of reusing the pin`() = runTest {
+        val (dialogs, controller) = editForAsNew()
+
+        testResults.add(unknown(hostKey(2)))
+        controller.onFormSubmitAsNew(input(host = "other.lan", password = ""))
+        advanceUntilIdle()
+
+        testCalls.single().trustedKey shouldBe null
+        saved shouldBe emptyList()
+        val confirmation = dialogs.form().hostKeyConfirmation.shouldNotBeNull()
+        confirmation.asNew shouldBe true
+
+        testResults.add(success())
+        controller.onHostKeyAccepted(confirmation.id, input(host = "other.lan", password = ""))
+        advanceUntilIdle()
+
+        testCalls.last().trustedKey shouldBe hostKey(2)
+        testCalls.last().password shouldBe "stored-secret"
+        val created = saved.single()
+        created.existingId shouldBe null
+        created.host shouldBe "other.lan"
+        created.hostKey shouldBe hostKey(2)
+        created.password shouldBe "stored-secret"
+        verifyOriginalUntouched()
+    }
+
+    @Test
+    fun `adding as new on another port does not reuse the pin`() = runTest {
+        val (dialogs, controller) = editForAsNew()
+
+        testResults.add(unknown(hostKey(2)))
+        controller.onFormSubmitAsNew(input(port = "2222", password = ""))
+        advanceUntilIdle()
+
+        testCalls.single().trustedKey shouldBe null
+        saved shouldBe emptyList()
+        dialogs.form().hostKeyConfirmation.shouldNotBeNull()
+    }
+
+    @Test
+    fun `adding as new never offers to re-trust the original`() = runTest {
+        val (dialogs, controller) = editForAsNew()
+
+        testResults.add(mismatch(expected = hostKey(1), presented = hostKey(2)))
+        controller.onFormSubmitAsNew(input(password = ""))
+        advanceUntilIdle()
+
+        saved shouldBe emptyList()
+        dialogs.form().retrustConfirmation shouldBe null
+        dialogs.form().error shouldNotBe null
+        verifyOriginalUntouched()
+    }
+
+    @Test
+    fun `adding as new with an unusable stored password shows the error and saves nothing`() = runTest {
+        coEvery { credentialStore.resolve(stored) } throws
+            eu.darken.butler.common.files.sftp.credentials.SftpCredentialUnavailableException(stored.id, "Missing")
+        val (dialogs, controller) = editForAsNew()
+
+        controller.onFormSubmitAsNew(input(password = ""))
+        advanceUntilIdle()
+
+        testCalls shouldBe emptyList()
+        saved shouldBe emptyList()
+        dialogs.form().isTesting shouldBe false
+        dialogs.form().error shouldNotBe null
+    }
+
+    // endregion
+
     // region sign-in
 
     @Test
