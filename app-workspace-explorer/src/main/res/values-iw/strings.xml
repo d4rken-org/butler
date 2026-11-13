@@ -303,6 +303,7 @@
         <item quantity="other">להסיר %1$d מיקומי אחסון רשת?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler שוכח את פרטי השרת ואת הסיסמה השמורה. שום דבר בשרת לא נמחק.</string>
+    <string name="explorer_network_remove_saved_items_message">מועדפים, קיצורי דרך ופריטים שמורים אחרים שמקושרים אליו יפסיקו לפעול.</string>
     <string name="explorer_network_disconnect_location_action">ניתוק</string>
     <string name="explorer_network_disconnect_confirmation_title">לנתק את %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -321,8 +322,8 @@
     <string name="explorer_network_form_share_label">שיתוף</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">אפשר להשאיר ריק כדי לעיין בכל השיתופים בשרת.</string>
-    <string name="explorer_network_form_share_server_entry_hint">מציג את כל השיתופים בשרת הזה. כדי לפתוח שיתוף אחד ישירות, יש להוסיף מיקום נפרד.</string>
     <string name="explorer_network_form_base_path_label">תיקייה בתוך השיתוף (אופציונלי)</string>
+    <string name="explorer_network_form_root_change_warning">מועדפים, קיצורי דרך ופריטים שמורים אחרים של מיקום זה ישתמשו בנקודת ההתחלה החדשה. ייתכן שהם יפתחו תיקייה אחרת או שלא יהיו זמינים. אף קובץ לא מועבר או נמחק.</string>
     <string name="explorer_network_form_auth_guest">אורח</string>
     <string name="explorer_network_form_auth_password">שם משתמש וסיסמה</string>
     <string name="explorer_network_form_username_label">שם משתמש</string>

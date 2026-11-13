@@ -318,6 +318,7 @@
         <item quantity="other">%1$d netwerkopslagen verwijderen?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler vergeet de servergegevens en het opgeslagen wachtwoord. Er wordt niets op de server verwijderd.</string>
+    <string name="explorer_network_remove_saved_items_message">Favorieten, snelkoppelingen en andere opgeslagen items die eraan gekoppeld zijn, werken dan niet meer.</string>
     <string name="explorer_network_disconnect_location_action">Verbinding verbreken</string>
     <string name="explorer_network_disconnect_confirmation_title">Verbinding met %1$s verbreken?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -336,8 +337,8 @@
     <string name="explorer_network_form_share_label">Share</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Laat leeg om alle shares op de server te doorbladeren.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Toont alle shares op deze server. Voeg een aparte locatie toe om één share direct te openen.</string>
     <string name="explorer_network_form_base_path_label">Map binnen de share (optioneel)</string>
+    <string name="explorer_network_form_root_change_warning">Favorieten, snelkoppelingen en andere opgeslagen items voor deze locatie gebruiken het nieuwe startpunt. Ze kunnen een andere map openen of niet meer beschikbaar zijn. Er worden geen bestanden verplaatst of verwijderd.</string>
     <string name="explorer_network_form_auth_guest">Gast</string>
     <string name="explorer_network_form_auth_password">Gebruikersnaam en wachtwoord</string>
     <string name="explorer_network_form_username_label">Gebruikersnaam</string>

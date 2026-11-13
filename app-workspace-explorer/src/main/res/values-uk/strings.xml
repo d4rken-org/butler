@@ -340,6 +340,7 @@
         <item quantity="other">Вилучити %1$d мережевого сховища?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler забуде дані сервера та збережений пароль. На сервері нічого не буде видалено.</string>
+    <string name="explorer_network_remove_saved_items_message">Обране, ярлики та інші збережені елементи, пов’язані з ним, перестануть працювати.</string>
     <string name="explorer_network_disconnect_location_action">Від’єднати</string>
     <string name="explorer_network_disconnect_confirmation_title">Від’єднати %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -360,8 +361,8 @@
     <string name="explorer_network_form_share_label">Спільний ресурс</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Залиште порожнім, щоб переглядати всі спільні ресурси сервера.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Показує всі спільні ресурси цього сервера. Щоб відкрити один спільний ресурс напряму, додайте окреме розташування.</string>
     <string name="explorer_network_form_base_path_label">Тека всередині спільного ресурсу (необов’язково)</string>
+    <string name="explorer_network_form_root_change_warning">Обране, ярлики та інші збережені елементи цього розташування використовуватимуть нову початкову точку. Вони можуть відкрити іншу теку або стати недоступними. Жодні файли не переміщуються й не видаляються.</string>
     <string name="explorer_network_form_auth_guest">Гість</string>
     <string name="explorer_network_form_auth_password">Ім’я користувача та пароль</string>
     <string name="explorer_network_form_username_label">Ім’я користувача</string>

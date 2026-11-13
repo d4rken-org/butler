@@ -315,6 +315,7 @@
         <item quantity="other">%1$d ağ depolaması kaldırılsın mı?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler sunucu bilgilerini ve kayıtlı şifreyi unutur. Sunucudaki hiçbir şey silinmez.</string>
+    <string name="explorer_network_remove_saved_items_message">Buna bağlı favoriler, kısayollar ve diğer kayıtlı öğeler artık çalışmaz.</string>
     <string name="explorer_network_disconnect_location_action">Bağlantıyı kes</string>
     <string name="explorer_network_disconnect_confirmation_title">%1$s bağlantısı kesilsin mi?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -333,8 +334,8 @@
     <string name="explorer_network_form_share_label">Paylaşım</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Sunucudaki tüm paylaşımlara göz atmak için boş bırakın.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Bu sunucudaki tüm paylaşımları gösterir. Tek bir paylaşımı doğrudan açmak için ayrı bir konum ekleyin.</string>
     <string name="explorer_network_form_base_path_label">Paylaşım içindeki klasör (isteğe bağlı)</string>
+    <string name="explorer_network_form_root_change_warning">Bu konumun favorileri, kısayolları ve diğer kayıtlı öğeleri yeni başlangıç noktasını kullanacak. Farklı bir klasör açabilir veya kullanılamaz hâle gelebilirler. Hiçbir dosya taşınmaz veya silinmez.</string>
     <string name="explorer_network_form_auth_guest">Misafir</string>
     <string name="explorer_network_form_auth_password">Kullanıcı adı ve şifre</string>
     <string name="explorer_network_form_username_label">Kullanıcı adı</string>

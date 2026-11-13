@@ -317,6 +317,7 @@
         <item quantity="other">Rimuovere %1$d archiviazioni di rete?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler dimentica i dettagli del server e la password salvata. Nulla viene eliminato dal server.</string>
+    <string name="explorer_network_remove_saved_items_message">Preferiti, collegamenti e altri elementi salvati collegati a essa smetteranno di funzionare.</string>
     <string name="explorer_network_disconnect_location_action">Disconnetti</string>
     <string name="explorer_network_disconnect_confirmation_title">Disconnettere %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -338,8 +339,8 @@
     <string name="explorer_network_form_share_label">Condivisione</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Lascia vuoto per sfogliare tutte le condivisioni del server.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Mostra tutte le condivisioni di questo server. Per aprire direttamente una sola condivisione, aggiungi una posizione separata.</string>
     <string name="explorer_network_form_base_path_label">Cartella all’interno della condivisione (opzionale)</string>
+    <string name="explorer_network_form_root_change_warning">Preferiti, collegamenti e altri elementi salvati per questa posizione useranno il nuovo punto di partenza. Potrebbero aprire una cartella diversa o non essere più disponibili. Nessun file viene spostato o eliminato.</string>
     <string name="explorer_network_form_auth_guest">Ospite</string>
     <string name="explorer_network_form_auth_password">Nome utente e password</string>
     <string name="explorer_network_form_username_label">Nome utente</string>

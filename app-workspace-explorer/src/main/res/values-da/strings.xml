@@ -320,6 +320,7 @@
         <item quantity="other">Fjern %1$d netværkslagre?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler glemmer serveroplysningerne og den gemte adgangskode. Intet på serveren bliver slettet.</string>
+    <string name="explorer_network_remove_saved_items_message">Favoritter, genveje og andre gemte elementer, der er knyttet til den, holder op med at virke.</string>
     <string name="explorer_network_disconnect_location_action">Afbryd forbindelsen</string>
     <string name="explorer_network_disconnect_confirmation_title">Afbryd forbindelsen til %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -338,8 +339,8 @@
     <string name="explorer_network_form_share_label">Deling</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Lad feltet stå tomt for at gennemse alle delinger på serveren.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Viser alle delinger på denne server. Tilføj en separat placering for at åbne én deling direkte.</string>
     <string name="explorer_network_form_base_path_label">Mappe i delingen (valgfri)</string>
+    <string name="explorer_network_form_root_change_warning">Favoritter, genveje og andre gemte elementer for denne placering bruger det nye startpunkt. De kan åbne en anden mappe eller blive utilgængelige. Ingen filer flyttes eller slettes.</string>
     <string name="explorer_network_form_auth_guest">Gæst</string>
     <string name="explorer_network_form_auth_password">Brugernavn og adgangskode</string>
     <string name="explorer_network_form_username_label">Brugernavn</string>

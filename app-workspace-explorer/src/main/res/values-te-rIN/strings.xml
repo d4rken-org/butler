@@ -323,6 +323,7 @@
         <item quantity="other">%1$d నెట్‌వర్క్ నిల్వలను తీసివేయాలా?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler సర్వర్ వివరాలను, సేవ్ చేసిన పాస్‌వర్డ్‌ను మర్చిపోతుంది. సర్వర్‌లో ఏదీ తొలగించబడదు.</string>
+    <string name="explorer_network_remove_saved_items_message">దీనికి లింక్ చేసిన ఇష్టమైనవి, షార్ట్‌కట్‌లు, ఇతర సేవ్ చేసిన అంశాలు పని చేయడం ఆగిపోతాయి.</string>
     <string name="explorer_network_disconnect_location_action">డిస్‌కనెక్ట్ చేయండి</string>
     <string name="explorer_network_disconnect_confirmation_title">%1$sను డిస్‌కనెక్ట్ చేయాలా?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -341,8 +342,8 @@
     <string name="explorer_network_form_share_label">షేర్</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">సర్వర్‌లోని అన్ని షేర్‌లను బ్రౌజ్ చేయడానికి ఖాళీగా ఉంచండి.</string>
-    <string name="explorer_network_form_share_server_entry_hint">ఈ సర్వర్‌లోని అన్ని షేర్‌లను చూపిస్తుంది. ఒక షేర్‌ను నేరుగా తెరవడానికి, ప్రత్యేక స్థానాన్ని జోడించండి.</string>
     <string name="explorer_network_form_base_path_label">షేర్‌లోని ఫోల్డర్ (ఐచ్ఛికం)</string>
+    <string name="explorer_network_form_root_change_warning">ఈ స్థానానికి సంబంధించిన ఇష్టమైనవి, షార్ట్‌కట్‌లు, ఇతర సేవ్ చేసిన అంశాలు కొత్త ప్రారంభ స్థానాన్ని ఉపయోగిస్తాయి. అవి వేరే ఫోల్డర్‌ను తెరవవచ్చు లేదా అందుబాటులో లేకుండా పోవచ్చు. ఏ ఫైల్‌నూ తరలించడం లేదా తొలగించడం జరగదు.</string>
     <string name="explorer_network_form_auth_guest">అతిథి</string>
     <string name="explorer_network_form_auth_password">వినియోగదారు పేరు మరియు పాస్‌వర్డ్</string>
     <string name="explorer_network_form_username_label">వినియోగదారు పేరు</string>

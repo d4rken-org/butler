@@ -306,6 +306,7 @@
         <item quantity="other">移除 %1$d 个网络存储？</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler 将忘记服务器详情和已保存的密码，服务器上的内容不会被删除。</string>
+    <string name="explorer_network_remove_saved_items_message">与其关联的收藏夹、快捷方式和其他已保存项目将无法再使用。</string>
     <string name="explorer_network_disconnect_location_action">断开连接</string>
     <string name="explorer_network_disconnect_confirmation_title">断开 %1$s 的连接？</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -326,8 +327,8 @@
     <string name="explorer_network_form_share_label">共享</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">留空即可浏览服务器上的所有共享。</string>
-    <string name="explorer_network_form_share_server_entry_hint">显示此服务器上的所有共享。要直接打开某个共享，请另外添加一个位置。</string>
     <string name="explorer_network_form_base_path_label">共享内的文件夹（可选）</string>
+    <string name="explorer_network_form_root_change_warning">此位置的收藏夹、快捷方式和其他已保存项目将使用新的起始位置，可能会打开其他文件夹或变得不可用。不会移动或删除任何文件。</string>
     <string name="explorer_network_form_auth_guest">访客</string>
     <string name="explorer_network_form_auth_password">用户名和密码</string>
     <string name="explorer_network_form_username_label">用户名</string>

@@ -315,6 +315,7 @@
         <item quantity="other">Supprimer %1$d stockages réseau ?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler oublie les détails du serveur et le mot de passe enregistré. Rien n’est supprimé sur le serveur.</string>
+    <string name="explorer_network_remove_saved_items_message">Les favoris, raccourcis et autres éléments enregistrés qui y sont liés cesseront de fonctionner.</string>
     <string name="explorer_network_disconnect_location_action">Se déconnecter</string>
     <string name="explorer_network_disconnect_confirmation_title">Se déconnecter de %1$s ?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -333,8 +334,8 @@
     <string name="explorer_network_form_share_label">Partage</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Laissez vide pour parcourir tous les partages du serveur.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Affiche tous les partages de ce serveur. Pour ouvrir directement un seul partage, ajoutez un emplacement distinct.</string>
     <string name="explorer_network_form_base_path_label">Dossier dans le partage (facultatif)</string>
+    <string name="explorer_network_form_root_change_warning">Les favoris, raccourcis et autres éléments enregistrés pour cet emplacement utiliseront le nouveau point de départ. Ils peuvent ouvrir un autre dossier ou devenir inaccessibles. Aucun fichier n’est déplacé ni supprimé.</string>
     <string name="explorer_network_form_auth_guest">Invité</string>
     <string name="explorer_network_form_auth_password">Nom d’utilisateur et mot de passe</string>
     <string name="explorer_network_form_username_label">Nom d’utilisateur</string>

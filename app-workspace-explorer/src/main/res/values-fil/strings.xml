@@ -320,6 +320,7 @@
         <item quantity="other">Alisin ang %1$d na storage sa network?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Aalisin sa Butler ang mga detalye ng server at ang naka-save na password. Walang matatanggal sa server.</string>
+    <string name="explorer_network_remove_saved_items_message">Hindi na gagana ang mga paborito, shortcut, at iba pang naka-save na item na naka-link dito.</string>
     <string name="explorer_network_disconnect_location_action">Idiskonekta</string>
     <string name="explorer_network_disconnect_confirmation_title">Idiskonekta ang %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -338,8 +339,8 @@
     <string name="explorer_network_form_share_label">Share</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Iwanang blangko para ma-browse ang bawat share sa server.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Ipinapakita ang bawat share sa server na ito. Para direktang buksan ang isang share, magdagdag ng hiwalay na lokasyon.</string>
     <string name="explorer_network_form_base_path_label">Folder sa loob ng share (opsyonal)</string>
+    <string name="explorer_network_form_root_change_warning">Gagamitin ng mga paborito, shortcut, at iba pang naka-save na item para sa lokasyong ito ang bagong panimulang punto. Maaaring magbukas ang mga ito ng ibang folder o hindi na ma-access. Walang file na ililipat o buburahin.</string>
     <string name="explorer_network_form_auth_guest">Bisita</string>
     <string name="explorer_network_form_auth_password">Username at password</string>
     <string name="explorer_network_form_username_label">Username</string>

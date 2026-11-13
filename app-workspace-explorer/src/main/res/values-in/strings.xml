@@ -304,6 +304,7 @@
         <item quantity="other">Hapus %1$d penyimpanan jaringan?</item>
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler melupakan detail server dan kata sandi yang tersimpan. Tidak ada yang dihapus di server.</string>
+    <string name="explorer_network_remove_saved_items_message">Favorit, pintasan, dan item tersimpan lainnya yang terhubung dengannya akan berhenti berfungsi.</string>
     <string name="explorer_network_disconnect_location_action">Putuskan</string>
     <string name="explorer_network_disconnect_confirmation_title">Putuskan %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -321,8 +322,8 @@
     <string name="explorer_network_form_share_label">Share</string>
     <string name="explorer_network_form_share_hint">media</string>
     <string name="explorer_network_form_share_optional_hint">Biarkan kosong untuk menjelajahi semua share di server.</string>
-    <string name="explorer_network_form_share_server_entry_hint">Menampilkan semua share di server ini. Untuk membuka satu share secara langsung, tambahkan lokasi terpisah.</string>
     <string name="explorer_network_form_base_path_label">Folder di dalam share (opsional)</string>
+    <string name="explorer_network_form_root_change_warning">Favorit, pintasan, dan item tersimpan lainnya untuk lokasi ini akan menggunakan titik awal yang baru. Item tersebut mungkin membuka folder lain atau menjadi tidak tersedia. Tidak ada file yang dipindahkan atau dihapus.</string>
     <string name="explorer_network_form_auth_guest">Tamu</string>
     <string name="explorer_network_form_auth_password">Nama pengguna dan kata sandi</string>
     <string name="explorer_network_form_username_label">Nama pengguna</string>
