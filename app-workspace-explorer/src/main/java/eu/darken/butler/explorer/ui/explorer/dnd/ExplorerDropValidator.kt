@@ -24,7 +24,7 @@ fun validateDropDestination(
     val directory = state.currentLocation as? ExplorerLocation.Directory ?: return null
     if (directory.path is ArchivePath) return null
     if (directory.info?.isWritable != true) return null
-    if (directory.info?.entriesFixed == true) return null
+    if (directory.info.entriesFixed) return null
 
     if (!validateDropPaths(payload.items, directory.path)) return null
     return directory.path
