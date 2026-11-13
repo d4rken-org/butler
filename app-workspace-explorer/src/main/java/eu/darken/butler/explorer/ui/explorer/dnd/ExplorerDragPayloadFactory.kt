@@ -37,7 +37,7 @@ object ExplorerDragPayloadFactory {
             location.path !is ArchivePath &&
             items.none { it.path is ArchivePath } &&
             location.info?.isWritable == true &&
-            location.info?.entriesFixed != true
+            !location.info.entriesFixed
 
         return WorkspaceDragPayload(
             sourceWorkspaceId = workspaceId,
