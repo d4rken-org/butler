@@ -356,6 +356,7 @@
     <string name="explorer_network_form_error_share_not_single">Въведи само името на споделения ресурс, а подпапките посочи по-долу</string>
     <string name="explorer_network_form_error_share_malformed">Това не е валидно име на споделен ресурс</string>
     <string name="explorer_network_form_error_base_path">Този път до папка не може да се използва</string>
+    <string name="explorer_network_form_error_base_path_without_share">Папката в споделения ресурс изисква име на споделения ресурс.</string>
     <string name="explorer_network_form_error_username_blank">Въведи потребителско име</string>
     <string name="explorer_network_form_error_password_required">Въведи паролата отново, за да промениш потребителското име или домейна</string>
     <string name="explorer_network_protocol_title">Добави мрежово хранилище</string>

@@ -342,6 +342,7 @@
     <string name="explorer_network_form_error_share_not_single">กรอกเฉพาะชื่อแชร์ ใส่โฟลเดอร์ย่อยไว้ด้านล่าง</string>
     <string name="explorer_network_form_error_share_malformed">ชื่อแชร์นี้ไม่ถูกต้อง</string>
     <string name="explorer_network_form_error_base_path">ใช้เส้นทางโฟลเดอร์นี้ไม่ได้</string>
+    <string name="explorer_network_form_error_base_path_without_share">โฟลเดอร์ภายในแชร์ต้องมีชื่อแชร์</string>
     <string name="explorer_network_form_error_username_blank">กรอกชื่อผู้ใช้</string>
     <string name="explorer_network_form_error_password_required">กรอกรหัสผ่านอีกครั้งเพื่อเปลี่ยนชื่อผู้ใช้หรือโดเมน</string>
     <string name="explorer_network_protocol_title">เพิ่มที่เก็บข้อมูลเครือข่าย</string>

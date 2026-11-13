@@ -356,6 +356,7 @@
     <string name="explorer_network_form_error_share_not_single">பகிர்வுப் பெயரை மட்டும் உள்ளிடுங்கள்; துணைக் கோப்புறைகளை கீழே குறிப்பிடுங்கள்</string>
     <string name="explorer_network_form_error_share_malformed">இது செல்லுபடியாகும் பகிர்வுப் பெயர் அல்ல</string>
     <string name="explorer_network_form_error_base_path">இந்தக் கோப்புறைப் பாதையைப் பயன்படுத்த முடியாது</string>
+    <string name="explorer_network_form_error_base_path_without_share">பகிர்வுக்குள் உள்ள கோப்புறைக்கு பகிர்வுப் பெயர் தேவை.</string>
     <string name="explorer_network_form_error_username_blank">பயனர்பெயரை உள்ளிடுங்கள்</string>
     <string name="explorer_network_form_error_password_required">பயனர்பெயர் அல்லது டொமைனை மாற்ற கடவுச்சொல்லை மீண்டும் உள்ளிடுங்கள்</string>
     <string name="explorer_network_protocol_title">பிணையச் சேமிப்பகத்தைச் சேர்</string>

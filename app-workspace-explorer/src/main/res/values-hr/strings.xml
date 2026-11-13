@@ -368,6 +368,7 @@
     <string name="explorer_network_form_error_share_not_single">Unesi samo naziv dijeljene mape, a podmape navedi ispod</string>
     <string name="explorer_network_form_error_share_malformed">Ovo nije valjan naziv dijeljene mape</string>
     <string name="explorer_network_form_error_base_path">Ova se putanja mape ne može upotrijebiti</string>
+    <string name="explorer_network_form_error_base_path_without_share">Mapa unutar dijeljene mape zahtijeva naziv dijeljene mape.</string>
     <string name="explorer_network_form_error_username_blank">Unesi korisničko ime</string>
     <string name="explorer_network_form_error_password_required">Ponovno unesi lozinku da promijeniš korisničko ime ili domenu</string>
     <string name="explorer_network_protocol_title">Dodaj mrežnu pohranu</string>

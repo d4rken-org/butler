@@ -12,7 +12,8 @@ data class SmbLocationEntity(
     val label: String?,
     val host: String,
     val port: Int,
-    val share: String,
+    /** Null for a server entry. */
+    val share: String?,
     /** Base directory below the share root, stored with `/` separators, empty for the share root. */
     val basePath: String,
     val domain: String?,

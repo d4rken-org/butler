@@ -315,6 +315,7 @@
     <string name="explorer_network_form_error_share_not_single">Csak a megosztás nevét add meg, az almappákat lentebb</string>
     <string name="explorer_network_form_error_share_malformed">Ez nem érvényes megosztásnév</string>
     <string name="explorer_network_form_error_base_path">Ez a mappaútvonal nem használható</string>
+    <string name="explorer_network_form_error_base_path_without_share">A megosztáson belüli mappához meg kell adni a megosztás nevét.</string>
     <string name="explorer_network_form_error_username_blank">Add meg a felhasználónevet</string>
     <string name="explorer_network_form_error_password_required">A felhasználónév vagy a tartomány módosításához add meg újra a jelszót</string>
     <string name="explorer_network_protocol_title">Hálózati tárhely hozzáadása</string>

@@ -375,6 +375,7 @@
     <string name="explorer_network_form_error_share_not_single">Wpisz tylko nazwę zasobu, podfoldery podaj poniżej</string>
     <string name="explorer_network_form_error_share_malformed">To nie jest prawidłowa nazwa zasobu</string>
     <string name="explorer_network_form_error_base_path">Tej ścieżki folderu nie można użyć</string>
+    <string name="explorer_network_form_error_base_path_without_share">Folder wewnątrz zasobu wymaga nazwy zasobu.</string>
     <string name="explorer_network_form_error_username_blank">Wpisz nazwę użytkownika</string>
     <string name="explorer_network_form_error_password_required">Wpisz hasło ponownie, aby zmienić nazwę użytkownika lub domenę</string>
     <string name="explorer_network_protocol_title">Dodaj magazyn sieciowy</string>

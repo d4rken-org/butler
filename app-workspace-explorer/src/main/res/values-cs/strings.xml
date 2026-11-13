@@ -378,6 +378,7 @@
     <string name="explorer_network_form_error_share_not_single">Zadejte pouze název sdílené složky, podsložky uveďte níže</string>
     <string name="explorer_network_form_error_share_malformed">Toto není platný název sdílené složky</string>
     <string name="explorer_network_form_error_base_path">Tuto cestu ke složce nelze použít</string>
+    <string name="explorer_network_form_error_base_path_without_share">Složka uvnitř sdílené složky vyžaduje název sdílené složky.</string>
     <string name="explorer_network_form_error_username_blank">Zadejte uživatelské jméno</string>
     <string name="explorer_network_form_error_password_required">Pro změnu uživatelského jména nebo domény zadejte heslo znovu</string>
     <string name="explorer_network_protocol_title">Přidat síťové úložiště</string>

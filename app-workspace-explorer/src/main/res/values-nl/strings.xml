@@ -354,6 +354,7 @@
     <string name="explorer_network_form_error_share_not_single">Voer alleen de sharenaam in, plaats submappen hieronder</string>
     <string name="explorer_network_form_error_share_malformed">Dit is geen geldige sharenaam</string>
     <string name="explorer_network_form_error_base_path">Dit mappad kan niet worden gebruikt</string>
+    <string name="explorer_network_form_error_base_path_without_share">Een map binnen de share vereist een sharenaam.</string>
     <string name="explorer_network_form_error_username_blank">Voer een gebruikersnaam in</string>
     <string name="explorer_network_form_error_password_required">Voer het wachtwoord opnieuw in om de gebruikersnaam of het domein te wijzigen</string>
     <string name="explorer_network_protocol_title">Netwerkopslag toevoegen</string>

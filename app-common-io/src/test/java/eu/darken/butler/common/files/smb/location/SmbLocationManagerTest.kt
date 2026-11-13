@@ -157,6 +157,117 @@ class SmbLocationManagerTest : BaseTest() {
         manager.get(location.id)!!.basePath shouldBe listOf("movies")
     }
 
+    private suspend fun SmbLocationManager.createServer() = create(
+        label = null,
+        host = "nas.local",
+        port = 445,
+        share = null,
+        basePath = emptyList(),
+        domain = null,
+        username = "darken",
+        authType = SmbLocation.AuthType.PASSWORD,
+        rememberCredential = true,
+        password = "hunter2".toCharArray(),
+    )
+
+    private suspend fun SmbLocationManager.updateShare(location: SmbLocation, share: String?) = update(
+        id = location.id,
+        label = location.label,
+        host = location.host,
+        port = location.port,
+        share = share,
+        basePath = emptyList(),
+        domain = location.domain,
+        username = location.username,
+        authType = location.authType,
+        rememberCredential = location.rememberCredential,
+        password = "newpass".toCharArray(),
+    )
+
+    @Test
+    fun `a server entry round trips through the database`() = runTest {
+        val manager = manager()
+        val location = manager.createServer()
+
+        locationsDao.rows.value.single().share shouldBe null
+        val stored = manager.get(location.id)!!
+        stored.share shouldBe null
+        stored.isServer shouldBe true
+        stored.basePath shouldBe emptyList()
+    }
+
+    @Test
+    fun `a server entry with a base path is refused`() = runTest {
+        shouldThrow<IllegalArgumentException> {
+            manager().create(
+                label = null,
+                host = "nas.local",
+                port = 445,
+                share = null,
+                basePath = listOf("movies"),
+                domain = null,
+                username = null,
+                authType = SmbLocation.AuthType.GUEST,
+                rememberCredential = false,
+                password = null,
+            )
+        }
+
+        locationsDao.rows.value shouldBe emptyList()
+        credentialsDao.rows.value shouldBe emptyList()
+    }
+
+    @Test
+    fun `a share location cannot become a server entry`() = runTest {
+        val manager = manager()
+        val location = manager.createSample()
+        val locationRows = locationsDao.rows.value
+        val credentialRows = credentialsDao.rows.value
+
+        shouldThrow<IllegalArgumentException> { manager.updateShare(location, share = null) }
+
+        locationsDao.rows.value shouldBe locationRows
+        credentialsDao.rows.value shouldBe credentialRows
+    }
+
+    @Test
+    fun `a server entry cannot become a share location`() = runTest {
+        val manager = manager()
+        val location = manager.createServer()
+        val locationRows = locationsDao.rows.value
+        val credentialRows = credentialsDao.rows.value
+
+        shouldThrow<IllegalArgumentException> { manager.updateShare(location, share = "media") }
+
+        locationsDao.rows.value shouldBe locationRows
+        credentialsDao.rows.value shouldBe credentialRows
+    }
+
+    @Test
+    fun `a server entry update with a base path is refused`() = runTest {
+        val manager = manager()
+        val location = manager.createServer()
+        val locationRows = locationsDao.rows.value
+
+        shouldThrow<IllegalArgumentException> {
+            manager.update(
+                id = location.id,
+                label = location.label,
+                host = location.host,
+                port = location.port,
+                share = null,
+                basePath = listOf("movies"),
+                domain = location.domain,
+                username = location.username,
+                authType = location.authType,
+                rememberCredential = location.rememberCredential,
+                password = "newpass".toCharArray(),
+            )
+        }
+
+        locationsDao.rows.value shouldBe locationRows
+    }
+
     @Test
     fun `credentials stored while the startup reconciliation runs survive it`() = runTest {
         val scanning = CompletableDeferred<Unit>()

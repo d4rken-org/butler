@@ -75,6 +75,11 @@ object SmbLocationInput {
             override val field = Field.BASE_PATH
         }
 
+        /** A base path is a directory inside a share, a server entry has none. */
+        data object BasePathWithoutShare : Issue {
+            override val field = Field.BASE_PATH
+        }
+
         data object UsernameBlank : Issue {
             override val field = Field.USERNAME
         }
@@ -83,7 +88,8 @@ object SmbLocationInput {
     data class Parsed(
         val host: String,
         val port: Int,
-        val share: String,
+        /** Null for a server entry. */
+        val share: String?,
         val basePath: Segments,
         val domain: String?,
         val username: String?,
@@ -98,6 +104,8 @@ object SmbLocationInput {
      * ```
      * parse(host = "[fe80::1]", port = "445", share = "media", basePath = "\\movies\\2024")
      *   -> Parsed(host = "fe80::1", port = 445, share = "media", basePath = ["movies", "2024"])
+     * parse(host = "nas.local", port = "", share = "", basePath = "")
+     *   -> Parsed(host = "nas.local", port = 445, share = null, basePath = [])
      * ```
      */
     fun parse(
@@ -108,6 +116,7 @@ object SmbLocationInput {
         domain: String = "",
         username: String = "",
         requireUsername: Boolean = false,
+        requireShare: Boolean = false,
     ): Result {
         val issues = mutableListOf<Issue>()
 
@@ -131,7 +140,7 @@ object SmbLocationInput {
 
         val trimmedShare = share.trim().trim('\\', '/')
         val parsedShare = when {
-            trimmedShare.isEmpty() -> null.also { issues.add(Issue.ShareBlank) }
+            trimmedShare.isEmpty() -> null.also { if (requireShare) issues.add(Issue.ShareBlank) }
             trimmedShare.contains('/') || trimmedShare.contains('\\') -> {
                 null.also { issues.add(Issue.ShareNotSingleComponent) }
             }
@@ -143,6 +152,9 @@ object SmbLocationInput {
 
         val parsedBasePath = splitPath(basePath)
         if (parsedBasePath.any { pathSegmentIssue(it) != null }) issues.add(Issue.BasePathMalformed)
+        if (trimmedShare.isEmpty() && !requireShare && parsedBasePath.isNotEmpty()) {
+            issues.add(Issue.BasePathWithoutShare)
+        }
 
         val trimmedUsername = username.trim()
         if (requireUsername && trimmedUsername.isEmpty()) issues.add(Issue.UsernameBlank)
@@ -153,7 +165,7 @@ object SmbLocationInput {
             Parsed(
                 host = parsedHost!!,
                 port = parsedPort!!,
-                share = parsedShare!!,
+                share = parsedShare,
                 basePath = parsedBasePath,
                 domain = normalizeDomain(domain),
                 username = trimmedUsername.takeIf { it.isNotEmpty() },

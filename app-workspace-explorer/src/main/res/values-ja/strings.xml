@@ -342,6 +342,7 @@
     <string name="explorer_network_form_error_share_not_single">共有名のみを入力し、サブフォルダは下の欄に入力してください</string>
     <string name="explorer_network_form_error_share_malformed">有効な共有名ではありません</string>
     <string name="explorer_network_form_error_base_path">このフォルダパスは使用できません</string>
+    <string name="explorer_network_form_error_base_path_without_share">共有内のフォルダには共有名が必要です。</string>
     <string name="explorer_network_form_error_username_blank">ユーザー名を入力してください</string>
     <string name="explorer_network_form_error_password_required">ユーザー名またはドメインを変更するには、パスワードを再入力してください</string>
     <string name="explorer_network_protocol_title">ネットワークストレージを追加</string>

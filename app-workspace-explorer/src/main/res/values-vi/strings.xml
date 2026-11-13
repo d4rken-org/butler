@@ -342,6 +342,7 @@
     <string name="explorer_network_form_error_share_not_single">Chỉ nhập tên phần chia sẻ, đặt thư mục con bên dưới</string>
     <string name="explorer_network_form_error_share_malformed">Đây không phải là tên phần chia sẻ hợp lệ</string>
     <string name="explorer_network_form_error_base_path">Không thể sử dụng đường dẫn thư mục này</string>
+    <string name="explorer_network_form_error_base_path_without_share">Thư mục bên trong phần chia sẻ cần có tên phần chia sẻ.</string>
     <string name="explorer_network_form_error_username_blank">Nhập tên đăng nhập</string>
     <string name="explorer_network_form_error_password_required">Nhập lại mật khẩu để thay đổi tên đăng nhập hoặc miền</string>
     <string name="explorer_network_protocol_title">Thêm bộ nhớ mạng</string>

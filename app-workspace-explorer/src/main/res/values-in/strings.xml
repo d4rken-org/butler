@@ -339,6 +339,7 @@
     <string name="explorer_network_form_error_share_not_single">Masukkan nama share saja, letakkan subfolder di bawahnya</string>
     <string name="explorer_network_form_error_share_malformed">Ini bukan nama share yang valid</string>
     <string name="explorer_network_form_error_base_path">Jalur folder ini tidak dapat digunakan</string>
+    <string name="explorer_network_form_error_base_path_without_share">Folder di dalam share memerlukan nama share.</string>
     <string name="explorer_network_form_error_username_blank">Masukkan nama pengguna</string>
     <string name="explorer_network_form_error_password_required">Masukkan kembali kata sandi untuk mengubah nama pengguna atau domain</string>
     <string name="explorer_network_protocol_title">Tambahkan penyimpanan jaringan</string>

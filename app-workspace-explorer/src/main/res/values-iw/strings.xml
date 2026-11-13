@@ -339,6 +339,7 @@
     <string name="explorer_network_form_error_share_not_single">יש להזין רק את שם השיתוף, ואת תיקיות המשנה למטה</string>
     <string name="explorer_network_form_error_share_malformed">זה אינו שם שיתוף תקין</string>
     <string name="explorer_network_form_error_base_path">אי אפשר להשתמש בנתיב התיקייה הזה</string>
+    <string name="explorer_network_form_error_base_path_without_share">תיקייה בתוך השיתוף דורשת שם שיתוף.</string>
     <string name="explorer_network_form_error_username_blank">יש להזין שם משתמש</string>
     <string name="explorer_network_form_error_password_required">יש להזין שוב את הסיסמה כדי לשנות את שם המשתמש או התחום</string>
     <string name="explorer_network_protocol_title">הוספת אחסון רשת</string>

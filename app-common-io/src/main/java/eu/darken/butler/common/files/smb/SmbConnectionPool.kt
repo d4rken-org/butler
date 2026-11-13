@@ -195,6 +195,7 @@ class SmbConnectionPool @Inject constructor(
      * location was evicted while connecting. The caller then connects anew.
      */
     private suspend fun connect(location: SmbLocation, key: Key): Generation? {
+        val shareName = location.share ?: throw UnsupportedOperationException("SMB server entries cannot be browsed")
         val endpoint = location.endpointLabel
         val epoch = lock.withLock { epochOf(location.id) }
 
@@ -208,10 +209,10 @@ class SmbConnectionPool @Inject constructor(
                 null -> SmbCredentials.Guest
                 else -> SmbCredentials.Password(credential.username, credential.password, credential.domain.orEmpty())
             }
-            val share = clientFactory.create().connect(SmbEndpoint(location.host, location.share, location.port), credentials)
+            val share = clientFactory.create().connect(SmbEndpoint(location.host, shareName, location.port), credentials)
             Generation(key, location, share)
         } catch (error: Exception) {
-            throw SmbStatusMapper.mapConnect(error, endpoint, location.share)
+            throw SmbStatusMapper.mapConnect(error, endpoint, shareName)
         } finally {
             credential?.wipe()
         }

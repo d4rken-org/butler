@@ -351,6 +351,7 @@
     <string name="explorer_network_form_error_share_not_single">Saisissez uniquement le nom du partage, indiquez les sous-dossiers ci-dessous</string>
     <string name="explorer_network_form_error_share_malformed">Ce nom de partage n’est pas valide</string>
     <string name="explorer_network_form_error_base_path">Ce chemin de dossier ne peut pas être utilisé</string>
+    <string name="explorer_network_form_error_base_path_without_share">Un dossier dans le partage nécessite un nom de partage.</string>
     <string name="explorer_network_form_error_username_blank">Saisissez un nom d’utilisateur</string>
     <string name="explorer_network_form_error_password_required">Saisissez à nouveau le mot de passe pour changer le nom d’utilisateur ou le domaine</string>
     <string name="explorer_network_protocol_title">Ajouter un stockage réseau</string>

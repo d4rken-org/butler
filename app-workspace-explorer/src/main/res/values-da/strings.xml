@@ -356,6 +356,7 @@
     <string name="explorer_network_form_error_share_not_single">Indtast kun delingsnavnet, og angiv undermapper nedenfor</string>
     <string name="explorer_network_form_error_share_malformed">Dette er ikke et gyldigt delingsnavn</string>
     <string name="explorer_network_form_error_base_path">Denne mappesti kan ikke bruges</string>
+    <string name="explorer_network_form_error_base_path_without_share">En mappe i delingen kræver et delingsnavn.</string>
     <string name="explorer_network_form_error_username_blank">Indtast et brugernavn</string>
     <string name="explorer_network_form_error_password_required">Indtast adgangskoden igen for at ændre brugernavnet eller domænet</string>
     <string name="explorer_network_protocol_title">Tilføj netværkslager</string>

@@ -354,6 +354,7 @@
     <string name="explorer_network_form_error_share_not_single">Nur den Freigabenamen eingeben, Unterordner gehören in das Feld darunter</string>
     <string name="explorer_network_form_error_share_malformed">Dies ist kein gültiger Freigabename</string>
     <string name="explorer_network_form_error_base_path">Dieser Ordnerpfad kann nicht verwendet werden</string>
+    <string name="explorer_network_form_error_base_path_without_share">Ein Ordner innerhalb der Freigabe braucht einen Freigabenamen.</string>
     <string name="explorer_network_form_error_username_blank">Benutzernamen eingeben</string>
     <string name="explorer_network_form_error_password_required">Passwort erneut eingeben, um Benutzername oder Domäne zu ändern</string>
     <string name="explorer_network_protocol_title">Netzwerkspeicher hinzufügen</string>

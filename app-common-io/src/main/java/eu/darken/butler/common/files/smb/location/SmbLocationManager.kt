@@ -20,13 +20,15 @@ interface SmbLocationManager {
     suspend fun get(id: Uuid): SmbLocation?
 
     /**
+     * @param share null creates a server entry, which takes no [basePath]
      * @param password required for [SmbLocation.AuthType.PASSWORD], ignored for guest locations
+     * @throws IllegalArgumentException for a server entry with a [basePath]
      */
     suspend fun create(
         label: String?,
         host: String,
         port: Int,
-        share: String,
+        share: String?,
         basePath: Segments,
         domain: String?,
         username: String?,
@@ -39,14 +41,19 @@ interface SmbLocationManager {
      * A null [password] keeps the stored credential, which is only valid while the username stays
      * the same: a new username with no password would silently reuse the old user's password.
      *
-     * @throws IllegalArgumentException if the username changes without a password
+     * A location cannot switch between server entry and share location: stored paths are the
+     * location id plus segments, so switching would repoint favorites and history at other folders.
+     *
+     * @throws IllegalArgumentException if the username changes without a password, if [share] turns
+     * a share location into a server entry or the other way round, or for a server entry with a
+     * [basePath]
      */
     suspend fun update(
         id: Uuid,
         label: String?,
         host: String,
         port: Int,
-        share: String,
+        share: String?,
         basePath: Segments,
         domain: String?,
         username: String?,

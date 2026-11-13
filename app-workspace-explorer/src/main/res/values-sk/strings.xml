@@ -377,6 +377,7 @@
     <string name="explorer_network_form_error_share_not_single">Zadaj iba názov zdieľaného priečinka, podpriečinky uveď nižšie</string>
     <string name="explorer_network_form_error_share_malformed">Toto nie je platný názov zdieľaného priečinka</string>
     <string name="explorer_network_form_error_base_path">Túto cestu k priečinku nemožno použiť</string>
+    <string name="explorer_network_form_error_base_path_without_share">Priečinok v zdieľanom priečinku vyžaduje názov zdieľaného priečinka.</string>
     <string name="explorer_network_form_error_username_blank">Zadaj používateľské meno</string>
     <string name="explorer_network_form_error_password_required">Ak chceš zmeniť používateľské meno alebo doménu, zadaj heslo znova</string>
     <string name="explorer_network_protocol_title">Pridať sieťové úložisko</string>
