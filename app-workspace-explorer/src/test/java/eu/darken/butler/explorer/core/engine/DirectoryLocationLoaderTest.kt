@@ -17,6 +17,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.sftp.SftpPathLookup
+import eu.darken.butler.common.files.smb.SmbPathLookup
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.core.Workspace
@@ -71,15 +72,47 @@ class DirectoryLocationLoaderTest : BaseTest() {
     @Test
     fun `an SMB directory is writable even though the extended pass is skipped`() = runTest {
         val path = SmbPath(LOCATION_ID, listOf("media"))
+        coEvery { gatewaySwitch.canWrite(path) } returns true
 
         val emissions = loader().loadDirectory(path).toList()
 
         val last = emissions.last().shouldBeInstanceOf<ExplorerLocation.Directory>()
         last.info?.isWritable shouldBe true
+        last.info?.entriesFixed shouldBe false
         last.progress shouldBe null
 
         // The extended pass stays skipped, no extra round trip over the network.
         coVerify(exactly = 0) { gatewaySwitch.lookup(any(), any<LookupOptions>()) }
+    }
+
+    @Test
+    fun `the root of an SMB server entry takes no children and fixes its shares`() = runTest {
+        val path = SmbPath(LOCATION_ID, emptyList())
+        val share = SmbPath(LOCATION_ID, listOf("media"))
+        @Suppress("UNCHECKED_CAST")
+        val listing = listOf(
+            SmbPathLookup(lookedUp = share, fileType = FileType.DIRECTORY, size = null, modifiedAt = null),
+        ) as List<APathLookup<APath<*>>>
+        coEvery { gatewaySwitch.lookupFiles(path, any<LookupOptions>()) } returns listing
+        coEvery { gatewaySwitch.canWrite(path) } returns false
+
+        val last = loader().loadDirectory(path).toList().last().shouldBeInstanceOf<ExplorerLocation.Directory>()
+
+        last.info?.isWritable shouldBe false
+        last.info?.entriesFixed shouldBe true
+        last.items!!.single().path shouldBe share
+        coVerify(exactly = 0) { gatewaySwitch.lookup(any(), any<LookupOptions>()) }
+    }
+
+    @Test
+    fun `the root of an SMB share location stays writable`() = runTest {
+        val path = SmbPath(LOCATION_ID, emptyList())
+        coEvery { gatewaySwitch.canWrite(path) } returns true
+
+        val last = loader().loadDirectory(path).toList().last().shouldBeInstanceOf<ExplorerLocation.Directory>()
+
+        last.info?.isWritable shouldBe true
+        last.info?.entriesFixed shouldBe false
     }
 
     @Test

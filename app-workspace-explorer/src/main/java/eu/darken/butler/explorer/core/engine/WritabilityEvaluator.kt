@@ -5,7 +5,6 @@ import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.SftpPath
-import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.common.files.WebDavPath
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -17,7 +16,7 @@ import javax.inject.Inject
  * Writability rules (in priority order):
  * 1. Root/ADB available for local paths → always writable
  * 2. SAF paths → use SAFLocation.hasWritePermission
- * 3. SMB, SFTP and WebDAV paths → true, the server decides
+ * 3. SFTP and WebDAV paths → true, the server decides
  * 4. Unknown permissions → null (treated as writable by consumers)
  * 5. Check Unix permissions based on ownership
  */
@@ -51,7 +50,7 @@ class WritabilityEvaluator @Inject constructor() {
 
         // Rule 3: A network server enforces access for its own account, which the app's uid says
         // nothing about.
-        if (path is SmbPath || path is SftpPath || path is WebDavPath) {
+        if (path is SftpPath || path is WebDavPath) {
             return true
         }
 

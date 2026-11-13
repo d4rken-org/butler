@@ -36,7 +36,10 @@ class DirectoryActionProvider @Inject constructor(
         val selectionHasArchiveEntry = selectionState.selectedItems.any {
             it is ExplorerItem.Lookup && it.path is ArchivePath
         }
-        val isReadOnlySource = isArchiveLocation || selectionHasArchiveEntry
+        // The shares listed at an SMB server's root are fixed the same way: they can be copied out, but
+        // not renamed, moved, deleted or created.
+        val entriesFixed = directory?.info?.entriesFixed == true
+        val isReadOnlySource = isArchiveLocation || selectionHasArchiveEntry || entriesFixed
         val isWritable = !isReadOnlySource && (directory?.info?.isWritable ?: false)
         // Genuinely empty folder (raw, unfiltered items). null = still loading -> not treated as empty.
         val isEmpty = directory?.items?.isEmpty() == true
@@ -109,11 +112,13 @@ class DirectoryActionProvider @Inject constructor(
                 actions.addAll(hideSelectionActions(selectionState.selectedItems, hiddenPathsRepo::isHidden))
             }
         } else {
-            actions.add(
-                ExplorerActionBarItem.Directory.Create(
-                    isEnabled = isWritable,
+            if (!entriesFixed) {
+                actions.add(
+                    ExplorerActionBarItem.Directory.Create(
+                        isEnabled = isWritable,
+                    )
                 )
-            )
+            }
 
             actions.add(ExplorerActionBarItem.Common.Refresh())
 

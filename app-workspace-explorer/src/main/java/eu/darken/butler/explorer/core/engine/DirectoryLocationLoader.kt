@@ -269,11 +269,23 @@ class DirectoryLocationLoader @AssistedInject constructor(
      * action bar gates Cut/Delete on, so evaluate it here without any lookup.
      */
     private suspend fun LocationLoaderContext<ExplorerLocation.Directory>.loadNetworkWritability() {
+        val target = targetPath
+        if (target is SmbPath) {
+            // Answered from the stored location: only a server entry's root, which lists the shares,
+            // takes no children, and its shares cannot be renamed, moved or deleted either.
+            val writable = gatewaySwitch.canWrite(target)
+            log(tag) { "loadNetworkWritability(): $target is writable: $writable" }
+            updateState {
+                copy(info = info?.copy(isWritable = writable, entriesFixed = !writable))
+            }
+            return
+        }
+
         val writable = writabilityEvaluator.evaluate(
-            path = targetPath,
+            path = target,
             permissions = null,
             ownership = null,
-            // Root/ADB/SAF/Unix bits have no meaning on a share, the server decides access.
+            // Root/ADB/SAF/Unix bits have no meaning on a server, the server decides access.
             context = WritabilityContext(
                 hasRoot = false,
                 hasAdb = false,
@@ -281,7 +293,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
                 safLocation = null,
             ),
         )
-        log(tag) { "loadNetworkWritability(): $targetPath is writable: $writable" }
+        log(tag) { "loadNetworkWritability(): $target is writable: $writable" }
 
         updateState {
             copy(info = info?.copy(isWritable = writable != false))

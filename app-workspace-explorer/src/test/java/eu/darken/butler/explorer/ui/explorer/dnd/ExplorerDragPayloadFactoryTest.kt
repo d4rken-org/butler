@@ -139,6 +139,16 @@ class ExplorerDragPayloadFactoryTest : BaseTest() {
     }
 
     @Test
+    fun `moving is blocked for the fixed entries of a directory, even one marked writable`() {
+        val fixedLocation = ExplorerLocation.Directory(
+            info = ExplorerLocation.Directory.Info(isWritable = true, entriesFixed = true),
+            path = directoryPath,
+        )
+
+        build(state(location = fixedLocation), folder("media"))!!.allowMove shouldBe false
+    }
+
+    @Test
     fun `moving is blocked when an archive entry is part of the drag`() {
         val payload = build(state(selected = setOf(archiveEntry("file.txt"))), file("photo.jpg"))!!
 

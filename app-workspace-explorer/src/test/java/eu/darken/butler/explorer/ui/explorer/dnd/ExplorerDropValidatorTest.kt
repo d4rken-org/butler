@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.dnd
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.SmbPath
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.contracts.dnd.WorkspaceDragPayload
@@ -12,6 +13,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
+import kotlin.uuid.Uuid
 
 class ExplorerDropValidatorTest : BaseTest() {
 
@@ -202,6 +204,31 @@ class ExplorerDropValidatorTest : BaseTest() {
         )
 
         validateFolderDrop(state(), dragged, LocalPath.build("/storage/emulated/0/DCIM/raw")) shouldBe null
+    }
+
+    @Test
+    fun `a directory with fixed entries refuses drops even when marked writable`() {
+        val location = ExplorerLocation.Directory(
+            info = ExplorerLocation.Directory.Info(isWritable = true, entriesFixed = true),
+            path = SmbPath(LOCATION_ID, emptyList()),
+        )
+
+        validateDropDestination(state(location = location), workspaceId, payload()) shouldBe null
+    }
+
+    @Test
+    fun `a share listed at a server root takes a folder drop`() {
+        val location = ExplorerLocation.Directory(
+            info = ExplorerLocation.Directory.Info(isWritable = false, entriesFixed = true),
+            path = SmbPath(LOCATION_ID, emptyList()),
+        )
+        val share = SmbPath(LOCATION_ID, listOf("media"))
+
+        validateFolderDrop(state(location = location), payload(), share) shouldBe share
+    }
+
+    companion object {
+        private val LOCATION_ID = Uuid.parse("11111111-2222-3333-4444-555555555555")
     }
 
 }
