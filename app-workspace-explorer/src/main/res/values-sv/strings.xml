@@ -321,6 +321,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler glömmer serveruppgifterna och det sparade lösenordet. Ingenting på servern raderas.</string>
     <string name="explorer_network_remove_saved_items_message">Favoriter, genvägar och andra sparade objekt som är kopplade till den slutar fungera.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Favoriter, genvägar och andra sparade objekt som är kopplade till dem slutar fungera.</string>
     <string name="explorer_network_disconnect_location_action">Koppla från</string>
     <string name="explorer_network_disconnect_confirmation_title">Koppla från %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -341,6 +342,7 @@
     <string name="explorer_network_form_share_optional_hint">Lämna tomt för att bläddra bland alla resurser på servern.</string>
     <string name="explorer_network_form_base_path_label">Mapp i den delade resursen (valfritt)</string>
     <string name="explorer_network_form_root_change_warning">Favoriter, genvägar och andra sparade objekt för den här platsen använder den nya startpunkten. De kan öppna en annan mapp eller bli otillgängliga. Inga filer flyttas eller raderas.</string>
+    <string name="explorer_network_form_add_as_new_action">Lägg till som ny plats</string>
     <string name="explorer_network_form_auth_guest">Gäst</string>
     <string name="explorer_network_form_auth_password">Användarnamn och lösenord</string>
     <string name="explorer_network_form_username_label">Användarnamn</string>

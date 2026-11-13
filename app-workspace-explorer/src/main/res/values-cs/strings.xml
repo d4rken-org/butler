@@ -341,6 +341,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler zapomene údaje o serveru a uložené heslo. Na serveru se nic nesmaže.</string>
     <string name="explorer_network_remove_saved_items_message">Oblíbené, zkratky a další uložené položky, které jsou s ním propojené, přestanou fungovat.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Oblíbené, zkratky a další uložené položky, které jsou s nimi propojené, přestanou fungovat.</string>
     <string name="explorer_network_disconnect_location_action">Odpojit</string>
     <string name="explorer_network_disconnect_confirmation_title">Odpojit %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -363,6 +364,7 @@
     <string name="explorer_network_form_share_optional_hint">Ponechte prázdné, chcete-li procházet všechny sdílené složky na serveru.</string>
     <string name="explorer_network_form_base_path_label">Složka uvnitř sdílené složky (volitelné)</string>
     <string name="explorer_network_form_root_change_warning">Oblíbené, zkratky a další uložené položky tohoto umístění budou používat nový výchozí bod. Mohou otevřít jinou složku nebo přestat být dostupné. Žádné soubory se nepřesunou ani nesmažou.</string>
+    <string name="explorer_network_form_add_as_new_action">Přidat jako nové umístění</string>
     <string name="explorer_network_form_auth_guest">Host</string>
     <string name="explorer_network_form_auth_password">Uživatelské jméno a heslo</string>
     <string name="explorer_network_form_username_label">Uživatelské jméno</string>

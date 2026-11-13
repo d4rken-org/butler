@@ -340,6 +340,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler забудет данные сервера и сохранённый пароль. На самом сервере ничего не будет удалено.</string>
     <string name="explorer_network_remove_saved_items_message">Избранное, ярлыки и другие сохранённые элементы, связанные с ним, перестанут работать.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Избранное, ярлыки и другие сохранённые элементы, связанные с ними, перестанут работать.</string>
     <string name="explorer_network_disconnect_location_action">Отключить</string>
     <string name="explorer_network_disconnect_confirmation_title">Отключить %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -362,6 +363,7 @@
     <string name="explorer_network_form_share_optional_hint">Оставьте пустым, чтобы просматривать все общие ресурсы сервера.</string>
     <string name="explorer_network_form_base_path_label">Папка внутри общего ресурса (необязательно)</string>
     <string name="explorer_network_form_root_change_warning">Избранное, ярлыки и другие сохранённые элементы этого расположения будут использовать новую начальную точку. Они могут открыть другую папку или стать недоступными. Файлы не перемещаются и не удаляются.</string>
+    <string name="explorer_network_form_add_as_new_action">Добавить как новое расположение</string>
     <string name="explorer_network_form_auth_guest">Гость</string>
     <string name="explorer_network_form_auth_password">Имя пользователя и пароль</string>
     <string name="explorer_network_form_username_label">Имя пользователя</string>

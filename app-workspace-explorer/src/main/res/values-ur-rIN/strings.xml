@@ -322,6 +322,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler سرور کی تفصیلات اور محفوظ پاس ورڈ بھول جائے گا۔ سرور پر کچھ بھی حذف نہیں ہو گا۔</string>
     <string name="explorer_network_remove_saved_items_message">اس سے منسلک پسندیدہ، شارٹ کٹس اور دیگر محفوظ آئٹمز کام کرنا بند کر دیں گے۔</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">ان سے منسلک پسندیدہ، شارٹ کٹس اور دیگر محفوظ آئٹمز کام کرنا بند کر دیں گے۔</string>
     <string name="explorer_network_disconnect_location_action">منقطع کریں</string>
     <string name="explorer_network_disconnect_confirmation_title">%1$s کو منقطع کریں؟</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -342,6 +343,7 @@
     <string name="explorer_network_form_share_optional_hint">سرور پر موجود تمام شیئرز براؤز کرنے کے لیے خالی چھوڑیں۔</string>
     <string name="explorer_network_form_base_path_label">شیئر کے اندر فولڈر (اختیاری)</string>
     <string name="explorer_network_form_root_change_warning">اس مقام کے پسندیدہ، شارٹ کٹس اور دیگر محفوظ آئٹمز نیا نقطۂ آغاز استعمال کریں گے۔ وہ کوئی دوسرا فولڈر کھول سکتے ہیں یا دستیاب نہیں رہ سکتے۔ کوئی فائل منتقل یا حذف نہیں کی جاتی۔</string>
+    <string name="explorer_network_form_add_as_new_action">نئے مقام کے طور پر شامل کریں</string>
     <string name="explorer_network_form_auth_guest">مہمان</string>
     <string name="explorer_network_form_auth_password">صارف نام اور پاس ورڈ</string>
     <string name="explorer_network_form_username_label">صارف نام</string>

@@ -308,6 +308,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler 會忘記伺服器詳細資料和已儲存的密碼，伺服器上的內容不會被刪除。</string>
     <string name="explorer_network_remove_saved_items_message">與其相關的我的最愛、捷徑和其他已儲存項目將無法再使用。</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">與它們相關的我的最愛、捷徑和其他已儲存項目將無法再使用。</string>
     <string name="explorer_network_disconnect_location_action">中斷連線</string>
     <string name="explorer_network_disconnect_confirmation_title">要中斷與 %1$s 的連線嗎？</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -327,6 +328,7 @@
     <string name="explorer_network_form_share_optional_hint">留空即可瀏覽伺服器上的所有共用資料夾。</string>
     <string name="explorer_network_form_base_path_label">共用資料夾內的路徑（選填）</string>
     <string name="explorer_network_form_root_change_warning">此位置的我的最愛、捷徑和其他已儲存項目將使用新的起始位置，可能會開啟其他資料夾或變得無法使用。不會移動或刪除任何檔案。</string>
+    <string name="explorer_network_form_add_as_new_action">新增為新位置</string>
     <string name="explorer_network_form_auth_guest">訪客</string>
     <string name="explorer_network_form_auth_password">使用者名稱與密碼</string>
     <string name="explorer_network_form_username_label">使用者名稱</string>

@@ -319,6 +319,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Το Butler θα ξεχάσει τα στοιχεία του διακομιστή και τον αποθηκευμένο κωδικό πρόσβασης. Τίποτα στον διακομιστή δεν διαγράφεται.</string>
     <string name="explorer_network_remove_saved_items_message">Τα αγαπημένα, οι συντομεύσεις και άλλα αποθηκευμένα στοιχεία που συνδέονται με αυτήν θα σταματήσουν να λειτουργούν.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Τα αγαπημένα, οι συντομεύσεις και άλλα αποθηκευμένα στοιχεία που συνδέονται με αυτές θα σταματήσουν να λειτουργούν.</string>
     <string name="explorer_network_disconnect_location_action">Αποσύνδεση</string>
     <string name="explorer_network_disconnect_confirmation_title">Αποσύνδεση από το %1$s;</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -339,6 +340,7 @@
     <string name="explorer_network_form_share_optional_hint">Αφήστε το κενό για περιήγηση σε όλους τους κοινόχρηστους φακέλους του διακομιστή.</string>
     <string name="explorer_network_form_base_path_label">Φάκελος μέσα στον κοινόχρηστο φάκελο (προαιρετικό)</string>
     <string name="explorer_network_form_root_change_warning">Τα αγαπημένα, οι συντομεύσεις και άλλα αποθηκευμένα στοιχεία αυτής της τοποθεσίας θα χρησιμοποιούν το νέο σημείο εκκίνησης. Μπορεί να ανοίγουν διαφορετικό φάκελο ή να μην είναι πλέον διαθέσιμα. Κανένα αρχείο δεν μετακινείται ούτε διαγράφεται.</string>
+    <string name="explorer_network_form_add_as_new_action">Προσθήκη ως νέας τοποθεσίας</string>
     <string name="explorer_network_form_auth_guest">Επισκέπτης</string>
     <string name="explorer_network_form_auth_password">Όνομα χρήστη και κωδικός πρόσβασης</string>
     <string name="explorer_network_form_username_label">Όνομα χρήστη</string>

@@ -308,6 +308,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler はサーバーの詳細情報と保存されたパスワードを削除します。サーバー上のデータは削除されません。</string>
     <string name="explorer_network_remove_saved_items_message">これに関連付けられたお気に入り、ショートカット、その他の保存済み項目は機能しなくなります。</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">これらに関連付けられたお気に入り、ショートカット、その他の保存済み項目は機能しなくなります。</string>
     <string name="explorer_network_disconnect_location_action">切断</string>
     <string name="explorer_network_disconnect_confirmation_title">%1$s を切断しますか？</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -327,6 +328,7 @@
     <string name="explorer_network_form_share_optional_hint">空欄のままにすると、サーバー上のすべての共有を閲覧できます。</string>
     <string name="explorer_network_form_base_path_label">共有内のフォルダ（任意）</string>
     <string name="explorer_network_form_root_change_warning">この場所のお気に入り、ショートカット、その他の保存済み項目は新しい開始地点を使用します。別のフォルダが開いたり、利用できなくなったりする場合があります。ファイルが移動または削除されることはありません。</string>
+    <string name="explorer_network_form_add_as_new_action">新しい場所として追加</string>
     <string name="explorer_network_form_auth_guest">ゲスト</string>
     <string name="explorer_network_form_auth_password">ユーザー名とパスワード</string>
     <string name="explorer_network_form_username_label">ユーザー名</string>

@@ -308,6 +308,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler sẽ quên thông tin máy chủ và mật khẩu đã lưu. Không có gì trên máy chủ bị xóa.</string>
     <string name="explorer_network_remove_saved_items_message">Mục yêu thích, lối tắt và các mục đã lưu khác liên kết với vị trí này sẽ ngừng hoạt động.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Mục yêu thích, lối tắt và các mục đã lưu khác liên kết với các vị trí này sẽ ngừng hoạt động.</string>
     <string name="explorer_network_disconnect_location_action">Ngắt kết nối</string>
     <string name="explorer_network_disconnect_confirmation_title">Ngắt kết nối %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -327,6 +328,7 @@
     <string name="explorer_network_form_share_optional_hint">Để trống để duyệt mọi phần chia sẻ trên máy chủ.</string>
     <string name="explorer_network_form_base_path_label">Thư mục bên trong phần chia sẻ (tùy chọn)</string>
     <string name="explorer_network_form_root_change_warning">Mục yêu thích, lối tắt và các mục đã lưu khác của vị trí này sẽ dùng điểm bắt đầu mới. Chúng có thể mở một thư mục khác hoặc không còn truy cập được. Không có tệp nào bị di chuyển hay xóa.</string>
+    <string name="explorer_network_form_add_as_new_action">Thêm làm vị trí mới</string>
     <string name="explorer_network_form_auth_guest">Khách</string>
     <string name="explorer_network_form_auth_password">Tên đăng nhập và mật khẩu</string>
     <string name="explorer_network_form_username_label">Tên đăng nhập</string>

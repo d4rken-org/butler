@@ -271,6 +271,7 @@
     </plurals>
     <string name="explorer_network_remove_confirmation_message">Butler melupakan butiran pelayan dan kata laluan tersimpan. Tiada apa-apa pada pelayan dipadam.</string>
     <string name="explorer_network_remove_saved_items_message">Kegemaran, pintasan dan item tersimpan lain yang dipautkan kepadanya akan berhenti berfungsi.</string>
+    <string name="explorer_network_remove_saved_items_message_multiple">Kegemaran, pintasan dan item tersimpan lain yang dipautkan kepada lokasi-lokasi ini akan berhenti berfungsi.</string>
     <string name="explorer_network_disconnect_location_action">Putuskan sambungan</string>
     <string name="explorer_network_disconnect_confirmation_title">Putuskan sambungan %1$s?</string>
     <plurals name="explorer_network_disconnect_confirmation_title_multiple">
@@ -288,6 +289,7 @@
     <string name="explorer_network_form_share_optional_hint">Biarkan kosong untuk melayari setiap perkongsian pada pelayan.</string>
     <string name="explorer_network_form_base_path_label">Folder dalam perkongsian (pilihan)</string>
     <string name="explorer_network_form_root_change_warning">Kegemaran, pintasan dan item tersimpan lain untuk lokasi ini akan menggunakan titik permulaan baharu. Item tersebut mungkin membuka folder lain atau menjadi tidak tersedia. Tiada fail dialihkan atau dipadam.</string>
+    <string name="explorer_network_form_add_as_new_action">Tambah sebagai lokasi baharu</string>
     <string name="explorer_network_form_auth_guest">Tetamu</string>
     <string name="explorer_network_form_auth_password">Nama pengguna dan kata laluan</string>
     <string name="explorer_network_form_username_label">Nama pengguna</string>
