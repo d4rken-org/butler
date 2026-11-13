@@ -1,6 +1,7 @@
 package eu.darken.butler.history.ui
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,6 +54,7 @@ fun HistoryToolbarCard(
     entryCount: Int,
     totalCount: Int,
     collapsedFraction: Float = 0f,
+    onExpand: (() -> Unit)? = null,
     onRemoveOutcome: (HistoryOutcome) -> Unit,
     onRemoveKind: (Operation.Metadata.Kind) -> Unit,
     onRemovePathScope: (String) -> Unit,
@@ -105,6 +107,7 @@ fun HistoryToolbarCard(
                 filter = filter,
                 entryCount = entryCount,
                 totalCount = totalCount,
+                onExpand = onExpand,
                 onClearFilter = onClearFilter,
             )
         } else {
@@ -117,6 +120,7 @@ fun HistoryToolbarCard(
                     filter = filter,
                     entryCount = entryCount,
                     totalCount = totalCount,
+                    onExpand = null,
                     onClearFilter = onClearFilter,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -151,26 +155,34 @@ private fun ToolbarTitleRow(
     filter: HistoryFilter,
     entryCount: Int,
     totalCount: Int,
+    onExpand: (() -> Unit)?,
     onClearFilter: () -> Unit,
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            imageVector = Workspace.Type.HISTORY.icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(if (isCollapsed) 20.dp else 24.dp),
-        )
-        Spacer(modifier = Modifier.width(10.dp))
         if (isCollapsed) {
-            SummaryText(
-                modifier = Modifier.weight(1f),
-                filter = filter,
-                entryCount = entryCount,
-                totalCount = totalCount,
-            )
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .expandClickable(onExpand),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Workspace.Type.HISTORY.icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                SummaryText(
+                    modifier = Modifier.weight(1f),
+                    filter = filter,
+                    entryCount = entryCount,
+                    totalCount = totalCount,
+                )
+            }
             if (!filter.isUnfiltered) {
                 IconButton(
                     onClick = onClearFilter,
@@ -185,6 +197,13 @@ private fun ToolbarTitleRow(
                 }
             }
         } else {
+            Icon(
+                imageVector = Workspace.Type.HISTORY.icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp),
+            )
+            Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(R.string.history_workspace_title),
@@ -203,6 +222,9 @@ private fun ToolbarTitleRow(
         }
     }
 }
+
+private fun Modifier.expandClickable(onExpand: (() -> Unit)?): Modifier =
+    if (onExpand != null) clickable(onClick = onExpand) else this
 
 @Composable
 private fun SummaryText(
