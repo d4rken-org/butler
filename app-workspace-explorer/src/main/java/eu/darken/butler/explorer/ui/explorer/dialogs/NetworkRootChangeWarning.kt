@@ -77,7 +77,7 @@ fun SmbLocation.startsElsewhere(share: String, basePath: String): Boolean {
 }
 
 /** The base path is stored as typed, the server resolves it. */
-fun SftpLocation.startsElsewhere(basePath: String): Boolean = basePath.trim() != this.basePath.trim()
+fun SftpLocation.startsElsewhere(basePath: String): Boolean = basePath != this.basePath
 
 /**
  * Only the path counts, a URL that does not parse yet counts as unchanged.
