@@ -412,7 +412,6 @@ class ExplorerSmbLocationControllerTest : BaseTest() {
     private fun recordingTester() = mockk<SmbConnectionTester>().apply {
         coEvery { test(any(), any(), any(), any(), any(), any()) } coAnswers {
             testedPasswords.add(arg<CharArray?>(5)?.concatToString())
-            Unit
         }
     }
 

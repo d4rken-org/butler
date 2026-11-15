@@ -69,12 +69,36 @@ fun SmbLocationFormSheet(
     state: ExplorerDialogState.SmbLocationForm,
     onDismiss: () -> Unit,
     onSubmit: (SmbLocationFormInput) -> Unit,
-    /** Saves the form as another location, see [NetworkRootChangeWarning]. */
     onSubmitAsNew: (SmbLocationFormInput) -> Unit,
     onRevealPassword: suspend () -> RevealedPassword? = { null },
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
     isPro: Boolean = rememberIsPro(),
+) {
+    SmbLocationFormSheet(
+        state = state,
+        initialShare = state.existing?.share.orEmpty(),
+        onDismiss = onDismiss,
+        onSubmit = onSubmit,
+        onSubmitAsNew = onSubmitAsNew,
+        onRevealPassword = onRevealPassword,
+        topInset = topInset,
+        bottomInset = bottomInset,
+        isPro = isPro,
+    )
+}
+
+@Composable
+private fun SmbLocationFormSheet(
+    state: ExplorerDialogState.SmbLocationForm,
+    initialShare: String,
+    onDismiss: () -> Unit,
+    onSubmit: (SmbLocationFormInput) -> Unit,
+    onSubmitAsNew: (SmbLocationFormInput) -> Unit,
+    onRevealPassword: suspend () -> RevealedPassword?,
+    topInset: Dp,
+    bottomInset: Dp,
+    isPro: Boolean,
 ) {
     val context = LocalContext.current
     val existing = state.existing
@@ -82,7 +106,7 @@ fun SmbLocationFormSheet(
     var label by remember { mutableStateOf(existing?.label.orEmpty()) }
     var host by remember { mutableStateOf(existing?.host.orEmpty()) }
     var port by remember { mutableStateOf(existing?.port?.toString() ?: SmbLocationInput.DEFAULT_PORT.toString()) }
-    var share by remember { mutableStateOf(existing?.share.orEmpty()) }
+    var share by remember { mutableStateOf(initialShare) }
     var basePath by remember { mutableStateOf(existing?.basePath?.joinToString("/").orEmpty()) }
     var authType by remember { mutableStateOf(existing?.authType ?: SmbLocation.AuthType.PASSWORD) }
     var username by remember { mutableStateOf(existing?.username.orEmpty()) }
@@ -386,6 +410,23 @@ private fun SmbLocationFormSheetEditPreview() {
         onSubmit = {},
         onSubmitAsNew = {},
         onRevealPassword = { RevealedPassword("hunter2") },
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SmbLocationFormSheetStartsElsewherePreview() {
+    SmbLocationFormSheet(
+        state = ExplorerDialogState.SmbLocationForm(existing = previewLocation()),
+        initialShare = "photos",
+        onDismiss = {},
+        onSubmit = {},
+        onSubmitAsNew = {},
+        onRevealPassword = { null },
+        topInset = 0.dp,
+        bottomInset = 0.dp,
+        isPro = true,
     )
 }
 

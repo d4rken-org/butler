@@ -122,10 +122,6 @@ class ExplorerSmbLocationController(
 
     fun onFormSubmit(input: SmbLocationFormInput) = submit(input, asNew = false)
 
-    /**
-     * Saves an edited form as another location: the edited one, its credential and everything saved
-     * below it stay as they are. Without a typed password the stored one is copied over.
-     */
     fun onFormSubmitAsNew(input: SmbLocationFormInput) = submit(input, asNew = true)
 
     private fun submit(input: SmbLocationFormInput, asNew: Boolean): Unit = doLaunch {

@@ -160,7 +160,6 @@ fun SftpLocationFormSheet(
     fields: SftpLocationFormFields = rememberSftpLocationFormFields(state),
     onDismiss: () -> Unit,
     onSubmit: (SftpLocationFormInput) -> Unit,
-    /** Saves the form as another location, see [NetworkRootChangeWarning]. */
     onSubmitAsNew: (SftpLocationFormInput) -> Unit,
     onPickKeyFile: () -> Unit,
     topInset: Dp = 0.dp,

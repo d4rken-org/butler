@@ -341,11 +341,7 @@ class ExplorerSftpLocationController(
 
     fun onFormSubmit(input: SftpLocationFormInput) = submit(input, asNew = false)
 
-    /**
-     * Saves an edited form as another location: the edited one, its credential and everything saved
-     * below it stay as they are. Without a newly typed secret or picked key the stored one is copied
-     * over; the host key pin only while the endpoint is the same.
-     */
+    /** An existing host key pin is reused only for the same host and port. */
     fun onFormSubmitAsNew(input: SftpLocationFormInput) = submit(input, asNew = true)
 
     private fun submit(input: SftpLocationFormInput, asNew: Boolean) = doLaunch {

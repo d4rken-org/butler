@@ -26,9 +26,8 @@ import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.explorer.R
 
 /**
- * Saved paths below a network location are its id plus segments relative to where it starts, so an
- * edit that moves the start repoints favorites, shortcuts and the like. [onAddAsNew] saves the form
- * as another location instead, which leaves the edited one and its saved items as they are.
+ * Warns that an edit changes where a network location starts. [onAddAsNew] saves the form as another
+ * location instead, leaving the edited one and its saved items untouched.
  */
 @Composable
 fun NetworkRootChangeWarning(
@@ -76,7 +75,7 @@ fun SmbLocation.startsElsewhere(share: String, basePath: String): Boolean {
     return typedShare != this.share || SmbLocationInput.splitPath(basePath) != this.basePath
 }
 
-/** The base path is stored as typed, the server resolves it. */
+/** Compares base paths exactly, including surrounding whitespace. */
 fun SftpLocation.startsElsewhere(basePath: String): Boolean = basePath != this.basePath
 
 /**
