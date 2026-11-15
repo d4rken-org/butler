@@ -24,7 +24,6 @@ import eu.darken.butler.common.files.smb.location.SmbLocation
 import eu.darken.butler.common.files.webdav.WebDavLocationInput
 import eu.darken.butler.common.files.webdav.location.WebDavLocation
 import eu.darken.butler.explorer.R
-import java.net.URI
 
 /**
  * Saved paths below a network location are its id plus segments relative to where it starts, so an
@@ -96,10 +95,13 @@ fun WebDavLocation.startsElsewhere(url: String): Boolean {
         authType = WebDavLocation.AuthType.ANONYMOUS,
         username = "",
     ) as? WebDavLocationInput.Result.Valid ?: return false
-    return pathSegmentsOf(typed.parsed.url) != pathSegmentsOf(this.url)
+    val stored = try {
+        WebDavLocationInput.endpointPathSegments(this.url)
+    } catch (e: IllegalArgumentException) {
+        return false
+    }
+    return WebDavLocationInput.endpointPathSegments(typed.parsed.url) != stored
 }
-
-private fun pathSegmentsOf(url: String) = WebDavLocationInput.splitPath(URI(url).path)
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)

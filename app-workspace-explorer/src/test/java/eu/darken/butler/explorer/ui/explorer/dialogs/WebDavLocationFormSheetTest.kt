@@ -251,6 +251,15 @@ class WebDavLocationFormSheetTest : ComposeTest() {
     }
 
     @Test
+    fun `brackets in the path of the URL warn instead of crashing`() {
+        setSheetContent(ExplorerDialogState.WebDavLocationForm(mode = WebDavFormMode.EDIT, existing = stored))
+
+        field(stored.url).performTextReplacement("https://cloud.example.com/dav/[2026]/")
+
+        composeTestRule.onNodeWithText(rootChangeWarning).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
     fun `changing only the server of the URL does not warn`() {
         setSheetContent(ExplorerDialogState.WebDavLocationForm(mode = WebDavFormMode.EDIT, existing = stored))
 

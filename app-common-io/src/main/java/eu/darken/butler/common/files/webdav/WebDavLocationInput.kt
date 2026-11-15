@@ -137,6 +137,9 @@ object WebDavLocationInput {
         .split('/')
         .filter { it.isNotEmpty() }
 
+    /** Path segments of an already validated [url], as the connection resolves them. */
+    fun endpointPathSegments(url: String): List<String> = WebDavEndpoint(url).pathSegments
+
     fun pathSegmentIssue(segment: String): NameIssue? = when {
         segment.isEmpty() -> NameIssue.BLANK
         segment == "." || segment == ".." -> NameIssue.TRAVERSAL
