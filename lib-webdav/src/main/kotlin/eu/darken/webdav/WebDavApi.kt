@@ -46,6 +46,10 @@ public class WebDavEndpoint(baseUrl: String) {
     public val isSecure: Boolean
         get() = httpUrl.isHttps
 
+    /** Decoded per segment, empty segments kept: `https://h/a%2Fb//c/` is `["a/b", "", "c", ""]`. */
+    public val pathSegments: List<String>
+        get() = httpUrl.pathSegments
+
     override fun equals(other: Any?): Boolean = other is WebDavEndpoint && httpUrl == other.httpUrl
 
     override fun hashCode(): Int = httpUrl.hashCode()

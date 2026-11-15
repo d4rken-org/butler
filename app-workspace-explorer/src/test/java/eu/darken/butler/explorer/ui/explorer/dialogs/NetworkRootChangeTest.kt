@@ -104,6 +104,29 @@ class NetworkRootChangeTest : BaseTest() {
     }
 
     @Test
+    fun `webdav brackets in the path are a change, not a crash`() {
+        webDav.startsElsewhere(url = "https://cloud.example.com/dav/[2026]/") shouldBe true
+    }
+
+    @Test
+    fun `webdav incomplete percent escapes do not crash`() {
+        webDav.startsElsewhere(url = "https://cloud.example.com/dav/%") shouldBe true
+        webDav.startsElsewhere(url = "https://cloud.example.com/dav/%2") shouldBe true
+    }
+
+    @Test
+    fun `webdav an encoded slash is not a real one`() {
+        val nested = webDav.copy(url = "https://cloud.example.com/dav/team/archive/")
+        nested.startsElsewhere(url = "https://cloud.example.com/dav/team%2Farchive/") shouldBe true
+    }
+
+    @Test
+    fun `webdav an empty segment inside the path is a change`() {
+        val nested = webDav.copy(url = "https://cloud.example.com/dav/team/archive/")
+        nested.startsElsewhere(url = "https://cloud.example.com/dav/team//archive/") shouldBe true
+    }
+
+    @Test
     fun `webdav url that does not parse is no change`() {
         webDav.startsElsewhere(url = "") shouldBe false
         webDav.startsElsewhere(url = "cloud.example.com/other/") shouldBe false
