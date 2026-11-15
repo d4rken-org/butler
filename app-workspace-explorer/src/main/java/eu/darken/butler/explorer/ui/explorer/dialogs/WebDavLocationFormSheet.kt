@@ -137,7 +137,6 @@ fun WebDavLocationFormSheet(
     fields: WebDavLocationFormFields = rememberWebDavLocationFormFields(state),
     onDismiss: () -> Unit,
     onSubmit: (WebDavLocationFormInput) -> Unit,
-    /** Saves the form as another location, see [NetworkRootChangeWarning]. */
     onSubmitAsNew: (WebDavLocationFormInput) -> Unit,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,

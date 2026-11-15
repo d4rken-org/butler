@@ -108,11 +108,7 @@ class ExplorerWebDavLocationController(
 
     fun onFormSubmit(input: WebDavLocationFormInput) = submit(input, asNew = false)
 
-    /**
-     * Saves an edited form as another location: the edited one, its credential and everything saved
-     * below it stay as they are. Without a typed password the stored one is copied over; the pinned
-     * certificate only while the HTTPS origin is the same.
-     */
+    /** An existing certificate pin is reused only for the same HTTPS origin. */
     fun onFormSubmitAsNew(input: WebDavLocationFormInput) = submit(input, asNew = true)
 
     private fun submit(input: WebDavLocationFormInput, asNew: Boolean) = doLaunch {
