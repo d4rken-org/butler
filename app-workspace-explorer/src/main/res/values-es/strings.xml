@@ -355,7 +355,6 @@
     <string name="explorer_network_form_error_host_not_bare">Escribe solo la dirección del servidor, sin esquema ni ruta</string>
     <string name="explorer_network_form_error_host_malformed">Esta no es una dirección de servidor válida</string>
     <string name="explorer_network_form_error_port">Escribe un puerto entre 1 y 65535</string>
-    <string name="explorer_network_form_error_share_blank">Escribe un nombre de recurso compartido</string>
     <string name="explorer_network_form_error_share_not_single">Escribe solo el nombre del recurso compartido, indica las subcarpetas más abajo</string>
     <string name="explorer_network_form_error_share_malformed">Este no es un nombre de recurso compartido válido</string>
     <string name="explorer_network_form_error_base_path">No se puede usar esta ruta de carpeta</string>

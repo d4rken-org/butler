@@ -345,7 +345,6 @@
     <string name="explorer_network_form_error_host_not_bare">请仅输入服务器地址，不含协议或路径</string>
     <string name="explorer_network_form_error_host_malformed">这不是有效的服务器地址</string>
     <string name="explorer_network_form_error_port">请输入 1 到 65535 之间的端口</string>
-    <string name="explorer_network_form_error_share_blank">请输入共享名称</string>
     <string name="explorer_network_form_error_share_not_single">请仅输入共享名称，子文件夹请填写在下方</string>
     <string name="explorer_network_form_error_share_malformed">这不是有效的共享名称</string>
     <string name="explorer_network_form_error_base_path">无法使用此文件夹路径</string>

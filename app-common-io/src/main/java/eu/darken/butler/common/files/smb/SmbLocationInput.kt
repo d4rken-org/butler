@@ -58,10 +58,6 @@ object SmbLocationInput {
             override val field = Field.PORT
         }
 
-        data object ShareBlank : Issue {
-            override val field = Field.SHARE
-        }
-
         /** A share is a single component, `share/sub` belongs in the base directory field. */
         data object ShareNotSingleComponent : Issue {
             override val field = Field.SHARE
@@ -116,7 +112,6 @@ object SmbLocationInput {
         domain: String = "",
         username: String = "",
         requireUsername: Boolean = false,
-        requireShare: Boolean = false,
     ): Result {
         val issues = mutableListOf<Issue>()
 
@@ -140,7 +135,7 @@ object SmbLocationInput {
 
         val trimmedShare = share.trim().trim('\\', '/')
         val parsedShare = when {
-            trimmedShare.isEmpty() -> null.also { if (requireShare) issues.add(Issue.ShareBlank) }
+            trimmedShare.isEmpty() -> null
             trimmedShare.contains('/') || trimmedShare.contains('\\') -> {
                 null.also { issues.add(Issue.ShareNotSingleComponent) }
             }
@@ -152,7 +147,7 @@ object SmbLocationInput {
 
         val parsedBasePath = splitPath(basePath)
         if (parsedBasePath.any { pathSegmentIssue(it) != null }) issues.add(Issue.BasePathMalformed)
-        if (trimmedShare.isEmpty() && !requireShare && parsedBasePath.isNotEmpty()) {
+        if (trimmedShare.isEmpty() && parsedBasePath.isNotEmpty()) {
             issues.add(Issue.BasePathWithoutShare)
         }
 

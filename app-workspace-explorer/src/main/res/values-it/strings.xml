@@ -357,7 +357,6 @@
     <string name="explorer_network_form_error_host_not_bare">Inserisci solo l’indirizzo del server, senza schema o percorso</string>
     <string name="explorer_network_form_error_host_malformed">Non è un indirizzo server valido</string>
     <string name="explorer_network_form_error_port">Inserisci una porta compresa tra 1 e 65535</string>
-    <string name="explorer_network_form_error_share_blank">Inserisci un nome di condivisione</string>
     <string name="explorer_network_form_error_share_not_single">Inserisci solo il nome della condivisione, indica le sottocartelle più sotto</string>
     <string name="explorer_network_form_error_share_malformed">Non è un nome di condivisione valido</string>
     <string name="explorer_network_form_error_base_path">Questo percorso di cartella non può essere usato</string>

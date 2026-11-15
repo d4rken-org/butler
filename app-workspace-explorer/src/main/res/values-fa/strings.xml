@@ -355,7 +355,6 @@
     <string name="explorer_network_form_error_host_not_bare">فقط نشانی سرور را وارد کنید، بدون طرح یا مسیر</string>
     <string name="explorer_network_form_error_host_malformed">این نشانی سرور معتبر نیست</string>
     <string name="explorer_network_form_error_port">پورتی بین 1 و 65535 وارد کنید</string>
-    <string name="explorer_network_form_error_share_blank">نام اشتراک را وارد کنید</string>
     <string name="explorer_network_form_error_share_not_single">فقط نام اشتراک را وارد کنید، زیرپوشه‌ها را در پایین قرار دهید</string>
     <string name="explorer_network_form_error_share_malformed">این نام اشتراک معتبر نیست</string>
     <string name="explorer_network_form_error_base_path">این مسیر پوشه قابل استفاده نیست</string>

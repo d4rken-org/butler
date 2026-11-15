@@ -376,7 +376,6 @@
     <string name="explorer_network_form_error_host_not_bare">Wpisz tylko adres serwera, bez schematu i ścieżki</string>
     <string name="explorer_network_form_error_host_malformed">To nie jest prawidłowy adres serwera</string>
     <string name="explorer_network_form_error_port">Wpisz port z zakresu od 1 do 65535</string>
-    <string name="explorer_network_form_error_share_blank">Wpisz nazwę zasobu</string>
     <string name="explorer_network_form_error_share_not_single">Wpisz tylko nazwę zasobu, podfoldery podaj poniżej</string>
     <string name="explorer_network_form_error_share_malformed">To nie jest prawidłowa nazwa zasobu</string>
     <string name="explorer_network_form_error_base_path">Tej ścieżki folderu nie można użyć</string>

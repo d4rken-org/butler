@@ -357,7 +357,6 @@
     <string name="explorer_network_form_error_host_not_bare">Skriv inn bare serveradressen, uten protokollprefiks eller sti</string>
     <string name="explorer_network_form_error_host_malformed">Dette er ikke en gyldig serveradresse</string>
     <string name="explorer_network_form_error_port">Skriv inn en port mellom 1 og 65535</string>
-    <string name="explorer_network_form_error_share_blank">Skriv inn navnet på en delt ressurs</string>
     <string name="explorer_network_form_error_share_not_single">Skriv inn bare navnet på den delte ressursen, og angi undermapper nedenfor</string>
     <string name="explorer_network_form_error_share_malformed">Dette er ikke et gyldig navn på en delt ressurs</string>
     <string name="explorer_network_form_error_base_path">Denne mappestien kan ikke brukes</string>

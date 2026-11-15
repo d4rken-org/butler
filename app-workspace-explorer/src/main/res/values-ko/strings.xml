@@ -343,7 +343,6 @@
     <string name="explorer_network_form_error_host_not_bare">스킴이나 경로 없이 서버 주소만 입력하세요</string>
     <string name="explorer_network_form_error_host_malformed">올바른 서버 주소가 아닙니다</string>
     <string name="explorer_network_form_error_port">1에서 65535 사이의 포트를 입력하세요</string>
-    <string name="explorer_network_form_error_share_blank">공유 이름을 입력하세요</string>
     <string name="explorer_network_form_error_share_not_single">공유 이름만 입력하고, 하위 폴더는 아래에 입력하세요</string>
     <string name="explorer_network_form_error_share_malformed">올바른 공유 이름이 아닙니다</string>
     <string name="explorer_network_form_error_base_path">이 폴더 경로는 사용할 수 없습니다</string>

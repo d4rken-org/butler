@@ -379,7 +379,6 @@
     <string name="explorer_network_form_error_host_not_bare">Zadejte pouze adresu serveru, bez schématu nebo cesty</string>
     <string name="explorer_network_form_error_host_malformed">Toto není platná adresa serveru</string>
     <string name="explorer_network_form_error_port">Zadejte port v rozsahu 1 až 65535</string>
-    <string name="explorer_network_form_error_share_blank">Zadejte název sdílené složky</string>
     <string name="explorer_network_form_error_share_not_single">Zadejte pouze název sdílené složky, podsložky uveďte níže</string>
     <string name="explorer_network_form_error_share_malformed">Toto není platný název sdílené složky</string>
     <string name="explorer_network_form_error_base_path">Tuto cestu ke složce nelze použít</string>

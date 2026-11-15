@@ -316,7 +316,6 @@
     <string name="explorer_network_form_error_host_not_bare">केवल सर्वर का पता दर्ज करें, बिना स्कीम या पथ के</string>
     <string name="explorer_network_form_error_host_malformed">यह सर्वर का मान्य पता नहीं है</string>
     <string name="explorer_network_form_error_port">1 से 65535 के बीच पोर्ट दर्ज करें</string>
-    <string name="explorer_network_form_error_share_blank">शेयर का नाम दर्ज करें</string>
     <string name="explorer_network_form_error_share_not_single">केवल शेयर का नाम दर्ज करें, सबफ़ोल्डर नीचे रखें</string>
     <string name="explorer_network_form_error_share_malformed">यह शेयर का मान्य नाम नहीं है</string>
     <string name="explorer_network_form_error_base_path">यह फ़ोल्डर पथ इस्तेमाल नहीं किया जा सकता</string>

@@ -343,7 +343,6 @@
     <string name="explorer_network_form_error_host_not_bare">Chỉ nhập địa chỉ máy chủ, không kèm giao thức hoặc đường dẫn</string>
     <string name="explorer_network_form_error_host_malformed">Đây không phải là địa chỉ máy chủ hợp lệ</string>
     <string name="explorer_network_form_error_port">Nhập cổng từ 1 đến 65535</string>
-    <string name="explorer_network_form_error_share_blank">Nhập tên phần chia sẻ</string>
     <string name="explorer_network_form_error_share_not_single">Chỉ nhập tên phần chia sẻ, đặt thư mục con bên dưới</string>
     <string name="explorer_network_form_error_share_malformed">Đây không phải là tên phần chia sẻ hợp lệ</string>
     <string name="explorer_network_form_error_base_path">Không thể sử dụng đường dẫn thư mục này</string>

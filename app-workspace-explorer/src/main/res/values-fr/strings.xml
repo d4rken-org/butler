@@ -352,7 +352,6 @@
     <string name="explorer_network_form_error_host_not_bare">Saisissez uniquement l’adresse du serveur, sans schéma ni chemin</string>
     <string name="explorer_network_form_error_host_malformed">Cette adresse de serveur n’est pas valide</string>
     <string name="explorer_network_form_error_port">Saisissez un port entre 1 et 65535</string>
-    <string name="explorer_network_form_error_share_blank">Saisissez un nom de partage</string>
     <string name="explorer_network_form_error_share_not_single">Saisissez uniquement le nom du partage, indiquez les sous-dossiers ci-dessous</string>
     <string name="explorer_network_form_error_share_malformed">Ce nom de partage n’est pas valide</string>
     <string name="explorer_network_form_error_base_path">Ce chemin de dossier ne peut pas être utilisé</string>

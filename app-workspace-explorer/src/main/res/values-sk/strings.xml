@@ -378,7 +378,6 @@
     <string name="explorer_network_form_error_host_not_bare">Zadaj iba adresu servera, bez schémy alebo cesty</string>
     <string name="explorer_network_form_error_host_malformed">Toto nie je platná adresa servera</string>
     <string name="explorer_network_form_error_port">Zadaj port v rozsahu 1 až 65535</string>
-    <string name="explorer_network_form_error_share_blank">Zadaj názov zdieľaného priečinka</string>
     <string name="explorer_network_form_error_share_not_single">Zadaj iba názov zdieľaného priečinka, podpriečinky uveď nižšie</string>
     <string name="explorer_network_form_error_share_malformed">Toto nie je platný názov zdieľaného priečinka</string>
     <string name="explorer_network_form_error_base_path">Túto cestu k priečinku nemožno použiť</string>

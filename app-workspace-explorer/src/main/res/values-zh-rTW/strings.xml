@@ -343,7 +343,6 @@
     <string name="explorer_network_form_error_host_not_bare">請只輸入伺服器位址，不要包含通訊協定或路徑</string>
     <string name="explorer_network_form_error_host_malformed">這不是有效的伺服器位址</string>
     <string name="explorer_network_form_error_port">請輸入 1 到 65535 之間的連接埠</string>
-    <string name="explorer_network_form_error_share_blank">請輸入共用名稱</string>
     <string name="explorer_network_form_error_share_not_single">請只輸入共用名稱，子資料夾請填在下方</string>
     <string name="explorer_network_form_error_share_malformed">這不是有效的共用名稱</string>
     <string name="explorer_network_form_error_base_path">無法使用此資料夾路徑</string>

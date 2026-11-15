@@ -340,7 +340,6 @@
     <string name="explorer_network_form_error_host_not_bare">יש להזין רק את כתובת השרת, ללא סכימה או נתיב</string>
     <string name="explorer_network_form_error_host_malformed">זו אינה כתובת שרת תקינה</string>
     <string name="explorer_network_form_error_port">יש להזין יציאה בין 1 ל־65535</string>
-    <string name="explorer_network_form_error_share_blank">יש להזין שם שיתוף</string>
     <string name="explorer_network_form_error_share_not_single">יש להזין רק את שם השיתוף, ואת תיקיות המשנה למטה</string>
     <string name="explorer_network_form_error_share_malformed">זה אינו שם שיתוף תקין</string>
     <string name="explorer_network_form_error_base_path">אי אפשר להשתמש בנתיב התיקייה הזה</string>

@@ -369,7 +369,6 @@
     <string name="explorer_network_form_error_host_not_bare">Unesi samo adresu poslužitelja, bez sheme ili putanje</string>
     <string name="explorer_network_form_error_host_malformed">Ovo nije valjana adresa poslužitelja</string>
     <string name="explorer_network_form_error_port">Unesi port između 1 i 65535</string>
-    <string name="explorer_network_form_error_share_blank">Unesi naziv dijeljene mape</string>
     <string name="explorer_network_form_error_share_not_single">Unesi samo naziv dijeljene mape, a podmape navedi ispod</string>
     <string name="explorer_network_form_error_share_malformed">Ovo nije valjan naziv dijeljene mape</string>
     <string name="explorer_network_form_error_base_path">Ova se putanja mape ne može upotrijebiti</string>
