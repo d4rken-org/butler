@@ -343,7 +343,6 @@
     <string name="explorer_network_form_error_host_not_bare">スキームやパスを含めず、サーバーアドレスのみを入力してください</string>
     <string name="explorer_network_form_error_host_malformed">有効なサーバーアドレスではありません</string>
     <string name="explorer_network_form_error_port">1〜65535 の範囲でポート番号を入力してください</string>
-    <string name="explorer_network_form_error_share_blank">共有名を入力してください</string>
     <string name="explorer_network_form_error_share_not_single">共有名のみを入力し、サブフォルダは下の欄に入力してください</string>
     <string name="explorer_network_form_error_share_malformed">有効な共有名ではありません</string>
     <string name="explorer_network_form_error_base_path">このフォルダパスは使用できません</string>

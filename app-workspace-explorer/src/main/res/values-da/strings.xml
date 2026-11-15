@@ -357,7 +357,6 @@
     <string name="explorer_network_form_error_host_not_bare">Indtast kun serveradressen uden protokolskema eller sti</string>
     <string name="explorer_network_form_error_host_malformed">Dette er ikke en gyldig serveradresse</string>
     <string name="explorer_network_form_error_port">Indtast en port mellem 1 og 65535</string>
-    <string name="explorer_network_form_error_share_blank">Indtast et delingsnavn</string>
     <string name="explorer_network_form_error_share_not_single">Indtast kun delingsnavnet, og angiv undermapper nedenfor</string>
     <string name="explorer_network_form_error_share_malformed">Dette er ikke et gyldigt delingsnavn</string>
     <string name="explorer_network_form_error_base_path">Denne mappesti kan ikke bruges</string>

@@ -355,7 +355,6 @@
     <string name="explorer_network_form_error_host_not_bare">Voer alleen het serveradres in, zonder schema of pad</string>
     <string name="explorer_network_form_error_host_malformed">Dit is geen geldig serveradres</string>
     <string name="explorer_network_form_error_port">Voer een poort tussen 1 en 65535 in</string>
-    <string name="explorer_network_form_error_share_blank">Voer een sharenaam in</string>
     <string name="explorer_network_form_error_share_not_single">Voer alleen de sharenaam in, plaats submappen hieronder</string>
     <string name="explorer_network_form_error_share_malformed">Dit is geen geldige sharenaam</string>
     <string name="explorer_network_form_error_base_path">Dit mappad kan niet worden gebruikt</string>

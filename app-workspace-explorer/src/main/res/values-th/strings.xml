@@ -343,7 +343,6 @@
     <string name="explorer_network_form_error_host_not_bare">กรอกเฉพาะที่อยู่เซิร์ฟเวอร์ ไม่ต้องมีสคีมหรือเส้นทาง</string>
     <string name="explorer_network_form_error_host_malformed">ที่อยู่เซิร์ฟเวอร์นี้ไม่ถูกต้อง</string>
     <string name="explorer_network_form_error_port">กรอกพอร์ตระหว่าง 1 ถึง 65535</string>
-    <string name="explorer_network_form_error_share_blank">กรอกชื่อแชร์</string>
     <string name="explorer_network_form_error_share_not_single">กรอกเฉพาะชื่อแชร์ ใส่โฟลเดอร์ย่อยไว้ด้านล่าง</string>
     <string name="explorer_network_form_error_share_malformed">ชื่อแชร์นี้ไม่ถูกต้อง</string>
     <string name="explorer_network_form_error_base_path">ใช้เส้นทางโฟลเดอร์นี้ไม่ได้</string>

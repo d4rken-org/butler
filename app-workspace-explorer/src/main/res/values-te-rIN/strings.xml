@@ -360,7 +360,6 @@
     <string name="explorer_network_form_error_host_not_bare">స్కీమ్ లేదా పాత్ లేకుండా సర్వర్ చిరునామాను మాత్రమే నమోదు చేయండి</string>
     <string name="explorer_network_form_error_host_malformed">ఇది చెల్లుబాటు అయ్యే సర్వర్ చిరునామా కాదు</string>
     <string name="explorer_network_form_error_port">1 నుంచి 65535 మధ్య పోర్ట్‌ను నమోదు చేయండి</string>
-    <string name="explorer_network_form_error_share_blank">షేర్ పేరును నమోదు చేయండి</string>
     <string name="explorer_network_form_error_share_not_single">షేర్ పేరును మాత్రమే నమోదు చేయండి, ఉపఫోల్డర్‌లను కింద నమోదు చేయండి</string>
     <string name="explorer_network_form_error_share_malformed">ఇది చెల్లుబాటు అయ్యే షేర్ పేరు కాదు</string>
     <string name="explorer_network_form_error_base_path">ఈ ఫోల్డర్ పాత్‌ను ఉపయోగించలేము</string>

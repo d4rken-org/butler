@@ -316,7 +316,6 @@
     <string name="explorer_network_form_error_host_not_bare">Csak a kiszolgáló címét add meg, séma vagy útvonal nélkül</string>
     <string name="explorer_network_form_error_host_malformed">Ez nem érvényes kiszolgálócím</string>
     <string name="explorer_network_form_error_port">Adj meg egy portot 1 és 65535 között</string>
-    <string name="explorer_network_form_error_share_blank">Add meg a megosztás nevét</string>
     <string name="explorer_network_form_error_share_not_single">Csak a megosztás nevét add meg, az almappákat lentebb</string>
     <string name="explorer_network_form_error_share_malformed">Ez nem érvényes megosztásnév</string>
     <string name="explorer_network_form_error_base_path">Ez a mappaútvonal nem használható</string>

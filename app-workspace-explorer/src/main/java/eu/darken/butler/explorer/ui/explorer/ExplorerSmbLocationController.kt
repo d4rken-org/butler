@@ -299,7 +299,6 @@ class ExplorerSmbLocationController(
         SmbLocationInput.Issue.HostNotBare -> R.string.explorer_network_form_error_host_not_bare
         SmbLocationInput.Issue.HostMalformed -> R.string.explorer_network_form_error_host_malformed
         SmbLocationInput.Issue.PortOutOfRange -> R.string.explorer_network_form_error_port
-        SmbLocationInput.Issue.ShareBlank -> R.string.explorer_network_form_error_share_blank
         SmbLocationInput.Issue.ShareNotSingleComponent -> R.string.explorer_network_form_error_share_not_single
         SmbLocationInput.Issue.ShareMalformed -> R.string.explorer_network_form_error_share_malformed
         SmbLocationInput.Issue.BasePathMalformed -> R.string.explorer_network_form_error_base_path

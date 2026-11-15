@@ -360,7 +360,6 @@
     <string name="explorer_network_form_error_host_not_bare">স্কিম বা পাথ ছাড়া শুধু সার্ভারের ঠিকানা দিন</string>
     <string name="explorer_network_form_error_host_malformed">এটি বৈধ সার্ভারের ঠিকানা নয়</string>
     <string name="explorer_network_form_error_port">১ থেকে ৬৫৫৩৫-এর মধ্যে পোর্ট দিন</string>
-    <string name="explorer_network_form_error_share_blank">শেয়ারের নাম দিন</string>
     <string name="explorer_network_form_error_share_not_single">শুধু শেয়ারের নাম দিন, সাবফোল্ডার নিচে দিন</string>
     <string name="explorer_network_form_error_share_malformed">এটি বৈধ শেয়ারের নাম নয়</string>
     <string name="explorer_network_form_error_base_path">এই ফোল্ডার পাথ ব্যবহার করা যায় না</string>

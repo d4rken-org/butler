@@ -352,7 +352,6 @@
     <string name="explorer_network_form_error_host_not_bare">Yalnızca sunucu adresini girin, şema veya yol eklemeyin</string>
     <string name="explorer_network_form_error_host_malformed">Bu geçerli bir sunucu adresi değil</string>
     <string name="explorer_network_form_error_port">1 ile 65535 arasında bir port girin</string>
-    <string name="explorer_network_form_error_share_blank">Bir paylaşım adı girin</string>
     <string name="explorer_network_form_error_share_not_single">Yalnızca paylaşım adını girin, alt klasörleri aşağıya ekleyin</string>
     <string name="explorer_network_form_error_share_malformed">Bu geçerli bir paylaşım adı değil</string>
     <string name="explorer_network_form_error_base_path">Bu klasör yolu kullanılamaz</string>

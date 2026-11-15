@@ -352,7 +352,6 @@
     <string name="explorer_network_form_error_host_not_bare">Digite apenas o endereço do servidor, sem esquema ou caminho</string>
     <string name="explorer_network_form_error_host_malformed">Este não é um endereço de servidor válido</string>
     <string name="explorer_network_form_error_port">Digite uma porta entre 1 e 65535</string>
-    <string name="explorer_network_form_error_share_blank">Digite um nome de compartilhamento</string>
     <string name="explorer_network_form_error_share_not_single">Digite apenas o nome do compartilhamento, coloque subpastas abaixo</string>
     <string name="explorer_network_form_error_share_malformed">Este não é um nome de compartilhamento válido</string>
     <string name="explorer_network_form_error_base_path">Este caminho de pasta não pode ser usado</string>

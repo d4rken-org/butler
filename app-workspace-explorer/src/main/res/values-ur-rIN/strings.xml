@@ -358,7 +358,6 @@
     <string name="explorer_network_form_error_host_not_bare">صرف سرور کا پتہ درج کریں، اسکیم یا راستے کے بغیر</string>
     <string name="explorer_network_form_error_host_malformed">یہ سرور کا درست پتہ نہیں ہے</string>
     <string name="explorer_network_form_error_port">1 سے 65535 کے درمیان پورٹ درج کریں</string>
-    <string name="explorer_network_form_error_share_blank">شیئر کا نام درج کریں</string>
     <string name="explorer_network_form_error_share_not_single">صرف شیئر کا نام درج کریں، ذیلی فولڈر نیچے درج کریں</string>
     <string name="explorer_network_form_error_share_malformed">یہ شیئر کا درست نام نہیں ہے</string>
     <string name="explorer_network_form_error_base_path">اس فولڈر کا راستہ استعمال نہیں کیا جا سکتا</string>

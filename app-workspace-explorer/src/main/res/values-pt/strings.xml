@@ -372,7 +372,6 @@
     <string name="explorer_network_form_error_host_not_bare">Introduz apenas o endereço do servidor, sem esquema nem caminho</string>
     <string name="explorer_network_form_error_host_malformed">Este endereço de servidor não é válido</string>
     <string name="explorer_network_form_error_port">Introduz uma porta entre 1 e 65535</string>
-    <string name="explorer_network_form_error_share_blank">Introduz o nome de uma partilha</string>
     <string name="explorer_network_form_error_share_not_single">Introduz apenas o nome da partilha; indica as subpastas abaixo</string>
     <string name="explorer_network_form_error_share_malformed">Este nome de partilha não é válido</string>
     <string name="explorer_network_form_error_base_path">Este caminho de pasta não pode ser usado</string>

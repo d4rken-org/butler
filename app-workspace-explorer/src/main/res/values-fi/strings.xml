@@ -357,7 +357,6 @@
     <string name="explorer_network_form_error_host_not_bare">Anna vain palvelimen osoite ilman protokollatunnistetta tai polkua</string>
     <string name="explorer_network_form_error_host_malformed">Tämä ei ole kelvollinen palvelimen osoite</string>
     <string name="explorer_network_form_error_port">Anna portti väliltä 1–65535</string>
-    <string name="explorer_network_form_error_share_blank">Anna jaon nimi</string>
     <string name="explorer_network_form_error_share_not_single">Anna vain jaon nimi, syötä alikansiot alla</string>
     <string name="explorer_network_form_error_share_malformed">Tämä ei ole kelvollinen jaon nimi</string>
     <string name="explorer_network_form_error_base_path">Tätä kansiopolkua ei voi käyttää</string>

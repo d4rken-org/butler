@@ -400,7 +400,6 @@
     <string name="explorer_network_form_error_host_not_bare">أدخل عنوان الخادم فقط، دون مخطط أو مسار</string>
     <string name="explorer_network_form_error_host_malformed">هذا ليس عنوان خادم صالحًا</string>
     <string name="explorer_network_form_error_port">أدخل منفذًا بين 1 و65535</string>
-    <string name="explorer_network_form_error_share_blank">أدخل اسم المشاركة</string>
     <string name="explorer_network_form_error_share_not_single">أدخل اسم المشاركة فقط، وضع المجلدات الفرعية أدناه</string>
     <string name="explorer_network_form_error_share_malformed">هذا ليس اسم مشاركة صالحًا</string>
     <string name="explorer_network_form_error_base_path">لا يمكن استخدام مسار هذا المجلد</string>

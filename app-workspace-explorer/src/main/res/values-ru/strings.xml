@@ -378,7 +378,6 @@
     <string name="explorer_network_form_error_host_not_bare">Введите только адрес сервера, без схемы и пути</string>
     <string name="explorer_network_form_error_host_malformed">Это не является допустимым адресом сервера</string>
     <string name="explorer_network_form_error_port">Введите порт от 1 до 65535</string>
-    <string name="explorer_network_form_error_share_blank">Введите имя общего ресурса</string>
     <string name="explorer_network_form_error_share_not_single">Введите только имя общего ресурса, подпапки укажите ниже</string>
     <string name="explorer_network_form_error_share_malformed">Это не является допустимым именем общего ресурса</string>
     <string name="explorer_network_form_error_base_path">Этот путь к папке нельзя использовать</string>

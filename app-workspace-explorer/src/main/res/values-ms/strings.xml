@@ -304,7 +304,6 @@
     <string name="explorer_network_form_error_host_not_bare">Masukkan alamat pelayan sahaja, tanpa skema atau laluan</string>
     <string name="explorer_network_form_error_host_malformed">Ini bukan alamat pelayan yang sah</string>
     <string name="explorer_network_form_error_port">Masukkan port antara 1 dan 65535</string>
-    <string name="explorer_network_form_error_share_blank">Masukkan nama perkongsian</string>
     <string name="explorer_network_form_error_share_not_single">Masukkan nama perkongsian sahaja, letakkan subfolder di bawah</string>
     <string name="explorer_network_form_error_share_malformed">Ini bukan nama perkongsian yang sah</string>
     <string name="explorer_network_form_error_base_path">Laluan folder ini tidak boleh digunakan</string>

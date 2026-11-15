@@ -355,7 +355,6 @@
     <string name="explorer_network_form_error_host_not_bare">Εισαγάγετε μόνο τη διεύθυνση του διακομιστή, χωρίς σχήμα ή διαδρομή</string>
     <string name="explorer_network_form_error_host_malformed">Αυτή δεν είναι έγκυρη διεύθυνση διακομιστή</string>
     <string name="explorer_network_form_error_port">Εισαγάγετε μια θύρα μεταξύ 1 και 65535</string>
-    <string name="explorer_network_form_error_share_blank">Εισαγάγετε όνομα κοινόχρηστου φακέλου</string>
     <string name="explorer_network_form_error_share_not_single">Εισαγάγετε μόνο το όνομα του κοινόχρηστου φακέλου, οι υποφάκελοι μπαίνουν παρακάτω</string>
     <string name="explorer_network_form_error_share_malformed">Αυτό δεν είναι έγκυρο όνομα κοινόχρηστου φακέλου</string>
     <string name="explorer_network_form_error_base_path">Αυτή η διαδρομή φακέλου δεν μπορεί να χρησιμοποιηθεί</string>

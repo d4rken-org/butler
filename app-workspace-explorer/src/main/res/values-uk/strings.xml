@@ -379,7 +379,6 @@
     <string name="explorer_network_form_error_host_not_bare">Введіть лише адресу сервера, без схеми чи шляху</string>
     <string name="explorer_network_form_error_host_malformed">Це недійсна адреса сервера</string>
     <string name="explorer_network_form_error_port">Введіть порт від 1 до 65535</string>
-    <string name="explorer_network_form_error_share_blank">Введіть назву спільного ресурсу</string>
     <string name="explorer_network_form_error_share_not_single">Введіть лише назву спільного ресурсу, підтеки вкажіть нижче</string>
     <string name="explorer_network_form_error_share_malformed">Це недійсна назва спільного ресурсу</string>
     <string name="explorer_network_form_error_base_path">Цей шлях до теки не можна використати</string>
