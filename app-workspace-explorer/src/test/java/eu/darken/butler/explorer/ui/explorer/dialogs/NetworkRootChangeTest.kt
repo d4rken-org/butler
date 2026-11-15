@@ -75,11 +75,18 @@ class NetworkRootChangeTest : BaseTest() {
     }
 
     @Test
-    fun `sftp base path changes count, surrounding spaces do not`() {
+    fun `sftp base path changes count, including surrounding spaces`() {
         sftp.startsElsewhere(basePath = "/srv") shouldBe false
-        sftp.startsElsewhere(basePath = " /srv ") shouldBe false
+        sftp.startsElsewhere(basePath = " /srv") shouldBe true
+        sftp.startsElsewhere(basePath = "/srv ") shouldBe true
         sftp.startsElsewhere(basePath = "/srv/builds") shouldBe true
         sftp.startsElsewhere(basePath = "") shouldBe true
+    }
+
+    @Test
+    fun `sftp a stored base path with spaces typed the same is no change`() {
+        val spaced = sftp.copy(basePath = " /srv/my data ")
+        spaced.startsElsewhere(basePath = " /srv/my data ") shouldBe false
     }
 
     @Test
