@@ -37,6 +37,7 @@
     <string name="editor_dialog_save_as_overwrite_action">Felülírás</string>
     <string name="editor_backup_banner_message">Egy megszakadt mentés biztonsági másolata került elő:\n%1$s</string>
     <string name="editor_binary_banner_message">A szövegként való szerkesztés nem támogatott</string>
+    <string name="editor_undecodable_banner_message">Ez a fájl olyan bájtokat tartalmaz, amelyek nem érvényes GB18030-adatok. A szerkesztéshez válassz másik kódolást.</string>
     <string name="editor_long_lines_banner_title">Nagyon hosszú sorok</string>
     <string name="editor_long_lines_banner_message">A nagyon hosszú sorok rövidítve jelennek meg; a teljes tartalom megmarad, és mentésre kerül.</string>
     <string name="editor_line_truncated_marker">⋯ +%1$d</string>
@@ -122,6 +123,14 @@
     <string name="editor_line_ending_dialog_message">Minden sortörés átalakítása és a fájl mentése, beleértve a nem mentett módosításokat is. A visszavonási előzmények törlődnek.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Átalakítás…</string>
+    <string name="editor_convert_encoding_dialog_title">Kódolás átalakítása</string>
+    <string name="editor_convert_encoding_dialog_message">A teljes fájl újrakódolása és mentése, beleértve a nem mentett módosításokat is. A visszavonási előzmények törlődnek.</string>
+    <string name="editor_error_unmappable_characters">Néhány karakter nem írható %1$s kódolással.</string>
+    <string name="editor_reopen_banner_title">A fájl nem nyílt meg újra</string>
+    <string name="editor_reopen_banner_message">A fájl átalakítva erre: %1$s. A szerkesztés folytatásához nyisd meg újra.</string>
+    <string name="editor_reopen_action">Újranyitás</string>
+    <string name="editor_error_undecodable_bytes">Ez a fájl olyan bájtokat tartalmaz, amelyek nem olvashatók %1$s kódolással. Előbb válaszd ki a megfelelő kódolást.</string>
     <string name="editor_file_untitled">Névtelen</string>
     <string name="editor_settings_autosave_category">Automatikus mentés</string>
     <string name="editor_settings_autosave_enabled_title">Automatikus mentés engedélyezése</string>

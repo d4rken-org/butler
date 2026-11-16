@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">L’édition en tant que texte n’est pas prise en charge</string>
+    <string name="editor_undecodable_banner_message">Ce fichier contient des octets qui ne sont pas du GB18030 valide. Choisis un autre encodage pour le modifier.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Lignes très longues</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">Convertissez tous les sauts de ligne et enregistrez le fichier, y compris les modifications non enregistrées. L’historique d’annulation est effacé.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Convertir…</string>
+    <string name="editor_convert_encoding_dialog_title">Convertir l’encodage</string>
+    <string name="editor_convert_encoding_dialog_message">Réencode tout le fichier et l’enregistre, y compris les modifications non enregistrées. L’historique d’annulation est effacé.</string>
+    <string name="editor_error_unmappable_characters">Certains caractères ne peuvent pas être écrits en %1$s.</string>
+    <string name="editor_reopen_banner_title">Fichier non rouvert</string>
+    <string name="editor_reopen_banner_message">Le fichier a été converti en %1$s. Rouvre-le pour continuer à le modifier.</string>
+    <string name="editor_reopen_action">Rouvrir</string>
+    <string name="editor_error_undecodable_bytes">Ce fichier contient des octets qui ne peuvent pas être lus en %1$s. Choisis d’abord le bon encodage.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Sans titre</string>

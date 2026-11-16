@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">التحرير كنص غير مدعوم</string>
+    <string name="editor_undecodable_banner_message">يحتوي هذا الملف على بايتات غير صالحة بترميز GB18030. اختر ترميزًا آخر لتحريره.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">أسطر طويلة جدًا</string>
@@ -163,6 +164,14 @@
     <string name="editor_line_ending_dialog_message">تحويل جميع فواصل الأسطر وحفظ الملف، بما في ذلك التغييرات غير المحفوظة. سيتم حذف سجل التراجع.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">تحويل…</string>
+    <string name="editor_convert_encoding_dialog_title">تحويل الترميز</string>
+    <string name="editor_convert_encoding_dialog_message">يعيد ترميز الملف بالكامل ويحفظه، بما في ذلك التغييرات غير المحفوظة. سيتم حذف سجل التراجع.</string>
+    <string name="editor_error_unmappable_characters">لا يمكن كتابة بعض الأحرف بترميز %1$s.</string>
+    <string name="editor_reopen_banner_title">لم تتم إعادة فتح الملف</string>
+    <string name="editor_reopen_banner_message">تم تحويل الملف إلى %1$s. أعد فتحه لمواصلة التحرير.</string>
+    <string name="editor_reopen_action">إعادة فتح</string>
+    <string name="editor_error_undecodable_bytes">يحتوي هذا الملف على بايتات لا يمكن قراءتها بترميز %1$s. اختر الترميز الصحيح أولًا.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">بدون عنوان</string>

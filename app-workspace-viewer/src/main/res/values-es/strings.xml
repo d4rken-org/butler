@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">La vista previa se limita a las primeras %1$s líneas de este archivo.</string>
     <string name="viewer_text_truncated_width">Las líneas largas se acortan en esta vista previa.</string>
     <string name="viewer_text_unreadable_label">Este archivo no se pudo leer</string>
+    <string name="viewer_text_encoding_action">Codificación</string>
+    <string name="viewer_text_encoding_title">Codificación</string>
+    <string name="viewer_text_encoding_automatic">Automática</string>
+    <string name="viewer_text_encoding_automatic_detected">Automática (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Elegir codificación</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Tras eliminar un archivo abierto desde una carpeta, muestra el siguiente archivo de esa carpeta en lugar de cerrar el visor.</string>
     <string name="viewer_settings_show_next_after_delete_title">Mostrar el siguiente archivo tras eliminar</string>
     <string name="viewer_settings_swipe_between_files_title">Deslizar entre archivos</string>

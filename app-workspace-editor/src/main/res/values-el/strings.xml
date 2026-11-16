@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Η επεξεργασία ως κείμενο δεν υποστηρίζεται</string>
+    <string name="editor_undecodable_banner_message">Αυτό το αρχείο περιέχει bytes που δεν είναι έγκυρα GB18030. Διάλεξε άλλη κωδικοποίηση για να το επεξεργαστείς.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Πολύ μεγάλες γραμμές</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">Μετατροπή όλων των τελών γραμμής και αποθήκευση του αρχείου, συμπεριλαμβανομένων των μη αποθηκευμένων αλλαγών. Το ιστορικό αναίρεσης διαγράφεται.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Μετατροπή…</string>
+    <string name="editor_convert_encoding_dialog_title">Μετατροπή κωδικοποίησης</string>
+    <string name="editor_convert_encoding_dialog_message">Κωδικοποιεί ξανά ολόκληρο το αρχείο και το αποθηκεύει, συμπεριλαμβανομένων των μη αποθηκευμένων αλλαγών. Το ιστορικό αναίρεσης διαγράφεται.</string>
+    <string name="editor_error_unmappable_characters">Ορισμένοι χαρακτήρες δεν μπορούν να γραφτούν ως %1$s.</string>
+    <string name="editor_reopen_banner_title">Το αρχείο δεν άνοιξε ξανά</string>
+    <string name="editor_reopen_banner_message">Το αρχείο μετατράπηκε σε %1$s. Άνοιξέ το ξανά για να συνεχίσεις την επεξεργασία.</string>
+    <string name="editor_reopen_action">Επανάνοιγμα</string>
+    <string name="editor_error_undecodable_bytes">Αυτό το αρχείο περιέχει bytes που δεν μπορούν να διαβαστούν ως %1$s. Διάλεξε πρώτα τη σωστή κωδικοποίηση.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Χωρίς τίτλο</string>

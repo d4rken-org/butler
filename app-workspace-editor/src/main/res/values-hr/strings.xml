@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Uređivanje kao teksta nije podržano</string>
+    <string name="editor_undecodable_banner_message">Ova datoteka sadrži bajtove koji nisu valjani GB18030. Odaberi drugo kodiranje za uređivanje.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Vrlo dugi redci</string>
@@ -151,6 +152,14 @@
     <string name="editor_line_ending_dialog_message">Pretvori sve prijelome redaka i spremi datoteku, uključujući nespremljene promjene. Povijest poništavanja briše se.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Pretvori…</string>
+    <string name="editor_convert_encoding_dialog_title">Pretvori kodiranje</string>
+    <string name="editor_convert_encoding_dialog_message">Cijela se datoteka ponovno kodira i sprema, uključujući nespremljene promjene. Povijest poništavanja briše se.</string>
+    <string name="editor_error_unmappable_characters">Neki se znakovi ne mogu zapisati kao %1$s.</string>
+    <string name="editor_reopen_banner_title">Datoteka nije ponovno otvorena</string>
+    <string name="editor_reopen_banner_message">Datoteka je pretvorena u %1$s. Ponovno je otvori za nastavak uređivanja.</string>
+    <string name="editor_reopen_action">Ponovno otvori</string>
+    <string name="editor_error_undecodable_bytes">Ova datoteka sadrži bajtove koji se ne mogu pročitati kao %1$s. Najprije odaberi ispravno kodiranje.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Bez naslova</string>

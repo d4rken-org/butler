@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">テキストとしての編集はサポートされていません</string>
+    <string name="editor_undecodable_banner_message">このファイルには、GB18030として無効なバイトが含まれています。編集するには別のエンコーディングを選択してください。</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">非常に長い行</string>
@@ -143,6 +144,14 @@
     <string name="editor_line_ending_dialog_message">すべての行末を変換してファイルを保存します (未保存の変更を含む)。元に戻す履歴がクリアされます。</string>
     <string name="editor_line_ending_lf_label">LF — Unix、Android、macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">変換…</string>
+    <string name="editor_convert_encoding_dialog_title">エンコーディングを変換</string>
+    <string name="editor_convert_encoding_dialog_message">ファイル全体を再エンコードして保存します (未保存の変更を含む)。元に戻す履歴がクリアされます。</string>
+    <string name="editor_error_unmappable_characters">一部の文字は%1$sとして書き込めません。</string>
+    <string name="editor_reopen_banner_title">ファイルを再度開けませんでした</string>
+    <string name="editor_reopen_banner_message">ファイルを%1$sに変換しました。編集を続けるには再度開いてください。</string>
+    <string name="editor_reopen_action">再度開く</string>
+    <string name="editor_error_undecodable_bytes">このファイルには、%1$sとして読み取れないバイトが含まれています。先に正しいエンコーディングを選択してください。</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">無題</string>

@@ -37,6 +37,7 @@
     <string name="editor_dialog_save_as_overwrite_action">דריסה</string>
     <string name="editor_backup_banner_message">נמצא גיבוי משמירה שהופרעה:\n%1$s</string>
     <string name="editor_binary_banner_message">עריכה כטקסט אינה נתמכת</string>
+    <string name="editor_undecodable_banner_message">הקובץ הזה מכיל בתים שאינם GB18030 תקין. יש לבחור קידוד אחר כדי לערוך אותו.</string>
     <string name="editor_long_lines_banner_title">שורות ארוכות מאוד</string>
     <string name="editor_long_lines_banner_message">שורות ארוכות מאוד מקוצרות לצורך התצוגה; התוכן המלא נשמר.</string>
     <string name="editor_line_truncated_marker">⋯ +%1$d</string>
@@ -130,6 +131,14 @@
     <string name="editor_line_ending_dialog_message">המרת כל מעברי השורה ושמירת הקובץ, כולל שינויים שלא נשמרו. היסטוריית ביטול הפעולות מנוקה.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">המרה…</string>
+    <string name="editor_convert_encoding_dialog_title">המרת קידוד</string>
+    <string name="editor_convert_encoding_dialog_message">קידוד מחדש של כל הקובץ ושמירתו, כולל שינויים שלא נשמרו. היסטוריית ביטול הפעולות מנוקה.</string>
+    <string name="editor_error_unmappable_characters">אי אפשר לכתוב חלק מהתווים בקידוד %1$s.</string>
+    <string name="editor_reopen_banner_title">הקובץ לא נפתח מחדש</string>
+    <string name="editor_reopen_banner_message">הקובץ הומר ל־%1$s. יש לפתוח אותו מחדש כדי להמשיך לערוך.</string>
+    <string name="editor_reopen_action">פתיחה מחדש</string>
+    <string name="editor_error_undecodable_bytes">הקובץ הזה מכיל בתים שאי אפשר לקרוא כ־%1$s. תחילה יש לבחור את הקידוד הנכון.</string>
     <string name="editor_file_untitled">ללא כותרת</string>
     <string name="editor_settings_autosave_category">שמירה אוטומטית</string>
     <string name="editor_settings_autosave_enabled_title">הפעלת שמירה אוטומטית</string>

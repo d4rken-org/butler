@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Úprava jako text není podporována</string>
+    <string name="editor_undecodable_banner_message">Tento soubor obsahuje bajty, které nejsou platné v GB18030. Pro úpravy vyber jiné kódování.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Velmi dlouhé řádky</string>
@@ -155,6 +156,14 @@
     <string name="editor_line_ending_dialog_message">Převeďte všechny konce řádků a uložte soubor, včetně neuložených změn. Historie vrácení zpět bude vymazána.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Převést…</string>
+    <string name="editor_convert_encoding_dialog_title">Převést kódování</string>
+    <string name="editor_convert_encoding_dialog_message">Celý soubor se překóduje a uloží, včetně neuložených změn. Historie vrácení zpět bude vymazána.</string>
+    <string name="editor_error_unmappable_characters">Některé znaky nelze zapsat jako %1$s.</string>
+    <string name="editor_reopen_banner_title">Soubor nebyl znovu otevřen</string>
+    <string name="editor_reopen_banner_message">Soubor byl převeden na %1$s. Pro další úpravy jej otevři znovu.</string>
+    <string name="editor_reopen_action">Otevřít znovu</string>
+    <string name="editor_error_undecodable_bytes">Tento soubor obsahuje bajty, které nelze přečíst jako %1$s. Nejdřív vyber správné kódování.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Bez názvu</string>

@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Hledání v obsahu</string>
     <string name="searcher_settings_include_binaries_title">Zahrnout binární soubory</string>
     <string name="searcher_settings_include_binaries_subtitle">Hledat v obsahu binárních souborů (může být pomalé a dát irelevantní výsledky)</string>
+    <string name="searcher_settings_open_on_tap_title">Otevírat soubory klepnutím</string>
+    <string name="searcher_settings_open_on_tap_desc">Klepnutím na soubor ve výsledcích jej otevřeš. Další akce souboru najdeš pod tlačítkem ⋮.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Poslední hledání</string>
@@ -210,6 +212,9 @@
     <string name="searcher_action_deselect_all">Zrušit výběr</string>
     <string name="searcher_action_sort">Seřadit</string>
     <string name="searcher_action_view">Rozložení</string>
+    <string name="searcher_operation_rename_title">Operace přejmenování</string>
+    <string name="searcher_operation_rename_description">Přejmenovat „%1$s\“ na „%2$s\“.</string>
+    <string name="searcher_operation_report_renamed">Přejmenováno na „%1$s\“.</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Seřadit podle</string>

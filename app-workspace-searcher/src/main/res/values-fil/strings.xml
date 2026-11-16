@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Paghahanap sa nilalaman</string>
     <string name="searcher_settings_include_binaries_title">Isama ang mga binary file</string>
     <string name="searcher_settings_include_binaries_subtitle">Hanapin sa nilalaman ng mga binary file (maaaring mabagal at magbigay ng mga resultang hindi nauugnay)</string>
+    <string name="searcher_settings_open_on_tap_title">Buksan ang mga file sa pag-tap</string>
+    <string name="searcher_settings_open_on_tap_desc">I-tap ang file sa mga resulta para buksan ito. Gamitin ang button na ⋮ sa isang file para sa iba pang pagkilos nito.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Mga kamakailang paghahanap</string>
@@ -192,6 +194,9 @@
     <string name="searcher_action_deselect_all">Alisin ang lahat ng pagpili</string>
     <string name="searcher_action_sort">Pagbukud-bukurin</string>
     <string name="searcher_action_view">Layout</string>
+    <string name="searcher_operation_rename_title">Pagpapalit ng pangalan ng file</string>
+    <string name="searcher_operation_rename_description">Palitan ang pangalan ng \"%1$s\" sa \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Pinalitan ang pangalan sa \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Pagbukud-bukurin ayon sa</string>

@@ -19,6 +19,8 @@
     <string name="searcher_settings_content_search_category">Tartalomkeresés</string>
     <string name="searcher_settings_include_binaries_title">Bináris fájlok bevonása</string>
     <string name="searcher_settings_include_binaries_subtitle">Keresés a bináris fájlok tartalmában (lassú lehet, és irreleváns találatokat adhat)</string>
+    <string name="searcher_settings_open_on_tap_title">Fájlok megnyitása koppintásra</string>
+    <string name="searcher_settings_open_on_tap_desc">Koppints egy fájlra a találatok között a megnyitásához. A többi művelethez használd a fájlnál lévő ⋮ gombot.</string>
     <string name="searcher_recent_searches">Legutóbbi keresések</string>
     <string name="searcher_placeholder_search">Fájlok és mappák keresése</string>
     <string name="searcher_placeholder_filename">Fájlnév</string>
@@ -161,6 +163,9 @@
     <string name="searcher_action_deselect_all">Összes kijelölés megszüntetése</string>
     <string name="searcher_action_sort">Rendezés</string>
     <string name="searcher_action_view">Elrendezés</string>
+    <string name="searcher_operation_rename_title">Átnevezési művelet</string>
+    <string name="searcher_operation_rename_description">A(z) \"%1$s\" átnevezése erre: \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Átnevezve erre: \"%1$s\".</string>
     <string name="searcher_sort_mode_label">Rendezés alapja</string>
     <string name="searcher_sort_mode_name_label">Név</string>
     <string name="searcher_sort_mode_size_label">Méret</string>

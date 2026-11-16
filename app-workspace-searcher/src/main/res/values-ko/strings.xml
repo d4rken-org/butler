@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">콘텐츠 검색</string>
     <string name="searcher_settings_include_binaries_title">바이너리 파일 포함</string>
     <string name="searcher_settings_include_binaries_subtitle">바이너리 파일의 콘텐츠를 검색합니다 (느릴 수 있고 무관한 결과가 나올 수 있습니다)</string>
+    <string name="searcher_settings_open_on_tap_title">탭하여 파일 열기</string>
+    <string name="searcher_settings_open_on_tap_desc">결과에서 파일을 탭하면 바로 열립니다. 다른 작업은 파일의 ⋮ 버튼을 사용하세요.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">최근 검색</string>
@@ -183,6 +185,9 @@
     <string name="searcher_action_deselect_all">선택 해제</string>
     <string name="searcher_action_sort">정렬</string>
     <string name="searcher_action_view">레이아웃</string>
+    <string name="searcher_operation_rename_title">이름 변경 작업</string>
+    <string name="searcher_operation_rename_description">\"%1$s\"의 이름을 \"%2$s\"(으)로 변경합니다.</string>
+    <string name="searcher_operation_report_renamed">\"%1$s\"(으)로 이름이 변경되었습니다.</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">정렬 기준</string>

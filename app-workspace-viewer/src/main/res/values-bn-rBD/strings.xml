@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">প্রিভিউ এই ফাইলের প্রথম %1$sটি লাইন পর্যন্ত সীমিত।</string>
     <string name="viewer_text_truncated_width">এই প্রিভিউতে দীর্ঘ লাইন ছোট করা হয়েছে।</string>
     <string name="viewer_text_unreadable_label">এই ফাইল পড়া যায়নি</string>
+    <string name="viewer_text_encoding_action">এনকোডিং</string>
+    <string name="viewer_text_encoding_title">এনকোডিং</string>
+    <string name="viewer_text_encoding_automatic">স্বয়ংক্রিয়</string>
+    <string name="viewer_text_encoding_automatic_detected">স্বয়ংক্রিয় (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">এনকোডিং বেছে নিন</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">ভিউয়ার</string>

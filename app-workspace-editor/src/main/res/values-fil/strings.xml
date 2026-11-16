@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Hindi sinusuportahan ang pag-edit bilang teksto</string>
+    <string name="editor_undecodable_banner_message">May mga byte ang file na ito na hindi wastong GB18030. Pumili ng ibang encoding para ma-edit ito.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Napakahahabang linya</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">I-convert ang lahat ng line break at i-save ang file, kasama ang mga pagbabagong hindi na-save. Buburahin ang kasaysayan ng pag-undo.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">I-convert…</string>
+    <string name="editor_convert_encoding_dialog_title">I-convert ang encoding</string>
+    <string name="editor_convert_encoding_dialog_message">Ie-encode muli ang buong file at isi-save ito, kasama ang mga pagbabagong hindi na-save. Buburahin ang kasaysayan ng pag-undo.</string>
+    <string name="editor_error_unmappable_characters">Hindi maisusulat bilang %1$s ang ilang character.</string>
+    <string name="editor_reopen_banner_title">Hindi nabuksan muli ang file</string>
+    <string name="editor_reopen_banner_message">Na-convert ang file sa %1$s. Buksan itong muli para magpatuloy sa pag-edit.</string>
+    <string name="editor_reopen_action">Buksan muli</string>
+    <string name="editor_error_undecodable_bytes">May mga byte ang file na ito na hindi mababasa bilang %1$s. Piliin muna ang tamang encoding.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Walang pamagat</string>

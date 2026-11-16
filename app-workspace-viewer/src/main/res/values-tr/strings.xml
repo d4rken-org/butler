@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">Önizleme bu dosyanın ilk %1$s satırıyla sınırlıdır.</string>
     <string name="viewer_text_truncated_width">Uzun satırlar bu önizlemede kısaltılmıştır.</string>
     <string name="viewer_text_unreadable_label">Bu dosya okunamadı</string>
+    <string name="viewer_text_encoding_action">Kodlama</string>
+    <string name="viewer_text_encoding_title">Kodlama</string>
+    <string name="viewer_text_encoding_automatic">Otomatik</string>
+    <string name="viewer_text_encoding_automatic_detected">Otomatik (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Kodlama seç</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Bir klasörden açılan dosya silindikten sonra görüntüleyiciyi kapatmak yerine o klasördeki sonraki dosyayı göster.</string>
     <string name="viewer_settings_show_next_after_delete_title">Silindikten sonra sonraki dosyayı göster</string>
     <string name="viewer_settings_swipe_between_files_title">Dosyalar arasında kaydır</string>

@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Metin olarak düzenleme desteklenmiyor</string>
+    <string name="editor_undecodable_banner_message">Bu dosya geçerli GB18030 olmayan baytlar içeriyor. Düzenlemek için başka bir kodlama seç.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Çok uzun satırlar</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">Tüm satır sonlarını dönüştürün ve dosyayı kaydedin, kaydedilmemiş değişiklikleri de dahil. Geri al geçmişi temizlenir.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Dönüştür…</string>
+    <string name="editor_convert_encoding_dialog_title">Kodlamayı dönüştür</string>
+    <string name="editor_convert_encoding_dialog_message">Tüm dosyayı yeniden kodlar ve kaydeder, kaydedilmemiş değişiklikler de dahil. Geri al geçmişi temizlenir.</string>
+    <string name="editor_error_unmappable_characters">Bazı karakterler %1$s olarak yazılamıyor.</string>
+    <string name="editor_reopen_banner_title">Dosya yeniden açılmadı</string>
+    <string name="editor_reopen_banner_message">Dosya %1$s kodlamasına dönüştürüldü. Düzenlemeye devam etmek için yeniden aç.</string>
+    <string name="editor_reopen_action">Yeniden aç</string>
+    <string name="editor_error_undecodable_bytes">Bu dosya %1$s olarak okunamayan baytlar içeriyor. Önce doğru kodlamayı seç.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Başlıksız</string>

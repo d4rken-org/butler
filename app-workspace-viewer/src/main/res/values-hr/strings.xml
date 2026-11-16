@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">Broj prikazanih početnih redaka ove datoteke ograničen je na %1$s.</string>
     <string name="viewer_text_truncated_width">Dugi retci skraćeni su u ovom pretpregledu.</string>
     <string name="viewer_text_unreadable_label">Ovu datoteku nije bilo moguće pročitati</string>
+    <string name="viewer_text_encoding_action">Kodiranje</string>
+    <string name="viewer_text_encoding_title">Kodiranje</string>
+    <string name="viewer_text_encoding_automatic">Automatski</string>
+    <string name="viewer_text_encoding_automatic_detected">Automatski (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Odaberi kodiranje</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">Prikazivač</string>

@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">కంటెంట్ శోధన</string>
     <string name="searcher_settings_include_binaries_title">బైనరీ ఫైళ్లను చేర్చండి</string>
     <string name="searcher_settings_include_binaries_subtitle">బైనరీ ఫైళ్ల కంటెంట్‌లో వెతకండి (నెమ్మదిగా ఉండవచ్చు, సంబంధం లేని ఫలితాలు రావచ్చు)</string>
+    <string name="searcher_settings_open_on_tap_title">నొక్కగానే ఫైళ్లను తెరవండి</string>
+    <string name="searcher_settings_open_on_tap_desc">ఫలితాల్లోని ఫైల్‌ను తెరవడానికి దాన్ని నొక్కండి. ఫైల్ ఇతర చర్యల కోసం దానిపై ఉన్న ⋮ బటన్‌ను ఉపయోగించండి.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">ఇటీవలి శోధనలు</string>
@@ -192,6 +194,9 @@
     <string name="searcher_action_deselect_all">అన్నింటి ఎంపికను తీసివేయండి</string>
     <string name="searcher_action_sort">క్రమబద్ధీకరించండి</string>
     <string name="searcher_action_view">లేఅవుట్</string>
+    <string name="searcher_operation_rename_title">పేరు మార్పు చర్య</string>
+    <string name="searcher_operation_rename_description">\"%1$s\" పేరును \"%2$s\"గా మార్చండి.</string>
+    <string name="searcher_operation_report_renamed">పేరు \"%1$s\"గా మార్చబడింది.</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">దీని ఆధారంగా క్రమబద్ధీకరించండి</string>

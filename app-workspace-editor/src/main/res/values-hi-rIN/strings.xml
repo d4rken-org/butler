@@ -37,6 +37,7 @@
     <string name="editor_dialog_save_as_overwrite_action">ऊपर लिखें</string>
     <string name="editor_backup_banner_message">बाधित सहेजने की प्रक्रिया का बैकअप मिला:\n%1$s</string>
     <string name="editor_binary_banner_message">टेक्स्ट के रूप में संपादन समर्थित नहीं है</string>
+    <string name="editor_undecodable_banner_message">इस फ़ाइल में ऐसे बाइट हैं जो मान्य GB18030 नहीं हैं। इसे संपादित करने के लिए कोई दूसरी एन्कोडिंग चुनें।</string>
     <string name="editor_long_lines_banner_title">बहुत लंबी पंक्तियाँ</string>
     <string name="editor_long_lines_banner_message">बहुत लंबी पंक्तियाँ दिखाने के लिए छोटी की जाती हैं; पूरी सामग्री सुरक्षित रहती है और सहेजी जाती है।</string>
     <string name="editor_line_truncated_marker">⋯ +%1$d</string>
@@ -122,6 +123,14 @@
     <string name="editor_line_ending_dialog_message">सभी लाइन ब्रेक बदलें और बिना सहेजे बदलावों सहित फ़ाइल सहेजें। पूर्ववत का इतिहास साफ़ हो जाएगा।</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">रूपांतरित करें…</string>
+    <string name="editor_convert_encoding_dialog_title">एन्कोडिंग रूपांतरित करें</string>
+    <string name="editor_convert_encoding_dialog_message">पूरी फ़ाइल को फिर से एन्कोड करके सहेजता है, बिना सहेजे बदलावों सहित। पूर्ववत का इतिहास साफ़ हो जाएगा।</string>
+    <string name="editor_error_unmappable_characters">कुछ वर्ण %1$s के रूप में नहीं लिखे जा सकते।</string>
+    <string name="editor_reopen_banner_title">फ़ाइल फिर नहीं खुली</string>
+    <string name="editor_reopen_banner_message">फ़ाइल %1$s में रूपांतरित हो गई है। संपादन जारी रखने के लिए इसे फिर खोलें।</string>
+    <string name="editor_reopen_action">फिर खोलें</string>
+    <string name="editor_error_undecodable_bytes">इस फ़ाइल में ऐसे बाइट हैं जिन्हें %1$s के रूप में नहीं पढ़ा जा सकता। पहले सही एन्कोडिंग चुनें।</string>
     <string name="editor_file_untitled">बिना शीर्षक</string>
     <string name="editor_settings_autosave_category">अपने आप सहेजना</string>
     <string name="editor_settings_autosave_enabled_title">अपने आप सहेजना चालू करें</string>

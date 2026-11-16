@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">Voorbeeld beperkt tot de eerste %1$s regels van dit bestand.</string>
     <string name="viewer_text_truncated_width">Lange regels zijn in dit voorbeeld ingekort.</string>
     <string name="viewer_text_unreadable_label">Dit bestand kon niet worden gelezen</string>
+    <string name="viewer_text_encoding_action">Codering</string>
+    <string name="viewer_text_encoding_title">Codering</string>
+    <string name="viewer_text_encoding_automatic">Automatisch</string>
+    <string name="viewer_text_encoding_automatic_detected">Automatisch (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Codering kiezen</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">Weergever</string>

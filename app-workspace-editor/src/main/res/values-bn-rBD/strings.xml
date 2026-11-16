@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">টেক্সট হিসেবে সম্পাদনা সমর্থিত নয়</string>
+    <string name="editor_undecodable_banner_message">এই ফাইলে এমন বাইট আছে যা বৈধ GB18030 নয়। সম্পাদনা করতে অন্য একটি এনকোডিং বেছে নিন।</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">খুব দীর্ঘ লাইন</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">সব লাইন বিরতি রূপান্তর করে অসংরক্ষিত পরিবর্তনসহ ফাইল সংরক্ষণ করুন। পূর্বাবস্থায় ফেরানোর ইতিহাস মোছা হবে।</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">রূপান্তর করুন…</string>
+    <string name="editor_convert_encoding_dialog_title">এনকোডিং রূপান্তর</string>
+    <string name="editor_convert_encoding_dialog_message">পুরো ফাইল নতুন করে এনকোড করে অসংরক্ষিত পরিবর্তনসহ সংরক্ষণ করা হবে। পূর্বাবস্থায় ফেরানোর ইতিহাস মোছা হবে।</string>
+    <string name="editor_error_unmappable_characters">কিছু অক্ষর %1$s হিসেবে লেখা যায় না।</string>
+    <string name="editor_reopen_banner_title">ফাইল আবার খোলা হয়নি</string>
+    <string name="editor_reopen_banner_message">ফাইলটি %1$s-এ রূপান্তর করা হয়েছে। সম্পাদনা চালিয়ে যেতে আবার খুলুন।</string>
+    <string name="editor_reopen_action">আবার খুলুন</string>
+    <string name="editor_error_undecodable_bytes">এই ফাইলে এমন বাইট আছে যা %1$s হিসেবে পড়া যায় না। আগে সঠিক এনকোডিং বেছে নিন।</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">শিরোনামহীন</string>

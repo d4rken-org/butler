@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Innehållssökning</string>
     <string name="searcher_settings_include_binaries_title">Inkludera binära filer</string>
     <string name="searcher_settings_include_binaries_subtitle">Sök i innehållet i binära filer (kan vara långsamt och ge irrelevanta resultat)</string>
+    <string name="searcher_settings_open_on_tap_title">Öppna filer vid tryck</string>
+    <string name="searcher_settings_open_on_tap_desc">Tryck på en fil i resultaten för att öppna den. Använd knappen ⋮ på en fil för dess andra åtgärder.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Senaste sökningarna</string>
@@ -191,6 +193,9 @@
     <string name="searcher_action_deselect_all">Avmarkera alla</string>
     <string name="searcher_action_sort">Sortera</string>
     <string name="searcher_action_view">Layout</string>
+    <string name="searcher_operation_rename_title">Namnbyte</string>
+    <string name="searcher_operation_rename_description">Byt namn på \"%1$s\" till \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Namnet ändrades till \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Sortera efter</string>

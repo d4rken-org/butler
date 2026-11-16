@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Chỉnh sửa dưới dạng văn bản không được hỗ trợ</string>
+    <string name="editor_undecodable_banner_message">Tệp này chứa các byte không hợp lệ theo GB18030. Hãy chọn mã hóa khác để chỉnh sửa.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Dòng rất dài</string>
@@ -143,6 +144,14 @@
     <string name="editor_line_ending_dialog_message">Chuyển đổi tất cả các dòng ngắt và lưu tệp, bao gồm các thay đổi chưa lưu. Lịch sử hoàn tác được xóa.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Chuyển đổi…</string>
+    <string name="editor_convert_encoding_dialog_title">Chuyển đổi mã hóa</string>
+    <string name="editor_convert_encoding_dialog_message">Mã hóa lại toàn bộ tệp và lưu, bao gồm các thay đổi chưa lưu. Lịch sử hoàn tác được xóa.</string>
+    <string name="editor_error_unmappable_characters">Một số ký tự không thể được ghi dưới dạng %1$s.</string>
+    <string name="editor_reopen_banner_title">Tệp chưa được mở lại</string>
+    <string name="editor_reopen_banner_message">Tệp đã được chuyển đổi sang %1$s. Hãy mở lại để tiếp tục chỉnh sửa.</string>
+    <string name="editor_reopen_action">Mở lại</string>
+    <string name="editor_error_undecodable_bytes">Tệp này chứa các byte không thể đọc dưới dạng %1$s. Hãy chọn đúng mã hóa trước.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Chưa đặt tên</string>

@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">உரையாகத் திருத்துவது ஆதரிக்கப்படவில்லை</string>
+    <string name="editor_undecodable_banner_message">இந்தக் கோப்பில் GB18030 ஆகச் செல்லாத பைட்டுகள் உள்ளன. இதைத் திருத்த வேறொரு எழுத்துக் குறியாக்கத்தைத் தேர்ந்தெடுங்கள்.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">மிக நீண்ட வரிகள்</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">எல்லா வரி முறிவுகளையும் மாற்றி, சேமிக்கப்படாத மாற்றங்களையும் சேர்த்துக் கோப்பைச் சேமிக்கவும். செயல்தவிர்ப்பு வரலாறு அழிக்கப்படும்.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">மாற்று…</string>
+    <string name="editor_convert_encoding_dialog_title">எழுத்துக் குறியாக்கத்தை மாற்று</string>
+    <string name="editor_convert_encoding_dialog_message">முழுக் கோப்பையும் மீண்டும் குறியாக்கம் செய்து, சேமிக்கப்படாத மாற்றங்களையும் சேர்த்துச் சேமிக்கும். செயல்தவிர்ப்பு வரலாறு அழிக்கப்படும்.</string>
+    <string name="editor_error_unmappable_characters">சில எழுத்துகளை %1$s ஆக எழுத முடியாது.</string>
+    <string name="editor_reopen_banner_title">கோப்பு மீண்டும் திறக்கப்படவில்லை</string>
+    <string name="editor_reopen_banner_message">கோப்பு %1$s ஆக மாற்றப்பட்டது. தொடர்ந்து திருத்த அதை மீண்டும் திறவுங்கள்.</string>
+    <string name="editor_reopen_action">மீண்டும் திற</string>
+    <string name="editor_error_undecodable_bytes">இந்தக் கோப்பில் %1$s ஆக வாசிக்க முடியாத பைட்டுகள் உள்ளன. முதலில் சரியான எழுத்துக் குறியாக்கத்தைத் தேர்ந்தெடுங்கள்.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">தலைப்பிடப்படாதது</string>

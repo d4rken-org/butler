@@ -91,6 +91,11 @@
     <string name="viewer_text_truncated_lines">Pratonton terhad kepada %1$s baris pertama fail ini.</string>
     <string name="viewer_text_truncated_width">Baris panjang dipendekkan dalam pratonton ini.</string>
     <string name="viewer_text_unreadable_label">Fail ini tidak dapat dibaca</string>
+    <string name="viewer_text_encoding_action">Pengekodan</string>
+    <string name="viewer_text_encoding_title">Pengekodan</string>
+    <string name="viewer_text_encoding_automatic">Automatik</string>
+    <string name="viewer_text_encoding_automatic_detected">Automatik (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Pilih pengekodan</string>
     <string name="viewer_settings_title">Pemapar</string>
     <string name="viewer_settings_show_next_after_delete_title">Tunjukkan fail seterusnya selepas memadam</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Selepas memadam fail yang dibuka daripada folder, tunjukkan fail seterusnya dalam folder itu dan bukannya menutup pemapar.</string>

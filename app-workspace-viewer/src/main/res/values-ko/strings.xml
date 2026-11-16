@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">미리보기는 이 파일의 처음 %1$s 줄로 제한됩니다.</string>
     <string name="viewer_text_truncated_width">이 미리보기에서는 긴 줄이 단축됩니다.</string>
     <string name="viewer_text_unreadable_label">이 파일을 읽을 수 없습니다</string>
+    <string name="viewer_text_encoding_action">인코딩</string>
+    <string name="viewer_text_encoding_title">인코딩</string>
+    <string name="viewer_text_encoding_automatic">자동</string>
+    <string name="viewer_text_encoding_automatic_detected">자동 (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">인코딩 선택</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">뷰어</string>

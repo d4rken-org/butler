@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Pencarian Konten</string>
     <string name="searcher_settings_include_binaries_title">Sertakan berkas biner</string>
     <string name="searcher_settings_include_binaries_subtitle">Cari konten berkas biner (mungkin lambat dan menghasilkan hasil yang tidak relevan)</string>
+    <string name="searcher_settings_open_on_tap_title">Buka berkas dengan ketukan</string>
+    <string name="searcher_settings_open_on_tap_desc">Ketuk berkas di hasil untuk membukanya. Gunakan tombol ⋮ pada berkas untuk tindakan lainnya.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Pencarian terbaru</string>
@@ -182,6 +184,9 @@
     <string name="searcher_action_deselect_all">Batalkan pilihan semua</string>
     <string name="searcher_action_sort">Urutkan</string>
     <string name="searcher_action_view">Tata letak</string>
+    <string name="searcher_operation_rename_title">Operasi ganti nama</string>
+    <string name="searcher_operation_rename_description">Ganti nama \"%1$s\" menjadi \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Diganti namanya menjadi \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Urutkan berdasarkan</string>

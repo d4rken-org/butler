@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">Náhľad je obmedzený na prvých %1$s riadkov tohto súboru.</string>
     <string name="viewer_text_truncated_width">Dlhé riadky sú v tomto náhľade skrátené.</string>
     <string name="viewer_text_unreadable_label">Tento súbor sa nepodarilo prečítať</string>
+    <string name="viewer_text_encoding_action">Kódovanie</string>
+    <string name="viewer_text_encoding_title">Kódovanie</string>
+    <string name="viewer_text_encoding_automatic">Automaticky</string>
+    <string name="viewer_text_encoding_automatic_detected">Automaticky (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Vybrať kódovanie</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">Prehliadač</string>

@@ -91,6 +91,11 @@
     <string name="viewer_text_truncated_lines">Az előnézet a fájl első %1$s sorára korlátozódik.</string>
     <string name="viewer_text_truncated_width">A hosszú sorok rövidítve jelennek meg az előnézetben.</string>
     <string name="viewer_text_unreadable_label">Ez a fájl nem olvasható</string>
+    <string name="viewer_text_encoding_action">Kódolás</string>
+    <string name="viewer_text_encoding_title">Kódolás</string>
+    <string name="viewer_text_encoding_automatic">Automatikus</string>
+    <string name="viewer_text_encoding_automatic_detected">Automatikus (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Kódolás kiválasztása</string>
     <string name="viewer_settings_title">Megjelenítő</string>
     <string name="viewer_settings_show_next_after_delete_title">Következő fájl megjelenítése törlés után</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">Mappából megnyitott fájl törlése után a megjelenítő bezárása helyett a mappa következő fájlja jelenik meg.</string>

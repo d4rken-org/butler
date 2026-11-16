@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">L’anteprima è limitata alle prime %1$s righe di questo file.</string>
     <string name="viewer_text_truncated_width">Le linee lunghe sono abbreviate in questa anteprima.</string>
     <string name="viewer_text_unreadable_label">Questo file non poteva essere letto</string>
+    <string name="viewer_text_encoding_action">Codifica</string>
+    <string name="viewer_text_encoding_title">Codifica</string>
+    <string name="viewer_text_encoding_automatic">Automatica</string>
+    <string name="viewer_text_encoding_automatic_detected">Automatica (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Scegli codifica</string>
 
     <!-- Settings -->
     <string name="viewer_settings_show_next_after_delete_subtitle">Dopo aver eliminato un file aperto da una cartella, mostra il file successivo di quella cartella invece di chiudere il visualizzatore.</string>

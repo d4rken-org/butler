@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">Предпросмотр ограничен первыми %1$s строками этого файла.</string>
     <string name="viewer_text_truncated_width">Длинные строки сокращены в этом предпросмотре.</string>
     <string name="viewer_text_unreadable_label">Этот файл невозможно было прочитать</string>
+    <string name="viewer_text_encoding_action">Кодировка</string>
+    <string name="viewer_text_encoding_title">Кодировка</string>
+    <string name="viewer_text_encoding_automatic">Автоматически</string>
+    <string name="viewer_text_encoding_automatic_detected">Автоматически (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Выбрать кодировку</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">После удаления файла, открытого из папки, показывать следующий файл из этой папки вместо закрытия просмотра.</string>
     <string name="viewer_settings_show_next_after_delete_title">Показывать следующий файл после удаления</string>
     <string name="viewer_settings_swipe_between_files_title">Переключать файлы смахиванием</string>

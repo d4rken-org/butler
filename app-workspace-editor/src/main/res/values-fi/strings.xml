@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Muokkaamista tekstinä ei tueta</string>
+    <string name="editor_undecodable_banner_message">Tämä tiedosto sisältää tavuja, jotka eivät ole kelvollista GB18030-koodausta. Valitse toinen merkistökoodaus muokataksesi sitä.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Erittäin pitkiä rivejä</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">Muunna kaikki rivinvaihdot ja tallenna tiedosto, myös tallentamattomat muutokset. Kumoamishistoria tyhjennetään.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Muunna…</string>
+    <string name="editor_convert_encoding_dialog_title">Muunna merkistökoodaus</string>
+    <string name="editor_convert_encoding_dialog_message">Koodaa koko tiedoston uudelleen ja tallentaa sen, myös tallentamattomat muutokset. Kumoamishistoria tyhjennetään.</string>
+    <string name="editor_error_unmappable_characters">Joitakin merkkejä ei voi tallentaa koodauksella %1$s.</string>
+    <string name="editor_reopen_banner_title">Tiedostoa ei avattu uudelleen</string>
+    <string name="editor_reopen_banner_message">Tiedosto muunnettiin koodaukseen %1$s. Avaa se uudelleen jatkaaksesi muokkaamista.</string>
+    <string name="editor_reopen_action">Avaa uudelleen</string>
+    <string name="editor_error_undecodable_bytes">Tämä tiedosto sisältää tavuja, joita ei voi lukea koodauksella %1$s. Valitse ensin oikea merkistökoodaus.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Nimetön</string>

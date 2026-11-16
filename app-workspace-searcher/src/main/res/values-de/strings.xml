@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Inhaltssuche</string>
     <string name="searcher_settings_include_binaries_title">Binärdateien einbeziehen</string>
     <string name="searcher_settings_include_binaries_subtitle">Inhalte von Binärdateien durchsuchen (kann langsam sein und irrelevante Ergebnisse liefern)</string>
+    <string name="searcher_settings_open_on_tap_title">Dateien per Tippen öffnen</string>
+    <string name="searcher_settings_open_on_tap_desc">Tippe in den Ergebnissen auf eine Datei, um sie zu öffnen. Weitere Aktionen findest Du über die Schaltfläche ⋮ an der Datei.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Letzte Suchanfragen</string>
@@ -191,6 +193,9 @@
     <string name="searcher_action_deselect_all">Auswahl aufheben</string>
     <string name="searcher_action_sort">Sortieren</string>
     <string name="searcher_action_view">Layout</string>
+    <string name="searcher_operation_rename_title">Umbenennungsvorgang</string>
+    <string name="searcher_operation_rename_description">„%1$s“ in „%2$s“ umbenennen.</string>
+    <string name="searcher_operation_report_renamed">In „%1$s“ umbenannt.</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Sortieren nach</string>

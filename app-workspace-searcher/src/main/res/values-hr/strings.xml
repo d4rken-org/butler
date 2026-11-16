@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Pretraživanje sadržaja</string>
     <string name="searcher_settings_include_binaries_title">Uključi binarne datoteke</string>
     <string name="searcher_settings_include_binaries_subtitle">Pretraži sadržaj binarnih datoteka (može biti sporo i dati nevažne rezultate)</string>
+    <string name="searcher_settings_open_on_tap_title">Otvori datoteke dodirom</string>
+    <string name="searcher_settings_open_on_tap_desc">Dodirni datoteku u rezultatima da je otvoriš. Za ostale radnje s datotekom koristi gumb ⋮.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Nedavna pretraživanja</string>
@@ -200,6 +202,9 @@
     <string name="searcher_action_deselect_all">Poništi odabir svih stavki</string>
     <string name="searcher_action_sort">Razvrstaj</string>
     <string name="searcher_action_view">Raspored</string>
+    <string name="searcher_operation_rename_title">Preimenovanje datoteke</string>
+    <string name="searcher_operation_rename_description">Preimenuj \"%1$s\" u \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Preimenovano u \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Razvrstaj po</string>

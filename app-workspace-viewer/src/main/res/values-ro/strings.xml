@@ -91,6 +91,11 @@
     <string name="viewer_text_truncated_lines">Previzualizarea este limitată la primele %1$s linii ale acestui fișier.</string>
     <string name="viewer_text_truncated_width">Liniile lungi sunt scurtate în această previzualizare.</string>
     <string name="viewer_text_unreadable_label">Acest fișier nu a putut fi citit</string>
+    <string name="viewer_text_encoding_action">Codare</string>
+    <string name="viewer_text_encoding_title">Codare</string>
+    <string name="viewer_text_encoding_automatic">Automată</string>
+    <string name="viewer_text_encoding_automatic_detected">Automată (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Alege codarea</string>
     <string name="viewer_settings_title">Vizualizator</string>
     <string name="viewer_settings_show_next_after_delete_title">Arată fișierul următor după ștergere</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">După ștergerea unui fișier deschis dintr-un dosar, arată următorul fișier din acel dosar în loc să închizi vizualizatorul.</string>

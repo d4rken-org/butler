@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Tìm kiếm nội dung</string>
     <string name="searcher_settings_include_binaries_title">Bao gồm các tệp nhị phân</string>
     <string name="searcher_settings_include_binaries_subtitle">Tìm kiếm nội dung của các tệp nhị phân (có thể chậm và tạo ra các kết quả không phù hợp)</string>
+    <string name="searcher_settings_open_on_tap_title">Mở tệp khi chạm</string>
+    <string name="searcher_settings_open_on_tap_desc">Chạm vào một tệp trong kết quả để mở nó. Dùng nút ⋮ trên tệp để xem các thao tác khác.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Tìm kiếm gần đây</string>
@@ -183,6 +185,9 @@
     <string name="searcher_action_deselect_all">Bỏ chọn tất cả</string>
     <string name="searcher_action_sort">Sắp xếp</string>
     <string name="searcher_action_view">Bố cục</string>
+    <string name="searcher_operation_rename_title">Thao tác đổi tên</string>
+    <string name="searcher_operation_rename_description">Đổi tên \"%1$s\" thành \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Đã đổi tên thành \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Sắp xếp theo</string>

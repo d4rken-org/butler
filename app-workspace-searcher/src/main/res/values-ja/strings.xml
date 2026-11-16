@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">内容検索</string>
     <string name="searcher_settings_include_binaries_title">バイナリファイルを含める</string>
     <string name="searcher_settings_include_binaries_subtitle">バイナリファイルの内容を検索 (遅くなる可能性があり、無関係な結果が含まれることがあります)</string>
+    <string name="searcher_settings_open_on_tap_title">タップでファイルを開く</string>
+    <string name="searcher_settings_open_on_tap_desc">結果内のファイルをタップすると開きます。その他の操作は、ファイルの ⋮ ボタンから行えます。</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">最近の検索</string>
@@ -182,6 +184,9 @@
     <string name="searcher_action_deselect_all">選択を解除</string>
     <string name="searcher_action_sort">並べ替え</string>
     <string name="searcher_action_view">レイアウト</string>
+    <string name="searcher_operation_rename_title">名前変更操作</string>
+    <string name="searcher_operation_rename_description">\"%1$s\" を \"%2$s\" に名前変更します。</string>
+    <string name="searcher_operation_report_renamed">\"%1$s\" に名前を変更しました。</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">並べ替え方法</string>

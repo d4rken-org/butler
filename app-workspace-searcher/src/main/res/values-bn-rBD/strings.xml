@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">বিষয়বস্তু খোঁজ</string>
     <string name="searcher_settings_include_binaries_title">বাইনারি ফাইল অন্তর্ভুক্ত করুন</string>
     <string name="searcher_settings_include_binaries_subtitle">বাইনারি ফাইলের বিষয়বস্তু খুঁজুন (ধীর হতে পারে এবং অপ্রাসঙ্গিক ফলাফল দিতে পারে)</string>
+    <string name="searcher_settings_open_on_tap_title">ট্যাপ করলে ফাইল খুলুন</string>
+    <string name="searcher_settings_open_on_tap_desc">ফলাফলে কোনো ফাইলে ট্যাপ করলে সেটি খুলবে। ফাইলের অন্যান্য কাজের জন্য ⋮ বোতাম ব্যবহার করুন।</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">সাম্প্রতিক খোঁজ</string>
@@ -192,6 +194,9 @@
     <string name="searcher_action_deselect_all">সব অনির্বাচিত করুন</string>
     <string name="searcher_action_sort">সাজান</string>
     <string name="searcher_action_view">বিন্যাস</string>
+    <string name="searcher_operation_rename_title">নাম বদলের কাজ</string>
+    <string name="searcher_operation_rename_description">\"%1$s\"-এর নাম বদলে \"%2$s\" করুন।</string>
+    <string name="searcher_operation_report_renamed">নাম বদলে \"%1$s\" করা হয়েছে।</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">যেভাবে সাজাবেন</string>

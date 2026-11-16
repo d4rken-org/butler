@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">プレビューはこのファイルの最初の %1$s 行に制限されています。</string>
     <string name="viewer_text_truncated_width">このプレビューでは長い行は短縮されています。</string>
     <string name="viewer_text_unreadable_label">このファイルを読み取ることができませんでした</string>
+    <string name="viewer_text_encoding_action">エンコーディング</string>
+    <string name="viewer_text_encoding_title">エンコーディング</string>
+    <string name="viewer_text_encoding_automatic">自動</string>
+    <string name="viewer_text_encoding_automatic_detected">自動 (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">エンコーディングを選択</string>
 
     <!-- Viewer settings -->
     <string name="viewer_settings_title">ビューアー</string>
