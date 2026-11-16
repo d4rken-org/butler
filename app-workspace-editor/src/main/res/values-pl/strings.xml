@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Edytowanie jako tekst nie jest obsługiwane</string>
+    <string name="editor_undecodable_banner_message">Ten plik zawiera bajty, które nie są prawidłowym GB18030. Wybierz inne kodowanie, aby go edytować.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Bardzo długie linie</string>
@@ -155,6 +156,14 @@
     <string name="editor_line_ending_dialog_message">Konwertuj wszystkie podziały linii i zapisz plik, w tym niezapisane zmiany. Historia cofnięć zostanie wyczyszczona.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Konwertuj…</string>
+    <string name="editor_convert_encoding_dialog_title">Konwertuj kodowanie</string>
+    <string name="editor_convert_encoding_dialog_message">Zakoduj cały plik ponownie i zapisz go, w tym niezapisane zmiany. Historia cofnięć zostanie wyczyszczona.</string>
+    <string name="editor_error_unmappable_characters">Niektórych znaków nie można zapisać jako %1$s.</string>
+    <string name="editor_reopen_banner_title">Plik nie został otwarty ponownie</string>
+    <string name="editor_reopen_banner_message">Plik został przekonwertowany na %1$s. Otwórz go ponownie, aby kontynuować edycję.</string>
+    <string name="editor_reopen_action">Otwórz ponownie</string>
+    <string name="editor_error_undecodable_bytes">Ten plik zawiera bajty, których nie można odczytać jako %1$s. Najpierw wybierz właściwe kodowanie.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Bez tytułu</string>

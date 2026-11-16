@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">వచనంగా సవరించడానికి మద్దతు లేదు</string>
+    <string name="editor_undecodable_banner_message">ఈ ఫైల్‌లో చెల్లుబాటు కాని GB18030 బైట్‌లు ఉన్నాయి. సవరించడానికి మరో ఎన్‌కోడింగ్‌ను ఎంచుకోండి.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">చాలా పొడవైన పంక్తులు</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">అన్ని పంక్తి విరామాలను మార్చి, సేవ్ చేయని మార్పులతో సహా ఫైల్‌ను సేవ్ చేయండి. వెనక్కి తీసుకునే చర్యల చరిత్ర క్లియర్ అవుతుంది.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">మార్చండి…</string>
+    <string name="editor_convert_encoding_dialog_title">ఎన్‌కోడింగ్‌ను మార్చండి</string>
+    <string name="editor_convert_encoding_dialog_message">మొత్తం ఫైల్‌ను మళ్లీ ఎన్‌కోడ్ చేసి, సేవ్ చేయని మార్పులతో సహా సేవ్ చేస్తుంది. వెనక్కి తీసుకునే చర్యల చరిత్ర క్లియర్ అవుతుంది.</string>
+    <string name="editor_error_unmappable_characters">కొన్ని అక్షరాలను %1$sగా రాయలేము.</string>
+    <string name="editor_reopen_banner_title">ఫైల్ మళ్లీ తెరవబడలేదు</string>
+    <string name="editor_reopen_banner_message">ఫైల్ %1$sకు మార్చబడింది. సవరణ కొనసాగించడానికి దాన్ని మళ్లీ తెరవండి.</string>
+    <string name="editor_reopen_action">మళ్లీ తెరవండి</string>
+    <string name="editor_error_undecodable_bytes">ఈ ఫైల్‌లో %1$sగా చదవలేని బైట్‌లు ఉన్నాయి. ముందుగా సరైన ఎన్‌కోడింగ్‌ను ఎంచుకోండి.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">శీర్షిక లేదు</string>

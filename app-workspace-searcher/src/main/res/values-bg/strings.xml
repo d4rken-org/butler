@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Търсене в съдържанието</string>
     <string name="searcher_settings_include_binaries_title">Включи двоичните файлове</string>
     <string name="searcher_settings_include_binaries_subtitle">Търси в съдържанието на двоични файлове (може да е бавно и да дава неподходящи резултати)</string>
+    <string name="searcher_settings_open_on_tap_title">Отваряне на файлове с докосване</string>
+    <string name="searcher_settings_open_on_tap_desc">Докосни файл в резултатите, за да го отвориш. Използвай бутона ⋮ на файла за другите му действия.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Скорошни търсения</string>
@@ -191,6 +193,9 @@
     <string name="searcher_action_deselect_all">Премахни избора на всички</string>
     <string name="searcher_action_sort">Сортирай</string>
     <string name="searcher_action_view">Подредба</string>
+    <string name="searcher_operation_rename_title">Преименуване на файл</string>
+    <string name="searcher_operation_rename_description">Преименувай \"%1$s\" на \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Новото име е \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Сортирай по</string>

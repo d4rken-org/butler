@@ -37,6 +37,7 @@
     <string name="editor_dialog_save_as_overwrite_action">Tulis ganti</string>
     <string name="editor_backup_banner_message">Sandaran daripada simpanan yang terganggu ditemui:\n%1$s</string>
     <string name="editor_binary_banner_message">Mengedit sebagai teks tidak disokong</string>
+    <string name="editor_undecodable_banner_message">Fail ini mengandungi bait yang tidak sah dalam GB18030. Pilih pengekodan lain untuk mengeditnya.</string>
     <string name="editor_long_lines_banner_title">Baris sangat panjang</string>
     <string name="editor_long_lines_banner_message">Baris yang sangat panjang dipendekkan untuk paparan; kandungan penuh dikekalkan dan disimpan.</string>
     <string name="editor_line_truncated_marker">⋯ +%1$d</string>
@@ -118,6 +119,14 @@
     <string name="editor_line_ending_dialog_message">Tukar semua pemisah baris dan simpan fail, termasuk perubahan yang belum disimpan. Sejarah buat asal dikosongkan.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Tukar…</string>
+    <string name="editor_convert_encoding_dialog_title">Tukar pengekodan</string>
+    <string name="editor_convert_encoding_dialog_message">Mengekod semula seluruh fail dan menyimpannya, termasuk perubahan yang belum disimpan. Sejarah buat asal dikosongkan.</string>
+    <string name="editor_error_unmappable_characters">Sesetengah aksara tidak dapat ditulis sebagai %1$s.</string>
+    <string name="editor_reopen_banner_title">Fail tidak dibuka semula</string>
+    <string name="editor_reopen_banner_message">Fail telah ditukar kepada %1$s. Buka semula untuk terus mengedit.</string>
+    <string name="editor_reopen_action">Buka semula</string>
+    <string name="editor_error_undecodable_bytes">Fail ini mengandungi bait yang tidak dapat dibaca sebagai %1$s. Pilih pengekodan yang betul dahulu.</string>
     <string name="editor_file_untitled">Tanpa tajuk</string>
     <string name="editor_settings_autosave_category">Simpan automatik</string>
     <string name="editor_settings_autosave_enabled_title">Aktifkan simpan automatik</string>

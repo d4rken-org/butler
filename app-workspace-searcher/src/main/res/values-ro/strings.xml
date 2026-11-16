@@ -19,6 +19,8 @@
     <string name="searcher_settings_content_search_category">Căutare în conținut</string>
     <string name="searcher_settings_include_binaries_title">Include fișiere binare</string>
     <string name="searcher_settings_include_binaries_subtitle">Caută în conținutul fișierelor binare (poate fi lent și poate produce rezultate irelevante)</string>
+    <string name="searcher_settings_open_on_tap_title">Deschide fișierele la atingere</string>
+    <string name="searcher_settings_open_on_tap_desc">Atinge un fișier din rezultate pentru a-l deschide. Folosește butonul ⋮ al fișierului pentru celelalte acțiuni.</string>
     <string name="searcher_recent_searches">Căutări recente</string>
     <string name="searcher_placeholder_search">Caută fișiere și dosare</string>
     <string name="searcher_placeholder_filename">Nume de fișier</string>
@@ -170,6 +172,9 @@
     <string name="searcher_action_deselect_all">Deselectează tot</string>
     <string name="searcher_action_sort">Sortează</string>
     <string name="searcher_action_view">Aranjare</string>
+    <string name="searcher_operation_rename_title">Operație de redenumire</string>
+    <string name="searcher_operation_rename_description">Redenumește \"%1$s\" în \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Redenumit în \"%1$s\".</string>
     <string name="searcher_sort_mode_label">Sortează după</string>
     <string name="searcher_sort_mode_name_label">Nume</string>
     <string name="searcher_sort_mode_size_label">Dimensiune</string>

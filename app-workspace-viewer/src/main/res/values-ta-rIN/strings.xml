@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">முன்னோட்டம் இந்தக் கோப்பின் முதல் %1$s வரிகளுக்கு மட்டுமே காட்டப்படுகிறது.</string>
     <string name="viewer_text_truncated_width">இந்த முன்னோட்டத்தில் நீண்ட வரிகள் சுருக்கப்படுகின்றன.</string>
     <string name="viewer_text_unreadable_label">இந்தக் கோப்பை வாசிக்க முடியவில்லை</string>
+    <string name="viewer_text_encoding_action">குறியாக்கம்</string>
+    <string name="viewer_text_encoding_title">எழுத்துக் குறியாக்கம்</string>
+    <string name="viewer_text_encoding_automatic">தானியங்கி</string>
+    <string name="viewer_text_encoding_automatic_detected">தானியங்கி (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">குறியாக்கத்தைத் தேர்ந்தெடு</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">பார்வையாளர்</string>

@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Mengedit sebagai teks tidak didukung</string>
+    <string name="editor_undecodable_banner_message">File ini berisi byte yang bukan GB18030 yang valid. Pilih pengkodean lain untuk mengeditnya.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Baris sangat panjang</string>
@@ -143,6 +144,14 @@
     <string name="editor_line_ending_dialog_message">Konversi semua jeda baris dan simpan file, termasuk perubahan yang tidak disimpan. Riwayat urungkan dihapus.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Konversi…</string>
+    <string name="editor_convert_encoding_dialog_title">Konversi pengkodean</string>
+    <string name="editor_convert_encoding_dialog_message">Mengodekan ulang seluruh file dan menyimpannya, termasuk perubahan yang belum disimpan. Riwayat urungkan dihapus.</string>
+    <string name="editor_error_unmappable_characters">Beberapa karakter tidak dapat ditulis sebagai %1$s.</string>
+    <string name="editor_reopen_banner_title">File tidak dibuka kembali</string>
+    <string name="editor_reopen_banner_message">File telah dikonversi ke %1$s. Buka kembali untuk melanjutkan pengeditan.</string>
+    <string name="editor_reopen_action">Buka kembali</string>
+    <string name="editor_error_undecodable_bytes">File ini berisi byte yang tidak dapat dibaca sebagai %1$s. Pilih pengkodean yang tepat terlebih dahulu.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Tanpa judul</string>

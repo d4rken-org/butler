@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">جستجوی محتوا</string>
     <string name="searcher_settings_include_binaries_title">شامل فایل‌های باینری</string>
     <string name="searcher_settings_include_binaries_subtitle">جستجو در محتوای فایل‌های باینری (ممکن است کند باشد و نتایج نامرتبط تولید کند)</string>
+    <string name="searcher_settings_open_on_tap_title">باز کردن فایل با لمس</string>
+    <string name="searcher_settings_open_on_tap_desc">برای باز کردن فایل، آن را در نتایج لمس کنید. برای سایر اقدام‌های هر فایل از دکمه ⋮ استفاده کنید.</string>
 
     <!-- رابط کاربری جستجو -->
     <string name="searcher_recent_searches">جستجوهای اخیر</string>
@@ -192,6 +194,9 @@
     <string name="searcher_action_deselect_all">لغو انتخاب همه</string>
     <string name="searcher_action_sort">مرتب‌سازی</string>
     <string name="searcher_action_view">طرح‌بندی</string>
+    <string name="searcher_operation_rename_title">عملیات تغییر نام</string>
+    <string name="searcher_operation_rename_description">تغییر نام \"%1$s\" به \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">نام به \"%1$s\" تغییر کرد.</string>
 
     <!-- گزینه‌های مرتب‌سازی -->
     <string name="searcher_sort_mode_label">مرتب‌سازی بر اساس</string>

@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Edição como texto não é suportada</string>
+    <string name="editor_undecodable_banner_message">Este arquivo contém bytes que não são GB18030 válido. Escolha outra codificação para editá-lo.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Linhas muito longas</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">Converta todas as quebras de linha e salve o arquivo, incluindo alterações não salvas. O histórico de desfazer é apagado.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Converter…</string>
+    <string name="editor_convert_encoding_dialog_title">Converter codificação</string>
+    <string name="editor_convert_encoding_dialog_message">Recodifica o arquivo inteiro e o salva, incluindo alterações não salvas. O histórico de desfazer é apagado.</string>
+    <string name="editor_error_unmappable_characters">Alguns caracteres não podem ser gravados como %1$s.</string>
+    <string name="editor_reopen_banner_title">Arquivo não reaberto</string>
+    <string name="editor_reopen_banner_message">O arquivo foi convertido para %1$s. Reabra-o para continuar editando.</string>
+    <string name="editor_reopen_action">Reabrir</string>
+    <string name="editor_error_undecodable_bytes">Este arquivo contém bytes que não podem ser lidos como %1$s. Escolha primeiro a codificação correta.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Sem título</string>

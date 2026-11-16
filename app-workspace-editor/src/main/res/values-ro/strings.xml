@@ -37,6 +37,7 @@
     <string name="editor_dialog_save_as_overwrite_action">Suprascrie</string>
     <string name="editor_backup_banner_message">S-a găsit o copie de siguranță de la o salvare întreruptă:\n%1$s</string>
     <string name="editor_binary_banner_message">Editarea ca text nu este acceptată</string>
+    <string name="editor_undecodable_banner_message">Acest fișier conține octeți care nu sunt GB18030 valid. Alege altă codare pentru a-l edita.</string>
     <string name="editor_long_lines_banner_title">Linii foarte lungi</string>
     <string name="editor_long_lines_banner_message">Liniile foarte lungi sunt scurtate pentru afișare; conținutul complet este păstrat și salvat.</string>
     <string name="editor_line_truncated_marker">⋯ +%1$d</string>
@@ -126,6 +127,14 @@
     <string name="editor_line_ending_dialog_message">Convertește toate sfârșiturile de linie și salvează fișierul, inclusiv modificările nesalvate. Istoricul anulărilor este șters.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Convertește…</string>
+    <string name="editor_convert_encoding_dialog_title">Convertește codarea</string>
+    <string name="editor_convert_encoding_dialog_message">Recodifică întregul fișier și îl salvează, inclusiv modificările nesalvate. Istoricul anulărilor este șters.</string>
+    <string name="editor_error_unmappable_characters">Unele caractere nu pot fi scrise ca %1$s.</string>
+    <string name="editor_reopen_banner_title">Fișierul nu a fost redeschis</string>
+    <string name="editor_reopen_banner_message">Fișierul a fost convertit în %1$s. Redeschide-l pentru a continua editarea.</string>
+    <string name="editor_reopen_action">Redeschide</string>
+    <string name="editor_error_undecodable_bytes">Acest fișier conține octeți care nu pot fi citiți ca %1$s. Alege mai întâi codarea corectă.</string>
     <string name="editor_file_untitled">Fără titlu</string>
     <string name="editor_settings_autosave_category">Salvare automată</string>
     <string name="editor_settings_autosave_enabled_title">Activează salvarea automată</string>

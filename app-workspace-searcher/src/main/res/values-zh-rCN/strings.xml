@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">内容搜索</string>
     <string name="searcher_settings_include_binaries_title">包括二进制文件</string>
     <string name="searcher_settings_include_binaries_subtitle">搜索二进制文件内容（可能很慢，会产生无关结果）</string>
+    <string name="searcher_settings_open_on_tap_title">点按时打开文件</string>
+    <string name="searcher_settings_open_on_tap_desc">点按结果中的文件即可打开。使用文件上的 ⋮ 按钮可查看其他操作。</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">最近搜索</string>
@@ -182,6 +184,9 @@
     <string name="searcher_action_deselect_all">取消全选</string>
     <string name="searcher_action_sort">排序</string>
     <string name="searcher_action_view">布局</string>
+    <string name="searcher_operation_rename_title">重命名操作</string>
+    <string name="searcher_operation_rename_description">将“%1$s”重命名为“%2$s”。</string>
+    <string name="searcher_operation_report_renamed">已重命名为“%1$s”。</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">排序方式</string>

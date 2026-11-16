@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">ముందస్తు వీక్షణ ఈ ఫైల్‌లోని మొదటి %1$s పంక్తులకు మాత్రమే పరిమితం.</string>
     <string name="viewer_text_truncated_width">ఈ ముందస్తు వీక్షణలో పొడవైన పంక్తులు కుదించబడతాయి.</string>
     <string name="viewer_text_unreadable_label">ఈ ఫైల్‌ను చదవలేకపోయాము</string>
+    <string name="viewer_text_encoding_action">ఎన్‌కోడింగ్</string>
+    <string name="viewer_text_encoding_title">ఎన్‌కోడింగ్</string>
+    <string name="viewer_text_encoding_automatic">ఆటోమేటిక్</string>
+    <string name="viewer_text_encoding_automatic_detected">ఆటోమేటిక్ (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">ఎన్‌కోడింగ్‌ను ఎంచుకోండి</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">వ్యూయర్</string>

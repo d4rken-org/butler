@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Redigering som tekst støttes ikke</string>
+    <string name="editor_undecodable_banner_message">Denne filen inneholder byte som ikke er gyldig GB18030. Velg en annen tegnkoding for å redigere den.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Svært lange linjer</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">Konverter alle linjeskift og lagre filen, inkludert ulagrede endringer. Angrehistorikken tømmes.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Konverter…</string>
+    <string name="editor_convert_encoding_dialog_title">Konverter tegnkoding</string>
+    <string name="editor_convert_encoding_dialog_message">Koder hele filen på nytt og lagrer den, inkludert ulagrede endringer. Angrehistorikken tømmes.</string>
+    <string name="editor_error_unmappable_characters">Noen tegn kan ikke skrives som %1$s.</string>
+    <string name="editor_reopen_banner_title">Filen ble ikke åpnet på nytt</string>
+    <string name="editor_reopen_banner_message">Filen ble konvertert til %1$s. Åpne den på nytt for å fortsette å redigere.</string>
+    <string name="editor_reopen_action">Åpne på nytt</string>
+    <string name="editor_error_undecodable_bytes">Denne filen inneholder byte som ikke kan leses som %1$s. Velg riktig tegnkoding først.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Uten tittel</string>

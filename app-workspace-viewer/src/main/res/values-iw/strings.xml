@@ -91,6 +91,11 @@
     <string name="viewer_text_truncated_lines">התצוגה המקדימה מוגבלת ל־%1$s השורות הראשונות של הקובץ הזה.</string>
     <string name="viewer_text_truncated_width">שורות ארוכות מקוצרות בתצוגה המקדימה הזו.</string>
     <string name="viewer_text_unreadable_label">לא ניתן לקרוא את הקובץ הזה</string>
+    <string name="viewer_text_encoding_action">קידוד</string>
+    <string name="viewer_text_encoding_title">קידוד</string>
+    <string name="viewer_text_encoding_automatic">אוטומטי</string>
+    <string name="viewer_text_encoding_automatic_detected">אוטומטי (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">בחירת קידוד</string>
     <string name="viewer_settings_title">מציג</string>
     <string name="viewer_settings_show_next_after_delete_title">הצגת הקובץ הבא לאחר מחיקה</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">לאחר מחיקת קובץ שנפתח מתיקייה, הצגת הקובץ הבא בתיקייה זו במקום סגירת המציג.</string>

@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">متن کے طور پر ترمیم کی سہولت نہیں ہے</string>
+    <string name="editor_undecodable_banner_message">اس فائل میں ایسے بائٹس ہیں جو درست GB18030 نہیں ہیں۔ ترمیم کے لیے کوئی اور انکوڈنگ منتخب کریں۔</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">بہت لمبی سطریں</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">تمام سطروں کے اختتامی حروف تبدیل کر کے فائل محفوظ کریں، بشمول محفوظ نہ کی گئی تبدیلیوں کے۔ واپس پلٹانے کی سرگزشت صاف ہو جائے گی۔</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">تبدیل کریں…</string>
+    <string name="editor_convert_encoding_dialog_title">انکوڈنگ تبدیل کریں</string>
+    <string name="editor_convert_encoding_dialog_message">پوری فائل کو نئے سرے سے انکوڈ کر کے محفوظ کریں، بشمول محفوظ نہ کی گئی تبدیلیوں کے۔ واپس پلٹانے کی سرگزشت صاف ہو جائے گی۔</string>
+    <string name="editor_error_unmappable_characters">کچھ حروف %1$s میں نہیں لکھے جا سکتے۔</string>
+    <string name="editor_reopen_banner_title">فائل دوبارہ نہیں کھلی</string>
+    <string name="editor_reopen_banner_message">فائل %1$s میں تبدیل ہو گئی ہے۔ ترمیم جاری رکھنے کے لیے اسے دوبارہ کھولیں۔</string>
+    <string name="editor_reopen_action">دوبارہ کھولیں</string>
+    <string name="editor_error_undecodable_bytes">اس فائل میں ایسے بائٹس ہیں جو %1$s کے طور پر پڑھے نہیں جا سکتے۔ پہلے درست انکوڈنگ منتخب کریں۔</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">بے عنوان</string>

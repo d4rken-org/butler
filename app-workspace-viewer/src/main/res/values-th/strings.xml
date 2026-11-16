@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">ดูตัวอย่างจำกัดเฉพาะบรรทัด %1$s แรกของไฟล์นี้</string>
     <string name="viewer_text_truncated_width">บรรทัดยาวมีการย่อลงในการดูตัวอย่างนี้</string>
     <string name="viewer_text_unreadable_label">ไม่สามารถอ่านไฟล์นี้ได้</string>
+    <string name="viewer_text_encoding_action">การเข้ารหัส</string>
+    <string name="viewer_text_encoding_title">การเข้ารหัส</string>
+    <string name="viewer_text_encoding_automatic">อัตโนมัติ</string>
+    <string name="viewer_text_encoding_automatic_detected">อัตโนมัติ (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">เลือกการเข้ารหัส</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">หลังจากลบไฟล์ที่เปิดจากโฟลเดอร์ ให้แสดงไฟล์ถัดไปในโฟลเดอร์นั้นแทนการปิดตัวดูไฟล์</string>
     <string name="viewer_settings_show_next_after_delete_title">แสดงไฟล์ถัดไปหลังลบ</string>
     <string name="viewer_settings_swipe_between_files_title">ปัดสลับไฟล์</string>

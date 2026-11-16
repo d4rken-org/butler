@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Innholdssøk</string>
     <string name="searcher_settings_include_binaries_title">Inkluder binærfiler</string>
     <string name="searcher_settings_include_binaries_subtitle">Søk i innholdet i binærfiler (kan være tregt og gi irrelevante resultater)</string>
+    <string name="searcher_settings_open_on_tap_title">Åpne filer med et trykk</string>
+    <string name="searcher_settings_open_on_tap_desc">Trykk på en fil i resultatene for å åpne den. Bruk ⋮-knappen på filen for andre handlinger.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Nylige søk</string>
@@ -192,6 +194,9 @@
     <string name="searcher_action_deselect_all">Fjern alle valg</string>
     <string name="searcher_action_sort">Sorter</string>
     <string name="searcher_action_view">Visning</string>
+    <string name="searcher_operation_rename_title">Filomdøping</string>
+    <string name="searcher_operation_rename_description">Gi \"%1$s\" nytt navn til \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Navnet er endret til \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Sorter etter</string>

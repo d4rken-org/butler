@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">Esikatselussa näkyy vain tiedoston %1$s ensimmäistä riviä.</string>
     <string name="viewer_text_truncated_width">Pitkiä rivejä lyhennetään tässä esikatselussa.</string>
     <string name="viewer_text_unreadable_label">Tätä tiedostoa ei voitu lukea</string>
+    <string name="viewer_text_encoding_action">Koodaus</string>
+    <string name="viewer_text_encoding_title">Merkistökoodaus</string>
+    <string name="viewer_text_encoding_automatic">Automaattinen</string>
+    <string name="viewer_text_encoding_automatic_detected">Automaattinen (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Valitse merkistökoodaus</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">Katselin</string>

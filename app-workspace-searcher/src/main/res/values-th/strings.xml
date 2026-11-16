@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">ค้นหาเนื้อหา</string>
     <string name="searcher_settings_include_binaries_title">รวมไฟล์ไบนารี</string>
     <string name="searcher_settings_include_binaries_subtitle">ค้นหาเนื้อหาของไฟล์ไบนารี (อาจช้าและให้ผลลัพธ์ที่ไม่เกี่ยวข้อง)</string>
+    <string name="searcher_settings_open_on_tap_title">แตะเพื่อเปิดไฟล์</string>
+    <string name="searcher_settings_open_on_tap_desc">แตะไฟล์ในผลการค้นหาเพื่อเปิด ใช้ปุ่ม ⋮ บนไฟล์เพื่อเลือกการดำเนินการอื่น</string>
 
     <!-- ส่วนต่อประสานผู้ใช้ค้นหา -->
     <string name="searcher_recent_searches">การค้นหาล่าสุด</string>
@@ -183,6 +185,9 @@
     <string name="searcher_action_deselect_all">ยกเลิกการเลือกทั้งหมด</string>
     <string name="searcher_action_sort">เรียงลำดับ</string>
     <string name="searcher_action_view">เลย์เอาต์</string>
+    <string name="searcher_operation_rename_title">การดำเนินการเปลี่ยนชื่อ</string>
+    <string name="searcher_operation_rename_description">เปลี่ยนชื่อ \"%1$s\" เป็น \"%2$s\"</string>
+    <string name="searcher_operation_report_renamed">เปลี่ยนชื่อเป็น \"%1$s\" แล้ว</string>
 
     <!-- ตัวเลือกการเรียงลำดับ -->
     <string name="searcher_sort_mode_label">เรียงลำดับตาม</string>

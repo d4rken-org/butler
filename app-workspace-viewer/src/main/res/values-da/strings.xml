@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">Forhåndsvisningen er begrænset til de første %1$s linjer i denne fil.</string>
     <string name="viewer_text_truncated_width">Lange linjer forkortes i denne forhåndsvisning.</string>
     <string name="viewer_text_unreadable_label">Denne fil kunne ikke læses</string>
+    <string name="viewer_text_encoding_action">Tegnkodning</string>
+    <string name="viewer_text_encoding_title">Tegnkodning</string>
+    <string name="viewer_text_encoding_automatic">Automatisk</string>
+    <string name="viewer_text_encoding_automatic_detected">Automatisk (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Vælg tegnkodning</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">Fremviser</string>

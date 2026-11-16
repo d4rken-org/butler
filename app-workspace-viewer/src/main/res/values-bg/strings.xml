@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">Прегледът е ограничен до първите %1$s реда от този файл.</string>
     <string name="viewer_text_truncated_width">Дългите редове са съкратени в този преглед.</string>
     <string name="viewer_text_unreadable_label">Този файл не можа да бъде прочетен</string>
+    <string name="viewer_text_encoding_action">Кодировка</string>
+    <string name="viewer_text_encoding_title">Кодировка</string>
+    <string name="viewer_text_encoding_automatic">Автоматично</string>
+    <string name="viewer_text_encoding_automatic_detected">Автоматично (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Избери кодировка</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">Преглед</string>

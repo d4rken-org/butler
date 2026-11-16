@@ -45,6 +45,7 @@
 
     <!-- Повідомлення про двійковий файл -->
     <string name="editor_binary_banner_message">Редагування як текст не підтримується</string>
+    <string name="editor_undecodable_banner_message">Цей файл містить байти, які не є дійсним GB18030. Вибери інше кодування, щоб редагувати його.</string>
 
     <!-- Повідомлення про довгі рядки -->
     <string name="editor_long_lines_banner_title">Дуже довгі рядки</string>
@@ -155,6 +156,14 @@
     <string name="editor_line_ending_dialog_message">Конвертувати всі розриви рядків і зберегти файл, включаючи незбережені зміни. Історія скасувань буде очищена.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Конвертувати…</string>
+    <string name="editor_convert_encoding_dialog_title">Конвертувати кодування</string>
+    <string name="editor_convert_encoding_dialog_message">Перекодовує весь файл і зберігає його, включаючи незбережені зміни. Історія скасувань буде очищена.</string>
+    <string name="editor_error_unmappable_characters">Деякі символи не можна записати як %1$s.</string>
+    <string name="editor_reopen_banner_title">Файл не перевідкрито</string>
+    <string name="editor_reopen_banner_message">Файл конвертовано в %1$s. Перевідкрий його, щоб продовжити редагування.</string>
+    <string name="editor_reopen_action">Перевідкрити</string>
+    <string name="editor_error_undecodable_bytes">Цей файл містить байти, які не можна прочитати як %1$s. Спочатку вибери правильне кодування.</string>
 
     <!-- Імена файлів редактора -->
     <string name="editor_file_untitled">Без назви</string>

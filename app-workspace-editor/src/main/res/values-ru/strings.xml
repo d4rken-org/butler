@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Редактирование как текста не поддерживается</string>
+    <string name="editor_undecodable_banner_message">Этот файл содержит байты, недопустимые для GB18030. Выберите другую кодировку для редактирования.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Очень длинные строки</string>
@@ -155,6 +156,14 @@
     <string name="editor_line_ending_dialog_message">Преобразовать все разрывы строк и сохранить файл, включая несохраненные изменения. История отмены будет очищена.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Преобразовать…</string>
+    <string name="editor_convert_encoding_dialog_title">Преобразование кодировки</string>
+    <string name="editor_convert_encoding_dialog_message">Весь файл будет перекодирован и сохранён, включая несохраненные изменения. История отмены будет очищена.</string>
+    <string name="editor_error_unmappable_characters">Некоторые символы невозможно записать в кодировке %1$s.</string>
+    <string name="editor_reopen_banner_title">Файл не открыт заново</string>
+    <string name="editor_reopen_banner_message">Файл преобразован в кодировку %1$s. Откройте его снова, чтобы продолжить редактирование.</string>
+    <string name="editor_reopen_action">Открыть снова</string>
+    <string name="editor_error_undecodable_bytes">Этот файл содержит байты, которые невозможно прочитать как %1$s. Сначала выберите правильную кодировку.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Без названия</string>

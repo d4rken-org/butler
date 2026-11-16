@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">不支持作为文本编辑</string>
+    <string name="editor_undecodable_banner_message">此文件包含无效的 GB18030 字节。请选择其他编码来编辑。</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">超长行</string>
@@ -143,6 +144,14 @@
     <string name="editor_line_ending_dialog_message">转换所有换行符并保存文件，包括未保存的更改。撤销历史将被清除。</string>
     <string name="editor_line_ending_lf_label">LF — Unix、Android、macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">转换…</string>
+    <string name="editor_convert_encoding_dialog_title">转换编码</string>
+    <string name="editor_convert_encoding_dialog_message">用新编码重新编码整个文件并保存，包括未保存的更改。撤销历史将被清除。</string>
+    <string name="editor_error_unmappable_characters">部分字符无法以 %1$s 写入。</string>
+    <string name="editor_reopen_banner_title">文件未重新打开</string>
+    <string name="editor_reopen_banner_message">文件已转换为 %1$s。重新打开即可继续编辑。</string>
+    <string name="editor_reopen_action">重新打开</string>
+    <string name="editor_error_undecodable_bytes">此文件包含无法以 %1$s 读取的字节。请先选择正确的编码。</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">无标题</string>

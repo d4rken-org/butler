@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">مواد کی تلاش</string>
     <string name="searcher_settings_include_binaries_title">بائنری فائلیں شامل کریں</string>
     <string name="searcher_settings_include_binaries_subtitle">بائنری فائلوں کے مواد میں تلاش کریں (یہ سست ہو سکتا ہے اور غیر متعلقہ نتائج دے سکتا ہے)</string>
+    <string name="searcher_settings_open_on_tap_title">ٹیپ کرنے پر فائلیں کھولیں</string>
+    <string name="searcher_settings_open_on_tap_desc">فائل کھولنے کے لیے نتائج میں اس پر ٹیپ کریں۔ دیگر اقدامات کے لیے فائل کا ⋮ بٹن استعمال کریں۔</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">حالیہ تلاشیں</string>
@@ -192,6 +194,9 @@
     <string name="searcher_action_deselect_all">سب کا انتخاب ختم کریں</string>
     <string name="searcher_action_sort">ترتیب دیں</string>
     <string name="searcher_action_view">لے آؤٹ</string>
+    <string name="searcher_operation_rename_title">نام بدلنے کی کارروائی</string>
+    <string name="searcher_operation_rename_description">\"%1$s\" کا نام بدل کر \"%2$s\" کریں۔</string>
+    <string name="searcher_operation_report_renamed">نام بدل کر \"%1$s\" کر دیا گیا۔</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">اس کے لحاظ سے ترتیب دیں</string>

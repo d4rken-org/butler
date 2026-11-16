@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Αναζήτηση περιεχομένου</string>
     <string name="searcher_settings_include_binaries_title">Συμπερίληψη δυαδικών αρχείων</string>
     <string name="searcher_settings_include_binaries_subtitle">Αναζήτηση περιεχομένου δυαδικών αρχείων (ενδέχεται να είναι αργή και να δώσει άσχετα αποτελέσματα)</string>
+    <string name="searcher_settings_open_on_tap_title">Άνοιγμα αρχείων με πάτημα</string>
+    <string name="searcher_settings_open_on_tap_desc">Πάτησε ένα αρχείο στα αποτελέσματα για να το ανοίξεις. Χρησιμοποίησε το κουμπί ⋮ σε ένα αρχείο για τις υπόλοιπες ενέργειές του.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Πρόσφατες αναζητήσεις</string>
@@ -192,6 +194,9 @@
     <string name="searcher_action_deselect_all">Αποεπιλογή όλων</string>
     <string name="searcher_action_sort">Ταξινόμηση</string>
     <string name="searcher_action_view">Διάταξη</string>
+    <string name="searcher_operation_rename_title">Λειτουργία μετονομασίας</string>
+    <string name="searcher_operation_rename_description">Μετονομασία του \"%1$s\" σε \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Μετονομάστηκε σε \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Ταξινόμηση κατά</string>

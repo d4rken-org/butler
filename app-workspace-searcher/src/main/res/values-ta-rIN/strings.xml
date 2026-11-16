@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">உள்ளடக்கத் தேடல்</string>
     <string name="searcher_settings_include_binaries_title">இருமக் கோப்புகளைச் சேர்</string>
     <string name="searcher_settings_include_binaries_subtitle">இருமக் கோப்புகளின் உள்ளடக்கத்தைத் தேடு (மெதுவாக இருக்கலாம்; தொடர்பற்ற முடிவுகளும் கிடைக்கலாம்)</string>
+    <string name="searcher_settings_open_on_tap_title">தட்டினால் கோப்புகளைத் திற</string>
+    <string name="searcher_settings_open_on_tap_desc">முடிவுகளில் ஒரு கோப்பைத் தட்டினால் அது திறக்கும். அதன் மற்ற செயல்களுக்கு கோப்பில் உள்ள ⋮ பொத்தானைப் பயன்படுத்துங்கள்.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">சமீபத்திய தேடல்கள்</string>
@@ -191,6 +193,9 @@
     <string name="searcher_action_deselect_all">அனைத்துத் தேர்வுகளையும் நீக்கு</string>
     <string name="searcher_action_sort">வரிசைப்படுத்து</string>
     <string name="searcher_action_view">தளவமைப்பு</string>
+    <string name="searcher_operation_rename_title">மறுபெயரிடும் செயல்பாடு</string>
+    <string name="searcher_operation_rename_description">\"%1$s\" ஐ \"%2$s\" என மறுபெயரிடு.</string>
+    <string name="searcher_operation_report_renamed">\"%1$s\" என மறுபெயரிடப்பட்டது.</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">இதன்படி வரிசைப்படுத்து</string>

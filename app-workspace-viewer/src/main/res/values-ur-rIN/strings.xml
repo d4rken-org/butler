@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">پیش منظر اس فائل کی پہلی %1$s سطروں تک محدود ہے۔</string>
     <string name="viewer_text_truncated_width">اس پیش منظر میں لمبی سطریں مختصر کی گئی ہیں۔</string>
     <string name="viewer_text_unreadable_label">یہ فائل پڑھی نہیں جا سکی</string>
+    <string name="viewer_text_encoding_action">انکوڈنگ</string>
+    <string name="viewer_text_encoding_title">انکوڈنگ</string>
+    <string name="viewer_text_encoding_automatic">خودکار</string>
+    <string name="viewer_text_encoding_automatic_detected">خودکار (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">انکوڈنگ منتخب کریں</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">ویوئر</string>

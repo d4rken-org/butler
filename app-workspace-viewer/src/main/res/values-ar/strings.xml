@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">تقتصر المعاينة على أول %1$s أسطر من هذا الملف.</string>
     <string name="viewer_text_truncated_width">يتم تقصير الأسطر الطويلة في هذه المعاينة.</string>
     <string name="viewer_text_unreadable_label">تعذر قراءة هذا الملف</string>
+    <string name="viewer_text_encoding_action">الترميز</string>
+    <string name="viewer_text_encoding_title">الترميز</string>
+    <string name="viewer_text_encoding_automatic">تلقائي</string>
+    <string name="viewer_text_encoding_automatic_detected">تلقائي (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">اختيار الترميز</string>
     <string name="viewer_settings_show_next_after_delete_subtitle">بعد حذف ملف فُتح من مجلد، اعرض الملف التالي في ذلك المجلد بدلًا من إغلاق العارض.</string>
     <string name="viewer_settings_show_next_after_delete_title">عرض الملف التالي بعد الحذف</string>
     <string name="viewer_settings_swipe_between_files_title">التمرير بين الملفات</string>

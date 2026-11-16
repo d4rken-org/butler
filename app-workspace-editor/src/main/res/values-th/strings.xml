@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">ไม่รองรับการแก้ไขเป็นข้อความ</string>
+    <string name="editor_undecodable_banner_message">ไฟล์นี้มีไบต์ที่ไม่ใช่ GB18030 ที่ถูกต้อง เลือกการเข้ารหัสอื่นเพื่อแก้ไข</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">บรรทัดยาวมาก</string>
@@ -143,6 +144,14 @@
     <string name="editor_line_ending_dialog_message">แปลงการแตกบรรทัดทั้งหมดและบันทึกไฟล์ รวมถึงการเปลี่ยนแปลงยังไม่บันทึก ประวัติเลิกทำจะถูกล้าง</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">แปลง…</string>
+    <string name="editor_convert_encoding_dialog_title">แปลงการเข้ารหัส</string>
+    <string name="editor_convert_encoding_dialog_message">เข้ารหัสไฟล์ทั้งหมดใหม่และบันทึก รวมถึงการเปลี่ยนแปลงยังไม่บันทึก ประวัติเลิกทำจะถูกล้าง</string>
+    <string name="editor_error_unmappable_characters">ตัวอักษรบางตัวไม่สามารถเขียนเป็น %1$s ได้</string>
+    <string name="editor_reopen_banner_title">ไม่ได้เปิดไฟล์ใหม่</string>
+    <string name="editor_reopen_banner_message">แปลงไฟล์เป็น %1$s แล้ว เปิดใหม่เพื่อแก้ไขต่อ</string>
+    <string name="editor_reopen_action">เปิดใหม่</string>
+    <string name="editor_error_undecodable_bytes">ไฟล์นี้มีไบต์ที่อ่านเป็น %1$s ไม่ได้ เลือกการเข้ารหัสที่ถูกต้องก่อน</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">ไม่มีชื่อ</string>

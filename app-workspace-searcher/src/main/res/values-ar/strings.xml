@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">البحث في المحتوى</string>
     <string name="searcher_settings_include_binaries_title">تضمين الملفات الثنائية</string>
     <string name="searcher_settings_include_binaries_subtitle">البحث في محتوى الملفات الثنائية (قد يكون بطيئًا وينتج عنه نتائج غير ذات صلة)</string>
+    <string name="searcher_settings_open_on_tap_title">فتح الملفات بالنقر</string>
+    <string name="searcher_settings_open_on_tap_desc">انقر على ملف في النتائج لفتحه. استخدم الزر ⋮ على الملف لإجراءاته الأخرى.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">عمليات البحث الأخيرة</string>
@@ -227,6 +229,9 @@
     <string name="searcher_action_deselect_all">إلغاء تحديد الكل</string>
     <string name="searcher_action_sort">ترتيب</string>
     <string name="searcher_action_view">التخطيط</string>
+    <string name="searcher_operation_rename_title">عملية إعادة تسمية</string>
+    <string name="searcher_operation_rename_description">إعادة تسمية \"%1$s\" إلى \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">تمت إعادة التسمية إلى \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">الترتيب حسب</string>

@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">ویرایش به‌عنوان متن پشتیبانی نشده است</string>
+    <string name="editor_undecodable_banner_message">این فایل بایت‌هایی دارد که در GB18030 معتبر نیستند. برای ویرایش، رمزگذاری دیگری انتخاب کنید.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">خطوط بسیار بلند</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">تبدیل تمام خط‌شکنی‌ها و ذخیره فایل، شامل تغییرات ذخیره‌نشده. تاریخچه واگرد پاک می‌شود.</string>
     <string name="editor_line_ending_lf_label">LF — Unix، Android، macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">تبدیل…</string>
+    <string name="editor_convert_encoding_dialog_title">تبدیل رمزگذاری</string>
+    <string name="editor_convert_encoding_dialog_message">کل فایل را دوباره رمزگذاری و ذخیره می‌کند، شامل تغییرات ذخیره‌نشده. تاریخچه واگرد پاک می‌شود.</string>
+    <string name="editor_error_unmappable_characters">برخی کاراکترها را نمی‌توان با رمزگذاری %1$s نوشت.</string>
+    <string name="editor_reopen_banner_title">فایل دوباره باز نشد</string>
+    <string name="editor_reopen_banner_message">فایل به %1$s تبدیل شد. برای ادامه ویرایش، آن را دوباره باز کنید.</string>
+    <string name="editor_reopen_action">باز کردن دوباره</string>
+    <string name="editor_error_undecodable_bytes">این فایل بایت‌هایی دارد که نمی‌توان آن‌ها را به‌صورت %1$s خواند. ابتدا رمزگذاری درست را انتخاب کنید.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">بدون عنوان</string>

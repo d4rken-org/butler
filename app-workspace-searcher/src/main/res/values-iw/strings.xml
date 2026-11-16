@@ -19,6 +19,8 @@
     <string name="searcher_settings_content_search_category">חיפוש בתוכן</string>
     <string name="searcher_settings_include_binaries_title">הכללת קבצים בינאריים</string>
     <string name="searcher_settings_include_binaries_subtitle">חיפוש בתוכן של קבצים בינאריים (עלול להיות איטי ולהפיק תוצאות לא רלוונטיות)</string>
+    <string name="searcher_settings_open_on_tap_title">פתיחת קבצים בהקשה</string>
+    <string name="searcher_settings_open_on_tap_desc">הקשה על קובץ בתוצאות פותחת אותו. הכפתור ⋮ בקובץ מציג את שאר הפעולות שלו.</string>
     <string name="searcher_recent_searches">חיפושים אחרונים</string>
     <string name="searcher_placeholder_search">חיפוש קבצים ותיקיות</string>
     <string name="searcher_placeholder_filename">שם קובץ</string>
@@ -179,6 +181,9 @@
     <string name="searcher_action_deselect_all">ביטול בחירת הכול</string>
     <string name="searcher_action_sort">מיון</string>
     <string name="searcher_action_view">פריסה</string>
+    <string name="searcher_operation_rename_title">פעולת שינוי שם</string>
+    <string name="searcher_operation_rename_description">שינוי השם \"%1$s\" ל־\"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">השם שונה ל־\"%1$s\".</string>
     <string name="searcher_sort_mode_label">מיון לפי</string>
     <string name="searcher_sort_mode_name_label">שם</string>
     <string name="searcher_sort_mode_size_label">גודל</string>

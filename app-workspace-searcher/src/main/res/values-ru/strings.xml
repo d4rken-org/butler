@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Поиск по содержимому</string>
     <string name="searcher_settings_include_binaries_title">Включить двоичные файлы</string>
     <string name="searcher_settings_include_binaries_subtitle">Искать содержимое двоичных файлов (может быть медленным и выдать неправильные результаты)</string>
+    <string name="searcher_settings_open_on_tap_title">Открывать файлы касанием</string>
+    <string name="searcher_settings_open_on_tap_desc">Коснитесь файла в результатах, чтобы открыть его. Другие действия с файлом доступны по кнопке ⋮.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Недавние поиски</string>
@@ -209,6 +211,9 @@
     <string name="searcher_action_deselect_all">Снять выделение</string>
     <string name="searcher_action_sort">Сортировать</string>
     <string name="searcher_action_view">Вид</string>
+    <string name="searcher_operation_rename_title">Операция переименования</string>
+    <string name="searcher_operation_rename_description">Переименовать «%1$s» в «%2$s».</string>
+    <string name="searcher_operation_report_renamed">Переименовано в «%1$s».</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Сортировка по</string>

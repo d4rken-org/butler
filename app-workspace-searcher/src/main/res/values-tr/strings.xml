@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">İçerik Arama</string>
     <string name="searcher_settings_include_binaries_title">İkili dosyaları dahil et</string>
     <string name="searcher_settings_include_binaries_subtitle">İkili dosyaların içeriğini ara (yavaş olabilir ve ilgisiz sonuçlar verebilir)</string>
+    <string name="searcher_settings_open_on_tap_title">Dokununca dosyaları aç</string>
+    <string name="searcher_settings_open_on_tap_desc">Dosyayı açmak için sonuçlarda dosyaya dokun. Diğer işlemler için dosyanın ⋮ düğmesini kullan.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Son aramalar</string>
@@ -191,6 +193,9 @@
     <string name="searcher_action_deselect_all">Seçimi kaldır</string>
     <string name="searcher_action_sort">Sırala</string>
     <string name="searcher_action_view">Düzen</string>
+    <string name="searcher_operation_rename_title">Yeniden adlandırma işlemi</string>
+    <string name="searcher_operation_rename_description">\"%1$s\" öğesini \"%2$s\" olarak yeniden adlandır.</string>
+    <string name="searcher_operation_report_renamed">\"%1$s\" olarak yeniden adlandırıldı.</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Sıralama ölçütü</string>

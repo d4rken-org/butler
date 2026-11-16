@@ -19,6 +19,8 @@
     <string name="searcher_settings_content_search_category">Carian Kandungan</string>
     <string name="searcher_settings_include_binaries_title">Sertakan fail binari</string>
     <string name="searcher_settings_include_binaries_subtitle">Cari kandungan fail binari (mungkin perlahan dan menghasilkan hasil tidak berkaitan)</string>
+    <string name="searcher_settings_open_on_tap_title">Buka fail apabila diketuk</string>
+    <string name="searcher_settings_open_on_tap_desc">Ketik fail dalam hasil untuk membukanya. Gunakan butang ⋮ pada fail untuk tindakan lain.</string>
     <string name="searcher_recent_searches">Carian terkini</string>
     <string name="searcher_placeholder_search">Cari fail dan folder</string>
     <string name="searcher_placeholder_filename">Nama fail</string>
@@ -152,6 +154,9 @@
     <string name="searcher_action_deselect_all">Nyahpilih semua</string>
     <string name="searcher_action_sort">Isih</string>
     <string name="searcher_action_view">Susun atur</string>
+    <string name="searcher_operation_rename_title">Operasi namakan semula</string>
+    <string name="searcher_operation_rename_description">Namakan semula \"%1$s\" kepada \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Dinamakan semula kepada \"%1$s\".</string>
     <string name="searcher_sort_mode_label">Isih mengikut</string>
     <string name="searcher_sort_mode_name_label">Nama</string>
     <string name="searcher_sort_mode_size_label">Saiz</string>

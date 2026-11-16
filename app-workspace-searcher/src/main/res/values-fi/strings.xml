@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Sisältöhaku</string>
     <string name="searcher_settings_include_binaries_title">Sisällytä binääritiedostot</string>
     <string name="searcher_settings_include_binaries_subtitle">Etsi binääritiedostojen sisällöstä (voi olla hidasta ja tuottaa epäolennaisia tuloksia)</string>
+    <string name="searcher_settings_open_on_tap_title">Avaa tiedostot napauttamalla</string>
+    <string name="searcher_settings_open_on_tap_desc">Napauta tulosten tiedostoa avataksesi sen. Tiedoston muut toiminnot löytyvät ⋮-painikkeesta.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Viimeisimmät haut</string>
@@ -191,6 +193,9 @@
     <string name="searcher_action_deselect_all">Poista kaikki valinnat</string>
     <string name="searcher_action_sort">Lajittele</string>
     <string name="searcher_action_view">Asettelu</string>
+    <string name="searcher_operation_rename_title">Tiedoston nimeäminen uudelleen</string>
+    <string name="searcher_operation_rename_description">Nimeä \"%1$s\" uudelleen nimelle \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Uusi nimi: \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Lajitteluperuste</string>

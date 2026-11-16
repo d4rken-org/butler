@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Pesquisa de conteúdo</string>
     <string name="searcher_settings_include_binaries_title">Incluir arquivos binários</string>
     <string name="searcher_settings_include_binaries_subtitle">Pesquisar conteúdo de arquivos binários (pode ser lento e produzir resultados irrelevantes)</string>
+    <string name="searcher_settings_open_on_tap_title">Abrir arquivos ao tocar</string>
+    <string name="searcher_settings_open_on_tap_desc">Toque em um arquivo nos resultados para abri-lo. Use o botão ⋮ em um arquivo para ver as outras ações.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Pesquisas recentes</string>
@@ -191,6 +193,9 @@
     <string name="searcher_action_deselect_all">Desmarcar tudo</string>
     <string name="searcher_action_sort">Ordenar</string>
     <string name="searcher_action_view">Visualização</string>
+    <string name="searcher_operation_rename_title">Operação de renomeação</string>
+    <string name="searcher_operation_rename_description">Renomear \"%1$s\" para \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Renomeado para \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Ordenar por</string>

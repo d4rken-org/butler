@@ -19,6 +19,8 @@
     <string name="searcher_settings_content_search_category">सामग्री की खोज</string>
     <string name="searcher_settings_include_binaries_title">बाइनरी फ़ाइलें शामिल करें</string>
     <string name="searcher_settings_include_binaries_subtitle">बाइनरी फ़ाइलों की सामग्री खोजें (धीमा हो सकता है और अप्रासंगिक परिणाम दे सकता है)</string>
+    <string name="searcher_settings_open_on_tap_title">टैप करने पर फ़ाइलें खोलें</string>
+    <string name="searcher_settings_open_on_tap_desc">परिणामों में किसी फ़ाइल पर टैप करके उसे खोलें। उसकी दूसरी कार्रवाइयों के लिए फ़ाइल पर ⋮ बटन इस्तेमाल करें।</string>
     <string name="searcher_recent_searches">हाल की खोजें</string>
     <string name="searcher_placeholder_search">फ़ाइलें और फ़ोल्डर खोजें</string>
     <string name="searcher_placeholder_filename">फ़ाइल नाम</string>
@@ -161,6 +163,9 @@
     <string name="searcher_action_deselect_all">सभी का चयन हटाएँ</string>
     <string name="searcher_action_sort">क्रमबद्ध करें</string>
     <string name="searcher_action_view">लेआउट</string>
+    <string name="searcher_operation_rename_title">नाम बदलने की प्रक्रिया</string>
+    <string name="searcher_operation_rename_description">\"%1$s\" का नाम बदलकर \"%2$s\" करें।</string>
+    <string name="searcher_operation_report_renamed">नाम बदलकर \"%1$s\" किया गया।</string>
     <string name="searcher_sort_mode_label">इस आधार पर क्रमबद्ध करें</string>
     <string name="searcher_sort_mode_name_label">नाम</string>
     <string name="searcher_sort_mode_size_label">आकार</string>

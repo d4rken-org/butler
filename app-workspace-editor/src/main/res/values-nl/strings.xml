@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Bewerken als tekst wordt niet ondersteund</string>
+    <string name="editor_undecodable_banner_message">Dit bestand bevat bytes die geen geldige GB18030 zijn. Kies een andere codering om het te bewerken.</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">Zeer lange regels</string>
@@ -147,6 +148,14 @@
     <string name="editor_line_ending_dialog_message">Alle regeleindes converteren en het bestand opslaan, inclusief niet-opgeslagen wijzigingen. Geschiedenis van ongedaan maken wordt gewist.</string>
     <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">Converteren…</string>
+    <string name="editor_convert_encoding_dialog_title">Codering converteren</string>
+    <string name="editor_convert_encoding_dialog_message">Codeert het hele bestand opnieuw en slaat het op, inclusief niet-opgeslagen wijzigingen. Geschiedenis van ongedaan maken wordt gewist.</string>
+    <string name="editor_error_unmappable_characters">Sommige tekens kunnen niet als %1$s worden geschreven.</string>
+    <string name="editor_reopen_banner_title">Bestand niet opnieuw geopend</string>
+    <string name="editor_reopen_banner_message">Het bestand is geconverteerd naar %1$s. Open het opnieuw om verder te bewerken.</string>
+    <string name="editor_reopen_action">Opnieuw openen</string>
+    <string name="editor_error_undecodable_bytes">Dit bestand bevat bytes die niet als %1$s kunnen worden gelezen. Kies eerst de juiste codering.</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Naamloos</string>

@@ -112,6 +112,11 @@
     <string name="viewer_text_truncated_lines">Förhandsvisningen är begränsad till de första %1$s raderna i den här filen.</string>
     <string name="viewer_text_truncated_width">Långa rader förkortas i den här förhandsvisningen.</string>
     <string name="viewer_text_unreadable_label">Den här filen kunde inte läsas</string>
+    <string name="viewer_text_encoding_action">Teckenkodning</string>
+    <string name="viewer_text_encoding_title">Teckenkodning</string>
+    <string name="viewer_text_encoding_automatic">Automatisk</string>
+    <string name="viewer_text_encoding_automatic_detected">Automatisk (%1$s)</string>
+    <string name="viewer_unsupported_choose_encoding_action">Välj teckenkodning</string>
 
     <!-- Settings -->
     <string name="viewer_settings_title">Visare</string>

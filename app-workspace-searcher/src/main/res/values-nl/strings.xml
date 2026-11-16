@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">Inhoudzoeken</string>
     <string name="searcher_settings_include_binaries_title">Binaire bestanden opnemen</string>
     <string name="searcher_settings_include_binaries_subtitle">Zoek in inhoud van binaire bestanden (kan traag zijn en irrelevante resultaten opleveren)</string>
+    <string name="searcher_settings_open_on_tap_title">Bestanden openen met een tik</string>
+    <string name="searcher_settings_open_on_tap_desc">Tik op een bestand in de resultaten om het te openen. Gebruik de knop ⋮ bij een bestand voor de andere acties.</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Recente zoekopdrachten</string>
@@ -192,6 +194,9 @@
     <string name="searcher_action_deselect_all">Selectie opheffen</string>
     <string name="searcher_action_sort">Sorteren</string>
     <string name="searcher_action_view">Weergave</string>
+    <string name="searcher_operation_rename_title">Hernoembewerking</string>
+    <string name="searcher_operation_rename_description">Hernoem \"%1$s\" naar \"%2$s\".</string>
+    <string name="searcher_operation_report_renamed">Hernoemd naar \"%1$s\".</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Sorteren op</string>

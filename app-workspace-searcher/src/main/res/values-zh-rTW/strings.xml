@@ -20,6 +20,8 @@
     <string name="searcher_settings_content_search_category">內容搜尋</string>
     <string name="searcher_settings_include_binaries_title">包含二進位檔案</string>
     <string name="searcher_settings_include_binaries_subtitle">搜尋二進位檔案中的內容（可能速度較慢，可能產生無關結果）</string>
+    <string name="searcher_settings_open_on_tap_title">輕觸時開啟檔案</string>
+    <string name="searcher_settings_open_on_tap_desc">輕觸結果中的檔案即可開啟。檔案的其他操作請使用 ⋮ 按鈕。</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">最近搜尋</string>
@@ -183,6 +185,9 @@
     <string name="searcher_action_deselect_all">取消全選</string>
     <string name="searcher_action_sort">排序</string>
     <string name="searcher_action_view">配置</string>
+    <string name="searcher_operation_rename_title">重新命名操作</string>
+    <string name="searcher_operation_rename_description">將 \"%1$s\" 重新命名為 \"%2$s\"。</string>
+    <string name="searcher_operation_report_renamed">已重新命名為 \"%1$s\"。</string>
 
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">排序方式</string>

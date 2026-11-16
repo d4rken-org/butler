@@ -45,6 +45,7 @@
 
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">不支援以文字方式編輯</string>
+    <string name="editor_undecodable_banner_message">此檔案包含無效的 GB18030 位元組。請選擇其他編碼以進行編輯。</string>
 
     <!-- Long-lines notice -->
     <string name="editor_long_lines_banner_title">超長行</string>
@@ -143,6 +144,14 @@
     <string name="editor_line_ending_dialog_message">轉換所有行尾符號並儲存檔案，包括未儲存的變更。復原歷程記錄將被清除。</string>
     <string name="editor_line_ending_lf_label">LF — Unix、Android、macOS</string>
     <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
+    <string name="editor_convert_encoding_action">轉換…</string>
+    <string name="editor_convert_encoding_dialog_title">轉換編碼</string>
+    <string name="editor_convert_encoding_dialog_message">重新編碼整個檔案並儲存，包括未儲存的變更。復原歷程記錄將被清除。</string>
+    <string name="editor_error_unmappable_characters">部分字元無法以 %1$s 寫入。</string>
+    <string name="editor_reopen_banner_title">檔案未重新開啟</string>
+    <string name="editor_reopen_banner_message">檔案已轉換為 %1$s。請重新開啟以繼續編輯。</string>
+    <string name="editor_reopen_action">重新開啟</string>
+    <string name="editor_error_undecodable_bytes">此檔案包含無法以 %1$s 讀取的位元組。請先選擇正確的編碼。</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">無標題</string>
