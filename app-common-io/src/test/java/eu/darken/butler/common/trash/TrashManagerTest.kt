@@ -14,7 +14,9 @@ import eu.darken.butler.common.storage.StorageEnvironment
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -23,10 +25,12 @@ import io.mockk.mockk
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
+import testhelpers.mockDataStoreValue
 import kotlin.uuid.Uuid
 
 /**
@@ -39,13 +43,15 @@ import kotlin.uuid.Uuid
  * - [TrashManager.restore] integration - the helper is actually invoked after a successful move
  *   and not otherwise, and cancellation propagates out of the restore loop.
  *
- * Plus [TrashManager.getTrashRoot]: the trash dir is picked on the volume the file lives on.
+ * Plus [TrashManager.getTrashRoot]: the trash dir is picked on the volume the file lives on, and
+ * [TrashManager.moveToTrash]: each trashed item gets its own entry name.
  */
 class TrashManagerTest : BaseTest() {
 
     private val gatewaySwitch: GatewaySwitch = mockk(relaxed = true)
     private val repository: TrashRepo = mockk(relaxed = true)
     private val storageEnv: StorageEnvironment = mockk(relaxed = true)
+    private val settings: TrashSettings = mockk(relaxed = true)
 
     private val targetPath = LocalPath.build("/storage/emulated/0/Documents/report.txt")
     private val ownership = Ownership(userId = 1000L, groupId = 1000L)
@@ -55,7 +61,7 @@ class TrashManagerTest : BaseTest() {
         repository = repository,
         storageEnv = storageEnv,
         gatewaySwitch = gatewaySwitch,
-        settings = mockk(relaxed = true),
+        settings = settings,
         dispatcherProvider = TestDispatcherProvider(),
     )
 
@@ -281,6 +287,81 @@ class TrashManagerTest : BaseTest() {
                 internalDir.child(".trash")
         } finally {
             LocalPathNormalization.primaryStorage = previous
+        }
+    }
+
+    // endregion
+
+    // region moveToTrash()
+
+    private val trashedSource = LocalPath.build("/storage/emulated/0/Documents/report.txt")
+
+    private fun fileLookup(path: LocalPath) = LocalPathLookup(
+        lookedUp = path,
+        fileType = FileType.FILE,
+        size = 34L,
+        modifiedAt = null,
+    )
+
+    /** Records every move destination and completes each move with exactly one moved pair. */
+    @Suppress("UNCHECKED_CAST")
+    private fun setUpMoveToTrash(): MutableList<APath<*>> {
+        val destinations = mutableListOf<APath<*>>()
+        every { storageEnv.ourPublicDirs } returns listOf(internalDir, sdDir)
+        every { settings.maxTrashSize } returns mockDataStoreValue(Long.MAX_VALUE)
+        coEvery { repository.getTotalSize() } returns 0L
+        coEvery { gatewaySwitch.lookup(any(), any()) } returns
+            fileLookup(trashedSource) as APathLookup<APath<*>>
+        coEvery { gatewaySwitch.exists(any()) } returns true
+        coEvery { gatewaySwitch.move(any(), any(), any(), any()) } coAnswers {
+            val destination = secondArg<APath<*>>() as LocalPath
+            destinations.add(destination)
+            val state = MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>(
+                movedFiles = setOf(fileLookup(trashedSource) to fileLookup(destination)),
+                bytesMoved = 34L,
+            )
+            flowOf(state) as Flow<MoveAction.State<APath<*>, APathLookup<APath<*>>, APath<*>, APathLookup<APath<*>>>>
+        }
+        return destinations
+    }
+
+    private suspend fun TrashManager.trash(path: APath<*>): TrashManager.TrashMoveReport =
+        (moveToTrash(listOf(path)).last() as TrashManager.TrashMoveState.Completed).report
+
+    @Test
+    fun `trashing the same path twice moves to two different entries`() = runTest {
+        val destinations = setUpMoveToTrash()
+        val manager = create()
+
+        val first = manager.trash(trashedSource)
+        val second = manager.trash(trashedSource)
+
+        coVerify(exactly = 2) { repository.insert(any()) }
+        first.movedToTrash shouldHaveSize 1
+        first.failedToMove.shouldBeEmpty()
+        second.movedToTrash shouldHaveSize 1
+        second.failedToMove.shouldBeEmpty()
+        destinations shouldHaveSize 2
+        destinations[0].parent shouldBe internalDir.child(".trash")
+        destinations[1].parent shouldBe internalDir.child(".trash")
+        destinations[0] shouldNotBe destinations[1]
+    }
+
+    @Test
+    fun `trashed item records the entry it was moved to`() = runTest {
+        val destinations = setUpMoveToTrash()
+        val manager = create()
+
+        manager.trash(trashedSource)
+        manager.trash(trashedSource)
+
+        val inserted = mutableListOf<TrashRepo.TrashItem>()
+        coVerify(exactly = 2) { repository.insert(capture(inserted)) }
+        inserted shouldHaveSize 2
+        inserted.forEachIndexed { index, item ->
+            item.trashPath shouldBe destinations[index]
+            item.trashLookup!!.lookedUp shouldBe destinations[index]
+            destinations[index].name shouldBe "report.txt_" + item.id.toHexString().take(8)
         }
     }
 
