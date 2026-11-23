@@ -134,7 +134,8 @@ class TrashManager @Inject constructor(
                 }
 
                 // Get trash path for this item
-                val trashPath = getTrashPath(localPath)
+                val itemId = Uuid.random()
+                val trashPath = getTrashPath(localPath, itemId)
 
                 // Ensure trash directory exists
                 ensureTrashDirectory(trashPath.parent!!)
@@ -180,7 +181,7 @@ class TrashManager @Inject constructor(
                 if (moveCompleted != null) {
                     // Record in repository with full lookup data
                     val item = TrashRepo.TrashItem(
-                        id = Uuid.random(),
+                        id = itemId,
                         originalLookup = lookup,
                         trashPath = trashPath,
                         trashLookup = moveCompleted.movedFiles.first().second,
@@ -538,12 +539,11 @@ class TrashManager @Inject constructor(
         return cacheDir.child(".trash")
     }
 
-    private suspend fun getTrashPath(originalPath: APath<*>): APath<*> {
+    private suspend fun getTrashPath(originalPath: APath<*>, id: Uuid): APath<*> {
         val trashRoot = getTrashRoot(originalPath)
 
         // Generate unique filename to avoid collisions
-        val hash = originalPath.path.hashCode().toString(16).take(8)
-        val safeName = "${originalPath.name}_$hash"
+        val safeName = "${originalPath.name}_${id.toHexString().take(8)}"
 
         return trashRoot.child(safeName)
     }
