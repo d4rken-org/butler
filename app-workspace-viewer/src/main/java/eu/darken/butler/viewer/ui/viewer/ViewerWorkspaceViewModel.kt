@@ -1452,8 +1452,9 @@ internal fun viewerActions(
                 add(ViewerActionBarItem.BrowseArchive)
             }
             // Leads for the same reason: the preview here is read-only and stops at a cap, so the
-            // Editor is where both editing and the rest of a large file live.
-            if (content is ViewerContent.Text) {
+            // Editor is where both editing and the rest of a large file live. For content the viewer
+            // cannot show, the Editor is the one place left in Butler to look at it.
+            if (content is ViewerContent.Text || content is ViewerContent.Unsupported) {
                 add(ViewerActionBarItem.OpenInEditor)
             }
             if (content.isReadableAsText) {

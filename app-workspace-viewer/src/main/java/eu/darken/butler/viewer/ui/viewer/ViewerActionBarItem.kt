@@ -78,8 +78,9 @@ sealed interface ViewerActionBarItem : WorkspaceActionBarItem {
     }
 
     /**
-     * Open the text file in an Editor tab. The viewer's own preview is read-only and capped, so this
-     * is both how the file gets edited and how the part beyond the cap gets read.
+     * Open the file in an Editor tab. For text, the viewer's own preview is read-only and capped, so
+     * this is both how the file gets edited and how the part beyond the cap gets read. For content
+     * the viewer cannot show, it is the one place left in Butler to look at it.
      */
     data object OpenInEditor : ViewerActionBarItem {
         override val icon = Icons.TwoTone.DriveFileRenameOutline

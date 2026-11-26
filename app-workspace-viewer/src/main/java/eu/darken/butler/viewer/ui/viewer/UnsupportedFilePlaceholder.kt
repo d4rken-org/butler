@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
+import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.LockOpen
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.SaveAlt
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.viewer.R
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.R as WorkspaceR
 
 /**
@@ -42,7 +44,8 @@ import eu.darken.butler.workspace.R as WorkspaceR
  * be written somewhere first, which is what "Save a copy" does.
  *
  * [onUnlock] is set for an archive entry read with a password that may be wrong, [onChooseEncoding]
- * for a text file whose bytes detection rejected.
+ * for a text file whose bytes detection rejected. [onOpenInEditor] always carries the not-text
+ * warning: whatever its name says, the viewer could not show the content as text.
  */
 @Composable
 fun UnsupportedFilePlaceholder(
@@ -54,6 +57,7 @@ fun UnsupportedFilePlaceholder(
     onSaveCopy: () -> Unit = {},
     onUnlock: (() -> Unit)? = null,
     onChooseEncoding: (() -> Unit)? = null,
+    onOpenInEditor: (() -> Unit)? = null,
     onToggleChrome: (() -> Unit)? = null,
 ) {
     Box(
@@ -104,6 +108,30 @@ fun UnsupportedFilePlaceholder(
                     ),
                     modifier = Modifier.padding(start = 8.dp),
                 )
+            }
+            if (onOpenInEditor != null) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    OutlinedButton(onClick = onOpenInEditor) {
+                        Icon(
+                            imageVector = Icons.TwoTone.DriveFileRenameOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            text = stringResource(R.string.viewer_open_in_editor_action),
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                    Text(
+                        text = stringResource(CommonR.string.general_open_in_editor_not_text_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
             if (onChooseEncoding != null) {
                 OutlinedButton(onClick = onChooseEncoding) {
@@ -175,6 +203,18 @@ private fun UnsupportedFilePlaceholderTextPreview() {
         mimeType = "text/plain",
         onOpenWith = {},
         onChooseEncoding = {},
+    )
+}
+
+/** A stored file the viewer cannot show, which the Editor can still open. */
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun UnsupportedFilePlaceholderEditablePreview() {
+    UnsupportedFilePlaceholder(
+        mimeType = "application/octet-stream",
+        onOpenWith = {},
+        onOpenInEditor = {},
     )
 }
 

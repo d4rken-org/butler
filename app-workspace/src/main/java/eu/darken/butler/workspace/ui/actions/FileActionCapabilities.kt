@@ -18,6 +18,8 @@ data class FileActionCapabilities(
     val archiveFormat: ArchiveFormat?,
     val isArchiveEntry: Boolean,
     val isText: Boolean,
+    /** Any file, text or not: [isText] only decides whether the editor is offered with a warning. */
+    val canOpenInEditor: Boolean,
     /** A file the system can be handed a `file://`/`content://` URI for. */
     val canHandOffToOtherApps: Boolean,
 ) {
@@ -40,6 +42,7 @@ data class FileActionCapabilities(
                 archiveFormat = if (isFile && !isArchiveEntry) ArchiveFormat.fromFileName(path.name) else null,
                 isArchiveEntry = isArchiveEntry,
                 isText = isFile && MimeInfo.fromFileName(path.name).isText,
+                canOpenInEditor = isFile,
                 canHandOffToOtherApps = isFile && canHandOffToOtherApps(path),
             )
         }

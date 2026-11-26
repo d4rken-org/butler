@@ -71,6 +71,7 @@ import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.operations.partitionByTrashSupport
 import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun FileOptionsBottomSheet(
@@ -265,11 +266,15 @@ private fun FileOptionsContent(
         // Inside a picker these would spawn a workspace while the caller is still blocked waiting
         // for a result, so the picker suppresses them here just like on the action bar.
         if (openActionsEnabled) {
-            if (caps.isText) {
+            if (caps.canOpenInEditor) {
                 FileActionRow(
                     icon = Workspace.Type.EDITOR.icon,
                     title = stringResource(R.string.explorer_file_action_open_in_editor),
-                    subtitle = stringResource(R.string.explorer_file_action_open_in_editor_subtitle),
+                    subtitle = if (caps.isText) {
+                        stringResource(R.string.explorer_file_action_open_in_editor_subtitle)
+                    } else {
+                        stringResource(CommonR.string.general_open_in_editor_not_text_warning)
+                    },
                     onClick = { onAction(ExplorerActionBarItem.File.OpenInEditor(item)) },
                 )
             }
@@ -479,6 +484,27 @@ private fun previewItem() = ExplorerItem.RegularFile(
 private fun FileOptionsBottomSheetPreview() {
     FileOptionsBottomSheet(
         item = previewItem(),
+        trashEnabled = true,
+        onDismiss = {},
+        onAction = {},
+        isHidden = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun FileOptionsBottomSheetNotTextPreview() {
+    FileOptionsBottomSheet(
+        item = ExplorerItem.RegularFile(
+            lookup = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Documents/blob.bin"),
+                fileType = FileType.FILE,
+                size = 1024L * 50,
+                modifiedAt = kotlin.time.Clock.System.now(),
+            ),
+            mimeType = MimeInfo.fromFileName("blob.bin"),
+        ),
         trashEnabled = true,
         onDismiss = {},
         onAction = {},

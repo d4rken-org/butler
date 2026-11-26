@@ -10,6 +10,7 @@ import eu.darken.butler.viewer.R
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
+import eu.darken.butler.common.R as CommonR
 
 class UnsupportedFilePlaceholderTest : ComposeTest() {
 
@@ -71,6 +72,44 @@ class UnsupportedFilePlaceholderTest : ComposeTest() {
 
         composeTestRule
             .onNodeWithText(context.getString(R.string.viewer_unsupported_choose_encoding_action))
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun `the editor is offered with the not-text warning when the host offers it`() {
+        var opened = false
+        composeTestRule.setContent {
+            PreviewWrapper {
+                UnsupportedFilePlaceholder(
+                    mimeType = "application/octet-stream",
+                    onOpenInEditor = { opened = true },
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(CommonR.string.general_open_in_editor_not_text_warning))
+            .assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_open_in_editor_action))
+            .performClick()
+
+        opened shouldBe true
+    }
+
+    @Test
+    fun `the editor is not offered when the host does not offer it`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                UnsupportedFilePlaceholder(mimeType = "application/octet-stream")
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.viewer_open_in_editor_action))
+            .assertDoesNotExist()
+        composeTestRule
+            .onNodeWithText(context.getString(CommonR.string.general_open_in_editor_not_text_warning))
             .assertDoesNotExist()
     }
 

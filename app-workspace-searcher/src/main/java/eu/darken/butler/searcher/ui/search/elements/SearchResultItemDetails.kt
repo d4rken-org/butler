@@ -47,6 +47,7 @@ import eu.darken.butler.workspace.ui.actions.FileActionCapabilities
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.common.withLocationNames
 import kotlin.time.Clock
+import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun SearchResultItemDetails(
@@ -226,11 +227,16 @@ fun SearchResultItemDetails(
                     )
                 }
 
-                if (caps.isText) {
+                if (caps.canOpenInEditor) {
                     QuickActionItem(
                         action = SearcherActionBarItem.OpenInEditor(result),
                         onClick = onAction,
-                        isPrimary = true
+                        isPrimary = true,
+                        subtitle = if (caps.isText) {
+                            null
+                        } else {
+                            stringResource(CommonR.string.general_open_in_editor_not_text_warning)
+                        },
                     )
                 }
 
@@ -313,7 +319,8 @@ private fun QuickActionItem(
     onClick: (SearcherActionBarItem) -> Unit,
     isPrimary: Boolean = false,
     isDestructive: Boolean = action.isDestructive,
-    modifier: Modifier = Modifier
+    subtitle: String? = null,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
 
@@ -339,15 +346,24 @@ private fun QuickActionItem(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        Text(
-            text = action.label.get(context),
-            style = MaterialTheme.typography.bodyLarge,
-            color = when {
-                isDestructive -> MaterialTheme.colorScheme.error
-                isPrimary -> MaterialTheme.colorScheme.onSurface
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
+        Column {
+            Text(
+                text = action.label.get(context),
+                style = MaterialTheme.typography.bodyLarge,
+                color = when {
+                    isDestructive -> MaterialTheme.colorScheme.error
+                    isPrimary -> MaterialTheme.colorScheme.onSurface
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
+            subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
-        )
+        }
     }
 }
 
@@ -369,6 +385,32 @@ private fun SearchResultItemDetailsPreview() {
             result = SearchItem.fromLookup(
                 lookup = mockLookup,
                 matchedQuery = "example",
+            ),
+            trashEnabled = true,
+            onAction = {},
+            onLongPress = {},
+            onDismiss = {},
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearchResultItemDetailsNotTextPreview() {
+    val mockLookup = LocalPathLookup(
+        lookedUp = LocalPath.build("/storage/emulated/0/Documents/blob.bin"),
+        fileType = FileType.FILE,
+        size = 1024L,
+        modifiedAt = Clock.System.now(),
+        target = null,
+    )
+
+    PreviewWrapper {
+        SearchResultItemDetails(
+            result = SearchItem.fromLookup(
+                lookup = mockLookup,
+                matchedQuery = "blob",
             ),
             trashEnabled = true,
             onAction = {},

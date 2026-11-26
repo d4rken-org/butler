@@ -76,6 +76,24 @@ class FileActionCapabilitiesTest : BaseTest() {
     }
 
     @Test
+    fun `every file can be opened in the editor, whatever its name says`() {
+        val binary = FileActionCapabilities.of(localFile("blob.bin"))
+
+        binary.canOpenInEditor shouldBe true
+        binary.isText shouldBe false
+
+        val text = FileActionCapabilities.of(localFile("notes.txt"))
+
+        text.canOpenInEditor shouldBe true
+        text.isText shouldBe true
+    }
+
+    @Test
+    fun `a folder cannot be opened in the editor`() {
+        FileActionCapabilities.of(localFile("notes.txt", FileType.DIRECTORY)).canOpenInEditor shouldBe false
+    }
+
+    @Test
     fun `a folder is never treated as the file its name looks like`() {
         FileActionCapabilities.of(localFile("app.apk", FileType.DIRECTORY)).isInstallable shouldBe false
         FileActionCapabilities.of(localFile("notes.txt", FileType.DIRECTORY)).isText shouldBe false
