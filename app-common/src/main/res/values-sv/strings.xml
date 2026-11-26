@@ -165,6 +165,7 @@
     <string name="general_delete_action">Radera</string>
     <string name="general_show_details_action">Visa detaljer</string>
     <string name="general_hide_details_action">Dölj detaljer</string>
+    <string name="general_open_in_editor_not_text_warning">Den här filen är kanske inte text</string>
 
     <string name="general_delete_confirmation_title">Bekräfta radering</string>
     <string name="general_delete_confirmation_message_x">Radera \"%s\"?</string>

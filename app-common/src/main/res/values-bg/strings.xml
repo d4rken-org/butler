@@ -165,6 +165,7 @@
     <string name="general_delete_action">Изтрий</string>
     <string name="general_show_details_action">Покажи подробности</string>
     <string name="general_hide_details_action">Скрий подробности</string>
+    <string name="general_open_in_editor_not_text_warning">Този файл може да не е текстов</string>
 
     <string name="general_delete_confirmation_title">Потвърди изтриването</string>
     <string name="general_delete_confirmation_message_x">Да се изтрие ли \"%s\"?</string>
