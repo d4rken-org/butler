@@ -100,6 +100,27 @@ class ViewerActionsTest : BaseTest() {
             .contains(ViewerActionBarItem.OpenInEditor) shouldBe false
     }
 
+    private val unsupported = ViewerContent.Unsupported(MimeInfo("application/octet-stream"))
+
+    /** The viewer cannot show it, so the Editor is the one place left in Butler to look at it. */
+    @Test
+    fun `content the viewer cannot show leads with the editor`() {
+        viewerActions(stored, trashEnabled = false, content = unsupported)
+            .first() shouldBe ViewerActionBarItem.OpenInEditor
+    }
+
+    @Test
+    fun `unsupported content that is gone is not offered to the editor`() {
+        viewerActions(stored, trashEnabled = false, content = unsupported, isGone = true)
+            .contains(ViewerActionBarItem.OpenInEditor) shouldBe false
+    }
+
+    @Test
+    fun `streamed unsupported content has no path for the editor`() {
+        viewerActions(streamed, trashEnabled = false, content = unsupported)
+            .contains(ViewerActionBarItem.OpenInEditor) shouldBe false
+    }
+
     /** The Editor needs a path, and there is nothing left to edit anyway. */
     @Test
     fun `a text file that is gone is not offered to the editor`() {

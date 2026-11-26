@@ -78,6 +78,9 @@ class FileOptionsBottomSheetTest : ComposeTest() {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 
+    private val notTextWarning: String
+        get() = context.getString(CommonR.string.general_open_in_editor_not_text_warning)
+
     private var lastAction: ExplorerActionBarItem? = null
 
     /** Swapping this restages the sheet without a second `setContent` call. */
@@ -237,10 +240,31 @@ class FileOptionsBottomSheetTest : ComposeTest() {
     }
 
     @Test
-    fun `a binary file is not offered to the editor`() {
+    fun `a binary file is offered to the editor with a warning`() {
         setSheetContent(fileNamed("blob.bin"))
 
+        countOf(notTextWarning) shouldBe 1
+        countOf("Edit in a new tab") shouldBe 0
+        composeTestRule.onNodeWithText("Open in editor").performScrollTo().performClick()
+
+        lastAction.shouldBeInstanceOf<ExplorerActionBarItem.File.OpenInEditor>()
+            .item.path shouldBe fileNamed("blob.bin").path
+    }
+
+    @Test
+    fun `a text file is offered to the editor without a warning`() {
+        setSheetContent(fileNamed("notes.yaml"))
+
+        countOf("Edit in a new tab") shouldBe 1
+        countOf(notTextWarning) shouldBe 0
+    }
+
+    @Test
+    fun `the editor is suppressed inside a picker`() {
+        setSheetContent(fileNamed("blob.bin"), openActionsEnabled = false)
+
         countOf("Open in editor") shouldBe 0
+        countOf(notTextWarning) shouldBe 0
     }
 
     @Test

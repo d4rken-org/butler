@@ -638,6 +638,9 @@ private fun ViewerContentArea(
                     onChooseEncoding = onChooseEncoding.takeIf {
                         state.actions.contains(ViewerActionBarItem.Encoding)
                     },
+                    onOpenInEditor = onOpenInEditor.takeIf {
+                        state.actions.contains(ViewerActionBarItem.OpenInEditor)
+                    },
                     onToggleChrome = onToggleChrome,
                 )
 

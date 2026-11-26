@@ -309,6 +309,86 @@ class ViewerWorkspacePageTest : ComposeTest() {
             .assertDoesNotExist()
     }
 
+    private fun unsupportedFileState(
+        source: ViewerSource,
+        isGone: Boolean = false,
+    ): ViewerWorkspaceViewModel.State.Ready {
+        val content = ViewerContent.Unsupported(MimeInfo("application/octet-stream"))
+        return ViewerWorkspaceViewModel.State.Ready(
+            content = content,
+            fileInfo = ViewerFileInfo(size = 1024L),
+            source = source,
+            imageSource = null,
+            actions = viewerActions(source, trashEnabled = false, content = content, isGone = isGone),
+        )
+    }
+
+    private val storedBlob = ViewerSource.Stored(LocalPath.build("/storage/emulated/0/Download/blob.bin"))
+
+    // The action bar's icon carries the label as a content description, the placeholder's button
+    // carries it as text, so this matcher only ever sees the button inside the content.
+    private fun editorButton() = composeTestRule
+        .onNodeWithText(context.getString(R.string.viewer_open_in_editor_action))
+
+    @Test
+    fun `unsupported content offers the editor in its placeholder`() {
+        var opened = false
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = unsupportedFileState(storedBlob),
+                    onOpenInEditor = { opened = true },
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithText(context.getString(CommonR.string.general_open_in_editor_not_text_warning))
+            .assertExists()
+        editorButton().performScrollTo().performClick()
+
+        composeTestRule.runOnIdle { opened shouldBe true }
+    }
+
+    @Test
+    fun `unsupported content that is gone has nothing to open in the editor`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = unsupportedFileState(storedBlob, isGone = true),
+                )
+            }
+        }
+
+        editorButton().assertDoesNotExist()
+    }
+
+    @Test
+    fun `streamed unsupported content has no path for the editor`() {
+        val streamed = ViewerSource.Streamed(
+            uri = "content://com.example.files/document/42".toUri(),
+            displayName = "blob.bin",
+            mime = MimeInfo("application/octet-stream"),
+            sizeBytes = 1024L,
+            arrivalId = "arrival-1",
+        )
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ViewerWorkspacePage(
+                    workspaceId = Workspace.Id(),
+                    design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+                    state = unsupportedFileState(streamed),
+                )
+            }
+        }
+
+        editorButton().assertDoesNotExist()
+    }
+
     @Test
     fun `a pdf whose page has not rendered keeps the chrome reachable`() {
         // Only a spinner is on screen in this state, so there is nothing to tap - a chrome hidden

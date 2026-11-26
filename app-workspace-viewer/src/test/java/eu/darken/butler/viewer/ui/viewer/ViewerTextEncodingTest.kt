@@ -223,7 +223,7 @@ class ViewerTextEncodingTest : BaseTest() {
         val vm = makeViewModel(workspace)
         startCollecting(vm)
         vm.readyState.actions.contains(ViewerActionBarItem.Encoding) shouldBe true
-        vm.readyState.actions.contains(ViewerActionBarItem.OpenInEditor) shouldBe false
+        vm.readyState.actions.contains(ViewerActionBarItem.OpenInEditor) shouldBe true
 
         vm.selectEncoding(TextCharsets.GB18030)
 

@@ -169,6 +169,9 @@
     <string name="general_show_details_action">Show details</string>
     <string name="general_hide_details_action">Hide details</string>
 
+    <!-- Shown with "Open in editor" when the file may not be text: its name does not mark it as text, or the Viewer could not show it -->
+    <string name="general_open_in_editor_not_text_warning">This file may not be text</string>
+
     <string name="general_delete_confirmation_title">Confirm deletion</string>
     <string name="general_delete_confirmation_message_x">Delete \"%s\"?</string>
     <string name="general_delete_confirmation_message_selected_x_items">Delete %d selected items?</string>

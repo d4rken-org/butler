@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.ui.search.elements
 
+import android.content.Context
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +14,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
@@ -31,6 +33,7 @@ import org.robolectric.annotation.Config
 import testhelpers.ComposeTest
 import testhelpers.TestApplication
 import kotlin.uuid.Uuid
+import eu.darken.butler.common.R as CommonR
 
 /**
  * The sheet anchors to the bottom of its pane, so the root has to be tall enough to hold every row -
@@ -73,6 +76,10 @@ class SearchResultItemDetailsTest : ComposeTest() {
         ),
         matchedQuery = "notes",
     )
+
+    private val notTextWarning: String =
+        ApplicationProvider.getApplicationContext<Context>()
+            .getString(CommonR.string.general_open_in_editor_not_text_warning)
 
     private var lastAction: SearcherActionBarItem? = null
 
@@ -168,6 +175,33 @@ class SearchResultItemDetailsTest : ComposeTest() {
         countOf("Open with") shouldBe 0
         countOf("Share") shouldBe 0
         countOf("Copy") shouldBe 1
+    }
+
+    @Test
+    fun `a file not named as text is offered to the editor with a warning`() {
+        val file = localResult("blob.bin")
+        setSheetContent(file)
+
+        countOf(notTextWarning) shouldBe 1
+        composeTestRule.onNodeWithText("Open in editor").performScrollTo().performClick()
+
+        lastAction.shouldBeInstanceOf<SearcherActionBarItem.OpenInEditor>().result shouldBe file
+    }
+
+    @Test
+    fun `a text file is offered to the editor without a warning`() {
+        setSheetContent(localResult("notes.txt"))
+
+        countOf("Open in editor") shouldBe 1
+        countOf(notTextWarning) shouldBe 0
+    }
+
+    @Test
+    fun `a folder is not offered to the editor`() {
+        setSheetContent(localResult("Photos", fileType = FileType.DIRECTORY))
+
+        countOf("Open in editor") shouldBe 0
+        countOf(notTextWarning) shouldBe 0
     }
 
     @Test
