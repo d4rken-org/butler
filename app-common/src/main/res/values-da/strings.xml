@@ -165,6 +165,7 @@
     <string name="general_delete_action">Slet</string>
     <string name="general_show_details_action">Vis detaljer</string>
     <string name="general_hide_details_action">Skjul detaljer</string>
+    <string name="general_open_in_editor_not_text_warning">Denne fil er muligvis ikke tekst</string>
 
     <string name="general_delete_confirmation_title">Bekræft sletning</string>
     <string name="general_delete_confirmation_message_x">Slet \"%s\"?</string>

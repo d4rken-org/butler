@@ -168,6 +168,7 @@
     <string name="general_delete_action">Διαγραφή</string>
     <string name="general_show_details_action">Εμφάνιση λεπτομερειών</string>
     <string name="general_hide_details_action">Απόκρυψη λεπτομερειών</string>
+    <string name="general_open_in_editor_not_text_warning">Αυτό το αρχείο μπορεί να μην είναι κείμενο</string>
 
     <string name="general_delete_confirmation_title">Επιβεβαίωση διαγραφής</string>
     <string name="general_delete_confirmation_message_x">Διαγραφή \"%s\";</string>

@@ -168,6 +168,7 @@
     <string name="general_delete_action">Excluir</string>
     <string name="general_show_details_action">Mostrar detalhes</string>
     <string name="general_hide_details_action">Ocultar detalhes</string>
+    <string name="general_open_in_editor_not_text_warning">Este arquivo pode não ser de texto</string>
 
     <string name="general_delete_confirmation_title">Confirmar exclusão</string>
     <string name="general_delete_confirmation_message_x">Excluir \"%s\"?</string>

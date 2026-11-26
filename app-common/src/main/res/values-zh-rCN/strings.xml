@@ -159,6 +159,7 @@
     <string name="general_delete_action">删除</string>
     <string name="general_show_details_action">显示详情</string>
     <string name="general_hide_details_action">隐藏详情</string>
+    <string name="general_open_in_editor_not_text_warning">此文件可能不是文本</string>
 
     <string name="general_delete_confirmation_title">确认删除</string>
     <string name="general_delete_confirmation_message_x">删除“%s”？</string>

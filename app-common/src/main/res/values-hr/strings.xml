@@ -176,6 +176,7 @@
     <string name="general_delete_action">Izbriši</string>
     <string name="general_show_details_action">Prikaži pojedinosti</string>
     <string name="general_hide_details_action">Sakrij pojedinosti</string>
+    <string name="general_open_in_editor_not_text_warning">Ova datoteka možda nije tekstna</string>
 
     <string name="general_delete_confirmation_title">Potvrdi brisanje</string>
     <string name="general_delete_confirmation_message_x">Izbrisati \"%s\"?</string>
